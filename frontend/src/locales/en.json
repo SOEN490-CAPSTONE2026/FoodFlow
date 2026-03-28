@@ -1080,6 +1080,7 @@
   "donation": {
     "title": "Support FoodFlow",
     "subtitle": "Help us keep rescuing surplus food and delivering more meals to local communities.",
+    "claimsSubtitle": "Help us keep the platform sustainable.",
     "bannerAriaLabel": "Support FoodFlow",
     "listAriaLabel": "Donations list",
     "modalAriaLabel": "Donate Now",

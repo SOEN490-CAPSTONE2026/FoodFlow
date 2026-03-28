@@ -1126,7 +1126,7 @@ const Settings = () => {
           )}
 
           {/* Language & Region Section */}
-          <div className="settings-section">
+          <div className="settings-section language-region-section">
             <div className="section-header-with-icon">
               <div className="icon-circle">
                 <Globe size={24} />

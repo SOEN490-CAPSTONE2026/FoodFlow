@@ -1020,6 +1020,7 @@
   "donation": {
     "title": "Apoie o FoodFlow",
     "subtitle": "Ajude-nos a continuar resgatando alimentos excedentes e entregando mais refeicoes para as comunidades locais.",
+    "claimsSubtitle": "Ajude-nos a manter a plataforma sustentavel.",
     "bannerAriaLabel": "Apoie o FoodFlow",
     "listAriaLabel": "Lista de doacoes",
     "modalAriaLabel": "Doar agora",

@@ -1020,6 +1020,7 @@
   "donation": {
     "title": "支持 FoodFlow",
     "subtitle": "帮助我们持续拯救多余食物，并为本地社区送达更多餐食。",
+    "claimsSubtitle": "帮助我们保持平台可持续运营。",
     "bannerAriaLabel": "支持 FoodFlow",
     "listAriaLabel": "捐赠列表",
     "modalAriaLabel": "立即捐赠",

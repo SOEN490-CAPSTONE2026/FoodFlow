@@ -1020,6 +1020,7 @@
   "donation": {
     "title": "ادعم FoodFlow",
     "subtitle": "ساعدنا على مواصلة إنقاذ فائض الطعام وتقديم المزيد من الوجبات للمجتمعات المحلية.",
+    "claimsSubtitle": "ساعدنا في الحفاظ على استدامة المنصة.",
     "bannerAriaLabel": "ادعم FoodFlow",
     "listAriaLabel": "قائمة التبرعات",
     "modalAriaLabel": "تبرع الآن",

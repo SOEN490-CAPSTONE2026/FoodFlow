@@ -72,6 +72,14 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.language-region-section {
+  margin-bottom: 1rem;
+}
+
+.language-region-section + .settings-section {
+  margin-left: 0.5rem;
+}
+
 /* Section Header with Icon */
 .section-header-with-icon {
   display: flex;
