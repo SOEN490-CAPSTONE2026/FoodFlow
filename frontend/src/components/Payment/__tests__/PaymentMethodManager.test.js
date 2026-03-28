@@ -43,9 +43,7 @@ describe('PaymentMethodManager', () => {
 
     render(<PaymentMethodManager active />);
 
-    expect(
-      screen.getByText(/Loading saved methods/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Loading saved methods/i)).toBeInTheDocument();
     expect(await screen.findByText(/visa ending in 4242/i)).toBeInTheDocument();
     expect(screen.getByText(/Default method/i)).toBeInTheDocument();
   });
@@ -65,7 +63,9 @@ describe('PaymentMethodManager', () => {
     render(<PaymentMethodManager active />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Add Method' }));
-    expect(screen.getByRole('button', { name: 'Mock Save' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Mock Save' })
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Mock Cancel' }));
     await waitFor(() => {

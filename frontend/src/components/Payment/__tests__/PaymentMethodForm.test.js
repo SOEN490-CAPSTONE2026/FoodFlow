@@ -19,7 +19,9 @@ jest.mock('@stripe/stripe-js', () => ({
 
 jest.mock('@stripe/react-stripe-js', () => ({
   Elements: ({ children }) => <div data-testid="elements">{children}</div>,
-  PaymentElement: () => <div data-testid="payment-element">Payment Element</div>,
+  PaymentElement: () => (
+    <div data-testid="payment-element">Payment Element</div>
+  ),
   useStripe: () => ({
     confirmSetup: mockConfirmSetup,
   }),
@@ -53,7 +55,9 @@ describe('PaymentMethodForm', () => {
 
     render(<PaymentMethodForm onSaved={jest.fn()} onCancel={jest.fn()} />);
 
-    expect(await screen.findByText(/Missing setup intent/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Missing setup intent/i)
+    ).toBeInTheDocument();
   });
 
   it('saves a payment method successfully', async () => {

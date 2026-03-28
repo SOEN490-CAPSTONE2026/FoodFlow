@@ -97,7 +97,9 @@ describe('Payment tools coverage', () => {
 
     render(<PaymentInvoices active />);
 
-    expect(await screen.findByText('Invoice history failed')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Invoice history failed')
+    ).toBeInTheDocument();
   });
 
   it('shows invoice prepare errors', async () => {
@@ -112,7 +114,9 @@ describe('Payment tools coverage', () => {
 
     render(<PaymentInvoices active />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'View Invoice' }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'View Invoice' })
+    );
     expect(await screen.findByText('Prepare failed')).toBeInTheDocument();
   });
 
@@ -135,7 +139,9 @@ describe('Payment tools coverage', () => {
     expect(screen.getByText(/Requested/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Request Refund' }));
-    expect(screen.getByText(/Submit a refund request for payment #3/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Submit a refund request for payment #3/i)
+    ).toBeInTheDocument();
   });
 
   it('shows refund loading errors', async () => {
@@ -160,8 +166,12 @@ describe('Payment tools coverage', () => {
 
     render(<PaymentRefunds active />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'View Refunds' }));
-    expect(await screen.findByText('Refund history failed')).toBeInTheDocument();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'View Refunds' })
+    );
+    expect(
+      await screen.findByText('Refund history failed')
+    ).toBeInTheDocument();
   });
 });
 
@@ -230,7 +240,10 @@ describe('PaymentRetryNotification', () => {
 
   it('does not render for non-failed payments', () => {
     const { container } = render(
-      <PaymentRetryNotification payment={{ id: 1, status: 'SUCCEEDED' }} onRetried={jest.fn()} />
+      <PaymentRetryNotification
+        payment={{ id: 1, status: 'SUCCEEDED' }}
+        onRetried={jest.fn()}
+      />
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -286,7 +299,9 @@ describe('PaymentRetryNotification', () => {
       />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Retry Payment' }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Retry Payment' })
+    );
     expect(await screen.findByText('Retry action failed')).toBeInTheDocument();
   });
 });
@@ -298,7 +313,11 @@ describe('RefundRequestModal', () => {
 
   it('returns null without a payment', () => {
     const { container } = render(
-      <RefundRequestModal payment={null} onClose={jest.fn()} onSubmitted={jest.fn()} />
+      <RefundRequestModal
+        payment={null}
+        onClose={jest.fn()}
+        onSubmitted={jest.fn()}
+      />
     );
     expect(container).toBeEmptyDOMElement();
   });
