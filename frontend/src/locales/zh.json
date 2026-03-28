@@ -1385,6 +1385,21 @@
       "privacyPolicyLink": "隐私政策",
       "detailsSuffix": "。"
     },
+    "paymentHistory": {
+      "title": "支付历史",
+      "description": "查看您最近对 FoodFlow 的贡献。",
+      "toggleAriaLabel": "展开或收起支付历史",
+      "viewButton": "查看 ▼",
+      "hideButton": "隐藏 ▲",
+      "loading": "正在加载支付历史...",
+      "loadError": "当前无法加载支付历史。",
+      "empty": "您还没有支付记录。完成捐赠后会显示在这里。",
+      "listAriaLabel": "支付历史列表",
+      "defaultDescription": "FoodFlow 捐赠",
+      "refreshButton": "刷新",
+      "notAvailable": "不可用",
+      "unknownStatus": "未知"
+    },
     "notificationTypes": {
       "title": "通知类型",
       "description": "自定义您想要接收的通知类型",

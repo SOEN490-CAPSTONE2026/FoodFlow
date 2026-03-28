@@ -1413,6 +1413,21 @@
       "privacyPolicyLink": "Politique de confidentialité",
       "detailsSuffix": "."
     },
+    "paymentHistory": {
+      "title": "Historique des paiements",
+      "description": "Consultez vos contributions récentes à FoodFlow.",
+      "toggleAriaLabel": "Afficher ou masquer l'historique des paiements",
+      "viewButton": "Voir ▼",
+      "hideButton": "Masquer ▲",
+      "loading": "Chargement de l'historique des paiements...",
+      "loadError": "Impossible de charger l'historique des paiements pour le moment.",
+      "empty": "Vous n'avez pas encore de paiements. Vos dons apparaîtront ici une fois finalisés.",
+      "listAriaLabel": "Liste de l'historique des paiements",
+      "defaultDescription": "Don FoodFlow",
+      "refreshButton": "Actualiser",
+      "notAvailable": "N/D",
+      "unknownStatus": "Inconnu"
+    },
     "notificationTypes": {
       "title": "Types de notification",
       "description": "Personnalisez les types de notifications que vous souhaitez recevoir",

@@ -1383,6 +1383,21 @@
       "privacyPolicyLink": "سياسة الخصوصية",
       "detailsSuffix": "."
     },
+    "paymentHistory": {
+      "title": "سجل المدفوعات",
+      "description": "راجع مساهماتك الأخيرة في FoodFlow.",
+      "toggleAriaLabel": "إظهار أو إخفاء سجل المدفوعات",
+      "viewButton": "عرض ▼",
+      "hideButton": "إخفاء ▲",
+      "loading": "جارٍ تحميل سجل المدفوعات...",
+      "loadError": "تعذر تحميل سجل المدفوعات حالياً.",
+      "empty": "لا توجد لديك مدفوعات بعد. ستظهر تبرعاتك هنا عند اكتمالها.",
+      "listAriaLabel": "قائمة سجل المدفوعات",
+      "defaultDescription": "تبرع FoodFlow",
+      "refreshButton": "تحديث",
+      "notAvailable": "غير متاح",
+      "unknownStatus": "غير معروف"
+    },
     "notificationTypes": {
       "title": "أنواع الإشعارات",
       "description": "خصص أنواع الإشعارات التي تريد تلقيها",

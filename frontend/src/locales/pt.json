@@ -1385,6 +1385,21 @@
       "privacyPolicyLink": "Política de Privacidade",
       "detailsSuffix": "."
     },
+    "paymentHistory": {
+      "title": "Histórico de pagamentos",
+      "description": "Revise suas contribuições recentes para o FoodFlow.",
+      "toggleAriaLabel": "Alternar histórico de pagamentos",
+      "viewButton": "Ver ▼",
+      "hideButton": "Ocultar ▲",
+      "loading": "Carregando histórico de pagamentos...",
+      "loadError": "Não foi possível carregar o histórico de pagamentos agora.",
+      "empty": "Você ainda não tem pagamentos. Suas doações aparecerão aqui quando forem concluídas.",
+      "listAriaLabel": "Lista do histórico de pagamentos",
+      "defaultDescription": "Doação FoodFlow",
+      "refreshButton": "Atualizar",
+      "notAvailable": "N/D",
+      "unknownStatus": "Desconhecido"
+    },
     "notificationTypes": {
       "title": "Tipos de notificação",
       "description": "Personalize quais tipos de notificações deseja receber",

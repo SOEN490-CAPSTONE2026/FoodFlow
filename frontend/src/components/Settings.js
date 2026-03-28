@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
-import { User, Globe, Bell, Camera, Lock, Calendar } from 'lucide-react';
+import {
+  User,
+  Globe,
+  Bell,
+  Camera,
+  Lock,
+  Calendar,
+  Wallet,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
@@ -287,7 +295,13 @@ const Settings = () => {
     useState(false);
   const [isNotificationTypesExpanded, setIsNotificationTypesExpanded] =
     useState(false);
+  const [isPaymentHistoryExpanded, setIsPaymentHistoryExpanded] =
+    useState(false);
   const [isAddressSelected, setIsAddressSelected] = useState(true);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(false);
+  const [paymentHistoryError, setPaymentHistoryError] = useState('');
+  const [paymentHistoryLoaded, setPaymentHistoryLoaded] = useState(false);
 
   const fileInputRef = useRef(null);
   const addressAutocompleteRef = useRef(null);
@@ -812,6 +826,78 @@ const Settings = () => {
     }
   };
 
+  const formatPaymentAmount = payment => {
+    const amount = Number(payment?.amount || 0);
+    const currency = String(payment?.currency || 'USD').toUpperCase();
+
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency,
+      }).format(amount);
+    } catch (error) {
+      return `${currency} ${amount.toFixed(2)}`;
+    }
+  };
+
+  const formatPaymentDate = value => {
+    if (!value) {
+      return t('settings.paymentHistory.notAvailable');
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return t('settings.paymentHistory.notAvailable');
+    }
+
+    return date.toLocaleString();
+  };
+
+  const formatPaymentStatus = status => {
+    if (!status) {
+      return t('settings.paymentHistory.unknownStatus');
+    }
+
+    return status
+      .toString()
+      .toLowerCase()
+      .split('_')
+      .map(token => token.charAt(0).toUpperCase() + token.slice(1))
+      .join(' ');
+  };
+
+  const fetchPaymentHistory = async () => {
+    setPaymentHistoryLoading(true);
+    setPaymentHistoryError('');
+
+    try {
+      const response = await api.get('/payments/history', {
+        params: {
+          page: 0,
+          size: 10,
+        },
+      });
+      setPaymentHistory(response.data?.content || []);
+      setPaymentHistoryLoaded(true);
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+      setPaymentHistoryError(t('settings.paymentHistory.loadError'));
+    } finally {
+      setPaymentHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (
+      isPaymentHistoryExpanded &&
+      role !== 'ADMIN' &&
+      userId &&
+      !paymentHistoryLoaded
+    ) {
+      fetchPaymentHistory();
+    }
+  }, [isPaymentHistoryExpanded, role, userId, paymentHistoryLoaded]);
+
   return (
     <div className="settings-container">
       <div className="settings-content">
@@ -1211,6 +1297,107 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {role !== 'ADMIN' && (
+          <div className="settings-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Wallet size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>{t('settings.paymentHistory.title')}</h2>
+                <p className="section-description">
+                  {t('settings.paymentHistory.description')}
+                </p>
+              </div>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsPaymentHistoryExpanded(prev => !prev)}
+                  aria-expanded={isPaymentHistoryExpanded}
+                  aria-label={t('settings.paymentHistory.toggleAriaLabel')}
+                >
+                  {isPaymentHistoryExpanded
+                    ? t('settings.paymentHistory.hideButton')
+                    : t('settings.paymentHistory.viewButton')}
+                </button>
+              </div>
+            </div>
+
+            {isPaymentHistoryExpanded && (
+              <div className="section-content language-region-content-wrap">
+                {paymentHistoryLoading && (
+                  <div className="loading-spinner">
+                    {t('settings.paymentHistory.loading')}
+                  </div>
+                )}
+
+                {!paymentHistoryLoading && paymentHistoryError && (
+                  <div className="error-message payment-history-error-wrap">
+                    {paymentHistoryError}
+                  </div>
+                )}
+
+                {!paymentHistoryLoading && !paymentHistoryError && (
+                  <>
+                    {paymentHistory.length === 0 ? (
+                      <p className="payment-history-empty">
+                        {t('settings.paymentHistory.empty')}
+                      </p>
+                    ) : (
+                      <div
+                        className="payment-history-list"
+                        aria-label={t('settings.paymentHistory.listAriaLabel')}
+                      >
+                        {paymentHistory.map(payment => (
+                          <div
+                            key={payment.id}
+                            className="payment-history-item"
+                          >
+                            <div className="payment-history-main">
+                              <div className="payment-history-amount">
+                                {formatPaymentAmount(payment)}
+                              </div>
+                              <div className="payment-history-description">
+                                {payment.description ||
+                                  t(
+                                    'settings.paymentHistory.defaultDescription'
+                                  )}
+                              </div>
+                            </div>
+                            <div className="payment-history-meta">
+                              <span className="payment-history-status">
+                                {formatPaymentStatus(payment.status)}
+                              </span>
+                              <span className="payment-history-type">
+                                {formatPaymentStatus(payment.paymentType)}
+                              </span>
+                              <span className="payment-history-date">
+                                {formatPaymentDate(payment.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="payment-history-actions">
+                      <button
+                        type="button"
+                        className="settings-toggle-btn"
+                        onClick={fetchPaymentHistory}
+                        disabled={paymentHistoryLoading}
+                      >
+                        {t('settings.paymentHistory.refreshButton')}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Notifications Section */}
         <div className="settings-section">

@@ -476,6 +476,88 @@
   flex-direction: column;
 }
 
+.payment-history-error-wrap {
+  margin-bottom: 0;
+}
+
+.payment-history-empty {
+  margin: 0;
+  color: #5f6f7f;
+  line-height: 1.6;
+}
+
+.payment-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.payment-history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #d9e6f2;
+  background: #f9fcff;
+}
+
+.payment-history-main {
+  min-width: 180px;
+}
+
+.payment-history-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #123f5c;
+  margin-bottom: 0.2rem;
+}
+
+.payment-history-description {
+  font-size: 0.9rem;
+  color: #5f6f7f;
+}
+
+.payment-history-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.payment-history-status,
+.payment-history-type,
+.payment-history-date {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.58rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.payment-history-status {
+  background: #e7f2ff;
+  color: #184f76;
+}
+
+.payment-history-type {
+  background: #edf8ef;
+  color: #2d6b3f;
+}
+
+.payment-history-date {
+  background: #f2f4f7;
+  color: #516173;
+}
+
+.payment-history-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.6rem;
+}
+
 /* Form Validation Styles */
 .field-error {
   display: block;
@@ -669,6 +751,24 @@ body.settings-address-open .pac-item {
     align-items: flex-start;
     gap: 1rem;
     padding: 1rem 0;
+  }
+
+  .payment-history-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .payment-history-meta {
+    justify-content: flex-start;
+  }
+
+  .payment-history-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .payment-history-actions .settings-toggle-btn {
+    width: 100%;
   }
 
   .notification-info {
