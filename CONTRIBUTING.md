@@ -71,10 +71,90 @@ If your PR doesn't meet the coverage requirements:
 
 ### Code Style
 
-- Backend: Follow Java/Spring Boot conventions
+- Backend: Follow Java/Spring Boot conventions (see Spring Boot Best Practices below)
 - Frontend: Use ESLint and Prettier (run `npm run validate`)
 - Write clear, self-documenting code
 - Add comments for complex logic
+
+## Spring Boot Best Practices
+
+### Dependency Injection
+
+**✅ Use Constructor Injection (Required)**
+```java
+@RestController
+public class MyController {
+    private final MyService myService;
+    
+    public MyController(MyService myService) {
+        this.myService = myService;
+    }
+}
+```
+
+**❌ Don't Use Field Injection**
+```java
+@RestController
+public class MyController {
+    @Autowired  // DON'T DO THIS
+    private MyService myService;
+}
+```
+
+Benefits: Makes dependencies explicit, enables immutability, easier testing, better IDE support.
+
+### CORS Configuration
+
+**✅ Centralize CORS in SecurityConfig**
+
+All CORS configuration must be in `SecurityConfig.java`. Do NOT use `@CrossOrigin` annotations on controllers.
+
+**❌ Don't Use @CrossOrigin on Controllers**
+```java
+@RestController
+@CrossOrigin(origins = "http://localhost:3000")  // DON'T DO THIS
+public class MyController { }
+```
+
+Benefits: Single source of truth, easier maintenance, consistent behavior.
+
+### Exception Handling
+
+**✅ Use Global Exception Handler**
+
+Let `GlobalExceptionHandler` (@ControllerAdvice) handle exceptions. Do NOT use try-catch in controller methods.
+
+```java
+@PostMapping("/endpoint")
+public ResponseEntity<MyResponse> myEndpoint(@Valid @RequestBody MyRequest request) {
+    MyResponse response = myService.process(request);  // Let exceptions propagate
+    return ResponseEntity.ok(response);
+}
+```
+
+**❌ Don't Use Try-Catch in Controllers**
+```java
+@PostMapping("/endpoint")
+public ResponseEntity<MyResponse> myEndpoint(@Valid @RequestBody MyRequest request) {
+    try {  // DON'T DO THIS
+        MyResponse response = myService.process(request);
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(...);
+    }
+}
+```
+
+Benefits: Consistent error responses, cleaner controller code, centralized error logging.
+
+### Code Review Checklist
+
+When reviewing Spring Boot code, verify:
+- [ ] Constructor injection used (no `@Autowired` on fields)
+- [ ] No `@CrossOrigin` annotations on controllers
+- [ ] No try-catch blocks in controllers (exceptions handled by @ControllerAdvice)
+- [ ] Dependencies marked as `final`
+- [ ] Controllers are thin (business logic in services)
 
 ### Pull Request Process
 

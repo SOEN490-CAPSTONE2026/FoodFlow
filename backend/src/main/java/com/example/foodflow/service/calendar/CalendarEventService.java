@@ -21,14 +21,17 @@ public class CalendarEventService {
 
     private static final Logger logger = LoggerFactory.getLogger(CalendarEventService.class);
 
-    @Autowired
-    private SyncedCalendarEventRepository syncedCalendarEventRepository;
+    private final SyncedCalendarEventRepository syncedCalendarEventRepository;
+    private final CalendarSyncLogRepository calendarSyncLogRepository;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
 
-    @Autowired
-    private CalendarSyncLogRepository calendarSyncLogRepository;
-
-    @Autowired
-    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    public CalendarEventService(SyncedCalendarEventRepository syncedCalendarEventRepository,
+                               CalendarSyncLogRepository calendarSyncLogRepository,
+                               CalendarSyncPreferenceRepository calendarSyncPreferenceRepository) {
+        this.syncedCalendarEventRepository = syncedCalendarEventRepository;
+        this.calendarSyncLogRepository = calendarSyncLogRepository;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+    }
 
     /**
      * Create a new synced calendar event

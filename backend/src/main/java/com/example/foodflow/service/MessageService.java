@@ -29,30 +29,30 @@ import java.util.stream.Collectors;
 public class MessageService {
     private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
     
-    @Autowired
-    private MessageRepository messageRepository;
-    
-    @Autowired
-    private ConversationRepository conversationRepository;
-    
-    @Autowired
-    private ConversationService conversationService;
-    
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    
-    @Autowired
-    private NotificationPreferenceService notificationPreferenceService;
-    
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private GamificationService gamificationService;
-
+    private final MessageRepository messageRepository;
+    private final ConversationRepository conversationRepository;
+    private final ConversationService conversationService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationPreferenceService notificationPreferenceService;
+    private final EmailService emailService;
+    private final GamificationService gamificationService;
     private final BusinessMetricsService businessMetricsService;
     
-    public MessageService(BusinessMetricsService businessMetricsService) {
+    public MessageService(MessageRepository messageRepository,
+                         ConversationRepository conversationRepository,
+                         ConversationService conversationService,
+                         SimpMessagingTemplate messagingTemplate,
+                         NotificationPreferenceService notificationPreferenceService,
+                         EmailService emailService,
+                         GamificationService gamificationService,
+                         BusinessMetricsService businessMetricsService) {
+        this.messageRepository = messageRepository;
+        this.conversationRepository = conversationRepository;
+        this.conversationService = conversationService;
+        this.messagingTemplate = messagingTemplate;
+        this.notificationPreferenceService = notificationPreferenceService;
+        this.emailService = emailService;
+        this.gamificationService = gamificationService;
         this.businessMetricsService = businessMetricsService;
     }
 

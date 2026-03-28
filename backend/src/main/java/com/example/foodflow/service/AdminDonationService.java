@@ -19,7 +19,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDate;
@@ -41,8 +40,6 @@ public class AdminDonationService {
     private final SurplusPostRepository surplusPostRepository;
     private final ClaimRepository claimRepository;
     private final DonationTimelineRepository timelineRepository;
-    private final UserRepository userRepository;
-    private final TimelineService timelineService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final EmailService emailService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -59,8 +56,6 @@ public class AdminDonationService {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
         this.timelineRepository = timelineRepository;
-        this.userRepository = userRepository;
-        this.timelineService = timelineService;
         this.notificationPreferenceService = notificationPreferenceService;
         this.emailService = emailService;
         this.messagingTemplate = messagingTemplate;

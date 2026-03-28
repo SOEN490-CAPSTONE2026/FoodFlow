@@ -2,10 +2,8 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.types.FoodType;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ImpactMetricsEngineTest {

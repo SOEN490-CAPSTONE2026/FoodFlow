@@ -4,9 +4,7 @@ import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.TemperatureCategory;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ExpirySuggestionServiceTest {

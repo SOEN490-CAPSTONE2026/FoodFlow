@@ -5,7 +5,6 @@ import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.RateLimitingService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.Arrays;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -44,9 +41,6 @@ class RateLimitMonitoringControllerTest {
 
     @MockBean
     private UserRepository userRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private User adminUser;
     private User regularUser;

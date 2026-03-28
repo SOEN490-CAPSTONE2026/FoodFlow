@@ -6,7 +6,7 @@
     "@react-google-maps/api": "^2.20.7",
     "@stomp/stompjs": "^7.2.1",
     "@stripe/react-stripe-js": "^5.6.1",
-    "@stripe/stripe-js": "^8.9.0",
+    "@stripe/stripe-js": "^8.11.0",
     "@tanstack/react-query": "^5.90.20",
     "@testing-library/dom": "^10.4.1",
     "axios": "^1.12.2",
@@ -44,7 +44,9 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "validate": "npm run lint && npm run format:check",
-    "test:coverage": "react-scripts test --coverage --watchAll=false"
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "pretest:coverage:ci": "node -e \"require('fs').mkdirSync('./test-results', { recursive: true })\"",
+    "test:coverage:ci": "react-scripts test --coverage --watchAll=false --json --outputFile=./test-results/jest-results.json"
   },
   "jest": {
     "collectCoverageFrom": [

@@ -605,7 +605,7 @@ body {
   padding: 32px;
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
   scroll-behavior: smooth;
 }
 

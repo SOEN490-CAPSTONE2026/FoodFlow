@@ -8,6 +8,9 @@ import {
   Lock,
   Calendar,
   Wallet,
+  Clock,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -16,7 +19,11 @@ import ChangePasswordModal from './ChangePasswordModal';
 import CalendarSettings from './CalendarSettings';
 import DonorPhotoPreferencesSection from './DonorDashboard/DonorPhotoPreferencesSection';
 import { AuthContext } from '../contexts/AuthContext';
-import { notificationPreferencesAPI, profileAPI } from '../services/api';
+import {
+  notificationPreferencesAPI,
+  profileAPI,
+  pickupPreferencesAPI,
+} from '../services/api';
 import api from '../services/api';
 import { inferRegionFromAddress } from '../services/timezoneService';
 import '../style/Settings.css';
@@ -286,6 +293,16 @@ const Settings = () => {
     confirmPassword: '',
   });
 
+  // Pickup preferences state (donor only)
+  const [pickupPrefs, setPickupPrefs] = useState({
+    availabilityWindowStart: '',
+    availabilityWindowEnd: '',
+    slots: [],
+  });
+  const [pickupPrefsMessage, setPickupPrefsMessage] = useState('');
+  const [pickupPrefsError, setPickupPrefsError] = useState('');
+  const [isPickupPrefsExpanded, setIsPickupPrefsExpanded] = useState(false);
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -374,6 +391,83 @@ const Settings = () => {
       return () => clearTimeout(timer);
     }
   }, [preferencesMessage, preferencesError]);
+
+  // Load pickup preferences for donors
+  useEffect(() => {
+    if (userId && role === 'DONOR') {
+      pickupPreferencesAPI
+        .get()
+        .then(res => {
+          const data = res.data;
+          setPickupPrefs({
+            availabilityWindowStart: data.availabilityWindowStart || '',
+            availabilityWindowEnd: data.availabilityWindowEnd || '',
+            slots:
+              data.slots && data.slots.length > 0
+                ? data.slots.map(s => ({
+                    startTime: s.startTime || '',
+                    endTime: s.endTime || '',
+                    notes: s.notes || '',
+                  }))
+                : [],
+          });
+        })
+        .catch(() => {});
+    }
+  }, [userId, role]);
+
+  // Auto-clear pickup prefs messages after 3 seconds
+  useEffect(() => {
+    if (pickupPrefsMessage || pickupPrefsError) {
+      const timer = setTimeout(() => {
+        setPickupPrefsMessage('');
+        setPickupPrefsError('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [pickupPrefsMessage, pickupPrefsError]);
+
+  const handlePickupSlotChange = (index, field, value) => {
+    setPickupPrefs(prev => {
+      const slots = [...prev.slots];
+      slots[index] = { ...slots[index], [field]: value };
+      return { ...prev, slots };
+    });
+  };
+
+  const addPickupPrefSlot = () => {
+    setPickupPrefs(prev => ({
+      ...prev,
+      slots: [...prev.slots, { startTime: '', endTime: '', notes: '' }],
+    }));
+  };
+
+  const removePickupPrefSlot = index => {
+    setPickupPrefs(prev => ({
+      ...prev,
+      slots: prev.slots.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSavePickupPreferences = async () => {
+    try {
+      const payload = {
+        availabilityWindowStart: pickupPrefs.availabilityWindowStart || null,
+        availabilityWindowEnd: pickupPrefs.availabilityWindowEnd || null,
+        slots: pickupPrefs.slots
+          .filter(s => s.startTime && s.endTime)
+          .map(s => ({
+            startTime: s.startTime,
+            endTime: s.endTime,
+            notes: s.notes || null,
+          })),
+      };
+      await pickupPreferencesAPI.save(payload);
+      setPickupPrefsMessage('Pickup preferences saved successfully.');
+    } catch {
+      setPickupPrefsError('Failed to save pickup preferences.');
+    }
+  };
 
   const fetchUserProfile = async () => {
     try {
@@ -1259,6 +1353,254 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {/* Pickup Preferences Section - Donor only */}
+        {role === 'DONOR' && (
+          <div className="settings-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Clock size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>Pickup Preferences</h2>
+                <p className="section-description">
+                  Save recurring pickup time slots so they are pre-filled when
+                  you create a new donation.
+                </p>
+              </div>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsPickupPrefsExpanded(prev => !prev)}
+                  aria-expanded={isPickupPrefsExpanded}
+                  aria-label="Toggle pickup preferences"
+                >
+                  {isPickupPrefsExpanded ? 'Hide ▲' : 'Edit ▼'}
+                </button>
+              </div>
+            </div>
+
+            {isPickupPrefsExpanded && (
+              <div className="section-content">
+                {/* Availability Window */}
+                <div
+                  className="preference-item"
+                  style={{
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div className="preference-info">
+                    <h4>Default Availability Window</h4>
+                    <p>
+                      Set the broad time range during which you are generally
+                      available for pickups.
+                    </p>
+                  </div>
+                  <div
+                    style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}
+                  >
+                    <div>
+                      <label
+                        className="input-label"
+                        style={{ display: 'block', marginBottom: '0.25rem' }}
+                      >
+                        From
+                      </label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={pickupPrefs.availabilityWindowStart}
+                        onChange={e =>
+                          setPickupPrefs(prev => ({
+                            ...prev,
+                            availabilityWindowStart: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className="input-label"
+                        style={{ display: 'block', marginBottom: '0.25rem' }}
+                      >
+                        To
+                      </label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={pickupPrefs.availabilityWindowEnd}
+                        onChange={e =>
+                          setPickupPrefs(prev => ({
+                            ...prev,
+                            availabilityWindowEnd: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recurring Time Slots */}
+                <div style={{ marginTop: '1.25rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <div className="preference-info">
+                      <h4>Recurring Pickup Time Slots</h4>
+                      <p>
+                        These times will be pre-filled when you create a new
+                        donation.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-add-slot"
+                      onClick={addPickupPrefSlot}
+                    >
+                      <Plus size={16} /> Add Slot
+                    </button>
+                  </div>
+
+                  {pickupPrefs.slots.length === 0 && (
+                    <p style={{ color: '#888', fontSize: '0.9rem' }}>
+                      No recurring slots saved yet.
+                    </p>
+                  )}
+
+                  {pickupPrefs.slots.map((slot, index) => (
+                    <div
+                      key={index}
+                      className="pickup-slot-card"
+                      style={{ marginBottom: '0.75rem' }}
+                    >
+                      <div className="slot-header">
+                        <span className="slot-number">Slot {index + 1}</span>
+                        <button
+                          type="button"
+                          className="btn-remove-slot"
+                          onClick={() => removePickupPrefSlot(index)}
+                          aria-label="Remove slot"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '1rem',
+                          flexWrap: 'wrap',
+                          marginTop: '0.5rem',
+                        }}
+                      >
+                        <div>
+                          <label
+                            className="input-label"
+                            style={{
+                              display: 'block',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            Start Time
+                          </label>
+                          <input
+                            type="time"
+                            className="form-input"
+                            value={slot.startTime}
+                            onChange={e =>
+                              handlePickupSlotChange(
+                                index,
+                                'startTime',
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label
+                            className="input-label"
+                            style={{
+                              display: 'block',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            End Time
+                          </label>
+                          <input
+                            type="time"
+                            className="form-input"
+                            value={slot.endTime}
+                            onChange={e =>
+                              handlePickupSlotChange(
+                                index,
+                                'endTime',
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                        <div style={{ flex: 1, minWidth: '150px' }}>
+                          <label
+                            className="input-label"
+                            style={{
+                              display: 'block',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            Notes (optional)
+                          </label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            placeholder="e.g. Weekday mornings"
+                            value={slot.notes}
+                            onChange={e =>
+                              handlePickupSlotChange(
+                                index,
+                                'notes',
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {pickupPrefsMessage && (
+                  <p
+                    className="success-message"
+                    style={{ marginTop: '0.75rem' }}
+                  >
+                    {pickupPrefsMessage}
+                  </p>
+                )}
+                {pickupPrefsError && (
+                  <p className="error-message" style={{ marginTop: '0.75rem' }}>
+                    {pickupPrefsError}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  className="save-changes-btn"
+                  style={{ marginTop: '1rem' }}
+                  onClick={handleSavePickupPreferences}
+                >
+                  Save Pickup Preferences
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Privacy & Data Consent Section */}
         <div className="settings-section">

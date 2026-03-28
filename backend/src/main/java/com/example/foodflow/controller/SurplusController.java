@@ -22,7 +22,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/surplus")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class SurplusController {
 
     private final SurplusService surplusService;
@@ -130,7 +128,6 @@ public class SurplusController {
             @RequestParam(required = false) String status,
             @AuthenticationPrincipal User receiver) {
 
-
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
@@ -216,7 +213,6 @@ public class SurplusController {
                     "Invalid dietaryMatch '" + rawDietaryMatch + "'. Allowed values: [ANY, ALL]");
         }
     }
-
 
     @PatchMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('DONOR')")

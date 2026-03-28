@@ -288,7 +288,8 @@
 }
 
 /* Save Changes Button */
-.save-changes-btn {
+.save-changes-btn,
+.section-content .save-changes-btn {
   align-self: flex-start;
   padding: 0.625rem 1.5rem;
   background: #1b4965;

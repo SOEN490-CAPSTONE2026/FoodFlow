@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasAuthority('ADMIN')")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class AdminImageController {
 
     private final DonationImageService donationImageService;

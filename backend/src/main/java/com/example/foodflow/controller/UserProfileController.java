@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/profile")
-@CrossOrigin(origins = "*")
 public class UserProfileController {
     
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserProfileController.class);

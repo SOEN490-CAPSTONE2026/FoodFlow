@@ -8,14 +8,16 @@ import com.example.foodflow.repository.ReceiverPreferencesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
 @Service
 public class ReceiverPreferencesService {
     
-    @Autowired
-    private ReceiverPreferencesRepository preferencesRepository;
+    private final ReceiverPreferencesRepository preferencesRepository;
+
+    public ReceiverPreferencesService(ReceiverPreferencesRepository preferencesRepository) {
+        this.preferencesRepository = preferencesRepository;
+    }
     
     /**
      * Get preferences for a user

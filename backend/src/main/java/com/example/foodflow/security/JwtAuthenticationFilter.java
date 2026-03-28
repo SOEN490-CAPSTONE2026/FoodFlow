@@ -59,8 +59,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Set user ID in MDC for logging
                 RequestCorrelationFilter.setUserId(email);
                 log.debug("User authenticated: {} with role: {}", email, user.getRole());
-                
-                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().name());
                 UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
                         user, 

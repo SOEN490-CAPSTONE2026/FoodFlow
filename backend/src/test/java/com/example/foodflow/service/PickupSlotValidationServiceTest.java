@@ -3,13 +3,10 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PickupSlotValidationServiceTest {

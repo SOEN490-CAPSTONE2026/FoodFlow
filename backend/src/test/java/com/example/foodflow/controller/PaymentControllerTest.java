@@ -8,6 +8,7 @@ import com.example.foodflow.model.types.PaymentMethodType;
 import com.example.foodflow.model.types.PaymentStatus;
 import com.example.foodflow.model.types.PaymentType;
 import com.example.foodflow.service.PaymentMethodService;
+import com.example.foodflow.service.PaymentRetryService;
 import com.example.foodflow.service.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,9 @@ class PaymentControllerTest {
 
     @MockBean
     private PaymentMethodService paymentMethodService;
+
+    @MockBean
+    private PaymentRetryService paymentRetryService;
 
     private User testUser;
     private Organization testOrganization;
@@ -244,5 +248,70 @@ class PaymentControllerTest {
                         .with(authentication(authentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isDefault").value(true));
+    }
+
+    @Test
+    void retryPayment_Success() throws Exception {
+        PaymentResponse response = PaymentResponse.builder()
+                .id(1L)
+                .amount(BigDecimal.valueOf(25.00))
+                .currency("USD")
+                .status(PaymentStatus.PROCESSING)
+                .build();
+
+        when(paymentRetryService.retryPayment(eq(1L), any(User.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/payments/1/retry")
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PROCESSING"));
+    }
+
+    @Test
+    void getPaymentRetries_Success() throws Exception {
+        PaymentRetryResponse retry = PaymentRetryResponse.builder()
+                .id(5L)
+                .paymentId(1L)
+                .attemptNumber(2)
+                .status("FAILED")
+                .build();
+
+        when(paymentRetryService.getRetriesForPayment(eq(1L), any(User.class)))
+                .thenReturn(List.of(retry));
+
+        mockMvc.perform(get("/api/payments/1/retries")
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].attemptNumber").value(2))
+                .andExpect(jsonPath("$[0].status").value("FAILED"));
+    }
+
+    @Test
+    void getSupportedCurrencies_Success() throws Exception {
+        mockMvc.perform(get("/api/payments/currencies")
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value("USD"))
+                .andExpect(jsonPath("$[3]").value("GBP"));
+    }
+
+    @Test
+    void createMethodSetupIntent_Success() throws Exception {
+        SetupIntentResponse response = SetupIntentResponse.builder()
+                .setupIntentId("seti_123")
+                .clientSecret("seti_secret_123")
+                .status("requires_payment_method")
+                .message("Setup intent created successfully")
+                .build();
+
+        when(paymentMethodService.createSetupIntent(any(User.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/payments/methods/setup-intent")
+                        .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.setupIntentId").value("seti_123"))
+                .andExpect(jsonPath("$.clientSecret").value("seti_secret_123"));
     }
 }

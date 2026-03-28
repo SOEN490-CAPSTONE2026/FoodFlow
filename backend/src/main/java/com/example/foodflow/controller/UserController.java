@@ -11,13 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "${CORS_ALLOWED_ORIGINS:http://localhost:3000}", allowCredentials = "true")
 public class UserController {
     
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);

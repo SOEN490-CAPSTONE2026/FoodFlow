@@ -8,10 +8,6 @@ function PaymentSuccess() {
   const [paymentStatus, setPaymentStatus] = useState('loading');
 
   useEffect(() => {
-    const paymentIntent = searchParams.get('payment_intent');
-    const paymentIntentClientSecret = searchParams.get(
-      'payment_intent_client_secret'
-    );
     const redirectStatus = searchParams.get('redirect_status');
 
     if (redirectStatus === 'succeeded') {
@@ -31,11 +27,16 @@ function PaymentSuccess() {
     navigate('/payment');
   };
 
+  const paymentIntentId = searchParams.get('payment_intent');
+  const paymentReference = paymentIntentId
+    ? `${paymentIntentId.substring(0, 19)}...`
+    : 'Pending confirmation';
+
   if (paymentStatus === 'loading' || paymentStatus === 'processing') {
     return (
       <div className="payment-page">
         <div className="payment-container success-container">
-          <div className="success-icon processing">⏳</div>
+          <div className="success-icon processing">⌛</div>
           <h1>Processing Your Payment...</h1>
           <p>Please wait while we confirm your donation.</p>
         </div>
@@ -47,7 +48,7 @@ function PaymentSuccess() {
     return (
       <div className="payment-page">
         <div className="payment-container success-container">
-          <div className="success-icon failed">❌</div>
+          <div className="success-icon failed">✕</div>
           <h1>Payment Failed</h1>
           <p>Unfortunately, your payment could not be processed.</p>
           <p>Please check your payment details and try again.</p>
@@ -77,10 +78,7 @@ function PaymentSuccess() {
 
         <div className="success-details">
           <p>A receipt has been sent to your email address.</p>
-          <p className="payment-reference">
-            Payment ID: {searchParams.get('payment_intent')?.substring(0, 20)}
-            ...
-          </p>
+          <p className="payment-reference">Payment ID: {paymentReference}</p>
         </div>
 
         <div className="impact-message">

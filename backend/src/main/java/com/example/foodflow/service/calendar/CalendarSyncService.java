@@ -33,23 +33,26 @@ public class CalendarSyncService {
 
     private static final Logger logger = LoggerFactory.getLogger(CalendarSyncService.class);
 
-    @Autowired
-    private CalendarIntegrationService calendarIntegrationService;
+    private final CalendarIntegrationService calendarIntegrationService;
+    private final CalendarEventService calendarEventService;
+    private final GoogleCalendarProvider googleCalendarProvider;
+    private final ClaimRepository claimRepository;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    private final SyncedCalendarEventRepository syncedCalendarEventRepository;
 
-    @Autowired
-    private CalendarEventService calendarEventService;
-
-    @Autowired
-    private GoogleCalendarProvider googleCalendarProvider;
-    
-    @Autowired
-    private ClaimRepository claimRepository;
-    
-    @Autowired
-    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
-    
-    @Autowired
-    private SyncedCalendarEventRepository syncedCalendarEventRepository;
+    public CalendarSyncService(CalendarIntegrationService calendarIntegrationService,
+                              CalendarEventService calendarEventService,
+                              GoogleCalendarProvider googleCalendarProvider,
+                              ClaimRepository claimRepository,
+                              CalendarSyncPreferenceRepository calendarSyncPreferenceRepository,
+                              SyncedCalendarEventRepository syncedCalendarEventRepository) {
+        this.calendarIntegrationService = calendarIntegrationService;
+        this.calendarEventService = calendarEventService;
+        this.googleCalendarProvider = googleCalendarProvider;
+        this.claimRepository = claimRepository;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+        this.syncedCalendarEventRepository = syncedCalendarEventRepository;
+    }
 
     /**
      * Asynchronously sync pending events for a user immediately after creation

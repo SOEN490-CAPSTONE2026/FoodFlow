@@ -4,7 +4,11 @@ import '@testing-library/jest-dom';
 import Settings from '../components/Settings';
 import { AuthContext } from '../contexts/AuthContext';
 
-import { notificationPreferencesAPI, profileAPI } from '../services/api';
+import {
+  notificationPreferencesAPI,
+  pickupPreferencesAPI,
+  profileAPI,
+} from '../services/api';
 import api from '../services/api';
 
 // Mock the dependencies
@@ -35,6 +39,10 @@ jest.mock('../services/api', () => ({
   notificationPreferencesAPI: {
     getPreferences: jest.fn(),
     updatePreferences: jest.fn(),
+  },
+  pickupPreferencesAPI: {
+    get: jest.fn(),
+    save: jest.fn(),
   },
 }));
 
@@ -148,6 +156,14 @@ describe('Settings', () => {
     notificationPreferencesAPI.updatePreferences = jest
       .fn()
       .mockResolvedValue({ data: {} });
+    pickupPreferencesAPI.get = jest.fn().mockResolvedValue({
+      data: {
+        availabilityWindowStart: '',
+        availabilityWindowEnd: '',
+        slots: [],
+      },
+    });
+    pickupPreferencesAPI.save = jest.fn().mockResolvedValue({ data: {} });
   });
 
   afterEach(() => {
@@ -1136,6 +1152,331 @@ describe('Settings', () => {
 
       // Component should render without errors
       expect(screen.getByText('settings.account.title')).toBeInTheDocument();
+    });
+  });
+
+  describe('Pickup Preferences Section', () => {
+    const expandPickupPrefs = async () => {
+      const toggleButton = await screen.findByRole('button', {
+        name: 'Toggle pickup preferences',
+      });
+      if (toggleButton.getAttribute('aria-expanded') === 'false') {
+        fireEvent.click(toggleButton);
+      }
+    };
+
+    test('renders Pickup Preferences section for DONOR role', async () => {
+      renderSettings();
+
+      await waitFor(() => {
+        expect(screen.getByText('Pickup Preferences')).toBeInTheDocument();
+      });
+    });
+
+    test('does not render Pickup Preferences section for RECEIVER role', async () => {
+      renderSettings({ ...mockAuthContext, role: 'RECEIVER' });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Pickup Preferences')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    test('does not render Pickup Preferences section for ADMIN role', async () => {
+      renderSettings({ ...mockAuthContext, role: 'ADMIN' });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Pickup Preferences')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    test('section is collapsed by default showing Edit button', async () => {
+      renderSettings();
+
+      const toggleButton = await screen.findByRole('button', {
+        name: 'Toggle pickup preferences',
+      });
+      expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+      expect(toggleButton).toHaveTextContent('Edit ▼');
+    });
+
+    test('expands section on Edit button click', async () => {
+      renderSettings();
+
+      await expandPickupPrefs();
+
+      const toggleButton = screen.getByRole('button', {
+        name: 'Toggle pickup preferences',
+      });
+      expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+      expect(toggleButton).toHaveTextContent('Hide ▲');
+    });
+
+    test('calls pickupPreferencesAPI.get on mount for DONOR', async () => {
+      renderSettings();
+
+      await waitFor(() => {
+        expect(pickupPreferencesAPI.get).toHaveBeenCalled();
+      });
+    });
+
+    test('does not call pickupPreferencesAPI.get for RECEIVER', async () => {
+      renderSettings({ ...mockAuthContext, role: 'RECEIVER' });
+
+      await waitFor(() => {
+        expect(profileAPI.get).toHaveBeenCalled();
+      });
+
+      expect(pickupPreferencesAPI.get).not.toHaveBeenCalled();
+    });
+
+    test('loads and displays existing availability window data', async () => {
+      pickupPreferencesAPI.get.mockResolvedValue({
+        data: {
+          availabilityWindowStart: '09:00',
+          availabilityWindowEnd: '17:00',
+          slots: [],
+        },
+      });
+
+      renderSettings();
+      await expandPickupPrefs();
+
+      await waitFor(() => {
+        const timeInputs = screen.getAllByDisplayValue('09:00');
+        expect(timeInputs.length).toBeGreaterThan(0);
+        const endInputs = screen.getAllByDisplayValue('17:00');
+        expect(endInputs.length).toBeGreaterThan(0);
+      });
+    });
+
+    test('shows "No recurring slots saved yet." when no slots', async () => {
+      renderSettings();
+      await expandPickupPrefs();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('No recurring slots saved yet.')
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('loads and displays existing slot data', async () => {
+      pickupPreferencesAPI.get.mockResolvedValue({
+        data: {
+          availabilityWindowStart: '',
+          availabilityWindowEnd: '',
+          slots: [{ startTime: '09:00', endTime: '12:00', notes: 'Morning' }],
+        },
+      });
+
+      renderSettings();
+      await expandPickupPrefs();
+
+      await waitFor(() => {
+        expect(screen.getByText('Slot 1')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Morning')).toBeInTheDocument();
+      });
+    });
+
+    test('can add a new slot', async () => {
+      renderSettings();
+      await expandPickupPrefs();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('No recurring slots saved yet.')
+        ).toBeInTheDocument();
+      });
+
+      const addButton = screen.getByRole('button', { name: /Add Slot/i });
+      fireEvent.click(addButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Slot 1')).toBeInTheDocument();
+        expect(
+          screen.queryByText('No recurring slots saved yet.')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    test('can remove a slot', async () => {
+      pickupPreferencesAPI.get.mockResolvedValue({
+        data: {
+          availabilityWindowStart: '',
+          availabilityWindowEnd: '',
+          slots: [{ startTime: '09:00', endTime: '12:00', notes: '' }],
+        },
+      });
+
+      renderSettings();
+      await expandPickupPrefs();
+
+      await waitFor(() => {
+        expect(screen.getByText('Slot 1')).toBeInTheDocument();
+      });
+
+      const removeButton = screen.getByRole('button', { name: 'Remove slot' });
+      fireEvent.click(removeButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Slot 1')).not.toBeInTheDocument();
+        expect(
+          screen.getByText('No recurring slots saved yet.')
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('saves preferences successfully and shows success message', async () => {
+      renderSettings();
+      await expandPickupPrefs();
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Save Pickup Preferences',
+      });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(pickupPreferencesAPI.save).toHaveBeenCalled();
+        expect(
+          screen.getByText('Pickup preferences saved successfully.')
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('shows error message when save fails', async () => {
+      pickupPreferencesAPI.save.mockRejectedValue(new Error('Save failed'));
+
+      renderSettings();
+      await expandPickupPrefs();
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Save Pickup Preferences',
+      });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Failed to save pickup preferences.')
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('auto-clears pickup prefs success message after 3 seconds', async () => {
+      renderSettings();
+      await expandPickupPrefs();
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Save Pickup Preferences',
+      });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Pickup preferences saved successfully.')
+        ).toBeInTheDocument();
+      });
+
+      jest.advanceTimersByTime(3000);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Pickup preferences saved successfully.')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    test('auto-clears pickup prefs error message after 3 seconds', async () => {
+      pickupPreferencesAPI.save.mockRejectedValue(new Error('Save failed'));
+
+      renderSettings();
+      await expandPickupPrefs();
+
+      const saveButton = await screen.findByRole('button', {
+        name: 'Save Pickup Preferences',
+      });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Failed to save pickup preferences.')
+        ).toBeInTheDocument();
+      });
+
+      jest.advanceTimersByTime(3000);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Failed to save pickup preferences.')
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    test('sends correct payload when saving with slots', async () => {
+      const { container } = renderSettings();
+      await expandPickupPrefs();
+
+      // Add a slot
+      const addButton = await screen.findByRole('button', {
+        name: /Add Slot/i,
+      });
+      fireEvent.click(addButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Slot 1')).toBeInTheDocument();
+      });
+
+      // The availability window has 2 time inputs (From, To); the new slot adds 2 more
+      const allTimeInputs = container.querySelectorAll('input[type="time"]');
+      fireEvent.change(allTimeInputs[2], { target: { value: '09:00' } });
+      fireEvent.change(allTimeInputs[3], { target: { value: '12:00' } });
+
+      const saveButton = screen.getByRole('button', {
+        name: 'Save Pickup Preferences',
+      });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(pickupPreferencesAPI.save).toHaveBeenCalledWith(
+          expect.objectContaining({
+            slots: expect.arrayContaining([
+              expect.objectContaining({
+                startTime: '09:00',
+                endTime: '12:00',
+              }),
+            ]),
+          })
+        );
+      });
+    });
+
+    test('filters out slots with missing start or end time before saving', async () => {
+      renderSettings();
+      await expandPickupPrefs();
+
+      // Add a slot but leave times empty
+      const addButton = await screen.findByRole('button', {
+        name: /Add Slot/i,
+      });
+      fireEvent.click(addButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Slot 1')).toBeInTheDocument();
+      });
+
+      const saveButton = screen.getByRole('button', {
+        name: 'Save Pickup Preferences',
+      });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(pickupPreferencesAPI.save).toHaveBeenCalledWith(
+          expect.objectContaining({ slots: [] })
+        );
+      });
     });
   });
 });

@@ -4,6 +4,7 @@ import brevo.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.example.foodflow.repository.UserRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +19,12 @@ class EmailServiceTest {
 
     @Mock
     private MessageSource messageSource;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private BusinessMetricsService businessMetricsService;
 
     @InjectMocks
     private EmailService emailService;
@@ -857,6 +864,7 @@ class EmailServiceTest {
         statusData.put("oldStatus", "CLAIMED");
         statusData.put("newStatus", "READY_FOR_PICKUP");
         statusData.put("reason", "Pickup time reached");
+        statusData.put("userType", "donor");
 
         assertDoesNotThrow(() -> emailService.sendDonationStatusUpdateNotification(
                 "user@example.com",

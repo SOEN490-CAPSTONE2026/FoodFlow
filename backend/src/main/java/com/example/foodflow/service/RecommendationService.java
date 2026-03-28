@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.foodflow.model.dto.RecommendationDTO;
-import com.example.foodflow.helpers.BasicFilter;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.ReceiverPreferences;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -30,14 +29,17 @@ import com.example.foodflow.repository.SurplusPostRepository;
 @Service
 public class RecommendationService {
 
-    @Autowired
-    private ReceiverPreferencesRepository preferencesRepository;
+    private final ReceiverPreferencesRepository preferencesRepository;
+    private final SurplusPostRepository surplusPostRepository;
+    private final BusinessMetricsService businessMetricsService;
 
-    @Autowired 
-    private SurplusPostRepository surplusPostRepository;
-
-    @Autowired
-    private BusinessMetricsService businessMetricsService;
+    public RecommendationService(ReceiverPreferencesRepository preferencesRepository,
+                                SurplusPostRepository surplusPostRepository,
+                                BusinessMetricsService businessMetricsService) {
+        this.preferencesRepository = preferencesRepository;
+        this.surplusPostRepository = surplusPostRepository;
+        this.businessMetricsService = businessMetricsService;
+    }
 
     /**
      * Get recommendation data for a specific post and user

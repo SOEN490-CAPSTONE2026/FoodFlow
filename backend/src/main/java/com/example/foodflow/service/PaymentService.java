@@ -95,7 +95,7 @@ public class PaymentService {
             metricsService.incrementPaymentCreated();
             
             log.info("Payment intent created: {} for organization: {}", paymentIntent.getId(), organization.getId());
-            
+
             return PaymentIntentResponse.builder()
                 .clientSecret(paymentIntent.getClientSecret())
                 .paymentIntentId(paymentIntent.getId())
@@ -196,6 +196,10 @@ public class PaymentService {
         
         return toPaymentResponse(payment);
     }
+
+    public String getOrCreateStripeCustomerId(User user) throws StripeException {
+        return getOrCreateStripeCustomer(user.getOrganization(), user);
+    }
     
     @Transactional
     public void updatePaymentStatus(String stripePaymentIntentId, PaymentStatus status) {
@@ -219,7 +223,7 @@ public class PaymentService {
         
         log.info("Payment status updated: {} -> {} for intent: {}", oldStatus, status, stripePaymentIntentId);
     }
-    
+
     private String getOrCreateStripeCustomer(Organization organization, User user) throws StripeException {
         // Check if organization already has a Stripe customer
         Payment lastPayment = paymentRepository.findByOrganizationIdOrderByCreatedAtDesc(organization.getId())
@@ -272,7 +276,7 @@ public class PaymentService {
             .updatedAt(payment.getUpdatedAt())
             .build();
     }
-    
+
     private String serializeMetadata(Map<String, String> metadata) {
         try {
             return objectMapper.writeValueAsString(metadata);

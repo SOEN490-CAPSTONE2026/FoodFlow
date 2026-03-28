@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Comprehensive tests for all remaining DTOs - testing constructors and basic functionality
+ * Comprehensive tests for all DTOs
  */
 class ComprehensiveDTOTest {
     

@@ -1,12 +1,9 @@
 package com.example.foodflow.integration;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
 import java.time.LocalDate;
 import java.util.*;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.example.foodflow.model.dto.RecommendationDTO;
 import com.example.foodflow.model.entity.ReceiverPreferences;
 import com.example.foodflow.model.entity.SurplusPost;
