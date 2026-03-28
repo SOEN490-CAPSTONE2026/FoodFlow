@@ -2,13 +2,15 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.AttachPaymentMethodRequest;
 import com.example.foodflow.model.dto.PaymentMethodResponse;
+import com.example.foodflow.model.dto.SetupIntentResponse;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.PaymentMethod;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PaymentMethodType;
 import com.example.foodflow.repository.PaymentMethodRepository;
 import com.stripe.exception.StripeException;
-import com.stripe.param.PaymentMethodAttachParams;
+import com.stripe.model.SetupIntent;
+import com.stripe.param.SetupIntentCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,27 @@ public class PaymentMethodService {
     
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentAuditService paymentAuditService;
+
+    public SetupIntentResponse createSetupIntent(User user) {
+        try {
+            SetupIntentCreateParams params = SetupIntentCreateParams.builder()
+                .addPaymentMethodType("card")
+                .addPaymentMethodType("us_bank_account")
+                .build();
+
+            SetupIntent setupIntent = SetupIntent.create(params);
+
+            return SetupIntentResponse.builder()
+                .clientSecret(setupIntent.getClientSecret())
+                .setupIntentId(setupIntent.getId())
+                .status(setupIntent.getStatus())
+                .message("Setup intent created successfully")
+                .build();
+        } catch (StripeException e) {
+            log.error("Stripe error creating setup intent: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create payment method setup: " + e.getUserMessage());
+        }
+    }
     
     @Transactional
     public PaymentMethodResponse attachPaymentMethod(AttachPaymentMethodRequest request, User user) {

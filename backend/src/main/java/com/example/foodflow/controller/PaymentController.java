@@ -3,6 +3,7 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.*;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.PaymentMethodService;
+import com.example.foodflow.service.PaymentRetryService;
 import com.example.foodflow.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class PaymentController {
     
     private final PaymentService paymentService;
     private final PaymentMethodService paymentMethodService;
+    private final PaymentRetryService paymentRetryService;
     
     @PostMapping("/create-intent")
     public ResponseEntity<PaymentIntentResponse> createPaymentIntent(
@@ -63,8 +65,36 @@ public class PaymentController {
         PaymentResponse response = paymentService.getPaymentDetails(id, user);
         return ResponseEntity.ok(response);
     }
-    
+
+    @PostMapping("/{id}/retry")
+    public ResponseEntity<PaymentResponse> retryPayment(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        PaymentResponse response = paymentRetryService.retryPayment(id, user);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/retries")
+    public ResponseEntity<List<PaymentRetryResponse>> getPaymentRetries(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        List<PaymentRetryResponse> retries = paymentRetryService.getRetriesForPayment(id, user);
+        return ResponseEntity.ok(retries);
+    }
+
+    @GetMapping("/currencies")
+    public ResponseEntity<List<String>> getSupportedCurrencies() {
+        return ResponseEntity.ok(List.of("USD", "CAD", "EUR", "GBP"));
+    }
+
     // Payment Methods endpoints
+
+    @PostMapping("/methods/setup-intent")
+    public ResponseEntity<SetupIntentResponse> createMethodSetupIntent(
+            @AuthenticationPrincipal User user) {
+        SetupIntentResponse response = paymentMethodService.createSetupIntent(user);
+        return ResponseEntity.ok(response);
+    }
     
     @PostMapping("/methods")
     public ResponseEntity<PaymentMethodResponse> attachPaymentMethod(
@@ -73,7 +103,7 @@ public class PaymentController {
         PaymentMethodResponse response = paymentMethodService.attachPaymentMethod(request, user);
         return ResponseEntity.ok(response);
     }
-    
+
     @GetMapping("/methods")
     public ResponseEntity<List<PaymentMethodResponse>> listPaymentMethods(
             @AuthenticationPrincipal User user) {

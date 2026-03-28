@@ -54,10 +54,10 @@ describe('PaymentPage', () => {
     it('should render the component with header and amount selection', () => {
       renderComponent();
 
-      expect(screen.getByText(/Support FoodFlow/i)).toBeInTheDocument();
+      expect(screen.getByText(/Payment Workspace/i)).toBeInTheDocument();
       expect(
         screen.getByText(
-          /Your donation helps us fight food waste and feed communities in need/i
+          /Help us fight food waste and support communities with a secure donation/i
         )
       ).toBeInTheDocument();
       expect(screen.getByText(/Select Donation Amount/i)).toBeInTheDocument();

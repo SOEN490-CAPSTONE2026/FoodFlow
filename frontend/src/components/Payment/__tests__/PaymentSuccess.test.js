@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import PaymentSuccess from '../PaymentSuccess';
 
@@ -105,7 +105,7 @@ describe('PaymentSuccess', () => {
     it('should display failed icon', () => {
       renderComponent('?redirect_status=failed&payment_intent=pi_failed123');
 
-      const failedIcon = screen.getByText('❌');
+      const failedIcon = screen.getByText('✕');
       expect(failedIcon).toBeInTheDocument();
       expect(failedIcon).toHaveClass('success-icon failed');
     });
@@ -158,7 +158,7 @@ describe('PaymentSuccess', () => {
     it('should display processing icon', () => {
       renderComponent('?payment_intent=pi_processing123');
 
-      const processingIcon = screen.getByText('⏳');
+      const processingIcon = screen.getByText('⌛');
       expect(processingIcon).toBeInTheDocument();
       expect(processingIcon).toHaveClass('success-icon processing');
     });

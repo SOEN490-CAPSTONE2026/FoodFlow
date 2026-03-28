@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .accessDeniedHandler((request, response, accessDeniedException) ->
                     response.sendError(HttpServletResponse.SC_FORBIDDEN)))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public endpoints
                 .requestMatchers("/api/auth/resend-verification-email").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()

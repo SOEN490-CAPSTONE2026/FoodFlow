@@ -73,9 +73,6 @@ function AppContent() {
     document.body.style.direction = dir;
   }, [i18n.language]);
 
-  // Top navbar only shown on public pages (landing, login, registration)
-  // Dashboard routes (/donor, /admin, /receiver) have their own internal layouts
-  // and don't need the top public navigation
   const hideNavbar =
     location.pathname === '/login' ||
     location.pathname === '/forgot-password' ||

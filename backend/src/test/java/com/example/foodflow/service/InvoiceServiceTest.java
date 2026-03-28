@@ -3,6 +3,7 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.InvoiceResponse;
 import com.example.foodflow.model.entity.Invoice;
 import com.example.foodflow.model.entity.Payment;
+import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.InvoiceStatus;
 import com.example.foodflow.repository.InvoiceRepository;
 import com.example.foodflow.repository.PaymentRepository;
@@ -17,11 +18,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +41,7 @@ class InvoiceServiceTest {
 
     private Payment testPayment;
     private Invoice testInvoice;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
@@ -46,6 +50,14 @@ class InvoiceServiceTest {
         testPayment.setId(1L);
         testPayment.setAmount(new BigDecimal("100.00"));
         testPayment.setStripePaymentIntentId("pi_123");
+
+        com.example.foodflow.model.entity.Organization organization = new com.example.foodflow.model.entity.Organization();
+        organization.setId(10L);
+        testPayment.setOrganization(organization);
+
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setOrganization(organization);
 
         // Setup test invoice
         testInvoice = new Invoice();
@@ -348,5 +360,71 @@ class InvoiceServiceTest {
         verify(paymentRepository).findById(1L);
         verify(invoiceRepository).findByPaymentId(1L);
         verify(invoiceRepository).save(any(Invoice.class));
+    }
+
+    @Test
+    void testGenerateInvoiceForUser_Success() {
+        when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+        when(invoiceRepository.findByPaymentId(1L)).thenReturn(Optional.of(testInvoice));
+
+        InvoiceResponse response = invoiceService.generateInvoiceForUser(1L, testUser);
+
+        assertThat(response.getInvoiceNumber()).isEqualTo("INV-1234567890");
+    }
+
+    @Test
+    void testGenerateInvoiceForUser_Unauthorized() {
+        User otherUser = new User();
+        com.example.foodflow.model.entity.Organization otherOrg = new com.example.foodflow.model.entity.Organization();
+        otherOrg.setId(99L);
+        otherUser.setOrganization(otherOrg);
+
+        when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+
+        assertThatThrownBy(() -> invoiceService.generateInvoiceForUser(1L, otherUser))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Unauthorized access to invoice");
+    }
+
+    @Test
+    void testGetInvoiceByPaymentIdForUser_NotFound() {
+        when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+        when(invoiceRepository.findByPaymentId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> invoiceService.getInvoiceByPaymentIdForUser(1L, testUser))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Invoice not found");
+    }
+
+    @Test
+    void testGetInvoiceByIdForUser_Success() {
+        when(invoiceRepository.findById(1L)).thenReturn(Optional.of(testInvoice));
+
+        InvoiceResponse response = invoiceService.getInvoiceByIdForUser(1L, testUser);
+
+        assertThat(response.getInvoiceNumber()).isEqualTo("INV-1234567890");
+    }
+
+    @Test
+    void testGetInvoicesForUser_Success() {
+        org.springframework.data.domain.Page<Invoice> page =
+            new org.springframework.data.domain.PageImpl<>(List.of(testInvoice));
+        when(invoiceRepository.findByOrganizationId(eq(10L), any())).thenReturn(page);
+
+        org.springframework.data.domain.Page<InvoiceResponse> response =
+            invoiceService.getInvoicesForUser(testUser, org.springframework.data.domain.PageRequest.of(0, 10));
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getInvoiceNumber()).isEqualTo("INV-1234567890");
+    }
+
+    @Test
+    void testDownloadInvoice_Success() {
+        when(invoiceRepository.findById(1L)).thenReturn(Optional.of(testInvoice));
+
+        byte[] bytes = invoiceService.downloadInvoice(1L, testUser);
+
+        assertThat(new String(bytes)).contains("FoodFlow Invoice");
+        assertThat(new String(bytes)).contains("INV-1234567890");
     }
 }

@@ -771,6 +771,39 @@ export const rateLimitAPI = {
   },
 };
 
+export const paymentAPI = {
+  createIntent: payload => api.post('/payments/create-intent', payload),
+  confirm: paymentId => api.post(`/payments/${paymentId}/confirm`),
+  cancel: paymentId => api.post(`/payments/${paymentId}/cancel`),
+  getHistory: params => api.get('/payments/history', { params }),
+  getDetails: paymentId => api.get(`/payments/${paymentId}`),
+  retry: paymentId => api.post(`/payments/${paymentId}/retry`),
+  getRetries: paymentId => api.get(`/payments/${paymentId}/retries`),
+  getSupportedCurrencies: () => api.get('/payments/currencies'),
+  createMethodSetupIntent: () => api.post('/payments/methods/setup-intent'),
+  attachMethod: payload => api.post('/payments/methods', payload),
+  listMethods: () => api.get('/payments/methods'),
+  detachMethod: methodId => api.delete(`/payments/methods/${methodId}`),
+  setDefaultMethod: methodId =>
+    api.put(`/payments/methods/${methodId}/default`),
+};
+
+export const invoiceAPI = {
+  generateForPayment: paymentId => api.post(`/payments/${paymentId}/invoice`),
+  getForPayment: paymentId => api.get(`/payments/${paymentId}/invoice`),
+  getById: invoiceId => api.get(`/payments/invoices/${invoiceId}`),
+  list: params => api.get('/payments/invoices', { params }),
+  download: invoiceId =>
+    api.get(`/payments/invoices/${invoiceId}/download`, {
+      responseType: 'blob',
+    }),
+};
+
+export const refundAPI = {
+  create: payload => api.post('/refunds', payload),
+  listForPayment: paymentId => api.get(`/refunds/payment/${paymentId}`),
+};
+
 // Calendar API
 export const calendarAPI = {
   /**
