@@ -1,0 +1,57 @@
+.donation-support-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.donation-support-modal {
+  position: relative;
+  width: min(500px, 100%);
+  min-height: 500px;
+  background: #ffffff;
+  border: 1px solid #dbe5ef;
+  border-radius: 16px;
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.2),
+    0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.donation-support-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #f1f3f6;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.donation-support-modal-close:hover {
+  background: #f8fafc;
+}
+
+.donation-support-modal-body {
+  min-height: 180px;
+}
+
+@media (max-width: 720px) {
+  .donation-support-modal {
+    width: min(340px, 100%);
+    min-height: 160px;
+  }
+
+  .donation-support-modal-body {
+    min-height: 160px;
+  }
+}
