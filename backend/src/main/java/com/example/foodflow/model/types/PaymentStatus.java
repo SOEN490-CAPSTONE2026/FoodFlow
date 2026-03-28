@@ -10,6 +10,5 @@ public enum PaymentStatus {
     FAILED,           // Payment failed
     CANCELED,         // Payment was canceled
     REQUIRES_ACTION,  // Payment requires additional action (e.g., 3D Secure)
-    REFUNDED,         // Payment was fully refunded
-    PARTIALLY_REFUNDED // Payment was partially refunded
+    REFUNDED          // Payment was fully refunded
 }

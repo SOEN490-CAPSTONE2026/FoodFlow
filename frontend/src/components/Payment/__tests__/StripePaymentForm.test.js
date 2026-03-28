@@ -5,7 +5,6 @@ import '@testing-library/jest-dom';
 import StripePaymentForm from '../StripePaymentForm';
 
 const mockConfirmPayment = jest.fn();
-const mockNavigate = jest.fn();
 const mockUseStripe = jest.fn();
 const mockUseElements = jest.fn();
 
@@ -17,14 +16,10 @@ jest.mock('@stripe/react-stripe-js', () => ({
   useElements: () => mockUseElements(),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate,
-}));
-
 const renderComponent = (props = {}) => {
   const defaultProps = {
     amount: 50,
+    currency: 'USD',
     onBack: jest.fn(),
     ...props,
   };
@@ -42,7 +37,6 @@ describe('StripePaymentForm', () => {
     delete window.location;
     window.location = { origin: 'http://localhost:3000' };
 
-    // Setup default mock returns
     mockUseStripe.mockReturnValue({
       confirmPayment: mockConfirmPayment,
     });
@@ -61,13 +55,13 @@ describe('StripePaymentForm', () => {
       renderComponent({ amount: 75.5 });
 
       expect(screen.getByText('Donation Amount:')).toBeInTheDocument();
-      expect(screen.getByText('$75.50 USD')).toBeInTheDocument();
+      expect(screen.getByText('USD 75.50')).toBeInTheDocument();
     });
 
     it('should display amount with proper decimal formatting', () => {
       renderComponent({ amount: 100 });
 
-      expect(screen.getByText('$100.00 USD')).toBeInTheDocument();
+      expect(screen.getByText('USD 100.00')).toBeInTheDocument();
     });
 
     it('should render back button', () => {
@@ -81,7 +75,7 @@ describe('StripePaymentForm', () => {
       renderComponent({ amount: 25 });
 
       const submitBtn = screen.getByRole('button', {
-        name: /Donate \$25\.00/i,
+        name: /Donate USD 25\.00/i,
       });
       expect(submitBtn).toBeInTheDocument();
     });
@@ -143,7 +137,7 @@ describe('StripePaymentForm', () => {
       renderComponent({ amount: 30 });
 
       const form = screen
-        .getByRole('button', { name: /Donate \$30\.00/i })
+        .getByRole('button', { name: /Donate USD 30\.00/i })
         .closest('form');
       fireEvent.submit(form);
 
@@ -155,6 +149,14 @@ describe('StripePaymentForm', () => {
           },
         });
       });
+    });
+
+    it('should support alternate currencies in the submit button', () => {
+      renderComponent({ amount: 30, currency: 'CAD' });
+
+      expect(
+        screen.getByRole('button', { name: /Donate CAD 30\.00/i })
+      ).toBeInTheDocument();
     });
 
     it('should show processing state during payment', async () => {
@@ -274,14 +276,12 @@ describe('StripePaymentForm', () => {
         .getByRole('button', { name: /Donate/i })
         .closest('form');
 
-      // First submission with error
       fireEvent.submit(form);
 
       await waitFor(() => {
         expect(screen.getByText('First error')).toBeInTheDocument();
       });
 
-      // Second submission should clear error
       fireEvent.submit(form);
 
       await waitFor(() => {
@@ -293,21 +293,21 @@ describe('StripePaymentForm', () => {
   describe('Amount Display', () => {
     it('should display different amounts correctly', () => {
       const { rerender } = renderComponent({ amount: 15 });
-      expect(screen.getByText('$15.00 USD')).toBeInTheDocument();
+      expect(screen.getByText('USD 15.00')).toBeInTheDocument();
 
       rerender(
         <BrowserRouter>
-          <StripePaymentForm amount={99.99} onBack={jest.fn()} />
+          <StripePaymentForm amount={99.99} currency="USD" onBack={jest.fn()} />
         </BrowserRouter>
       );
-      expect(screen.getByText('$99.99 USD')).toBeInTheDocument();
+      expect(screen.getByText('USD 99.99')).toBeInTheDocument();
     });
 
     it('should format amount in submit button', () => {
       renderComponent({ amount: 123.45 });
 
       expect(
-        screen.getByRole('button', { name: /Donate \$123\.45/i })
+        screen.getByRole('button', { name: /Donate USD 123\.45/i })
       ).toBeInTheDocument();
     });
   });
