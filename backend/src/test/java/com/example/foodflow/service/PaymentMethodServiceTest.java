@@ -2,16 +2,20 @@ package com.example.foodflow.service;
 
 import com.example.foodflow.model.dto.AttachPaymentMethodRequest;
 import com.example.foodflow.model.dto.PaymentMethodResponse;
+import com.example.foodflow.model.dto.SetupIntentResponse;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.PaymentMethod;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PaymentMethodType;
 import com.example.foodflow.repository.PaymentMethodRepository;
+import com.stripe.exception.StripeException;
+import com.stripe.model.SetupIntent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
@@ -239,5 +243,35 @@ class PaymentMethodServiceTest {
 
         // Then
         verify(paymentMethodRepository).findByOrganizationIdAndIsDefaultTrue(1L);
+    }
+
+    @Test
+    void createSetupIntent_Success() throws StripeException {
+        SetupIntent stripeSetupIntent = mock(SetupIntent.class);
+        when(stripeSetupIntent.getClientSecret()).thenReturn("seti_secret");
+        when(stripeSetupIntent.getId()).thenReturn("seti_123");
+        when(stripeSetupIntent.getStatus()).thenReturn("requires_payment_method");
+
+        try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
+            setupIntentMock.when(() -> SetupIntent.create(any())).thenReturn(stripeSetupIntent);
+
+            SetupIntentResponse response = paymentMethodService.createSetupIntent(user);
+
+            assertThat(response.getClientSecret()).isEqualTo("seti_secret");
+            assertThat(response.getSetupIntentId()).isEqualTo("seti_123");
+        }
+    }
+
+    @Test
+    void createSetupIntent_StripeError() throws StripeException {
+        try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
+            StripeException stripeException = mock(StripeException.class);
+            when(stripeException.getUserMessage()).thenReturn("Setup error");
+            setupIntentMock.when(() -> SetupIntent.create(any())).thenThrow(stripeException);
+
+            assertThatThrownBy(() -> paymentMethodService.createSetupIntent(user))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Setup error");
+        }
     }
 }
