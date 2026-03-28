@@ -27,8 +27,9 @@ public class QueryTimingInspector implements StatementInspector {
         long duration = System.nanoTime() - start;
 
         Timer.builder("database.query.execution.time")
-            .description("Query execution time by SQL type") 
+            .description("Query execution time by SQL type")
             .tag("type", getQueryType(sql))
+            .publishPercentileHistogram(true)
             .register(registry)
             .record(duration, TimeUnit.NANOSECONDS);
         

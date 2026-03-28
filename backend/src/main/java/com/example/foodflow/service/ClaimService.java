@@ -284,6 +284,7 @@ public class ClaimService {
 
         businessMetricsService.incrementClaimCreated();
         businessMetricsService.incrementSurplusPostClaimed();
+        businessMetricsService.incrementDonationsClaimed();
         businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
 
         // Award gamification points for claiming donation

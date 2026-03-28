@@ -30,6 +30,7 @@ public class EmailService {
     
     private final MessageSource messageSource;
     private final UserRepository userRepository;
+    private final BusinessMetricsService businessMetricsService;
     
     @Value("${brevo.api.key}")
     private String brevoApiKey;
@@ -64,9 +65,25 @@ public class EmailService {
     // Supported languages matching the platform's language list
     private static final String[] SUPPORTED_LANGUAGES = {"en", "fr", "es", "zh", "ar", "pt"};
     
-    public EmailService(MessageSource messageSource, UserRepository userRepository) {
+    public EmailService(MessageSource messageSource, UserRepository userRepository,
+                        BusinessMetricsService businessMetricsService) {
         this.messageSource = messageSource;
         this.userRepository = userRepository;
+        this.businessMetricsService = businessMetricsService;
+    }
+
+    private CreateSmtpEmail sendEmailTracked(TransactionalEmailsApi api, SendSmtpEmail email) throws ApiException {
+        io.micrometer.core.instrument.Timer.Sample sample = businessMetricsService.startTimer();
+        try {
+            CreateSmtpEmail result = api.sendTransacEmail(email);
+            businessMetricsService.incrementEmailsSent();
+            businessMetricsService.recordEmailDeliveryDuration(sample);
+            return result;
+        } catch (ApiException e) {
+            businessMetricsService.incrementEmailsFailed();
+            businessMetricsService.recordEmailDeliveryDuration(sample);
+            throw e;
+        }
     }
     
     /**
@@ -154,7 +171,7 @@ public class EmailService {
         sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken, locale));
         
         try {
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Verification email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending verification email to: {}. Status: {}, Response: {}", 
@@ -198,7 +215,7 @@ public class EmailService {
 
         
         try {
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Password reset email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending password reset email to: {}. Status: {}, Response: {}", 
@@ -235,7 +252,7 @@ public class EmailService {
             sendSmtpEmail.setHtmlContent(buildNewDonationEmailBody(userName, donationData, locale));
 
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("New donation notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending new donation notification to: {}", toEmail, ex);
@@ -269,7 +286,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.donation_claimed.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationClaimedEmailBody(userName, claimData, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation claimed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending donation claimed notification to: {}", toEmail, ex);
@@ -303,7 +320,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.claim_canceled.subject", locale));
             sendSmtpEmail.setHtmlContent(buildClaimCanceledEmailBody(userName, claimData, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Claim canceled notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending claim canceled notification to: {}", toEmail, ex);
@@ -338,7 +355,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.review_received.subject", locale));
             sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Review received notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending review received notification to: {}", toEmail, ex);
@@ -372,7 +389,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.donation_picked_up.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation picked up notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending donation picked up notification to: {}", toEmail, ex);
@@ -854,7 +871,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.new_message.subject", locale, senderName));
             sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("New message notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending new message notification to: {}", toEmail, ex);
@@ -894,7 +911,7 @@ public class EmailService {
         sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName, locale));
         
         try {
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account approval email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending account approval email to: {}. Status: {}, Response: {}", 
@@ -938,7 +955,7 @@ public class EmailService {
         sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage, locale));
         
         try {
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account rejection email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending account rejection email to: {}. Status: {}, Response: {}", 
@@ -1264,7 +1281,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.donation_completed.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation completed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending donation completed notification to: {}", toEmail, ex);
@@ -1371,7 +1388,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.ready_for_pickup.subject", locale));
             sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData, locale));
             
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Ready for pickup notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending ready for pickup notification to: {}", toEmail, ex);
@@ -1481,7 +1498,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.donation_expired.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData, locale));
 
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation expired email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
         } catch (ApiException e) {
             log.error("Failed to send donation expired email to {}: {}", toEmail, e.getMessage(), e);
@@ -1594,7 +1611,7 @@ public class EmailService {
             sendSmtpEmail.setSubject(getMessage("email.donation_status_updated.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData, locale));
 
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation status update email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
         } catch (ApiException e) {
             log.error("Failed to send donation status update email to {}: {}", toEmail, e.getMessage(), e);
@@ -1721,7 +1738,7 @@ public class EmailService {
         sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName, locale));
         
         try {
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account deactivation email sent successfully. Message ID: {}", result.getMessageId());
         } catch (ApiException e) {
             log.error("Failed to send account deactivation email: {}", e.getResponseBody(), e);
@@ -1814,7 +1831,7 @@ public class EmailService {
         //sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
         
         try {
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account reactivation email sent successfully. Message ID: {}", result.getMessageId());
         } catch (ApiException e) {
             log.error("Failed to send account reactivation email: {}", e.getResponseBody(), e);
@@ -1858,7 +1875,7 @@ public class EmailService {
             sendSmtpEmail.setTextContent(getAdminAlertEmailText(language, userName, alertMessage));
             sendSmtpEmail.setHtmlContent(buildAdminAlertEmailBody(userName, alertMessage, language));
 
-            CreateSmtpEmail result = apiInstance.sendTransacEmail(sendSmtpEmail);
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Admin alert email sent successfully to: {} (lang={}). MessageId: {}", toEmail, language, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending admin alert email to: {}. Status: {}, Response: {}",

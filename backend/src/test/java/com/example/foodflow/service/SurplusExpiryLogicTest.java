@@ -69,6 +69,7 @@ class SurplusExpiryLogicTest {
                 Mockito.mock(EmailService.class),
                 Mockito.mock(NotificationPreferenceService.class),
                 Mockito.mock(FoodTypeImpactService.class),
+                Mockito.mock(ImpactCalculationService.class),
                 Mockito.mock(com.example.foodflow.service.calendar.CalendarEventService.class),
                 Mockito.mock(com.example.foodflow.service.calendar.CalendarIntegrationService.class),
                 Mockito.mock(com.example.foodflow.service.calendar.CalendarSyncService.class),

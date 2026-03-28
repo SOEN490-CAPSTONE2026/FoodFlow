@@ -101,6 +101,9 @@ class SurplusServiceTest {
     @Mock
     private FoodTypeImpactService foodTypeImpactService;
 
+    @Mock
+    private ImpactCalculationService impactCalculationService;
+
     @InjectMocks
     private SurplusService surplusService;
 

@@ -27,6 +27,7 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
 
     // Only claimed posts
     List<SurplusPost> findByStatus(PostStatus status);
+    long countByStatus(PostStatus status);
 
 
     List<SurplusPost> findByStatusIn(List<PostStatus> statuses);
