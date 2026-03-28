@@ -4,12 +4,10 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { useNavigate } from 'react-router-dom';
 
-function StripePaymentForm({ amount, onBack }) {
+function StripePaymentForm({ amount, currency = 'USD', onBack }) {
   const stripe = useStripe();
   const elements = useElements();
-  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -45,10 +43,17 @@ function StripePaymentForm({ amount, onBack }) {
   return (
     <div className="stripe-payment-form">
       <div className="payment-summary">
+        <div className="payment-summary__meta">Step 2 of 2</div>
         <h2>Complete Your Donation</h2>
+        <p>
+          Review your amount and enter your payment details to complete your
+          FoodFlow donation.
+        </p>
         <div className="donation-amount">
           <span>Donation Amount:</span>
-          <strong>${amount.toFixed(2)} USD</strong>
+          <strong>
+            {currency} {amount.toFixed(2)}
+          </strong>
         </div>
       </div>
 
@@ -75,7 +80,9 @@ function StripePaymentForm({ amount, onBack }) {
             className="submit-btn"
             disabled={!stripe || isProcessing}
           >
-            {isProcessing ? 'Processing...' : `Donate $${amount.toFixed(2)}`}
+            {isProcessing
+              ? 'Processing...'
+              : `Donate ${currency} ${amount.toFixed(2)}`}
           </button>
         </div>
       </form>
