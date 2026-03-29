@@ -1,5 +1,6 @@
 package com.example.foodflow.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,9 +18,8 @@ import com.example.foodflow.security.JwtAuthenticationFilter;
 import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.example.foodflow.security.JwtAuthenticationFilter;
-
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +27,9 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${spring.web.cors.allowed-origins:http://localhost:3000}")
+    private String corsAllowedOrigins;
 
     // Inject the existing JwtAuthenticationFilter
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -52,6 +55,7 @@ public class SecurityConfig {
                 .accessDeniedHandler((request, response, accessDeniedException) ->
                     response.sendError(HttpServletResponse.SC_FORBIDDEN)))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public endpoints
                 .requestMatchers("/api/auth/resend-verification-email").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()
@@ -104,8 +108,8 @@ public class SecurityConfig {
                         // Receiver Preferences endpoints
                         .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
 
-                        // Reports/Disputes endpoints - TEMPORARILY permitAll for debugging
-                        .requestMatchers("/api/reports/**").permitAll()
+                        // Reports/Disputes endpoints - require authentication
+                        .requestMatchers("/api/reports/**").hasAnyAuthority("ADMIN", "DONOR", "RECEIVER")
 
                         // Other endpoints
                         .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
@@ -146,13 +150,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // configuration.setAllowedOrigins(Arrays.asList(
-        // "http://localhost:3000",
-        // "http://localhost:3001",
-        // "http://localhost:3002"
-        // ));
-
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        List<String> allowedOrigins = Arrays.stream(corsAllowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

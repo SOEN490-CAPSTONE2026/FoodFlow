@@ -21,8 +21,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -105,6 +109,16 @@ class ClaimServiceTest {
                 .thenReturn(true);
     }
 
+    private void setFixedClock(Clock clock) {
+        try {
+            Field clockField = ClaimService.class.getDeclaredField("clock");
+            clockField.setAccessible(true);
+            clockField.set(claimService, clock);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set test clock", e);
+        }
+    }
+
     @Test
     void claimSurplusPost_Success() {
         // Given
@@ -124,6 +138,31 @@ class ClaimServiceTest {
         assertThat(response.getId()).isEqualTo(1L);
         verify(claimRepository).save(any(Claim.class));
         verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.CLAIMED));
+    }
+
+    @Test
+    void claimSurplusPost_DonorLocalExpiryNotYetReached_AllowsClaim() {
+        // Given:
+        // 2026-03-10 end-of-day in America/Los_Angeles = 2026-03-11T06:59:59Z
+        // At 2026-03-11T02:00:00Z this should still be claimable.
+        setFixedClock(Clock.fixed(Instant.parse("2026-03-11T02:00:00Z"), ZoneOffset.UTC));
+        donor.setTimezone("America/Los_Angeles");
+        surplusPost.setExpiryDate(LocalDate.of(2026, 3, 10));
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(42L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        ClaimResponse response = claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(42L);
     }
 
     @Test
@@ -206,6 +245,69 @@ class ClaimServiceTest {
         assertThat(responses).hasSize(2);
         assertThat(responses.get(0).getId()).isEqualTo(1L);
         assertThat(responses.get(1).getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void getReceiverClaims_ConvertsSurplusPickupTimesToReceiverTimezone() {
+        receiver.setTimezone("America/Toronto");
+        surplusPost.setPickupDate(LocalDate.of(2026, 1, 15));
+        surplusPost.setPickupFrom(LocalTime.of(15, 0)); // Stored as UTC
+        surplusPost.setPickupTo(LocalTime.of(17, 0));   // Stored as UTC
+
+        Claim claim = new Claim(surplusPost, receiver);
+        claim.setId(10L);
+
+        when(claimRepository.findReceiverClaimsWithDetails(
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(List.of(claim));
+
+        List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getSurplusPost().getPickupDate())
+            .isEqualTo(LocalDate.of(2026, 1, 15));
+        assertThat(responses.get(0).getSurplusPost().getPickupFrom())
+            .isEqualTo(LocalTime.of(10, 0));
+        assertThat(responses.get(0).getSurplusPost().getPickupTo())
+            .isEqualTo(LocalTime.of(12, 0));
+    }
+
+    @Test
+    void getReceiverClaims_ConvertsConfirmedPickupSlotToReceiverTimezone() {
+        receiver.setTimezone("America/Toronto");
+
+        Claim claim = new Claim(surplusPost, receiver);
+        claim.setId(11L);
+        claim.setConfirmedPickupDate(LocalDate.of(2026, 1, 15));
+        claim.setConfirmedPickupStartTime(LocalTime.of(22, 45)); // UTC
+        claim.setConfirmedPickupEndTime(LocalTime.of(23, 45));   // UTC
+
+        when(claimRepository.findReceiverClaimsWithDetails(
+            eq(receiver.getId()),
+            eq(List.of(
+                ClaimStatus.ACTIVE,
+                ClaimStatus.COMPLETED,
+                ClaimStatus.NOT_COMPLETED,
+                ClaimStatus.EXPIRED
+            ))))
+            .thenReturn(List.of(claim));
+
+        List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getConfirmedPickupSlot()).isNotNull();
+        assertThat(responses.get(0).getConfirmedPickupSlot().getPickupDate())
+            .isEqualTo(LocalDate.of(2026, 1, 15));
+        assertThat(responses.get(0).getConfirmedPickupSlot().getStartTime())
+            .isEqualTo(LocalTime.of(17, 45));
+        assertThat(responses.get(0).getConfirmedPickupSlot().getEndTime())
+            .isEqualTo(LocalTime.of(18, 45));
     }
 
     @Test
@@ -1025,5 +1127,155 @@ class ClaimServiceTest {
         // Then - claim should still be created despite suspicious times
         assertThat(response).isNotNull();
         verify(claimRepository).save(any(Claim.class));
+    }
+
+    // ==================== Tests for completeClaim ====================
+
+    @Test
+    void completeClaim_Success() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+        surplusPost.setStatus(PostStatus.READY_FOR_PICKUP);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then
+        verify(claimRepository).save(argThat(claim -> claim.getStatus() == ClaimStatus.COMPLETED));
+        verify(gamificationService).awardPoints(eq(receiver.getId()), anyInt(), anyString());
+    }
+
+    @Test
+    void completeClaim_ClaimNotFound_ThrowsException() {
+        // Given
+        when(claimRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> claimService.completeClaim(999L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Claim not found");
+
+        verify(claimRepository, never()).save(any());
+    }
+
+
+    @Test
+    void completeClaim_AwardsGamificationPoints() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then - verify gamification points awarded to receiver
+        verify(gamificationService).awardPoints(eq(receiver.getId()), anyInt(), anyString());
+        verify(gamificationService).checkAndUnlockAchievements(eq(receiver.getId()));
+    }
+
+    // ==================== Tests for Expired Claims ====================
+
+    @Test
+    void claimSurplusPost_WithExpiredPost_ThrowsException() {
+        // Given
+        surplusPost.setStatus(PostStatus.EXPIRED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+
+        // When & Then
+        assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("expired");
+    }
+
+
+    @Test
+    void cancelClaim_CreatesTimelineEvent() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.cancelClaim(1L, receiver);
+
+        // Then
+        verify(timelineService).createTimelineEvent(
+                eq(surplusPost),
+                eq("CLAIM_CANCELLED"),
+                eq("receiver"),
+                eq(receiver.getId()),
+                eq(PostStatus.AVAILABLE),
+                eq(PostStatus.AVAILABLE),
+                anyString(),
+                eq(true)
+        );
+    }
+
+    @Test
+    void cancelClaim_UpdatesBusinessMetrics() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.cancelClaim(1L, receiver);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCancelled();
+    }
+
+    @Test
+    void claimSurplusPost_UpdatesBusinessMetrics() {
+        // Given
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
+        when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
+
+        Claim savedClaim = new Claim(surplusPost, receiver);
+        savedClaim.setId(1L);
+        when(claimRepository.save(any(Claim.class))).thenReturn(savedClaim);
+        when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(surplusPost);
+
+        // When
+        claimService.claimSurplusPost(claimRequest, receiver);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCreated();
+        verify(businessMetricsService).incrementSurplusPostClaimed();
+    }
+
+    @Test
+    void completeClaim_UpdatesClaimMetrics() {
+        // Given
+        Claim activeClaim = new Claim(surplusPost, receiver);
+        activeClaim.setId(1L);
+        activeClaim.setStatus(ClaimStatus.ACTIVE);
+
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(activeClaim));
+        when(claimRepository.save(any(Claim.class))).thenReturn(activeClaim);
+
+        // When
+        claimService.completeClaim(1L);
+
+        // Then
+        verify(businessMetricsService).incrementClaimCompleted();
     }
 }

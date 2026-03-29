@@ -5,7 +5,7 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Edit,
+  Edit3,
   Trash2,
   AlertTriangle,
   X,
@@ -17,8 +17,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
-  Star,
   Sparkles,
+  Heart,
+  MoreHorizontal,
+  MessageCircle,
+  KeyRound,
+  CheckCircle2,
+  Star,
 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
 import {
@@ -41,8 +46,18 @@ import {
   getTemperatureCategoryLabel,
   getTemperatureCategoryIcon,
   getPackagingTypeLabel,
+  getPrimaryFoodCategory,
+  foodTypeImages,
   mapLegacyCategoryToFoodType,
 } from '../../constants/foodConstants';
+import {
+  formatPickupWindowFromParts,
+  formatWallClockDate,
+  formatWallClockTime,
+  parseBackendUtcTimestamp,
+  parseExplicitUtcTimestamp,
+} from '../../utils/timezoneUtils';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 import '../DonorDashboard/Donor_Styles/DonorListFood.css';
 
 // Define libraries for Google Maps
@@ -85,14 +100,11 @@ function formatExpiryDate(dateString, locale, notSpecifiedLabel) {
     return notSpecifiedLabel;
   }
   try {
-    // Parse as local date to avoid timezone conversion issues
-    const [year, month, day] = dateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(locale || 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const formatted = formatWallClockDate(
+      String(dateString),
+      locale || 'en-US'
+    );
+    return formatted || notSpecifiedLabel;
   } catch {
     return notSpecifiedLabel;
   }
@@ -133,42 +145,56 @@ function formatPickupTime(
   }
 
   try {
-    // Parse the date string as local date
-    const [year, month, day] = pickupDate.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-
-    const dateStr = date.toLocaleDateString(locale || 'en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    const [year, month, day] = String(pickupDate).split('-').map(Number);
+    const pickupDayLabel =
+      year && month && day
+        ? new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).toLocaleDateString(
+            locale || 'en-US',
+            { month: 'short', day: 'numeric', timeZone: 'UTC' }
+          )
+        : '';
 
     if (pickupFrom && pickupTo) {
-      // Create a proper local time for 'from'
-      const [fromHours, fromMinutes] = pickupFrom.split(':').map(Number);
-      const fromDate = new Date(year, month - 1, day, fromHours, fromMinutes);
-      const fromTime = fromDate.toLocaleTimeString(locale || 'en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      // Create a proper local time for 'to'
-      const [toHours, toMinutes] = pickupTo.split(':').map(Number);
-      const toDate = new Date(year, month - 1, day, toHours, toMinutes);
-      const toTime = toDate.toLocaleTimeString(locale || 'en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      return `${dateStr}, ${fromTime} — ${toTime}`;
+      const fromLabel = formatWallClockTime(
+        String(pickupFrom),
+        locale || 'en-US'
+      );
+      const toLabel = formatWallClockTime(String(pickupTo), locale || 'en-US');
+      if (!fromLabel || !toLabel) {
+        return flexibleLabel;
+      }
+      return pickupDayLabel
+        ? `${pickupDayLabel}, ${fromLabel} — ${toLabel}`
+        : formatPickupWindowFromParts(
+            String(pickupDate),
+            String(pickupFrom),
+            String(pickupTo),
+            locale || 'en-US'
+          ) || flexibleLabel;
     }
 
-    return `${dateStr}`;
+    return pickupDayLabel || flexibleLabel;
   } catch (error) {
     console.error('Error formatting pickup time:', error);
     return flexibleLabel;
   }
+}
+
+function parseStableSortDate(createdAt, pickupDate) {
+  const created =
+    parseExplicitUtcTimestamp(createdAt) || parseBackendUtcTimestamp(createdAt);
+  if (created) {
+    return created;
+  }
+
+  if (typeof pickupDate === 'string') {
+    const [year, month, day] = pickupDate.split('-').map(Number);
+    if (year && month && day) {
+      return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    }
+  }
+
+  return new Date(0);
 }
 
 // Get the backend base URL (without /api suffix) for file serving
@@ -215,6 +241,7 @@ const getEvidenceImageUrl = url => {
 
 export default function DonorListFood() {
   const { t, i18n } = useTranslation();
+  const { isDonorTutorialActive, currentDonorTutorialStep } = useOnboarding();
   const locale = i18n.resolvedLanguage || i18n.language || 'en-US';
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -233,6 +260,7 @@ export default function DonorListFood() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('date'); // "date" or "status"
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
 
   // Report and Feedback modal states
   const [showReportModal, setShowReportModal] = useState(false);
@@ -255,6 +283,8 @@ export default function DonorListFood() {
   const [expandedTimeline, setExpandedTimeline] = useState({}); // { donationId: true/false }
   const [timelines, setTimelines] = useState({}); // { donationId: [timeline events] }
   const [loadingTimelines, setLoadingTimelines] = useState({}); // { donationId: true/false }
+  const showTutorialPickupDemo =
+    isDonorTutorialActive && currentDonorTutorialStep === 'pickup-progress';
 
   useEffect(() => {
     fetchMyPosts();
@@ -275,6 +305,20 @@ export default function DonorListFood() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isSortDropdownOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = event => {
+      if (
+        openActionMenuId !== null &&
+        !event.target.closest('.card-actions-menu-wrap')
+      ) {
+        setOpenActionMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openActionMenuId]);
 
   const fetchMyPosts = async () => {
     try {
@@ -303,6 +347,26 @@ export default function DonorListFood() {
         t('donorListFood.failedToFetch');
       setError(`Error: ${errorMessage}`);
       setLoading(false);
+    }
+  };
+
+  const triggerPhotoUpload = donationId => {
+    if (!isDonationCompleted(donationId)) {
+      setUploadError(prev => ({
+        ...prev,
+        [donationId]: t(
+          'donorListFood.uploadAllowedOnlyCompleted',
+          'Evidence photos can only be uploaded for completed donations.'
+        ),
+      }));
+      return;
+    }
+    if (uploadingPhotos[donationId]) {
+      return;
+    }
+    const input = document.getElementById(`photo-upload-input-${donationId}`);
+    if (input) {
+      input.click();
     }
   };
 
@@ -387,6 +451,23 @@ export default function DonorListFood() {
     }
   };
 
+  const getDonationImageUrl = imageUrl => {
+    if (!imageUrl) {
+      return null;
+    }
+    if (
+      imageUrl.startsWith('http://') ||
+      imageUrl.startsWith('https://') ||
+      imageUrl.startsWith('data:')
+    ) {
+      return imageUrl;
+    }
+    if (imageUrl.startsWith('/api/files/')) {
+      return `${BACKEND_BASE_URL}${imageUrl}`;
+    }
+    return `${BACKEND_BASE_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  };
+
   const contactReceiver = async item => {
     const receiver = await getClaimedReceiverForPost(item);
     if (!receiver) {
@@ -448,8 +529,8 @@ export default function DonorListFood() {
     return [...posts].sort((a, b) => {
       if (sortOrder === 'date') {
         // Sort by date - newest first
-        const dateA = new Date(a.createdAt || a.pickupDate || 0);
-        const dateB = new Date(b.createdAt || b.pickupDate || 0);
+        const dateA = parseStableSortDate(a.createdAt, a.pickupDate);
+        const dateB = parseStableSortDate(b.createdAt, b.pickupDate);
         return dateB - dateA;
       } else if (sortOrder === 'status') {
         // Sort by status priority
@@ -606,10 +687,26 @@ export default function DonorListFood() {
     return () => clearTimeout(clearHighlightTimer);
   }, [items, location.pathname, location.state, navigate]);
 
+  const isDonationCompleted = donationId => {
+    const donation = items.find(item => String(item.id) === String(donationId));
+    return normalizeStatus(donation?.status) === 'COMPLETED';
+  };
+
   // Photo upload handlers
   const handlePhotoUpload = async (donationId, event) => {
     const files = Array.from(event.target.files);
     if (files.length === 0) {
+      return;
+    }
+
+    if (!isDonationCompleted(donationId)) {
+      setUploadError(prev => ({
+        ...prev,
+        [donationId]: t(
+          'donorListFood.uploadAllowedOnlyCompleted',
+          'Evidence photos can only be uploaded for completed donations.'
+        ),
+      }));
       return;
     }
 
@@ -765,7 +862,7 @@ export default function DonorListFood() {
     }
   };
 
-  if (loading) {
+  if (loading && !showTutorialPickupDemo) {
     return (
       <div className="donor-list-wrapper">
         <div className="loading-state">
@@ -836,6 +933,7 @@ export default function DonorListFood() {
           </button>
           <button
             className="donor-add-button"
+            data-tour="donor-post-donation"
             onClick={() => {
               setIsEditMode(false);
               setEditPostId(null);
@@ -855,7 +953,7 @@ export default function DonorListFood() {
         )}
       </header>
 
-      {items.length === 0 ? (
+      {items.length === 0 && !showTutorialPickupDemo ? (
         <div className="empty-state">
           <Package className="empty-state-icon" size={64} />
           <h3 className="empty-state-title">
@@ -866,151 +964,72 @@ export default function DonorListFood() {
           </p>
         </div>
       ) : (
-        <section className="donor-list-grid" aria-label="Donations list">
-          {items.map(item => {
-            const normalizedStatus = normalizeStatus(item.status);
-            const resolvedFoodType = item.foodType || item.foodCategories?.[0];
-            const normalizedFoodType = resolvedFoodType
-              ? mapLegacyCategoryToFoodType(resolvedFoodType)
-              : null;
-            const dietaryTags = Array.isArray(item.dietaryTags)
-              ? item.dietaryTags
-              : [];
-            const translatedTags = [];
+        <>
+          <section
+            className="donation-support-banner"
+            aria-label={t('donation.bannerAriaLabel')}
+          >
+            <div className="donation-support-banner-content">
+              <div className="donation-support-banner-icon" aria-hidden="true">
+                <Heart strokeWidth={2} />
+              </div>
+              <div className="donation-support-banner-text">
+                <h3>{t('donation.title')}</h3>
+                <p>{t('donation.subtitle')}</p>
+              </div>
+            </div>
+            <button
+              className="donation-support-banner-button"
+              onClick={() => navigate('/payment')}
+            >
+              {t('donorLayout.donateNow')}
+            </button>
+          </section>
 
-            if (normalizedFoodType) {
-              translatedTags.push({
-                label: t(
-                  `surplusForm.foodTypeValues.${normalizedFoodType}`,
-                  getFoodTypeLabel(resolvedFoodType)
-                ),
-                type: 'food',
-              });
-            }
-
-            dietaryTags.forEach(tag => {
-              translatedTags.push({
-                label: t(
-                  `surplusForm.dietaryTagValues.${tag}`,
-                  getDietaryTagLabel(tag)
-                ),
-                type: 'dietary',
-              });
-            });
-
-            if (item.foodCategories && item.foodCategories.length > 0) {
-              item.foodCategories.forEach(category => {
-                const categoryValue = category.name || category;
-                const mappedCategory =
-                  mapLegacyCategoryToFoodType(categoryValue);
-                translatedTags.push({
-                  label: t(
-                    `surplusForm.foodTypeValues.${mappedCategory}`,
-                    getFoodTypeLabel(categoryValue)
-                  ),
-                  type: 'food',
-                });
-              });
-            }
-
-            const uniqueTags = translatedTags.filter(
-              (tag, index, self) =>
-                index ===
-                self.findIndex(
-                  candidate =>
-                    candidate.label === tag.label && candidate.type === tag.type
-                )
-            );
-            return (
+          <section
+            className="donor-list-grid"
+            aria-label={t('donation.listAriaLabel')}
+          >
+            {showTutorialPickupDemo && (
               <article
-                key={item.id}
-                id={`donation-card-${item.id}`}
-                className={`donation-card ${
-                  focusedDonationId === item.id ? 'donation-card--focused' : ''
-                }`}
-                aria-label={item.title}
+                className="donation-card donation-card--tutorial"
+                aria-label="Tutorial pickup flow example"
+                data-tour="donor-pickup-flow"
               >
                 <div className="donation-header">
-                  <h3 className="donation-title">{item.title}</h3>
-                  <span className={statusClass(item.status)}>
-                    {normalizedStatus === 'AVAILABLE'
-                      ? t('donorListFood.status.available')
-                      : normalizedStatus === 'READY_FOR_PICKUP'
-                        ? t('donorListFood.status.readyForPickup')
-                        : normalizedStatus === 'CLAIMED'
-                          ? t('donorListFood.status.claimed')
-                          : normalizedStatus === 'NOT_COMPLETED'
-                            ? t('donorListFood.status.notCompleted')
-                            : normalizedStatus === 'COMPLETED'
-                              ? t('donorListFood.status.completed')
-                              : normalizedStatus === 'EXPIRED'
-                                ? t('donorListFood.status.expired')
-                                : item.status}
+                  <h3 className="donation-title">Fresh Sandwich Trays</h3>
+                  <span className={statusClass('READY_FOR_PICKUP')}>
+                    {t('donorListFood.status.readyForPickup')}
                   </span>
                 </div>
 
-                {uniqueTags.length > 0 && (
-                  <div className="dietary-tags-row">
-                    {uniqueTags.map((tag, index) => (
-                      <span
-                        key={`${item.id}-tag-${index}`}
-                        className={`donation-tag ${
-                          tag.type === 'dietary' ? 'donation-tag--dietary' : ''
-                        }`}
-                      >
-                        {tag.label}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Food Safety Compliance Info */}
-                {(item.temperatureCategory || item.packagingType) && (
-                  <div className="compliance-badges">
-                    {item.temperatureCategory && (
-                      <span className="compliance-badge temperature">
-                        <span className="badge-icon">
-                          {getTemperatureCategoryIcon(item.temperatureCategory)}
-                        </span>
-                        <span className="badge-label">
-                          {t(
-                            `surplusForm.temperatureCategoryValues.${item.temperatureCategory}`,
-                            getTemperatureCategoryLabel(
-                              item.temperatureCategory
-                            )
-                          )}
-                        </span>
-                      </span>
-                    )}
-                    {item.packagingType && (
-                      <span className="compliance-badge packaging">
-                        <Package size={14} />
-                        <span className="badge-label">
-                          {t(
-                            `surplusForm.packagingTypeValues.${item.packagingType}`,
-                            getPackagingTypeLabel(item.packagingType)
-                          )}
-                        </span>
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="donation-quantity">
-                  {item.quantity.value} {getUnitLabel(item.quantity.unit)}
+                <div className="dietary-tags-row">
+                  <span className="donation-tag">Prepared Meals</span>
+                  <span className="donation-tag donation-tag--dietary">
+                    Vegetarian
+                  </span>
                 </div>
 
-                <ul className="donation-meta" aria-label="details">
+                <div className="compliance-badges">
+                  <span className="compliance-badge temperature">
+                    <span className="badge-icon">❄</span>
+                    <span className="badge-label">Refrigerated</span>
+                  </span>
+                  <span className="compliance-badge packaging">
+                    <Package size={14} />
+                    <span className="badge-label">Sealed trays</span>
+                  </span>
+                </div>
+
+                <div className="donation-quantity">12 servings</div>
+
+                <ul
+                  className="donation-meta"
+                  aria-label="tutorial donation details"
+                >
                   <li>
                     <Calendar size={16} className="calendar-icon" />
-                    <span>
-                      {t('donorListFood.expires')}:&nbsp;
-                      {formatExpiryDate(
-                        item.expiryDate,
-                        locale,
-                        t('donorListFood.notSpecified')
-                      )}
-                    </span>
+                    <span>{t('donorListFood.expires')}:&nbsp;Tomorrow</span>
                   </li>
                   <li>
                     <Clock size={16} className="time-icon" />
@@ -1018,105 +1037,467 @@ export default function DonorListFood() {
                       <span className="pickup-label">
                         {t('donorListFood.pickup')}:
                       </span>
-                      {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
-                      {item.confirmedPickupSlot ? (
-                        <span className="pickup-time-item">
-                          {formatPickupTime(
-                            item.confirmedPickupSlot.pickupDate,
-                            item.confirmedPickupSlot.startTime,
-                            item.confirmedPickupSlot.endTime,
-                            locale,
-                            t('donorListFood.flexible')
-                          )}
-                        </span>
-                      ) : item.pickupSlots && item.pickupSlots.length > 0 ? (
-                        <>
-                          {item.pickupSlots.map((slot, idx) => (
-                            <React.Fragment key={idx}>
-                              <span className="pickup-time-item">
-                                {formatPickupTime(
-                                  slot.pickupDate || slot.date,
-                                  slot.startTime || slot.pickupFrom,
-                                  slot.endTime || slot.pickupTo,
-                                  locale,
-                                  t('donorListFood.flexible')
-                                )}
-                              </span>
-                              {idx < item.pickupSlots.length - 1 && (
-                                <span className="pickup-time-divider">|</span>
-                              )}
-                            </React.Fragment>
-                          ))}
-                        </>
-                      ) : (
-                        <span className="pickup-time-item">
-                          {formatPickupTime(
-                            item.pickupDate,
-                            item.pickupFrom,
-                            item.pickupTo,
-                            locale,
-                            t('donorListFood.flexible')
-                          )}
-                        </span>
-                      )}
+                      <span className="pickup-time-item">
+                        Mar 14, 3:00 PM - 5:00 PM
+                      </span>
                     </div>
                   </li>
                   <li>
                     <MapPin size={16} className="locationMap-icon" />
-                    {item.pickupLocation.address ? (
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          item.pickupLocation.address
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="donation-address"
-                        title={item.pickupLocation.address}
-                      >
-                        {addressLabel(item.pickupLocation.address)}
-                      </a>
-                    ) : (
-                      <span className="donation-address">
-                        {t('donorListFood.addressNotSpecified')}
-                      </span>
-                    )}
+                    <span className="donation-address">
+                      123 Community Lane, Toronto
+                    </span>
                   </li>
                 </ul>
 
-                {item.description && (
-                  <p className="donation-notes">{item.description}</p>
-                )}
+                <p className="donation-notes">
+                  Tutorial preview: this example card shows how a claimed
+                  donation moves through pickup and completion.
+                </p>
 
-                {/* Photo Upload/View Section - Only visible for CLAIMED or READY_FOR_PICKUP */}
-                {(normalizedStatus === 'CLAIMED' ||
-                  normalizedStatus === 'READY_FOR_PICKUP' ||
-                  normalizedStatus === 'COMPLETED') && (
-                  <div className="donation-photos-section">
-                    {/* Upload error message */}
-                    {uploadError[item.id] && (
-                      <div className="photo-upload-error">
-                        <AlertTriangle size={14} />
-                        <span>{uploadError[item.id]}</span>
+                <div className="donation-timeline-section tutorial-flow-section">
+                  <div className="tutorial-flow-section__label">
+                    Pickup flow
+                  </div>
+                  <div className="tutorial-current-status">
+                    <span className="tutorial-current-status__label">
+                      Current status
+                    </span>
+                    <span className="badge badge--ready">
+                      {t('donorListFood.status.readyForPickup')}
+                    </span>
+                  </div>
+                  <div className="tutorial-status-journey">
+                    <span className="badge badge--available">
+                      {t('donorListFood.status.available')}
+                    </span>
+                    <span className="badge badge--claimed">
+                      {t('donorListFood.status.claimed')}
+                    </span>
+                    <span className="badge badge--ready">
+                      {t('donorListFood.status.readyForPickup')}
+                    </span>
+                    <span className="badge badge--completed tutorial-status-journey__muted">
+                      {t('donorListFood.status.completed')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="donation-actions">
+                  <button className="donation-action-button secondary" disabled>
+                    {t('donorListFood.openChat')}
+                  </button>
+                  <button className="donation-action-button primary" disabled>
+                    {t('donorListFood.enterPickupCode')}
+                  </button>
+                </div>
+              </article>
+            )}
+
+            {items.map(item => {
+              const normalizedStatus = normalizeStatus(item.status);
+              const resolvedFoodType =
+                item.foodType || item.foodCategories?.[0];
+              const normalizedFoodType = resolvedFoodType
+                ? mapLegacyCategoryToFoodType(resolvedFoodType)
+                : null;
+              const dietaryTags = Array.isArray(item.dietaryTags)
+                ? item.dietaryTags
+                : [];
+              const translatedTags = [];
+
+              if (normalizedFoodType) {
+                translatedTags.push({
+                  label: t(
+                    `surplusForm.foodTypeValues.${normalizedFoodType}`,
+                    getFoodTypeLabel(resolvedFoodType)
+                  ),
+                  type: 'food',
+                });
+              }
+
+              dietaryTags.forEach(tag => {
+                translatedTags.push({
+                  label: t(
+                    `surplusForm.dietaryTagValues.${tag}`,
+                    getDietaryTagLabel(tag)
+                  ),
+                  type: 'dietary',
+                });
+              });
+
+              if (item.foodCategories && item.foodCategories.length > 0) {
+                item.foodCategories.forEach(category => {
+                  const categoryValue = category.name || category;
+                  const mappedCategory =
+                    mapLegacyCategoryToFoodType(categoryValue);
+                  translatedTags.push({
+                    label: t(
+                      `surplusForm.foodTypeValues.${mappedCategory}`,
+                      getFoodTypeLabel(categoryValue)
+                    ),
+                    type: 'food',
+                  });
+                });
+              }
+
+              const uniqueTags = translatedTags.filter(
+                (tag, index, self) =>
+                  index ===
+                  self.findIndex(
+                    candidate =>
+                      candidate.label === tag.label &&
+                      candidate.type === tag.type
+                  )
+              );
+
+              const normalizedCategories = Array.isArray(item.foodCategories)
+                ? item.foodCategories.map(category => category.name || category)
+                : resolvedFoodType
+                  ? [resolvedFoodType]
+                  : [];
+              const primaryFoodCategory =
+                getPrimaryFoodCategory(normalizedCategories);
+              const resolvedDonationImage = getDonationImageUrl(
+                item.resolvedDonationImageUrl ||
+                  item.donationImageUrl ||
+                  item.imageUrl
+              );
+              const fallbackDonationImage =
+                foodTypeImages[primaryFoodCategory] ||
+                foodTypeImages['Prepared Meals'];
+
+              const actionItems = [];
+              if (item.status === 'AVAILABLE') {
+                actionItems.push(
+                  {
+                    key: 'edit',
+                    label: t('donorListFood.edit'),
+                    icon: <Edit3 size={14} />,
+                    onClick: () => openEdit(item),
+                  },
+                  {
+                    key: 'delete',
+                    label: t('donorListFood.delete'),
+                    icon: <Trash2 size={14} />,
+                    onClick: () => requestDelete(item.id),
+                    danger: true,
+                  }
+                );
+              }
+              if (item.status === 'NOT_COMPLETED') {
+                if (!isExpired(item.expiryDate)) {
+                  actionItems.push({
+                    key: 'reschedule',
+                    label: t('donorListFood.reschedule'),
+                    icon: <Clock size={14} />,
+                    onClick: () => handleOpenRescheduleModal(item),
+                  });
+                }
+                actionItems.push(
+                  {
+                    key: 'report',
+                    label: t('donorListFood.reportReceiver'),
+                    icon: <AlertTriangle size={14} />,
+                    onClick: () => handleOpenReport(item),
+                    danger: true,
+                  },
+                  {
+                    key: 'feedback',
+                    label: t('donorListFood.leaveFeedback'),
+                    icon: <Star size={14} />,
+                    onClick: () => handleOpenFeedback(item),
+                  }
+                );
+              }
+              if (item.status === 'READY_FOR_PICKUP') {
+                actionItems.push({
+                  key: 'pickupCode',
+                  label: t('donorListFood.enterPickupCode'),
+                  icon: <KeyRound size={14} />,
+                  onClick: () => handleOpenPickupModal(item),
+                });
+              }
+
+              if (item.status === 'COMPLETED') {
+                actionItems.push({
+                  key: 'uploadPhoto',
+                  label: t('donorListFood.uploadDonationPhoto'),
+                  icon: <Upload size={14} />,
+                  onClick: () => triggerPhotoUpload(item.id),
+                });
+              }
+
+              if (item.status === 'COMPLETED') {
+                actionItems.push(
+                  {
+                    key: 'thankYou',
+                    label: t('donorListFood.thankYou'),
+                    icon: <CheckCircle2 size={14} />,
+                    disabled: true,
+                  },
+                  {
+                    key: 'report',
+                    label: t('donorListFood.reportReceiver'),
+                    icon: <AlertTriangle size={14} />,
+                    onClick: () => handleOpenReport(item),
+                    danger: true,
+                  },
+                  {
+                    key: 'feedback',
+                    label: t('donorListFood.leaveFeedback'),
+                    icon: <Star size={14} />,
+                    onClick: () => handleOpenFeedback(item),
+                  }
+                );
+              }
+              if (item.status === 'CLAIMED') {
+                actionItems.push({
+                  key: 'chat',
+                  label: t('donorListFood.openChat'),
+                  icon: <MessageCircle size={14} />,
+                  onClick: () => contactReceiver(item),
+                });
+              }
+
+              return (
+                <article
+                  key={item.id}
+                  id={`donation-card-${item.id}`}
+                  className={`donation-card ${
+                    focusedDonationId === item.id
+                      ? 'donation-card--focused'
+                      : ''
+                  }`}
+                  aria-label={item.title}
+                >
+                  <div className="donation-card-image-wrap">
+                    <img
+                      src={resolvedDonationImage || fallbackDonationImage}
+                      alt={primaryFoodCategory || item.title}
+                      className="donation-card-image"
+                      onError={e => {
+                        e.currentTarget.src = fallbackDonationImage;
+                      }}
+                    />
+
+                    <span
+                      className={`${statusClass(item.status)} donation-status-on-image`}
+                    >
+                      {normalizedStatus === 'AVAILABLE'
+                        ? t('donorListFood.status.available')
+                        : normalizedStatus === 'READY_FOR_PICKUP'
+                          ? t('donorListFood.status.readyForPickup')
+                          : normalizedStatus === 'CLAIMED'
+                            ? t('donorListFood.status.claimed')
+                            : normalizedStatus === 'NOT_COMPLETED'
+                              ? t('donorListFood.status.notCompleted')
+                              : normalizedStatus === 'COMPLETED'
+                                ? t('donorListFood.status.completed')
+                                : normalizedStatus === 'EXPIRED'
+                                  ? t('donorListFood.status.expired')
+                                  : item.status}
+                    </span>
+
+                    {actionItems.length > 0 && (
+                      <div className="card-actions-menu-wrap">
                         <button
-                          className="dismiss-error"
+                          type="button"
+                          className="card-actions-menu-trigger"
                           onClick={() =>
-                            setUploadError(prev => ({
-                              ...prev,
-                              [item.id]: null,
-                            }))
+                            setOpenActionMenuId(prev =>
+                              prev === item.id ? null : item.id
+                            )
                           }
+                          aria-label="More actions"
                         >
-                          <X size={12} />
+                          <MoreHorizontal size={18} />
                         </button>
+
+                        {openActionMenuId === item.id && (
+                          <div className="card-actions-menu" role="menu">
+                            {actionItems.map(action => (
+                              <button
+                                key={`${item.id}-${action.key}`}
+                                type="button"
+                                role="menuitem"
+                                disabled={action.disabled}
+                                className={`card-actions-menu-item ${action.danger ? 'danger' : ''}`}
+                                onClick={() => {
+                                  if (action.disabled || !action.onClick) {
+                                    return;
+                                  }
+                                  setOpenActionMenuId(null);
+                                  action.onClick();
+                                }}
+                              >
+                                <span className="card-actions-menu-item-icon">
+                                  {action.icon}
+                                </span>
+                                <span className="card-actions-menu-item-label">
+                                  {action.label}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
+                  </div>
 
-                    {!viewingPhotos[item.id] ? (
-                      // Upload mode
-                      <label
-                        className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}
-                      >
+                  <div className="donation-header">
+                    <h3 className="donation-title">{item.title}</h3>
+                  </div>
+
+                  {uniqueTags.length > 0 && (
+                    <div className="dietary-tags-row">
+                      {uniqueTags.map((tag, index) => (
+                        <span
+                          key={`${item.id}-tag-${index}`}
+                          className={`donation-tag ${
+                            tag.type === 'dietary'
+                              ? 'donation-tag--dietary'
+                              : ''
+                          }`}
+                        >
+                          {tag.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Food Safety Compliance Info */}
+                  {(item.temperatureCategory || item.packagingType) && (
+                    <div className="compliance-badges">
+                      {item.temperatureCategory && (
+                        <span className="compliance-badge temperature">
+                          <span className="badge-icon">
+                            {getTemperatureCategoryIcon(
+                              item.temperatureCategory
+                            )}
+                          </span>
+                          <span className="badge-label">
+                            {t(
+                              `surplusForm.temperatureCategoryValues.${item.temperatureCategory}`,
+                              getTemperatureCategoryLabel(
+                                item.temperatureCategory
+                              )
+                            )}
+                          </span>
+                        </span>
+                      )}
+                      {item.packagingType && (
+                        <span className="compliance-badge packaging">
+                          <Package size={14} />
+                          <span className="badge-label">
+                            {t(
+                              `surplusForm.packagingTypeValues.${item.packagingType}`,
+                              getPackagingTypeLabel(item.packagingType)
+                            )}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="donation-quantity">
+                    {item.quantity.value} {getUnitLabel(item.quantity.unit)}
+                  </div>
+
+                  <ul className="donation-meta" aria-label="details">
+                    <li>
+                      <Calendar size={16} className="calendar-icon" />
+                      <span>
+                        {t('donorListFood.expires')}:&nbsp;
+                        {formatExpiryDate(
+                          item.expiryDate,
+                          locale,
+                          t('donorListFood.notSpecified')
+                        )}
+                      </span>
+                    </li>
+                    <li>
+                      <Clock size={16} className="time-icon" />
+                      <div className="pickup-times-container">
+                        <span className="pickup-label">
+                          {t('donorListFood.pickup')}:
+                        </span>
+                        {/* Show only confirmed pickup slot if it exists, otherwise show all slots */}
+                        {item.confirmedPickupSlot ? (
+                          <span className="pickup-time-item">
+                            {formatPickupTime(
+                              item.confirmedPickupSlot.pickupDate,
+                              item.confirmedPickupSlot.startTime,
+                              item.confirmedPickupSlot.endTime,
+                              locale,
+                              t('donorListFood.flexible')
+                            )}
+                          </span>
+                        ) : item.pickupSlots && item.pickupSlots.length > 0 ? (
+                          <>
+                            {item.pickupSlots.map((slot, idx) => (
+                              <React.Fragment key={idx}>
+                                <span className="pickup-time-item">
+                                  {formatPickupTime(
+                                    slot.pickupDate || slot.date,
+                                    slot.startTime || slot.pickupFrom,
+                                    slot.endTime || slot.pickupTo,
+                                    locale,
+                                    t('donorListFood.flexible')
+                                  )}
+                                </span>
+                                {idx < item.pickupSlots.length - 1 && (
+                                  <span className="pickup-time-divider">|</span>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </>
+                        ) : (
+                          <span className="pickup-time-item">
+                            {formatPickupTime(
+                              item.pickupDate,
+                              item.pickupFrom,
+                              item.pickupTo,
+                              locale,
+                              t('donorListFood.flexible')
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                    <li>
+                      <MapPin size={16} className="locationMap-icon" />
+                      {item.pickupLocation.address ? (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            item.pickupLocation.address
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="donation-address"
+                          title={item.pickupLocation.address}
+                        >
+                          {addressLabel(item.pickupLocation.address)}
+                        </a>
+                      ) : (
+                        <span className="donation-address">
+                          {t('donorListFood.addressNotSpecified')}
+                        </span>
+                      )}
+                    </li>
+                  </ul>
+
+                  {item.description && (
+                    <p className="donation-notes">{item.description}</p>
+                  )}
+
+                  {/* Photo Upload/View Section - Upload enabled only when donation is completed */}
+                  {(normalizedStatus === 'COMPLETED' ||
+                    donationPhotos[item.id]?.length > 0) && (
+                    <div className="donation-photos-section">
+                      {normalizedStatus === 'COMPLETED' && (
                         <input
+                          id={`photo-upload-input-${item.id}`}
                           type="file"
                           multiple
                           accept="image/jpeg,image/png"
@@ -1124,167 +1505,116 @@ export default function DonorListFood() {
                           style={{ display: 'none' }}
                           disabled={uploadingPhotos[item.id]}
                         />
-                        {uploadingPhotos[item.id] ? (
-                          <>
-                            <span className="upload-spinner"></span>
-                            <span>{t('donorListFood.uploading')}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Camera size={14} />
-                            <span>
-                              {donationPhotos[item.id]?.length > 0
-                                ? donationPhotos[item.id].length > 1
-                                  ? t('donorListFood.photosUploadedPlural', {
-                                      count: donationPhotos[item.id].length,
-                                    })
-                                  : t('donorListFood.photosUploadedSingular', {
-                                      count: donationPhotos[item.id].length,
-                                    })
-                                : t('donorListFood.uploadDonationPhoto')}
-                            </span>
-                          </>
-                        )}
-                      </label>
-                    ) : null}
+                      )}
 
-                    {donationPhotos[item.id]?.length > 0 && (
+                      {/* Upload error message */}
+                      {uploadError[item.id] && (
+                        <div className="photo-upload-error">
+                          <AlertTriangle size={14} />
+                          <span>{uploadError[item.id]}</span>
+                          <button
+                            className="dismiss-error"
+                            onClick={() =>
+                              setUploadError(prev => ({
+                                ...prev,
+                                [item.id]: null,
+                              }))
+                            }
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      )}
+
+                      {normalizedStatus === 'COMPLETED' &&
+                      !viewingPhotos[item.id] ? (
+                        // Upload mode
+                        <label
+                          htmlFor={`photo-upload-input-${item.id}`}
+                          className={`photo-upload-button ${uploadingPhotos[item.id] ? 'uploading' : ''}`}
+                        >
+                          {uploadingPhotos[item.id] ? (
+                            <>
+                              <span className="upload-spinner"></span>
+                              <span>{t('donorListFood.uploading')}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Camera size={14} />
+                              <span>
+                                {donationPhotos[item.id]?.length > 0
+                                  ? donationPhotos[item.id].length > 1
+                                    ? t('donorListFood.photosUploadedPlural', {
+                                        count: donationPhotos[item.id].length,
+                                      })
+                                    : t(
+                                        'donorListFood.photosUploadedSingular',
+                                        {
+                                          count: donationPhotos[item.id].length,
+                                        }
+                                      )
+                                  : t('donorListFood.uploadDonationPhoto')}
+                              </span>
+                            </>
+                          )}
+                        </label>
+                      ) : null}
+
+                      {donationPhotos[item.id]?.length > 0 && (
+                        <button
+                          className="view-photos-button"
+                          onClick={() => toggleViewPhotos(item.id)}
+                        >
+                          <ImageIcon size={14} />
+                          {donationPhotos[item.id].length > 1
+                            ? t('donorListFood.viewPhotosPlural', {
+                                count: donationPhotos[item.id].length,
+                              })
+                            : t('donorListFood.viewPhotosSingular', {
+                                count: donationPhotos[item.id].length,
+                              })}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Timeline Section - Show for CLAIMED, READY_FOR_PICKUP, COMPLETED, NOT_COMPLETED */}
+                  {(item.status === 'CLAIMED' ||
+                    item.status === 'READY_FOR_PICKUP' ||
+                    item.status === 'COMPLETED' ||
+                    item.status === 'NOT_COMPLETED') && (
+                    <div className="donation-timeline-section">
                       <button
-                        className="view-photos-button"
-                        onClick={() => toggleViewPhotos(item.id)}
+                        className="timeline-toggle-button"
+                        onClick={() => toggleTimeline(item.id)}
                       >
-                        <ImageIcon size={14} />
-                        {donationPhotos[item.id].length > 1
-                          ? t('donorListFood.viewPhotosPlural', {
-                              count: donationPhotos[item.id].length,
-                            })
-                          : t('donorListFood.viewPhotosSingular', {
-                              count: donationPhotos[item.id].length,
-                            })}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Timeline Section - Show for CLAIMED, READY_FOR_PICKUP, COMPLETED, NOT_COMPLETED */}
-                {(item.status === 'CLAIMED' ||
-                  item.status === 'READY_FOR_PICKUP' ||
-                  item.status === 'COMPLETED' ||
-                  item.status === 'NOT_COMPLETED') && (
-                  <div className="donation-timeline-section">
-                    <button
-                      className="timeline-toggle-button"
-                      onClick={() => toggleTimeline(item.id)}
-                    >
-                      <Clock size={16} />
-                      <span>
-                        {expandedTimeline[item.id]
-                          ? t('donorListFood.hideDonationTimeline')
-                          : t('donorListFood.viewDonationTimeline')}
-                      </span>
-                      <ChevronDown
-                        size={16}
-                        className={`chevron ${expandedTimeline[item.id] ? 'open' : ''}`}
-                      />
-                    </button>
-
-                    {expandedTimeline[item.id] && (
-                      <div className="timeline-content-wrapper">
-                        <DonationTimeline
-                          timeline={timelines[item.id] || []}
-                          loading={loadingTimelines[item.id]}
+                        <Clock size={16} />
+                        <span>
+                          {expandedTimeline[item.id]
+                            ? t('donorListFood.hideDonationTimeline')
+                            : t('donorListFood.viewDonationTimeline')}
+                        </span>
+                        <ChevronDown
+                          size={16}
+                          className={`chevron ${expandedTimeline[item.id] ? 'open' : ''}`}
                         />
-                      </div>
-                    )}
-                  </div>
-                )}
+                      </button>
 
-                {item.status === 'AVAILABLE' ? (
-                  <div className="donation-actions">
-                    <button
-                      className="donation-link"
-                      onClick={() => openEdit(item)}
-                    >
-                      <Edit className="icon" /> {t('donorListFood.edit')}
-                    </button>
-                    <button
-                      className="donation-link danger"
-                      onClick={() => requestDelete(item.id)}
-                    >
-                      <Trash2 className="icon" /> {t('donorListFood.delete')}
-                    </button>
-                  </div>
-                ) : item.status === 'NOT_COMPLETED' ? (
-                  <div className="donation-actions">
-                    {!isExpired(item.expiryDate) && (
-                      <button
-                        className="donation-action-button primary"
-                        onClick={() => handleOpenRescheduleModal(item)}
-                      >
-                        {t('donorListFood.reschedule')}
-                      </button>
-                    )}
-                    <button
-                      className="donation-action-button report-receiver"
-                      onClick={() => handleOpenReport(item)}
-                    >
-                      {t('donorListFood.reportReceiver')}
-                    </button>
-                    <button
-                      className="donation-action-button secondary"
-                      onClick={() => handleOpenFeedback(item)}
-                    >
-                      <Star className="icon" />{' '}
-                      {t('donorListFood.leaveFeedback')}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="donation-actions">
-                    {item.status === 'READY_FOR_PICKUP' && (
-                      <button
-                        className="donation-action-button primary"
-                        onClick={() => handleOpenPickupModal(item)}
-                      >
-                        {t('donorListFood.enterPickupCode')}
-                      </button>
-                    )}
-                    {item.status === 'COMPLETED' && (
-                      <>
-                        <button
-                          className="donation-action-button secondary"
-                          disabled
-                        >
-                          {t('donorListFood.thankYou')}
-                        </button>
-                        <button
-                          className="donation-action-button report-receiver"
-                          onClick={() => handleOpenReport(item)}
-                        >
-                          {t('donorListFood.reportReceiver')}
-                        </button>
-                        <button
-                          className="donation-action-button secondary"
-                          onClick={() => handleOpenFeedback(item)}
-                        >
-                          <Star className="icon" />{' '}
-                          {t('donorListFood.leaveFeedback')}
-                        </button>
-                      </>
-                    )}
-                    {item.status === 'CLAIMED' && (
-                      <button
-                        className="donation-action-button primary"
-                        onClick={() => contactReceiver(item)}
-                      >
-                        {t('donorListFood.openChat')}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </section>
+                      {expandedTimeline[item.id] && (
+                        <div className="timeline-content-wrapper">
+                          <DonationTimeline
+                            timeline={timelines[item.id] || []}
+                            loading={loadingTimelines[item.id]}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </section>
+        </>
       )}
 
       <ConfirmPickupModal
@@ -1378,17 +1708,19 @@ export default function DonorListFood() {
                     {(currentPhotoIndex[donationId] ?? 0) + 1} /{' '}
                     {donationPhotos[donationId].length}
                   </div>
-                  <label className="photo-add-btn">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={e => handlePhotoUpload(donationId, e)}
-                      style={{ display: 'none' }}
-                    />
-                    <Upload size={16} />
-                    Add More
-                  </label>
+                  {isDonationCompleted(donationId) && (
+                    <label className="photo-add-btn">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={e => handlePhotoUpload(donationId, e)}
+                        style={{ display: 'none' }}
+                      />
+                      <Upload size={16} />
+                      Add More
+                    </label>
+                  )}
                 </div>
               </div>
             </div>

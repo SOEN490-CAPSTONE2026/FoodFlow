@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import jakarta.annotation.PostConstruct;
 import java.util.Map;
 
@@ -27,6 +26,12 @@ public class SmsService {
 
     @Value("${twilio.phone.number}")
     private String fromPhoneNumber;
+
+    private final BusinessMetricsService businessMetricsService;
+
+    public SmsService(BusinessMetricsService businessMetricsService) {
+        this.businessMetricsService = businessMetricsService;
+    }
 
     private static final int MAX_RETRIES = 3;
     private static final long INITIAL_RETRY_DELAY_MS = 1000; // 1 second
@@ -84,6 +89,7 @@ public class SmsService {
 
                 log.info("SMS sent successfully to: {}. Message SID: {}, Status: {}",
                         toPhoneNumber, message.getSid(), message.getStatus());
+                businessMetricsService.incrementSmsSent();
                 return true;
 
             } catch (Exception e) {
@@ -107,6 +113,7 @@ public class SmsService {
             }
         }
 
+        businessMetricsService.incrementSmsFailed();
         return false;
     }
 

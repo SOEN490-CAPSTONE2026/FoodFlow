@@ -176,4 +176,26 @@ describe('MessageNotification', () => {
     // onClose should not be called after unmount
     expect(mockOnClose).not.toHaveBeenCalled();
   });
+
+  it('falls back to English admin alert header for unsupported language', () => {
+    const adminAlertNotification = {
+      senderName: 'Warning',
+      message: 'Please follow platform rules.',
+      type: 'ADMIN_ALERT',
+      alertType: 'warning',
+      preferredLanguage: 'de',
+    };
+
+    render(
+      <MessageNotification
+        notification={adminAlertNotification}
+        onClose={mockOnClose}
+      />
+    );
+
+    expect(screen.getByText('Warning')).toBeInTheDocument();
+    expect(
+      screen.getByText('Please follow platform rules.')
+    ).toBeInTheDocument();
+  });
 });

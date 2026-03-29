@@ -31,6 +31,36 @@ const LoginPage = () => {
     }
   }, [location]);
 
+  const syncLanguagePreference = async (selectedLanguage, token) => {
+    const normalized = selectedLanguage?.split('-')[0] || 'en';
+    localStorage.setItem('languagePreference', normalized);
+    await i18n.changeLanguage(normalized);
+
+    if (!token) {
+      return;
+    }
+
+    const apiBase =
+      process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+
+    try {
+      const response = await fetch(`${apiBase}/user/language`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ languagePreference: normalized }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update language preference');
+      }
+    } catch (syncError) {
+      console.error('Failed to update language preference:', syncError);
+    }
+  };
+
   const handleLogin = async e => {
     e.preventDefault();
     setError('');
@@ -52,10 +82,15 @@ const LoginPage = () => {
         throw new Error('Invalid server response');
       }
 
-      if (languagePreference) {
-        localStorage.setItem('languagePreference', languagePreference);
-        i18n.changeLanguage(languagePreference);
-      }
+      const landingLanguagePreference =
+        localStorage.getItem('languagePreference');
+      const resolvedLanguagePreference =
+        landingLanguagePreference ||
+        languagePreference ||
+        i18n.language?.split('-')[0] ||
+        'en';
+
+      await syncLanguagePreference(resolvedLanguagePreference, token);
 
       login(
         token,

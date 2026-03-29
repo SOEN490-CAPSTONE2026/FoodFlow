@@ -41,20 +41,23 @@ public class GoogleCalendarProvider implements CalendarProvider {
     private static final String GOOGLE_CALENDAR_PRIMARY = "https://www.googleapis.com/calendar/v3/calendars/primary";
     private static final String GOOGLE_CALENDAR_LIST_PRIMARY = "https://www.googleapis.com/calendar/v3/users/me/calendarList/primary";
 
-    @Autowired
-    private GoogleOAuthService googleOAuthService;
+    private final GoogleOAuthService googleOAuthService;
+    private final EncryptionUtility encryptionUtility;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
 
-    @Autowired
-    private EncryptionUtility encryptionUtility;
-
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-    
-    @Autowired
-    private CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+    public GoogleCalendarProvider(GoogleOAuthService googleOAuthService,
+                                  EncryptionUtility encryptionUtility,
+                                  RestTemplate restTemplate,
+                                  ObjectMapper objectMapper,
+                                  CalendarSyncPreferenceRepository calendarSyncPreferenceRepository) {
+        this.googleOAuthService = googleOAuthService;
+        this.encryptionUtility = encryptionUtility;
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+        this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
+    }
 
     @Override
     public String getProviderName() {

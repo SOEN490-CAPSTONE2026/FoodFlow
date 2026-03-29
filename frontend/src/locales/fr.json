@@ -765,8 +765,11 @@
       "box": "boîtes"
     },
     "steps": {
+      "basicInfo": "Informations de base",
       "foodDetails": "Détails de l'aliment",
       "quantityDates": "Quantité & Dates",
+      "pickupSchedule": "Horaire de collecte",
+      "pickupLocation": "Lieu de collecte",
       "pickupInfo": "Informations de collecte",
       "description": "Description"
     },
@@ -1004,6 +1007,12 @@
   },
   "notifications": {
     "newMessageFrom": "Nouveau message de",
+    "adminAlertHeaders": {
+      "warning": "Avertissement",
+      "safetyNotice": "Avis de securite",
+      "complianceReminder": "Rappel de conformite",
+      "adminAlert": "Alerte admin"
+    },
     "claimConfirmed": "Réclamation confirmée",
     "claimStatus": "Statut de la réclamation",
     "successfullyClaimed": "Réclamation réussie de \"{{foodTitle}}\" de {{donorName}}",
@@ -1055,6 +1064,15 @@
       "hasClaimed": "{{receiverName}} a réclamé votre \"{{foodTitle}}\"",
       "cancelledClaim": "{{receiverName}} a annulé sa réclamation sur \"{{foodTitle}}\""
     }
+  },
+  "donation": {
+    "title": "Soutenez FoodFlow",
+    "subtitle": "Aidez-nous a continuer de recuperer les surplus alimentaires et de livrer davantage de repas aux communautes locales.",
+    "claimsSubtitle": "Aidez-nous a garder la plateforme durable.",
+    "bannerAriaLabel": "Soutenez FoodFlow",
+    "listAriaLabel": "Liste des dons",
+    "modalAriaLabel": "Faire un don",
+    "closeAriaLabel": "Fermer"
   },
   "donorListFood": {
     "edit": "Modifier",
@@ -1242,13 +1260,18 @@
     "predicted": "Prédit",
     "addedToSaved": "Ajouté aux dons sauvegardés"
   },
+  "receiverSavedDonations": {
+    "title": "Dons sauvegardés",
+    "failedToLoad": "Échec du chargement des dons sauvegardés",
+    "empty": "Aucun don sauvegardé pour le moment."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Prêt pour la collecte",
     "completed": "Complété",
     "notCompleted": "Non complété",
     "claimed": "Réclamé",
     "title": "Mes dons réclamés",
-    "subtitle": "Suivez vos dons et préparez-vous pour la collecte — chaque réclamation aide à réduire le gaspillage et à nourrir notre communauté.",
+    "subtitle": "Suivez vos dons et préparez-vous pour la collecte — chaque réclamation aide à réduire le gaspillage et à nourrir votre communauté.",
     "loading": "Chargement de vos réclamations...",
     "failedToLoad": "Échec du chargement de vos dons réclamés",
     "sortByDate": "Trier par date",
@@ -1390,6 +1413,21 @@
       "detailsPrefix": "Pour plus de détails sur la façon dont nous traitons vos données, veuillez consulter notre",
       "privacyPolicyLink": "Politique de confidentialité",
       "detailsSuffix": "."
+    },
+    "paymentHistory": {
+      "title": "Historique des paiements",
+      "description": "Consultez vos contributions récentes à FoodFlow.",
+      "toggleAriaLabel": "Afficher ou masquer l'historique des paiements",
+      "viewButton": "Voir ▼",
+      "hideButton": "Masquer ▲",
+      "loading": "Chargement de l'historique des paiements...",
+      "loadError": "Impossible de charger l'historique des paiements pour le moment.",
+      "empty": "Vous n'avez pas encore de paiements. Vos dons apparaîtront ici une fois finalisés.",
+      "listAriaLabel": "Liste de l'historique des paiements",
+      "defaultDescription": "Don FoodFlow",
+      "refreshButton": "Actualiser",
+      "notAvailable": "N/D",
+      "unknownStatus": "Inconnu"
     },
     "notificationTypes": {
       "title": "Types de notification",
@@ -1641,8 +1679,45 @@
     "pickupSteps": "Étapes de collecte",
     "donationClaimed": "Don réclamé !",
     "successMessage": "Votre don a été réclamé avec succès ! Merci de faire une différence dans votre communauté.",
+    "pickupMissedTitle": "La collecte a été manquée, dommage.",
+    "pickupMissedMessage": "Cette collecte a été manquée. Dommage, et merci d'avoir essayé d'aider votre communauté.",
+    "reportDonor": "Signaler le donateur",
+    "leaveFeedback": "Laisser un avis",
     "backToDetails": "Retour aux détails",
     "viewPickupSteps": "Voir les étapes de collecte"
+  },
+  "donationTimeline": {
+    "loading": "Chargement du calendrier...",
+    "empty": "Aucun événement de calendrier de donation pour le moment.",
+    "actorLabel": "Acteur",
+    "statusLabel": "Statut",
+    "adminOnly": "Admin uniquement",
+    "pickupEvidence": "Preuve de collecte",
+    "actor": {
+      "donor": "Donneur",
+      "receiver": "Bénéficiaire",
+      "system": "Système",
+      "admin": "Admin",
+      "unknown": "Inconnu"
+    },
+    "events": {
+      "DONATION_POSTED": "Donation publiée",
+      "DONATION_UPDATED": "Donation mise à jour",
+      "DONATION_CLAIMED": "Donation réclamée",
+      "CLAIM_CANCELLED": "Réclamation annulée",
+      "READY_FOR_PICKUP": "Prête pour la collecte",
+      "PICKUP_CONFIRMED": "Collecte confirmée",
+      "PICKUP_MISSED": "Collecte manquée",
+      "PICKUP_EVIDENCE_UPLOADED": "Preuve de collecte téléversée",
+      "DONATION_EXPIRED": "Donation expirée"
+    },
+    "details": {
+      "claimedBy": "Réclamée par {{name}}",
+      "postedBy": "Donation publiée par {{name}}",
+      "readyForPickup": "L'heure de collecte est arrivée. Le code OTP a été généré automatiquement.",
+      "pickupMissed": "La fenêtre de collecte a expiré. Marquée automatiquement comme non complétée.",
+      "expired": "La donation a expiré automatiquement."
+    }
   },
   "claimDetail": {
     "status": {
@@ -1741,6 +1816,11 @@
     "claimsLabel": "Reclamations"
   },
   "donorHelp": {
+    "hero": {
+      "title": "Besoin d'aide ?",
+      "subtitle": "Si vous vous sentez dépassé, rappelez-vous que vous n'êtes pas seul. Contactez-nous et obtenez l'aide dont vous avez besoin",
+      "searchPlaceholder": "Posez une question..."
+    },
     "gettingStarted": {
       "title": "Premiers pas",
       "intro": "Bienvenue sur FoodFlow ! Suivez ces étapes pour commencer à faire la différence en donnant vos surplus alimentaires à ceux qui en ont besoin.",
@@ -1763,8 +1843,13 @@
         }
       }
     },
+    "foodSafety": {
+      "title": "Sécurité alimentaire",
+      "intro": "Apprenez les directives de sécurité alimentaire, la manipulation appropriée et les exigences de stockage."
+    },
     "faq": {
       "title": "Foire aux questions",
+      "subtitle": "Tout ce que vous devez savoir sur le produit et d'autres informations. Vous ne trouvez pas la réponse que vous cherchez ?",
       "items": {
         "q1": {
           "question": "Comment créer un don ?",
@@ -1807,6 +1892,10 @@
           "answer": "Oui. Une fois votre don réclamé, vous pouvez voir le nom de l'organisation bénéficiaire et ses coordonnées. Cela facilite la préparation de la collecte et la coordination."
         }
       }
+    },
+    "contact": {
+      "title": "Toujours besoin d'aide ?",
+      "subtitle": "Notre équipe de support est là pour vous aider. Contactez-nous via votre canal préféré."
     },
     "support": {
       "title": "Besoin de plus d'aide ?",
@@ -2274,6 +2363,11 @@
       "compliance": "Rappeler les exigences de conformité",
       "custom": "Envoyer un message personnalisé"
     },
+    "alertTemplates": {
+      "warning": "Cher utilisateur,\n\nNous avons detecte une violation de politique dans votre activite recente. Veuillez consulter nos politiques et assurer la conformite pour eviter d'autres actions.\n\nMerci de votre cooperation.",
+      "safety": "Cher utilisateur,\n\nVeuillez respecter les consignes de securite suivantes pour la gestion des dons alimentaires:\n\n- Maintenir les temperatures de conservation appropriees\n- Verifier regulierement les dates d'expiration\n- Respecter les protocoles d'hygiene\n\nVotre securite et celle des beneficiaires est notre priorite.",
+      "compliance": "Cher utilisateur,\n\nCeci est un rappel amical pour garantir que votre compte respecte toutes les exigences de conformite:\n\n✓ Profil complet\n✓ Documentation a jour\n✓ Respect des politiques de la plateforme\n\nVeuillez verifier vos parametres de compte et mettre a jour les informations manquantes.\n\nMerci de maintenir la conformite."
+    },
     "notifications": {
       "reasonRequired": "Veuillez fournir un motif de désactivation",
       "deactivated": "Utilisateur désactivé avec succès",
@@ -2704,6 +2798,92 @@
     },
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
+    }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Tutoriel donateur",
+      "receiver": "Tutoriel receveur"
+    },
+    "actions": {
+      "skip": "Passer",
+      "back": "Retour",
+      "next": "Suivant",
+      "finish": "Terminer"
+    },
+    "stepProgress": "Étape {{current}} sur {{total}}",
+    "errors": {
+      "saveFailed": "Nous n’avons pas pu enregistrer votre progression dans le tutoriel. Veuillez réessayer."
+    },
+    "help": {
+      "title": "Tutoriel d’intégration",
+      "replayButton": "Afficher le tutoriel à nouveau",
+      "donorIntro": "Relancez le parcours donateur à tout moment pour revoir le tableau de bord, la publication, le chat et les statuts de collecte.",
+      "receiverIntro": "Relancez le parcours receveur à tout moment pour revoir la recherche, les sauvegardes, les réclamations, le chat, les préférences et les paramètres."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Bienvenue sur FoodFlow",
+          "text": "Voici votre tableau de bord donateur. Depuis ici, vous pouvez gérer vos dons et suivre ce qui se passe ensuite."
+        },
+        "impact": {
+          "title": "Voyez votre impact",
+          "text": "Votre tableau de bord d’impact montre la quantité de nourriture que vous avez sauvée et l’effet de vos dons au fil du temps."
+        },
+        "postDonation": {
+          "title": "Publier un don",
+          "text": "Utilisez cette action pour créer un nouveau don alimentaire et le rendre disponible aux receveurs."
+        },
+        "chat": {
+          "title": "Discuter avec les receveurs",
+          "text": "Une fois qu’un don est réservé, vous pouvez utiliser le chat pour coordonner la collecte et répondre aux questions."
+        },
+        "pickup": {
+          "title": "Suivre la collecte",
+          "text": "Chaque don suit un parcours de collecte avec des statuts pour que vous sachiez toujours à quelle étape il se trouve."
+        },
+        "setup": {
+          "title": "Configurez votre compte",
+          "text": "Utilisez Langue et région pour choisir votre langue, votre emplacement et votre fuseau horaire. L’intégration de calendrier permet de synchroniser les collectes FoodFlow, et les préférences d’affichage contrôlent l’apparence de vos cartes de dons."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Parcourir les dons",
+          "text": "C’est ici que vous pouvez explorer les dons alimentaires disponibles et trouver ceux qui correspondent à vos besoins."
+        },
+        "saved": {
+          "title": "Dons enregistrés",
+          "text": "Vous pouvez retrouver ici rapidement les dons que vous avez enregistrés pour les consulter plus tard."
+        },
+        "claims": {
+          "title": "Vos réservations",
+          "text": "Cette section montre les dons que vous avez réservés et vous permet de suivre leur progression."
+        },
+        "chat": {
+          "title": "Discuter avec les donateurs",
+          "text": "Utilisez le chat pour coordonner les détails de collecte, poser des questions et rester informé avec les donateurs."
+        },
+        "impact": {
+          "title": "Votre tableau de bord d’impact",
+          "text": "Ce tableau de bord vous aide à suivre votre activité, vos collectes et votre impact global sur la plateforme."
+        },
+        "preferences": {
+          "title": "Préférences et correspondances",
+          "text": "Définissez ici vos préférences alimentaires afin que FoodFlow puisse recommander des dons mieux adaptés à vos besoins."
+        },
+        "settings": {
+          "title": "Paramètres",
+          "text": "Vous pouvez gérer votre compte, relancer le tutoriel et ajuster les options de la plateforme depuis ici."
+        },
+        "done": {
+          "title": "Vous êtes prêt",
+          "text": "C’est tout, vous êtes prêt à commencer à utiliser FoodFlow en tant que receveur."
+        }
+      }
     }
   }
 }

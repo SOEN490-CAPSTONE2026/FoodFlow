@@ -22,15 +22,15 @@ public class ContextualSupportService {
 
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
-
-    @Autowired
-    private OpenAIService openAIService;
-
+    private final OpenAIService openAIService;
     private JsonNode appContext;
 
-    public ContextualSupportService(ResourceLoader resourceLoader, ObjectMapper objectMapper) {
+    public ContextualSupportService(ResourceLoader resourceLoader, 
+                                   ObjectMapper objectMapper,
+                                   OpenAIService openAIService) {
         this.resourceLoader = resourceLoader;
         this.objectMapper = objectMapper;
+        this.openAIService = openAIService;
         loadAppContext();
     }
 
@@ -52,9 +52,10 @@ public class ContextualSupportService {
      */
     public Map<String, Object> generateResponse(String userMessage, String userRole, String language,
             Map<String, Object> userContext) {
+        String normalizedLanguage = normalizeLanguage(language);
 
         // Build comprehensive context for AI
-        String systemContext = buildSystemContext(userRole, language, userContext);
+        String systemContext = buildSystemContext(userRole, normalizedLanguage, userContext);
 
         // Create AI prompt with full context
         String prompt = buildAIPrompt(systemContext, userMessage, userRole);
@@ -62,7 +63,7 @@ public class ContextualSupportService {
         try {
             // Get natural AI response
             String aiResponse = openAIService.generateSupportResponse(
-                    prompt, "", null, "en");
+                    prompt, "", null, normalizedLanguage);
 
             // Parse response and add contextual actions
             Map<String, Object> response = new HashMap<>();
@@ -83,7 +84,7 @@ public class ContextualSupportService {
 
         } catch (Exception e) {
             // Fallback response
-            return createFallbackResponse(userRole, language);
+            return createFallbackResponse(userRole, normalizedLanguage);
         }
     }
 
@@ -367,10 +368,40 @@ public class ContextualSupportService {
      */
     private Map<String, Object> createFallbackResponse(String userRole, String language) {
         Map<String, Object> response = new HashMap<>();
-        response.put("reply",
-                "I'm having trouble processing your request right now. Here are some helpful links, or you can contact our support team directly.");
+        response.put("reply", getFallbackReply(language));
         response.put("actions", generateContextualActions("general help", userRole));
         response.put("escalate", true);
         return response;
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) {
+            return "en";
+        }
+        String normalized = language.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("-")) {
+            normalized = normalized.substring(0, normalized.indexOf('-'));
+        }
+        return switch (normalized) {
+            case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
+            default -> "en";
+        };
+    }
+
+    private String getFallbackReply(String language) {
+        return switch (normalizeLanguage(language)) {
+            case "fr" ->
+                "J'ai du mal a traiter votre demande pour le moment. Voici des liens utiles, ou vous pouvez contacter directement notre equipe de support.";
+            case "es" ->
+                "Tengo dificultades para procesar tu solicitud en este momento. Aqui tienes enlaces utiles, o puedes contactar directamente a nuestro equipo de soporte.";
+            case "zh" ->
+                "我暂时无法处理您的请求。这里有一些有用链接，您也可以直接联系支持团队。";
+            case "ar" ->
+                "أواجه صعوبة في معالجة طلبك الآن. إليك بعض الروابط المفيدة، أو يمكنك التواصل مباشرة مع فريق الدعم.";
+            case "pt" ->
+                "Estou com dificuldade para processar sua solicitacao agora. Aqui estao alguns links uteis, ou voce pode entrar em contato diretamente com nossa equipe de suporte.";
+            default ->
+                "I'm having trouble processing your request right now. Here are some helpful links, or you can contact our support team directly.";
+        };
     }
 }

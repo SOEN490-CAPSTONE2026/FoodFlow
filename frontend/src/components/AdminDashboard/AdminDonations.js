@@ -31,6 +31,10 @@ import {
   TableRow,
 } from '../ui/table';
 import { adminDonationAPI, feedbackAPI } from '../../services/api';
+import {
+  parseBackendUtcTimestamp,
+  parseExplicitUtcTimestamp,
+} from '../../utils/timezoneUtils';
 
 const statusOptions = [
   { value: '', label: 'All Status' },
@@ -347,33 +351,33 @@ const AdminDonations = () => {
     control: base => ({
       ...base,
       minHeight: '42px',
-      border: '2px solid #fbbf24',
+      border: '2px solid #62b6cb',
       borderRadius: '6px',
       boxShadow: 'none',
       backgroundColor: 'white',
       '&:hover': {
-        borderColor: '#f59e0b',
+        borderColor: '#1b4965',
       },
     }),
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isSelected
-        ? '#f59e0b'
+        ? '#1b4965'
         : state.isFocused
-          ? '#fef3c7'
+          ? '#eef7fb'
           : 'white',
-      color: state.isSelected ? 'white' : '#92400e',
+      color: state.isSelected ? 'white' : '#1b4965',
       cursor: 'pointer',
     }),
     menu: base => ({
       ...base,
       borderRadius: '6px',
-      boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)',
-      border: '1px solid #fbbf24',
+      boxShadow: '0 4px 12px rgba(98, 182, 203, 0.2)',
+      border: '1px solid #62b6cb',
     }),
     singleValue: base => ({
       ...base,
-      color: '#92400e',
+      color: '#1b4965',
     }),
   };
 
@@ -381,7 +385,13 @@ const AdminDonations = () => {
     if (!dateString) {
       return t('adminDonations.notAvailable');
     }
-    return new Date(dateString).toLocaleString();
+    const parsed =
+      parseExplicitUtcTimestamp(dateString) ||
+      parseBackendUtcTimestamp(dateString);
+    if (!parsed) {
+      return t('adminDonations.notAvailable');
+    }
+    return parsed.toLocaleString();
   };
 
   return (
@@ -636,22 +646,24 @@ const AdminDonations = () => {
                         {formatDate(donation.updatedAt)}
                       </TableCell>
                       <TableCell data-label="Actions">
-                        <button
-                          className="action-btn"
-                          onClick={() => openDetailModal(donation)}
-                          title={t('adminDonations.actions.viewDetails')}
-                        >
-                          <Eye size={16} />
-                          <span className="mobile-action-label">
-                            {t('adminDonations.actions.viewDetails')}
-                          </span>
-                        </button>
+                        <div className="action-buttons">
+                          <button
+                            className="action-btn"
+                            onClick={() => openDetailModal(donation)}
+                            title={t('adminDonations.actions.viewDetails')}
+                          >
+                            <Eye size={16} />
+                            <span className="mobile-action-label">
+                              {t('adminDonations.actions.viewDetails')}
+                            </span>
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                     {expandedRows.has(donation.id) && (
                       <TableRow className="details-row">
                         <TableCell colSpan="11">
-                          <div className="user-details-expanded">
+                          <div className="donation-details-expanded">
                             <div className="details-grid">
                               <div className="details-section">
                                 <h4>
@@ -909,21 +921,21 @@ const AdminDonations = () => {
 
       {showDetailModal && selectedDonation && (
         <div
-          className="donation-admin-modal-overlay"
+          className="modal-overlay donation-admin-modal-overlay"
           onClick={() => setShowDetailModal(false)}
         >
           <div
-            className="donation-admin-modal-content donation-admin-modal-detail"
+            className="modal-content modal-user-detail donation-admin-modal-content donation-admin-modal-detail"
             onClick={e => e.stopPropagation()}
           >
             <button
-              className="donation-admin-modal-close"
+              className="modal-close donation-admin-modal-close"
               onClick={() => setShowDetailModal(false)}
             >
               ×
             </button>
 
-            <div className="donation-admin-modal-header">
+            <div className="modal-header donation-admin-modal-header">
               <h2 className="donation-admin-modal-title">
                 Donation Details{' '}
                 {modalPage === 1 && '- Basic Info & Participants'}
@@ -932,71 +944,77 @@ const AdminDonations = () => {
               </h2>
             </div>
 
-            <div className="donation-admin-modal-body">
+            <div className="modal-body donation-admin-modal-body">
               {/* Page 1: Basic Information and Participants */}
               {modalPage === 1 && (
-                <>
-                  <div className="donation-admin-info-card">
-                    <div className="donation-admin-info-card-header">
+                <div className="donation-admin-page-one-layout">
+                  <div className="info-card donation-admin-info-card donation-admin-info-card-basic">
+                    <div className="info-card-header donation-admin-info-card-header donation-admin-page-one-header">
                       <Info size={20} />
                       <h3>Basic Information</h3>
                     </div>
-                    <div className="donation-admin-info-grid">
-                      <div className="donation-admin-info-item">
-                        <span className="donation-admin-info-label">ID:</span>
-                        <span className="donation-admin-info-value">
-                          {selectedDonation.id}
-                        </span>
-                      </div>
-                      <div className="donation-admin-info-item">
-                        <span className="donation-admin-info-label">
-                          Title:
-                        </span>
-                        <span className="donation-admin-info-value">
-                          {selectedDonation.title}
-                        </span>
-                      </div>
-                      <div className="donation-admin-info-item">
-                        <span className="donation-admin-info-label">
-                          Status:
-                        </span>
-                        <span className="donation-admin-info-value">
-                          {selectedDonation.status}
-                        </span>
-                      </div>
-                      <div className="donation-admin-info-item">
-                        <span className="donation-admin-info-label">
-                          Flagged:
-                        </span>
-                        <span className="donation-admin-info-value">
-                          {selectedDonation.flagged
-                            ? `Yes - ${selectedDonation.flagReason}`
-                            : 'No'}
-                        </span>
-                      </div>
-                      <div className="donation-admin-info-item">
-                        <span className="donation-admin-info-label">
-                          <Calendar size={14} style={{ marginRight: '4px' }} />
-                          Created:
-                        </span>
-                        <span className="donation-admin-info-value">
-                          {formatDate(selectedDonation.createdAt)}
-                        </span>
-                      </div>
-                      <div className="donation-admin-info-item">
-                        <span className="donation-admin-info-label">
-                          <Clock size={14} style={{ marginRight: '4px' }} />
-                          Updated:
-                        </span>
-                        <span className="donation-admin-info-value">
-                          {formatDate(selectedDonation.updatedAt)}
-                        </span>
+                    <div className="donation-admin-basic-card-surface">
+                      <div className="info-grid donation-admin-info-grid donation-admin-page-one-grid">
+                        <div className="info-item donation-admin-info-item donation-admin-page-one-item">
+                          <span className="info-label donation-admin-info-label">
+                            <User size={16} /> ID
+                          </span>
+                          <span className="info-value donation-admin-info-value">
+                            {selectedDonation.id}
+                          </span>
+                        </div>
+                        <div className="info-item donation-admin-info-item donation-admin-page-one-item">
+                          <span className="info-label donation-admin-info-label">
+                            <Gift size={16} /> Title
+                          </span>
+                          <span className="info-value donation-admin-info-value">
+                            {selectedDonation.title}
+                          </span>
+                        </div>
+                        <div className="info-item donation-admin-info-item donation-admin-page-one-item">
+                          <span className="info-label donation-admin-info-label">
+                            <Sparkles size={16} /> Status
+                          </span>
+                          <span className="info-value donation-admin-info-value">
+                            <span
+                              className={`pill pill-status-${selectedDonation.status?.toLowerCase()}`}
+                            >
+                              {selectedDonation.status}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="info-item donation-admin-info-item donation-admin-page-one-item">
+                          <span className="info-label donation-admin-info-label">
+                            <Flag size={16} /> Flagged
+                          </span>
+                          <span className="info-value donation-admin-info-value">
+                            {selectedDonation.flagged
+                              ? `Yes${selectedDonation.flagReason ? ` - ${selectedDonation.flagReason}` : ''}`
+                              : 'No'}
+                          </span>
+                        </div>
+                        <div className="info-item donation-admin-info-item donation-admin-page-one-item">
+                          <span className="info-label donation-admin-info-label">
+                            <Calendar size={16} /> Created
+                          </span>
+                          <span className="info-value donation-admin-info-value">
+                            {formatDate(selectedDonation.createdAt)}
+                          </span>
+                        </div>
+                        <div className="info-item donation-admin-info-item donation-admin-page-one-item">
+                          <span className="info-label donation-admin-info-label">
+                            <Clock size={16} /> Updated
+                          </span>
+                          <span className="info-value donation-admin-info-value">
+                            {formatDate(selectedDonation.updatedAt)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="donation-admin-info-card">
-                    <div className="donation-admin-info-card-header">
+                  <div className="info-card donation-admin-info-card donation-admin-info-card-basic">
+                    <div className="info-card-header donation-admin-info-card-header donation-admin-page-one-header">
                       <Users size={20} />
                       <h3>Participants</h3>
                     </div>
@@ -1009,18 +1027,36 @@ const AdminDonations = () => {
                           </span>
                         </div>
                         <div className="donation-admin-participant-info">
-                          <div className="donation-admin-participant-name">
-                            {selectedDonation.donorName}
+                          <div className="donation-admin-participant-field">
+                            <span className="donation-admin-participant-label">
+                              Name
+                            </span>
+                            <div className="donation-admin-participant-name">
+                              {selectedDonation.donorName ||
+                                t('adminDonations.notAvailable')}
+                            </div>
                           </div>
-                          <div className="donation-admin-participant-email">
-                            {selectedDonation.donorEmail}
+                          <div className="donation-admin-participant-field">
+                            <span className="donation-admin-participant-label">
+                              Email
+                            </span>
+                            <div className="donation-admin-participant-email">
+                              {selectedDonation.donorEmail ||
+                                t('adminDonations.notAvailable')}
+                            </div>
                           </div>
-                          {selectedDonation.donorOrganization && (
+                          <div className="donation-admin-participant-field">
+                            <span className="donation-admin-participant-label">
+                              Organization
+                            </span>
                             <div className="donation-admin-participant-org">
                               <Building2 size={14} />
-                              {selectedDonation.donorOrganization}
+                              <span>
+                                {selectedDonation.donorOrganization ||
+                                  t('adminDonations.notAvailable')}
+                              </span>
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
 
@@ -1033,28 +1069,50 @@ const AdminDonations = () => {
                             </span>
                           </div>
                           <div className="donation-admin-participant-info">
-                            <div className="donation-admin-participant-name">
-                              {selectedDonation.receiverName}
+                            <div className="donation-admin-participant-field">
+                              <span className="donation-admin-participant-label">
+                                Name
+                              </span>
+                              <div className="donation-admin-participant-name">
+                                {selectedDonation.receiverName}
+                              </div>
                             </div>
-                            <div className="donation-admin-participant-email">
-                              {selectedDonation.receiverEmail}
+                            <div className="donation-admin-participant-field">
+                              <span className="donation-admin-participant-label">
+                                Email
+                              </span>
+                              <div className="donation-admin-participant-email">
+                                {selectedDonation.receiverEmail ||
+                                  t('adminDonations.notAvailable')}
+                              </div>
                             </div>
-                            {selectedDonation.receiverOrganization && (
+                            <div className="donation-admin-participant-field">
+                              <span className="donation-admin-participant-label">
+                                Organization
+                              </span>
                               <div className="donation-admin-participant-org">
                                 <Building2 size={14} />
-                                {selectedDonation.receiverOrganization}
+                                <span>
+                                  {selectedDonation.receiverOrganization ||
+                                    t('adminDonations.notAvailable')}
+                                </span>
                               </div>
-                            )}
-                            <div className="donation-admin-claimed-at">
-                              <CheckCircle size={14} />
-                              Claimed: {formatDate(selectedDonation.claimedAt)}
+                            </div>
+                            <div className="donation-admin-participant-field">
+                              <span className="donation-admin-participant-label">
+                                Claimed At
+                              </span>
+                              <div className="donation-admin-claimed-at">
+                                <CheckCircle size={14} />
+                                {formatDate(selectedDonation.claimedAt)}
+                              </div>
                             </div>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
               {/* Page 2: Timeline */}
@@ -1188,237 +1246,6 @@ const AdminDonations = () => {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Feedback Section */}
-            {selectedDonation.claimId &&
-              (selectedDonation.donorFeedback ||
-                selectedDonation.receiverFeedback) && (
-                <div className="modal-section feedback-section">
-                  <h3>Feedback & Ratings</h3>
-
-                  {selectedDonation.receiverFeedback && (
-                    <div
-                      className={`feedback-card ${selectedDonation.receiverFeedback.rating <= 2 ? 'low-rating' : ''}`}
-                    >
-                      <div className="feedback-header">
-                        <h4>From Donor to Receiver</h4>
-                        <div className="rating-display">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <Star
-                              key={star}
-                              size={18}
-                              fill={
-                                star <= selectedDonation.receiverFeedback.rating
-                                  ? '#fbbf24'
-                                  : 'none'
-                              }
-                              stroke={
-                                star <= selectedDonation.receiverFeedback.rating
-                                  ? '#fbbf24'
-                                  : '#d1d5db'
-                              }
-                            />
-                          ))}
-                          <span className="rating-value">
-                            {selectedDonation.receiverFeedback.rating}/5
-                          </span>
-                          {selectedDonation.receiverFeedback.rating <= 2 && (
-                            <Flag
-                              size={16}
-                              color="#ef4444"
-                              style={{ marginLeft: '8px' }}
-                              title="Low rating"
-                            />
-                          )}
-                        </div>
-                      </div>
-                      {selectedDonation.receiverFeedback.reviewText && (
-                        <p className="feedback-text">
-                          "{selectedDonation.receiverFeedback.reviewText}"
-                        </p>
-                      )}
-                      <div className="feedback-meta">
-                        Given on{' '}
-                        {formatDate(
-                          selectedDonation.receiverFeedback.createdAt
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedDonation.donorFeedback && (
-                    <div
-                      className={`feedback-card ${selectedDonation.donorFeedback.rating <= 2 ? 'low-rating' : ''}`}
-                    >
-                      <div className="feedback-header">
-                        <h4>From Receiver to Donor</h4>
-                        <div className="rating-display">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <Star
-                              key={star}
-                              size={18}
-                              fill={
-                                star <= selectedDonation.donorFeedback.rating
-                                  ? '#fbbf24'
-                                  : 'none'
-                              }
-                              stroke={
-                                star <= selectedDonation.donorFeedback.rating
-                                  ? '#fbbf24'
-                                  : '#d1d5db'
-                              }
-                            />
-                          ))}
-                          <span className="rating-value">
-                            {selectedDonation.donorFeedback.rating}/5
-                          </span>
-                          {selectedDonation.donorFeedback.rating <= 2 && (
-                            <Flag
-                              size={16}
-                              color="#ef4444"
-                              style={{ marginLeft: '8px' }}
-                              title="Low rating"
-                            />
-                          )}
-                        </div>
-                      </div>
-                      {selectedDonation.donorFeedback.reviewText && (
-                        <p className="feedback-text">
-                          "{selectedDonation.donorFeedback.reviewText}"
-                        </p>
-                      )}
-                      <div className="feedback-meta">
-                        Given on{' '}
-                        {formatDate(selectedDonation.donorFeedback.createdAt)}
-                      </div>
-                    </div>
-                  )}
-
-                  {!selectedDonation.receiverFeedback &&
-                    !selectedDonation.donorFeedback && (
-                      <div className="no-feedback">
-                        No feedback provided yet for this donation.
-                      </div>
-                    )}
-                </div>
-              )}
-
-            <div className="timeline-section">
-              <h3>
-                Timeline{' '}
-                <span style={{ fontSize: '14px', color: '#666' }}>
-                  (Admin Only - Timestamps Visible)
-                </span>
-              </h3>
-              <ul className="timeline-list">
-                {selectedDonation.timeline &&
-                selectedDonation.timeline.length > 0 ? (
-                  selectedDonation.timeline.map((event, idx) => (
-                    <li
-                      key={idx}
-                      style={{
-                        padding: '10px',
-                        borderLeft:
-                          event.visibleToUsers === false
-                            ? '3px solid #9c27b0'
-                            : '3px solid #2196f3',
-                        marginBottom: '10px',
-                        background:
-                          event.visibleToUsers === false
-                            ? '#f3e5f5'
-                            : '#f5f5f5',
-                      }}
-                    >
-                      <div>
-                        <strong>{event.eventType}</strong>
-                      </div>
-                      <div style={{ fontSize: '13px', color: '#666' }}>
-                        {formatDate(event.timestamp)} | Actor: {event.actor}
-                        {event.visibleToUsers === false && (
-                          <span
-                            style={{
-                              marginLeft: '10px',
-                              color: '#9c27b0',
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            🔒 ADMIN ONLY
-                          </span>
-                        )}
-                      </div>
-                      {event.oldStatus && event.newStatus && (
-                        <div style={{ fontSize: '13px', marginTop: '5px' }}>
-                          Status: <strong>{event.oldStatus}</strong> →{' '}
-                          <strong>{event.newStatus}</strong>
-                        </div>
-                      )}
-                      {event.details && (
-                        <div
-                          style={{
-                            fontSize: '13px',
-                            marginTop: '5px',
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          {event.details}
-                        </div>
-                      )}
-                    </li>
-                  ))
-                ) : (
-                  <li>No timeline events available.</li>
-                )}
-              </ul>
-            </div>
-
-            <div
-              className="override-section"
-              style={{
-                marginTop: '20px',
-                padding: '15px',
-                background: '#fff8e1',
-                borderRadius: '6px',
-              }}
-            >
-              <h3>Override Status</h3>
-              <label style={{ display: 'block', marginBottom: '5px' }}>
-                New Status:
-              </label>
-              <Select
-                value={statusOptions.find(opt => opt.value === overrideStatus)}
-                onChange={option => setOverrideStatus(option.value)}
-                options={statusOptions.filter(
-                  opt => opt.value && opt.value !== selectedDonation.status
-                )}
-                styles={overrideSelectStyles}
-                className="filter-select-react"
-                placeholder="Select new status"
-                isSearchable={false}
-              />
-              <label
-                style={{
-                  display: 'block',
-                  marginTop: '15px',
-                  marginBottom: '5px',
-                }}
-              >
-                Reason:
-              </label>
-              <textarea
-                value={overrideReason}
-                onChange={e => setOverrideReason(e.target.value)}
-                placeholder="Provide a reason for the status override..."
-                style={{
-                  width: '100%',
-                  minHeight: '80px',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '14px',
-                  resize: 'vertical',
-                }}
-              />
             </div>
 
             {/* Navigation Buttons */}

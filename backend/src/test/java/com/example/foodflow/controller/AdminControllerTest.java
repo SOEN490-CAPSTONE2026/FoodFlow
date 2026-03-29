@@ -8,6 +8,8 @@ import com.example.foodflow.repository.AuditLogRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.service.AdminDonationService;
+import com.example.foodflow.service.DisputeService;
+import com.example.foodflow.service.FileStorageService;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -43,6 +45,16 @@ class AdminControllerTest {
 
     @Mock
     private AdminUserService adminUserService;
+    @Mock
+    private AdminDonationService adminDonationService;
+    @Mock
+    private DisputeService disputeService;
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private FileStorageService fileStorageService;
     @Mock
     private AuditLogRepository auditLogRepository;
     private AdminDonationResponse testDonationResponse;
@@ -354,16 +366,19 @@ class AdminControllerTest {
             // Given
             SendAlertRequest request = new SendAlertRequest();
             request.setMessage("Important alert message");
+            request.setAlertType("warning");
 
-            doNothing().when(adminUserService).sendAlertToUser(1L, "Important alert message");
+            when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+            doNothing().when(adminUserService).sendAlertToUser(1L, "Important alert message", "warning", 999L);
 
             // When
-            ResponseEntity<?> response = adminController.sendAlert(1L, request);
+            ResponseEntity<?> response = adminController.sendAlert(1L, request, "Bearer token");
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
 
-            verify(adminUserService).sendAlertToUser(1L, "Important alert message");
+            verify(adminUserService).sendAlertToUser(1L, "Important alert message", "warning", 999L);
         }
 
         @Test
@@ -373,12 +388,14 @@ class AdminControllerTest {
             SendAlertRequest request = new SendAlertRequest();
             request.setMessage("Test alert");
 
+            when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
             doThrow(new RuntimeException("User not found"))
-                .when(adminUserService).sendAlertToUser(999L, "Test alert");
+                .when(adminUserService).sendAlertToUser(999L, "Test alert", null, 999L);
 
             // When
             try {
-                ResponseEntity<?> response = adminController.sendAlert(999L, request);
+                ResponseEntity<?> response = adminController.sendAlert(999L, request, "Bearer token");
                 
                 // Controller should return BAD_REQUEST for invalid users
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -395,15 +412,17 @@ class AdminControllerTest {
             SendAlertRequest request = new SendAlertRequest();
             request.setMessage("");
 
-            doNothing().when(adminUserService).sendAlertToUser(1L, "");
+            when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+            doNothing().when(adminUserService).sendAlertToUser(1L, "", null, 999L);
 
             // When
-            ResponseEntity<?> response = adminController.sendAlert(1L, request);
+            ResponseEntity<?> response = adminController.sendAlert(1L, request, "Bearer token");
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
 
-            verify(adminUserService).sendAlertToUser(1L, "");
+            verify(adminUserService).sendAlertToUser(1L, "", null, 999L);
         }
     }
 

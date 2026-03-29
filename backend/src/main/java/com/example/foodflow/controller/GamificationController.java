@@ -9,7 +9,6 @@ import com.example.foodflow.service.GamificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 /**
@@ -18,7 +17,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/gamification")
-@CrossOrigin(origins = "*")
 public class GamificationController {
     
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GamificationController.class);

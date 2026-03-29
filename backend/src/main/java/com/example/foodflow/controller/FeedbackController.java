@@ -1,7 +1,6 @@
 package com.example.foodflow.controller;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.example.foodflow.model.dto.FeedbackRequestDTO;
 import com.example.foodflow.model.dto.FeedbackResponseDTO;
 import com.example.foodflow.model.dto.UserRatingDTO;
@@ -23,7 +21,6 @@ import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.FeedbackService;
 import com.example.foodflow.repository.UserRepository;
-
 import jakarta.validation.Valid;
 
 /**
@@ -33,11 +30,13 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/feedback")
 public class FeedbackController {
     
-    @Autowired
-    private FeedbackService feedbackService;
-    
-    @Autowired
-    private UserRepository userRepository;
+    private final FeedbackService feedbackService;
+    private final UserRepository userRepository;
+
+    public FeedbackController(FeedbackService feedbackService, UserRepository userRepository) {
+        this.feedbackService = feedbackService;
+        this.userRepository = userRepository;
+    }
     
     /**
      * Submit feedback for a completed donation
@@ -119,7 +118,6 @@ public class FeedbackController {
     @GetMapping("/my-rating")
     public ResponseEntity<UserRatingDTO> getMyRating(
             @AuthenticationPrincipal User currentUser) {
-        
         UserRatingDTO rating = feedbackService.getUserRating(currentUser);
         return ResponseEntity.ok(rating);
     }
@@ -132,7 +130,6 @@ public class FeedbackController {
     public ResponseEntity<Boolean> canProvideFeedback(
             @PathVariable Long claimId,
             @AuthenticationPrincipal User currentUser) {
-        
         boolean canReview = feedbackService.canProvideFeedback(claimId, currentUser);
         return ResponseEntity.ok(canReview);
     }
@@ -144,7 +141,6 @@ public class FeedbackController {
     @GetMapping("/pending")
     public ResponseEntity<List<Claim>> getClaimsNeedingFeedback(
             @AuthenticationPrincipal User currentUser) {
-        
         List<Claim> claims = feedbackService.getClaimsNeedingFeedback(currentUser);
         return ResponseEntity.ok(claims);
     }
@@ -182,8 +178,6 @@ public class FeedbackController {
         boolean isComplete = feedbackService.isFeedbackComplete(claimId);
         return ResponseEntity.ok(isComplete);
     }
-    
-    // ====== NEW ADMIN ENDPOINTS FOR THIS STORY ======
     
     /**
      * ADMIN: Get full rating history for any user - For story: "Admin sees every user's full rating history"

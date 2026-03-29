@@ -15,11 +15,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/messages")
-@CrossOrigin(origins = "http://localhost:3000")
 public class MessageController {
     
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
+
+    public MessageController(MessageService messageService) {
+        this.messageService = messageService;
+    }
     
     /**
      * Send message via REST (alternative to WebSocket)

@@ -9,7 +9,6 @@ import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.repository.ClaimRepository;
 import com.example.foodflow.repository.ReceiverPreferencesRepository;
 import com.example.foodflow.repository.UserRepository;
-import com.example.foodflow.service.BusinessMetricsService;
 import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -12,7 +12,9 @@ import {
   Clock,
   CheckCircle,
   Settings,
+  Sparkles,
 } from 'lucide-react';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 import './Receiver_Styles/ReceiverHelp.css';
 
 /**
@@ -109,6 +111,11 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
 export default function ReceiverHelp() {
   const [openFAQ, setOpenFAQ] = useState(null);
   const { t } = useTranslation();
+  const {
+    canReplayReceiverTutorial,
+    startReceiverTutorial,
+    isReceiverTutorialActive,
+  } = useOnboarding();
 
   const faqs = [
     'q1',
@@ -151,6 +158,25 @@ export default function ReceiverHelp() {
 
   return (
     <div className="receiver-help">
+      {canReplayReceiverTutorial && (
+        <section className="help-section tutorial-section">
+          <div className="section-header">
+            <Sparkles size={24} />
+            <h2>{t('onboarding.help.title')}</h2>
+          </div>
+          <p className="section-intro">{t('onboarding.help.receiverIntro')}</p>
+          <button
+            type="button"
+            className="tutorial-replay-button"
+            onClick={startReceiverTutorial}
+            disabled={isReceiverTutorialActive}
+          >
+            <Sparkles size={18} />
+            <span>{t('onboarding.help.replayButton')}</span>
+          </button>
+        </section>
+      )}
+
       <section className="help-section getting-started">
         <div className="section-header">
           <BookOpen size={24} />

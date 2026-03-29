@@ -766,8 +766,11 @@
       "box": "boxes"
     },
     "steps": {
+      "basicInfo": "Basic Information",
       "foodDetails": "Food Details",
       "quantityDates": "Quantity & Dates",
+      "pickupSchedule": "Pickup Schedule",
+      "pickupLocation": "Pickup Location",
       "pickupInfo": "Pickup Info",
       "description": "Description"
     },
@@ -1005,6 +1008,12 @@
   },
   "notifications": {
     "newMessageFrom": "New message from {{senderName}}",
+    "adminAlertHeaders": {
+      "warning": "Warning",
+      "safetyNotice": "Safety Notice",
+      "complianceReminder": "Compliance Reminder",
+      "adminAlert": "Admin Alert"
+    },
     "claimConfirmed": "Claim Confirmed",
     "claimStatus": "Claim Status",
     "successfullyClaimed": "Successfully claimed \"{{foodTitle}}\" from {{donorName}}",
@@ -1067,6 +1076,15 @@
       "verificationApproved": "Account Approved",
       "verificationApprovedDesc": "Your account has been approved by an administrator"
     }
+  },
+  "donation": {
+    "title": "Support FoodFlow",
+    "subtitle": "Help us keep rescuing surplus food and delivering more meals to local communities.",
+    "claimsSubtitle": "Help us keep the platform sustainable.",
+    "bannerAriaLabel": "Support FoodFlow",
+    "listAriaLabel": "Donations list",
+    "modalAriaLabel": "Donate Now",
+    "closeAriaLabel": "Close"
   },
   "donorListFood": {
     "edit": "Edit",
@@ -1269,6 +1287,11 @@
     "predicted": "Predicted",
     "addedToSaved": "Added to saved donations"
   },
+  "receiverSavedDonations": {
+    "title": "Saved Donations",
+    "failedToLoad": "Failed to load saved donations",
+    "empty": "No saved donations yet."
+  },
   "receiverMyClaims": {
     "readyForPickup": "Ready for Pickup",
     "completed": "Completed",
@@ -1417,6 +1440,21 @@
       "detailsPrefix": "For more details about how we handle your data, please review our",
       "privacyPolicyLink": "Privacy Policy",
       "detailsSuffix": "."
+    },
+    "paymentHistory": {
+      "title": "Payment History",
+      "description": "Review your recent contributions to FoodFlow.",
+      "toggleAriaLabel": "Toggle payment history",
+      "viewButton": "View ▼",
+      "hideButton": "Hide ▲",
+      "loading": "Loading payment history...",
+      "loadError": "Unable to load payment history right now.",
+      "empty": "You have no payments yet. Your donations will appear here once completed.",
+      "listAriaLabel": "Payment history list",
+      "defaultDescription": "FoodFlow Donation",
+      "refreshButton": "Refresh",
+      "notAvailable": "N/A",
+      "unknownStatus": "Unknown"
     },
     "notificationTypes": {
       "title": "Notification Types",
@@ -1668,8 +1706,45 @@
     "pickupSteps": "Pickup Steps",
     "donationClaimed": "Donation Claimed!",
     "successMessage": "Your donation has been successfully claimed! Thank you for making a difference in your community.",
+    "pickupMissedTitle": "Pickup was missed, unfortunately.",
+    "pickupMissedMessage": "This pickup was missed. Too bad, and thank you for trying to support your community.",
+    "reportDonor": "Report Donor",
+    "leaveFeedback": "Leave Feedback",
     "backToDetails": "Back to Details",
     "viewPickupSteps": "View Pickup Steps"
+  },
+  "donationTimeline": {
+    "loading": "Loading timeline...",
+    "empty": "No donation timeline events available yet.",
+    "actorLabel": "Actor",
+    "statusLabel": "Status",
+    "adminOnly": "Admin only",
+    "pickupEvidence": "Pickup Evidence",
+    "actor": {
+      "donor": "Donor",
+      "receiver": "Receiver",
+      "system": "System",
+      "admin": "Admin",
+      "unknown": "Unknown"
+    },
+    "events": {
+      "DONATION_POSTED": "Donation posted",
+      "DONATION_UPDATED": "Donation updated",
+      "DONATION_CLAIMED": "Donation claimed",
+      "CLAIM_CANCELLED": "Claim cancelled",
+      "READY_FOR_PICKUP": "Ready for pickup",
+      "PICKUP_CONFIRMED": "Pickup confirmed",
+      "PICKUP_MISSED": "Pickup missed",
+      "PICKUP_EVIDENCE_UPLOADED": "Pickup evidence uploaded",
+      "DONATION_EXPIRED": "Donation expired"
+    },
+    "details": {
+      "claimedBy": "Claimed by {{name}}",
+      "postedBy": "Donation posted by {{name}}",
+      "readyForPickup": "Pickup time arrived. OTP generated automatically.",
+      "pickupMissed": "Pickup window expired. Marked as not completed automatically.",
+      "expired": "Donation expired automatically."
+    }
   },
   "claimDetail": {
     "status": {
@@ -2180,6 +2255,11 @@
       "compliance": "Remind about compliance requirements",
       "custom": "Send a custom message"
     },
+    "alertTemplates": {
+      "warning": "Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.",
+      "safety": "Dear User,\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.",
+      "compliance": "Dear User,\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance."
+    },
     "notifications": {
       "reasonRequired": "Please provide a reason for deactivation",
       "deactivated": "User deactivated successfully",
@@ -2532,6 +2612,249 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
+    }
+  },
+  "donorHelp": {
+    "hero": {
+      "title": "Need Assistance?",
+      "subtitle": "If you're feeling overwhelmed, remember you don't have to face it alone. Reach out and get the help you need",
+      "searchPlaceholder": "Ask a question..."
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "intro": "Welcome to FoodFlow! Here's how to start donating surplus food and making a difference in your community.",
+      "steps": {
+        "step1": {
+          "title": "List Your Surplus Food",
+          "description": "Easily create listings for your surplus food items. Include details like quantity, pickup times, and any special handling instructions."
+        },
+        "step2": {
+          "title": "Set Your Availability",
+          "description": "Specify when receivers can pick up donations. You can set regular hours or specific time slots that work for your schedule."
+        },
+        "step3": {
+          "title": "Receive & Approve Requests",
+          "description": "Community organizations will request your donations. Review requests and approve the ones that work best for you."
+        },
+        "step4": {
+          "title": "Track Your Impact",
+          "description": "Monitor your donations, see how much food waste you've prevented, and view feedback from the community organizations you've helped."
+        }
+      }
+    },
+    "foodSafety": {
+      "title": "Food Safety",
+      "intro": "Learn about food safety guidelines, proper handling, and storage requirements."
+    },
+    "faq": {
+      "title": "FAQ's",
+      "subtitle": "Everything you need to know about the product and other information. Can't find the answer you're looking for?",
+      "items": {
+        "q1": {
+          "question": "What types of food can I donate?",
+          "answer": "You can donate prepared meals, produce, bakery items, dairy, meat, seafood, packaged goods, and beverages. All food must be safe for consumption and meet local health guidelines."
+        },
+        "q2": {
+          "question": "How do I ensure food safety?",
+          "answer": "Follow proper food handling procedures, maintain correct temperatures, label allergens clearly, and only donate food that you would serve to your own customers. Include storage and reheating instructions when applicable."
+        },
+        "q3": {
+          "question": "What happens if no one claims my donation?",
+          "answer": "If a donation isn't claimed within the time window you specify, it will automatically be marked as expired. You can adjust pickup times or contact support to connect with more receivers in your area."
+        },
+        "q4": {
+          "question": "Can I schedule recurring donations?",
+          "answer": "Yes! You can set up regular donation schedules for predictable surplus, such as daily bread or weekly produce. This helps receivers plan ahead and ensures consistent support for the community."
+        },
+        "q5": {
+          "question": "Am I protected from liability?",
+          "answer": "Yes, FoodFlow operates under the Good Samaritan Food Donation Act, which protects donors from liability when donating food in good faith. We recommend following all food safety guidelines to ensure quality donations."
+        },
+        "q6": {
+          "question": "How do pickups work?",
+          "answer": "Receivers come to your location during the time window you specify. You'll receive notifications when a donation is claimed, and you can communicate directly with receivers about pickup details."
+        },
+        "q7": {
+          "question": "Can I donate partially used ingredients?",
+          "answer": "As long as ingredients are properly stored, sealed, and safe for consumption, they can be donated. Clearly label all items and include best-by dates."
+        },
+        "q8": {
+          "question": "How do I handle last-minute donations?",
+          "answer": "You can create \"urgent\" listings that notify nearby receivers immediately. These are perfect for end-of-day surplus that needs to be picked up quickly."
+        },
+        "q9": {
+          "question": "Can I choose which organizations receive my donations?",
+          "answer": "Yes! You can approve or decline requests from specific organizations. You can also build relationships with preferred receivers for future donations."
+        },
+        "q10": {
+          "question": "How do I track my environmental impact?",
+          "answer": "Your donor dashboard displays metrics including pounds of food donated, meals provided, and estimated CO2 emissions prevented. You can view detailed reports and share your impact story."
+        }
+      }
+    },
+    "contact": {
+      "title": "Still need help?",
+      "subtitle": "Our support team is here to assist you. Reach out through your preferred channel."
+    },
+    "support": {
+      "title": "Need More Help?",
+      "intro": "Our support team is here to assist you with any questions or issues.",
+      "emailLabel": "Email Support",
+      "emailResponseTime": "Response within 24 hours",
+      "phoneLabel": "Phone Support",
+      "phoneAvailability": "Mon-Fri, 9AM-5PM EST"
+    }
+  },
+  "aiDonation": {
+    "backToDashboard": "Back to Dashboard",
+    "title": "Create Donation with AI",
+    "subtitle": "Upload a label photo to automatically extract product details",
+    "steps": {
+      "upload": "Upload",
+      "review": "Review",
+      "submit": "Submit",
+      "reviewSubmit": "Review & Submit"
+    },
+    "processing": {
+      "title": "Processing Image",
+      "hint": "This may take up to 30 seconds.",
+      "readingLabel": "Reading label",
+      "extractingData": "Extracting data",
+      "preparingResults": "Preparing results",
+      "loadingMaps": "Loading maps"
+    },
+    "toast": {
+      "extractionComplete": "Extraction complete. Review the details before submitting.",
+      "aiFailed": "AI extraction failed",
+      "analysisFailed": "Image analysis failed",
+      "requestTimedOut": "Request timed out. Please try again with a smaller image.",
+      "networkError": "Network error. Check your connection and try again."
+    },
+    "upload": {
+      "title": "Upload Label Image",
+      "subtitle": "Upload a clear image including:",
+      "required": {
+        "productName": "Product name",
+        "nutritionFacts": "Nutritional values",
+        "ingredientsList": "Ingredient list",
+        "expiryDate": "Expiration date",
+        "allergenInfo": "Allergen information"
+      },
+      "ariaLabel": "Upload label image",
+      "dragAndDrop": "Drag and drop your image here or click to browse",
+      "or": "OR",
+      "chooseFile": "Choose File",
+      "takePhoto": "Take Photo",
+      "fileTypes": "JPG, PNG, HEIC/HEIF",
+      "maxSize": "Maximum 5 MB",
+      "selectedFile": "Selected File",
+      "remove": "Remove",
+      "continueToReview": "Continue to Review",
+      "alternative": "OR",
+      "manualEntry": "Continue with manual entry",
+      "guidelinesTitle": "Tips for a Good Photo",
+      "guidelinesSubtitle": "Optimize extraction quality",
+      "uploadCardTitle": "Upload Label Image",
+      "uploadCardSubtitle": "Include these elements in your photo",
+      "tips": {
+        "goodLighting": "Good natural lighting",
+        "noGlare": "No glare or shadows",
+        "labelVisible": "Label fully visible",
+        "textInFocus": "Sharp and clear photo",
+        "includeExpiry": "Tight crop on label"
+      },
+      "manualHint": "Clear images improve extraction accuracy.",
+      "errors": {
+        "selectFile": "Please select an image to continue.",
+        "unsupportedType": "Unsupported file type. Please use JPG, PNG or HEIC.",
+        "fileTooLarge": "File exceeds 5 MB. Please choose a smaller image."
+      }
+    }
+  },
+  "onboarding": {
+    "labels": {
+      "donor": "Donor tutorial",
+      "receiver": "Receiver tutorial"
+    },
+    "actions": {
+      "skip": "Skip",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish"
+    },
+    "stepProgress": "Step {{current}} of {{total}}",
+    "errors": {
+      "saveFailed": "We could not save your tutorial progress. Please try again."
+    },
+    "help": {
+      "title": "Onboarding tutorial",
+      "replayButton": "Show Tutorial Again",
+      "donorIntro": "Restart the donor walkthrough any time to review the dashboard, posting flow, chat, and pickup statuses.",
+      "receiverIntro": "Restart the receiver walkthrough any time to review browsing, saved donations, claims, chat, preferences, and settings."
+    },
+    "donor": {
+      "steps": {
+        "dashboard": {
+          "title": "Welcome to FoodFlow",
+          "text": "This is your donor dashboard. From here, you can manage your donations and follow what happens next."
+        },
+        "impact": {
+          "title": "See your impact",
+          "text": "Your impact dashboard shows how much food you have saved and the difference your donations are making over time."
+        },
+        "postDonation": {
+          "title": "Post a donation",
+          "text": "Use this action to create a new food donation and make it available to receivers."
+        },
+        "chat": {
+          "title": "Chat with receivers",
+          "text": "Once a donation is claimed, you can use chat to coordinate pickup details and answer questions."
+        },
+        "pickup": {
+          "title": "Follow pickup progress",
+          "text": "Each donation moves through a pickup flow with statuses so you always know what stage it is in."
+        },
+        "setup": {
+          "title": "Set up your account",
+          "text": "Use Language & Region to choose your language, location, and timezone. Calendar Integration lets you sync FoodFlow pickups, and Display Preferences controls how your donation cards look."
+        }
+      }
+    },
+    "receiver": {
+      "steps": {
+        "browse": {
+          "title": "Browse donations",
+          "text": "This is where you can explore available food donations and find items that match your needs."
+        },
+        "saved": {
+          "title": "Saved donations",
+          "text": "Here you can quickly find donations you saved to review later."
+        },
+        "claims": {
+          "title": "Your claims",
+          "text": "This section shows the donations you’ve claimed and lets you track their progress."
+        },
+        "chat": {
+          "title": "Chat with donors",
+          "text": "Use chat to coordinate pickup details, ask questions, and stay updated with donors."
+        },
+        "impact": {
+          "title": "Your impact dashboard",
+          "text": "This dashboard helps you track your activity, pickups, and overall impact on the platform."
+        },
+        "preferences": {
+          "title": "Preferences and matching",
+          "text": "Set your food preferences here so FoodFlow can recommend donations that better fit your needs."
+        },
+        "settings": {
+          "title": "Settings",
+          "text": "You can manage your account, replay the tutorial, and adjust platform options from here."
+        },
+        "done": {
+          "title": "You’re ready",
+          "text": "That’s it — you’re ready to start using FoodFlow as a receiver."
+        }
+      }
     }
   }
 }

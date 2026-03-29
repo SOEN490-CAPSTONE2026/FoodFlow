@@ -9,6 +9,7 @@ import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 /**
@@ -20,10 +21,12 @@ public class TimelineService {
     
     private final DonationTimelineRepository timelineRepository;
     private final BusinessMetricsService businessMetricsService;
+    private final Clock clock;
     
-    public TimelineService(DonationTimelineRepository timelineRepository, BusinessMetricsService businessMetricsService) {
+    public TimelineService(DonationTimelineRepository timelineRepository, BusinessMetricsService businessMetricsService, Clock clock) {
         this.timelineRepository = timelineRepository;
         this.businessMetricsService = businessMetricsService;
+        this.clock = clock != null ? clock : Clock.systemUTC();
     }
     
     /**
@@ -61,7 +64,7 @@ public class TimelineService {
         event.setNewStatus(newStatus != null ? newStatus.toString() : null);
         event.setDetails(details);
         event.setVisibleToUsers(visibleToUsers != null ? visibleToUsers : true);
-        event.setTimestamp(LocalDateTime.now()); // UTC timestamp
+        event.setTimestamp(LocalDateTime.now(clock)); // UTC timestamp
         
         DonationTimeline savedEvent = timelineRepository.save(event);
         businessMetricsService.incrementTimelineEventsCreated();

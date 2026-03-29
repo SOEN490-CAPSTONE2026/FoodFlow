@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import './MessageNotification.css';
 
 const MessageNotification = ({ notification, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     if (!notification) {
@@ -33,12 +33,63 @@ const MessageNotification = ({ notification, onClose }) => {
     notification.senderName === '🔔 New Donation Available' ||
     notification.senderName?.includes('New Donation');
 
+  const isAdminAlert =
+    notification.type === 'ADMIN_ALERT' ||
+    notification.senderName === 'Warning' ||
+    notification.senderName === 'Safety Notice' ||
+    notification.senderName === 'Compliance Reminder' ||
+    notification.senderName === 'Admin Alert';
+
+  const resolveAlertLanguage = () => {
+    const rawLanguage = notification.preferredLanguage || i18n.language || 'en';
+    const normalizedLanguage = String(rawLanguage).trim().toLowerCase();
+    const baseLanguage = normalizedLanguage.includes('-')
+      ? normalizedLanguage.split('-')[0]
+      : normalizedLanguage;
+
+    const supportedLanguages = ['en', 'fr', 'es', 'zh', 'ar', 'pt'];
+    return supportedLanguages.includes(baseLanguage) ? baseLanguage : 'en';
+  };
+
+  const getAdminAlertHeader = () => {
+    const alertT = i18n.getFixedT(resolveAlertLanguage());
+    const rawType = notification.alertType || notification.senderName || '';
+    const normalizedType = String(rawType).trim().toLowerCase();
+
+    if (normalizedType === 'warning') {
+      return alertT('notifications.adminAlertHeaders.warning', {
+        defaultValue: 'Warning',
+      });
+    }
+
+    if (normalizedType === 'safety' || normalizedType === 'safety notice') {
+      return alertT('notifications.adminAlertHeaders.safetyNotice', {
+        defaultValue: 'Safety Notice',
+      });
+    }
+
+    if (
+      normalizedType === 'compliance' ||
+      normalizedType === 'compliance reminder'
+    ) {
+      return alertT('notifications.adminAlertHeaders.complianceReminder', {
+        defaultValue: 'Compliance Reminder',
+      });
+    }
+
+    return alertT('notifications.adminAlertHeaders.adminAlert', {
+      defaultValue: 'Admin Alert',
+    });
+  };
+
   const headerText =
     isClaimNotification || isDonationNotification
       ? notification.senderName
-      : t('notifications.newMessageFrom', {
-          senderName: notification.senderName,
-        });
+      : isAdminAlert
+        ? getAdminAlertHeader()
+        : t('notifications.newMessageFrom', {
+            senderName: notification.senderName,
+          });
 
   return (
     <div className="message-notification">

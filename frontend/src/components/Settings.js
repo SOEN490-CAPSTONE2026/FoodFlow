@@ -1,6 +1,17 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
-import { User, Globe, Bell, Camera, Lock, Calendar } from 'lucide-react';
+import {
+  User,
+  Globe,
+  Bell,
+  Camera,
+  Lock,
+  Calendar,
+  Wallet,
+  Clock,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import RegionSelector from './RegionSelector';
@@ -8,8 +19,13 @@ import ChangePasswordModal from './ChangePasswordModal';
 import CalendarSettings from './CalendarSettings';
 import DonorPhotoPreferencesSection from './DonorDashboard/DonorPhotoPreferencesSection';
 import { AuthContext } from '../contexts/AuthContext';
-import { notificationPreferencesAPI, profileAPI } from '../services/api';
+import {
+  notificationPreferencesAPI,
+  profileAPI,
+  pickupPreferencesAPI,
+} from '../services/api';
 import api from '../services/api';
+import { inferRegionFromAddress } from '../services/timezoneService';
 import '../style/Settings.css';
 
 /**
@@ -255,6 +271,11 @@ const Settings = () => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
   const [regionSettings, setRegionSettings] = useState(null);
+  const [lastResolvedAddress, setLastResolvedAddress] = useState('');
+  const [addressSelectionMeta, setAddressSelectionMeta] = useState({
+    city: '',
+    country: '',
+  });
 
   // Notification preferences state
   const [notificationPreferences, setNotificationPreferences] = useState({
@@ -272,6 +293,16 @@ const Settings = () => {
     confirmPassword: '',
   });
 
+  // Pickup preferences state (donor only)
+  const [pickupPrefs, setPickupPrefs] = useState({
+    availabilityWindowStart: '',
+    availabilityWindowEnd: '',
+    slots: [],
+  });
+  const [pickupPrefsMessage, setPickupPrefsMessage] = useState('');
+  const [pickupPrefsError, setPickupPrefsError] = useState('');
+  const [isPickupPrefsExpanded, setIsPickupPrefsExpanded] = useState(false);
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -281,7 +312,13 @@ const Settings = () => {
     useState(false);
   const [isNotificationTypesExpanded, setIsNotificationTypesExpanded] =
     useState(false);
+  const [isPaymentHistoryExpanded, setIsPaymentHistoryExpanded] =
+    useState(false);
   const [isAddressSelected, setIsAddressSelected] = useState(true);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(false);
+  const [paymentHistoryError, setPaymentHistoryError] = useState('');
+  const [paymentHistoryLoaded, setPaymentHistoryLoaded] = useState(false);
 
   const fileInputRef = useRef(null);
   const addressAutocompleteRef = useRef(null);
@@ -355,6 +392,83 @@ const Settings = () => {
     }
   }, [preferencesMessage, preferencesError]);
 
+  // Load pickup preferences for donors
+  useEffect(() => {
+    if (userId && role === 'DONOR') {
+      pickupPreferencesAPI
+        .get()
+        .then(res => {
+          const data = res.data;
+          setPickupPrefs({
+            availabilityWindowStart: data.availabilityWindowStart || '',
+            availabilityWindowEnd: data.availabilityWindowEnd || '',
+            slots:
+              data.slots && data.slots.length > 0
+                ? data.slots.map(s => ({
+                    startTime: s.startTime || '',
+                    endTime: s.endTime || '',
+                    notes: s.notes || '',
+                  }))
+                : [],
+          });
+        })
+        .catch(() => {});
+    }
+  }, [userId, role]);
+
+  // Auto-clear pickup prefs messages after 3 seconds
+  useEffect(() => {
+    if (pickupPrefsMessage || pickupPrefsError) {
+      const timer = setTimeout(() => {
+        setPickupPrefsMessage('');
+        setPickupPrefsError('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [pickupPrefsMessage, pickupPrefsError]);
+
+  const handlePickupSlotChange = (index, field, value) => {
+    setPickupPrefs(prev => {
+      const slots = [...prev.slots];
+      slots[index] = { ...slots[index], [field]: value };
+      return { ...prev, slots };
+    });
+  };
+
+  const addPickupPrefSlot = () => {
+    setPickupPrefs(prev => ({
+      ...prev,
+      slots: [...prev.slots, { startTime: '', endTime: '', notes: '' }],
+    }));
+  };
+
+  const removePickupPrefSlot = index => {
+    setPickupPrefs(prev => ({
+      ...prev,
+      slots: prev.slots.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSavePickupPreferences = async () => {
+    try {
+      const payload = {
+        availabilityWindowStart: pickupPrefs.availabilityWindowStart || null,
+        availabilityWindowEnd: pickupPrefs.availabilityWindowEnd || null,
+        slots: pickupPrefs.slots
+          .filter(s => s.startTime && s.endTime)
+          .map(s => ({
+            startTime: s.startTime,
+            endTime: s.endTime,
+            notes: s.notes || null,
+          })),
+      };
+      await pickupPreferencesAPI.save(payload);
+      setPickupPrefsMessage('Pickup preferences saved successfully.');
+    } catch {
+      setPickupPrefsError('Failed to save pickup preferences.');
+    }
+  };
+
   const fetchUserProfile = async () => {
     try {
       // Fetch user profile data
@@ -371,6 +485,7 @@ const Settings = () => {
           address: profileAddress || prev.address || '',
         }));
         setIsAddressSelected(Boolean(profileAddress));
+        setLastResolvedAddress(profileAddress || '');
 
         if (p.profilePhoto) {
           setProfileImage(p.profilePhoto);
@@ -489,6 +604,11 @@ const Settings = () => {
       const components = place.address_components;
       const streetNumber = getAddressComponent(components, 'street_number');
       const route = getAddressComponent(components, 'route');
+      const cityComponent =
+        getAddressComponent(components, 'locality') ||
+        getAddressComponent(components, 'postal_town') ||
+        getAddressComponent(components, 'administrative_area_level_2');
+      const countryComponent = getAddressComponent(components, 'country');
 
       if (!streetNumber || !route) {
         setIsAddressSelected(false);
@@ -505,6 +625,10 @@ const Settings = () => {
         ...prev,
         address: formattedAddress || prev.address,
       }));
+      setAddressSelectionMeta({
+        city: cityComponent?.long_name || '',
+        country: countryComponent?.long_name || '',
+      });
       setIsAddressSelected(true);
       setErrors(prev => ({ ...prev, address: '' }));
     } catch (error) {
@@ -654,6 +778,60 @@ const Settings = () => {
           smsPhoneNumber: resp.data.phone || prev.smsPhoneNumber,
         }));
 
+        const currentAddress = (formData.address || '').trim();
+        const previousAddress = (lastResolvedAddress || '').trim();
+        const shouldResolveRegion =
+          currentAddress.length > 0 &&
+          currentAddress !== previousAddress &&
+          isAddressSelected;
+
+        if (shouldResolveRegion) {
+          try {
+            const inferredRegion = await inferRegionFromAddress(currentAddress);
+            const resolvedCity =
+              inferredRegion?.city || addressSelectionMeta.city || '';
+            const resolvedCountry =
+              inferredRegion?.country || addressSelectionMeta.country || '';
+
+            if (resolvedCity && resolvedCountry) {
+              const regionPayload = {
+                country: resolvedCountry,
+                city: resolvedCity,
+              };
+
+              // If timezone came from precise address lookup, pass it.
+              // Otherwise let backend resolve from city/country defaults.
+              if (
+                inferredRegion?.source === 'google' &&
+                inferredRegion?.timezone
+              ) {
+                regionPayload.timezone = inferredRegion.timezone;
+              }
+
+              const regionResp = await api.put(
+                '/profile/region',
+                regionPayload
+              );
+              setRegionSettings({
+                country: regionResp?.data?.country || resolvedCountry,
+                city: regionResp?.data?.city || resolvedCity,
+                timezone:
+                  regionResp?.data?.timezone ||
+                  inferredRegion?.timezone ||
+                  regionSettings?.timezone ||
+                  'UTC',
+              });
+            }
+          } catch (regionError) {
+            console.error(
+              'Error inferring region/timezone from address:',
+              regionError
+            );
+          }
+        }
+
+        setLastResolvedAddress(currentAddress);
+
         setSuccessMessage(t('settings.account.profileUpdated'));
       }
     } catch (error) {
@@ -741,6 +919,78 @@ const Settings = () => {
       setPreferencesError(t('settings.notificationPreferences.updateFailed'));
     }
   };
+
+  const formatPaymentAmount = payment => {
+    const amount = Number(payment?.amount || 0);
+    const currency = String(payment?.currency || 'USD').toUpperCase();
+
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency,
+      }).format(amount);
+    } catch (error) {
+      return `${currency} ${amount.toFixed(2)}`;
+    }
+  };
+
+  const formatPaymentDate = value => {
+    if (!value) {
+      return t('settings.paymentHistory.notAvailable');
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return t('settings.paymentHistory.notAvailable');
+    }
+
+    return date.toLocaleString();
+  };
+
+  const formatPaymentStatus = status => {
+    if (!status) {
+      return t('settings.paymentHistory.unknownStatus');
+    }
+
+    return status
+      .toString()
+      .toLowerCase()
+      .split('_')
+      .map(token => token.charAt(0).toUpperCase() + token.slice(1))
+      .join(' ');
+  };
+
+  const fetchPaymentHistory = async () => {
+    setPaymentHistoryLoading(true);
+    setPaymentHistoryError('');
+
+    try {
+      const response = await api.get('/payments/history', {
+        params: {
+          page: 0,
+          size: 10,
+        },
+      });
+      setPaymentHistory(response.data?.content || []);
+      setPaymentHistoryLoaded(true);
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+      setPaymentHistoryError(t('settings.paymentHistory.loadError'));
+    } finally {
+      setPaymentHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (
+      isPaymentHistoryExpanded &&
+      role !== 'ADMIN' &&
+      userId &&
+      !paymentHistoryLoaded
+    ) {
+      fetchPaymentHistory();
+    }
+  }, [isPaymentHistoryExpanded, role, userId, paymentHistoryLoaded]);
 
   return (
     <div className="settings-container">
@@ -952,73 +1202,91 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Language & Region Section */}
-        <div className="settings-section">
-          <div className="section-header-with-icon">
-            <div className="icon-circle">
-              <Globe size={24} />
-            </div>
-            <div className="section-title-group">
-              <h2>{t('settings.languageRegion.title')}</h2>
-              <p className="section-description">
-                {t('settings.languageRegion.description')}
+        <div className={role === 'DONOR' ? 'settings-donor-setup' : undefined}>
+          {role === 'DONOR' && (
+            <div
+              className="settings-section donor-setup-overview"
+              data-tour="donor-settings-setup"
+            >
+              <div className="donor-setup-overview__eyebrow">Donor setup</div>
+              <h2 className="donor-setup-overview__title">
+                Finish setting up your account
+              </h2>
+              <p className="donor-setup-overview__text">
+                Review Language &amp; Region, Calendar Integration, and Display
+                Preferences to personalize how FoodFlow works for you.
               </p>
-              <p className="language-region-summary">
-                {(regionSettings?.city && regionSettings?.country
-                  ? `${regionSettings.city}, ${regionSettings.country}`
-                  : t('settings.languageRegion.locationTimezone')) || ''}
-              </p>
-            </div>
-            <div className="settings-header-actions">
-              <button
-                type="button"
-                className="settings-toggle-btn"
-                onClick={() => setIsLanguageRegionExpanded(prev => !prev)}
-                aria-expanded={isLanguageRegionExpanded}
-                aria-label="Toggle language and region settings"
-              >
-                {isLanguageRegionExpanded ? 'Hide ▲' : 'Edit ▼'}
-              </button>
-            </div>
-          </div>
-          {isLanguageRegionExpanded && (
-            <div className="section-content language-region-content-wrap">
-              <div className="language-region-container">
-                <div className="subsection-header">
-                  <h3 className="subsection-title">
-                    {t('settings.languageRegion.languagePreference')}
-                  </h3>
-                  <p className="subsection-description">
-                    {t('settings.languageRegion.languageDesc')}
-                  </p>
-                </div>
-                <LanguageSwitcher />
-              </div>
-
-              <div className="region-settings-divider"></div>
-
-              <div className="language-region-container">
-                <div className="subsection-header">
-                  <h3 className="subsection-title">
-                    {t('settings.languageRegion.locationTimezone')}
-                  </h3>
-                  <p className="subsection-description">
-                    {t('settings.languageRegion.locationDesc')}
-                  </p>
-                </div>
-                <RegionSelector
-                  value={regionSettings}
-                  onChange={handleRegionChange}
-                />
-              </div>
             </div>
           )}
+
+          {/* Language & Region Section */}
+          <div className="settings-section language-region-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Globe size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>{t('settings.languageRegion.title')}</h2>
+                <p className="section-description">
+                  {t('settings.languageRegion.description')}
+                </p>
+                <p className="language-region-summary">
+                  {(regionSettings?.city && regionSettings?.country
+                    ? `${regionSettings.city}, ${regionSettings.country}`
+                    : t('settings.languageRegion.locationTimezone')) || ''}
+                </p>
+              </div>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsLanguageRegionExpanded(prev => !prev)}
+                  aria-expanded={isLanguageRegionExpanded}
+                  aria-label="Toggle language and region settings"
+                >
+                  {isLanguageRegionExpanded ? 'Hide ▲' : 'Edit ▼'}
+                </button>
+              </div>
+            </div>
+            {isLanguageRegionExpanded && (
+              <div className="section-content language-region-content-wrap">
+                <div className="language-region-container">
+                  <div className="subsection-header">
+                    <h3 className="subsection-title">
+                      {t('settings.languageRegion.languagePreference')}
+                    </h3>
+                    <p className="subsection-description">
+                      {t('settings.languageRegion.languageDesc')}
+                    </p>
+                  </div>
+                  <LanguageSwitcher />
+                </div>
+
+                <div className="region-settings-divider"></div>
+
+                <div className="language-region-container">
+                  <div className="subsection-header">
+                    <h3 className="subsection-title">
+                      {t('settings.languageRegion.locationTimezone')}
+                    </h3>
+                    <p className="subsection-description">
+                      {t('settings.languageRegion.locationDesc')}
+                    </p>
+                  </div>
+                  <RegionSelector
+                    value={regionSettings}
+                    onChange={handleRegionChange}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Calendar Integration Section */}
+          <CalendarSettings />
+
+          {role === 'DONOR' && <DonorPhotoPreferencesSection />}
         </div>
-
-        {/* Calendar Integration Section */}
-        <CalendarSettings />
-
-        {role === 'DONOR' && <DonorPhotoPreferencesSection />}
 
         {/* Notification Preferences Section */}
         <div className="settings-section">
@@ -1086,6 +1354,254 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Pickup Preferences Section - Donor only */}
+        {role === 'DONOR' && (
+          <div className="settings-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Clock size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>Pickup Preferences</h2>
+                <p className="section-description">
+                  Save recurring pickup time slots so they are pre-filled when
+                  you create a new donation.
+                </p>
+              </div>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsPickupPrefsExpanded(prev => !prev)}
+                  aria-expanded={isPickupPrefsExpanded}
+                  aria-label="Toggle pickup preferences"
+                >
+                  {isPickupPrefsExpanded ? 'Hide ▲' : 'Edit ▼'}
+                </button>
+              </div>
+            </div>
+
+            {isPickupPrefsExpanded && (
+              <div className="section-content">
+                {/* Availability Window */}
+                <div
+                  className="preference-item"
+                  style={{
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div className="preference-info">
+                    <h4>Default Availability Window</h4>
+                    <p>
+                      Set the broad time range during which you are generally
+                      available for pickups.
+                    </p>
+                  </div>
+                  <div
+                    style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}
+                  >
+                    <div>
+                      <label
+                        className="input-label"
+                        style={{ display: 'block', marginBottom: '0.25rem' }}
+                      >
+                        From
+                      </label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={pickupPrefs.availabilityWindowStart}
+                        onChange={e =>
+                          setPickupPrefs(prev => ({
+                            ...prev,
+                            availabilityWindowStart: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className="input-label"
+                        style={{ display: 'block', marginBottom: '0.25rem' }}
+                      >
+                        To
+                      </label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={pickupPrefs.availabilityWindowEnd}
+                        onChange={e =>
+                          setPickupPrefs(prev => ({
+                            ...prev,
+                            availabilityWindowEnd: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recurring Time Slots */}
+                <div style={{ marginTop: '1.25rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <div className="preference-info">
+                      <h4>Recurring Pickup Time Slots</h4>
+                      <p>
+                        These times will be pre-filled when you create a new
+                        donation.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-add-slot"
+                      onClick={addPickupPrefSlot}
+                    >
+                      <Plus size={16} /> Add Slot
+                    </button>
+                  </div>
+
+                  {pickupPrefs.slots.length === 0 && (
+                    <p style={{ color: '#888', fontSize: '0.9rem' }}>
+                      No recurring slots saved yet.
+                    </p>
+                  )}
+
+                  {pickupPrefs.slots.map((slot, index) => (
+                    <div
+                      key={index}
+                      className="pickup-slot-card"
+                      style={{ marginBottom: '0.75rem' }}
+                    >
+                      <div className="slot-header">
+                        <span className="slot-number">Slot {index + 1}</span>
+                        <button
+                          type="button"
+                          className="btn-remove-slot"
+                          onClick={() => removePickupPrefSlot(index)}
+                          aria-label="Remove slot"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '1rem',
+                          flexWrap: 'wrap',
+                          marginTop: '0.5rem',
+                        }}
+                      >
+                        <div>
+                          <label
+                            className="input-label"
+                            style={{
+                              display: 'block',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            Start Time
+                          </label>
+                          <input
+                            type="time"
+                            className="form-input"
+                            value={slot.startTime}
+                            onChange={e =>
+                              handlePickupSlotChange(
+                                index,
+                                'startTime',
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label
+                            className="input-label"
+                            style={{
+                              display: 'block',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            End Time
+                          </label>
+                          <input
+                            type="time"
+                            className="form-input"
+                            value={slot.endTime}
+                            onChange={e =>
+                              handlePickupSlotChange(
+                                index,
+                                'endTime',
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                        <div style={{ flex: 1, minWidth: '150px' }}>
+                          <label
+                            className="input-label"
+                            style={{
+                              display: 'block',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            Notes (optional)
+                          </label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            placeholder="e.g. Weekday mornings"
+                            value={slot.notes}
+                            onChange={e =>
+                              handlePickupSlotChange(
+                                index,
+                                'notes',
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {pickupPrefsMessage && (
+                  <p
+                    className="success-message"
+                    style={{ marginTop: '0.75rem' }}
+                  >
+                    {pickupPrefsMessage}
+                  </p>
+                )}
+                {pickupPrefsError && (
+                  <p className="error-message" style={{ marginTop: '0.75rem' }}>
+                    {pickupPrefsError}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  className="save-changes-btn"
+                  style={{ marginTop: '1rem' }}
+                  onClick={handleSavePickupPreferences}
+                >
+                  Save Pickup Preferences
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Privacy & Data Consent Section */}
         <div className="settings-section">
           <div className="section-header-with-icon">
@@ -1123,6 +1639,107 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {role !== 'ADMIN' && (
+          <div className="settings-section">
+            <div className="section-header-with-icon">
+              <div className="icon-circle">
+                <Wallet size={24} />
+              </div>
+              <div className="section-title-group">
+                <h2>{t('settings.paymentHistory.title')}</h2>
+                <p className="section-description">
+                  {t('settings.paymentHistory.description')}
+                </p>
+              </div>
+              <div className="settings-header-actions">
+                <button
+                  type="button"
+                  className="settings-toggle-btn"
+                  onClick={() => setIsPaymentHistoryExpanded(prev => !prev)}
+                  aria-expanded={isPaymentHistoryExpanded}
+                  aria-label={t('settings.paymentHistory.toggleAriaLabel')}
+                >
+                  {isPaymentHistoryExpanded
+                    ? t('settings.paymentHistory.hideButton')
+                    : t('settings.paymentHistory.viewButton')}
+                </button>
+              </div>
+            </div>
+
+            {isPaymentHistoryExpanded && (
+              <div className="section-content language-region-content-wrap">
+                {paymentHistoryLoading && (
+                  <div className="loading-spinner">
+                    {t('settings.paymentHistory.loading')}
+                  </div>
+                )}
+
+                {!paymentHistoryLoading && paymentHistoryError && (
+                  <div className="error-message payment-history-error-wrap">
+                    {paymentHistoryError}
+                  </div>
+                )}
+
+                {!paymentHistoryLoading && !paymentHistoryError && (
+                  <>
+                    {paymentHistory.length === 0 ? (
+                      <p className="payment-history-empty">
+                        {t('settings.paymentHistory.empty')}
+                      </p>
+                    ) : (
+                      <div
+                        className="payment-history-list"
+                        aria-label={t('settings.paymentHistory.listAriaLabel')}
+                      >
+                        {paymentHistory.map(payment => (
+                          <div
+                            key={payment.id}
+                            className="payment-history-item"
+                          >
+                            <div className="payment-history-main">
+                              <div className="payment-history-amount">
+                                {formatPaymentAmount(payment)}
+                              </div>
+                              <div className="payment-history-description">
+                                {payment.description ||
+                                  t(
+                                    'settings.paymentHistory.defaultDescription'
+                                  )}
+                              </div>
+                            </div>
+                            <div className="payment-history-meta">
+                              <span className="payment-history-status">
+                                {formatPaymentStatus(payment.status)}
+                              </span>
+                              <span className="payment-history-type">
+                                {formatPaymentStatus(payment.paymentType)}
+                              </span>
+                              <span className="payment-history-date">
+                                {formatPaymentDate(payment.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="payment-history-actions">
+                      <button
+                        type="button"
+                        className="settings-toggle-btn"
+                        onClick={fetchPaymentHistory}
+                        disabled={paymentHistoryLoading}
+                      >
+                        {t('settings.paymentHistory.refreshButton')}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Notifications Section */}
         <div className="settings-section">

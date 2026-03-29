@@ -14,8 +14,11 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    @Autowired
-    private JwtConfig jwtConfig;
+    private final JwtConfig jwtConfig;
+
+    public JwtTokenProvider(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes());

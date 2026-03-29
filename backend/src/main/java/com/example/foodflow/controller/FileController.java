@@ -21,7 +21,6 @@ import java.nio.file.Paths;
  */
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class FileController {
 
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);

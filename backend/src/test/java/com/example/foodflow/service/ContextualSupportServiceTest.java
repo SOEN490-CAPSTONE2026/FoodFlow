@@ -2,6 +2,7 @@ package com.example.foodflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,16 +10,14 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class ContextualSupportServiceTest {
 
     @Test
     void generateResponse_contactSupport_addsActionsAndNoEscalate() {
-        ContextualSupportService service =
-            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper());
         OpenAIService openAIService = org.mockito.Mockito.mock(OpenAIService.class);
-        ReflectionTestUtils.setField(service, "openAIService", openAIService);
+        ContextualSupportService service =
+            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper(), openAIService);
 
         when(openAIService.generateSupportResponse(org.mockito.Mockito.anyString(),
                 org.mockito.Mockito.anyString(),
@@ -29,7 +28,7 @@ class ContextualSupportServiceTest {
         Map<String, Object> result = service.generateResponse(
             "How do I contact support?",
             "DONOR",
-            "en",
+            "es",
             Map.of("userPreferences", Map.of("timezone", "UTC"))
         );
 
@@ -41,14 +40,20 @@ class ContextualSupportServiceTest {
         assertThat(actions.get(0).get("value")).isEqualTo("foodflow.group@gmail.com");
         assertThat(actions.stream().anyMatch(a -> "/donor/help".equals(a.get("value")))).isTrue();
         assertThat(result.get("escalate")).isEqualTo(false);
+
+        verify(openAIService).generateSupportResponse(
+            org.mockito.Mockito.anyString(),
+            org.mockito.Mockito.anyString(),
+            org.mockito.Mockito.any(),
+            org.mockito.Mockito.eq("es")
+        );
     }
 
     @Test
     void generateResponse_whenOpenAiThrows_returnsFallback() {
-        ContextualSupportService service =
-            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper());
         OpenAIService openAIService = org.mockito.Mockito.mock(OpenAIService.class);
-        ReflectionTestUtils.setField(service, "openAIService", openAIService);
+        ContextualSupportService service =
+            new ContextualSupportService(new DefaultResourceLoader(), new ObjectMapper(), openAIService);
 
         doThrow(new RuntimeException("boom")).when(openAIService)
             .generateSupportResponse(org.mockito.Mockito.anyString(),

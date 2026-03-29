@@ -34,6 +34,8 @@ import ReceiverDashboard from './components/ReceiverDashboard/ReceiverDashboard'
 import SurplusForm from './components/DonorDashboard/SurplusFormModal';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import NotFound from './components/NotFound';
+import PaymentPage from './components/Payment/PaymentPage';
+import PaymentSuccess from './components/Payment/PaymentSuccess';
 import CookieBanner from './components/CookieBanner';
 import { ConsentProvider } from './contexts/ConsentContext';
 import './App.css';
@@ -71,9 +73,6 @@ function AppContent() {
     document.body.style.direction = dir;
   }, [i18n.language]);
 
-  // Top navbar only shown on public pages (landing, login, registration)
-  // Dashboard routes (/donor, /admin, /receiver) have their own internal layouts
-  // and don't need the top public navigation
   const hideNavbar =
     location.pathname === '/login' ||
     location.pathname === '/forgot-password' ||
@@ -145,6 +144,11 @@ function AppContent() {
         />
         <Route path="/surplus/create" element={<SurplusForm />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+        {/* Payment Routes */}
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+
         {/* Catch-all: renders a noindex 404 page for any unknown route */}
         <Route path="*" element={<NotFound />} />
       </Routes>

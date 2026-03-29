@@ -463,7 +463,7 @@ class AdminControllerIntegrationTest {
         request.setMessage("Alert");
         
         doThrow(new RuntimeException("User not found"))
-            .when(adminUserService).sendAlertToUser(eq(999L), anyString());
+            .when(adminUserService).sendAlertToUser(eq(999L), anyString(), isNull(), isNull());
         
         // When & Then
         mockMvc.perform(post("/api/admin/users/999/send-alert")

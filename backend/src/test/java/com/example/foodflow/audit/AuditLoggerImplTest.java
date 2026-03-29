@@ -4,10 +4,7 @@ import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.repository.AuditLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

@@ -39,12 +39,25 @@ describe('AIImageUpload', () => {
     jest.clearAllMocks();
     URL.createObjectURL = jest.fn(() => 'mock-url');
     URL.revokeObjectURL = jest.fn();
+    global.FileReader = class {
+      constructor() {
+        this.result = 'data:image/jpeg;base64,mocked';
+        this.onloadend = null;
+      }
+      readAsDataURL() {
+        if (typeof this.onloadend === 'function') {
+          this.onloadend();
+        }
+      }
+    };
   });
 
   test('renders initial upload state', () => {
     renderComponent();
     expect(screen.getByText('aiDonation.upload.title')).toBeInTheDocument();
-    expect(screen.getByText('aiDonation.upload.subtitle')).toBeInTheDocument();
+    expect(
+      screen.getByText('aiDonation.upload.dragAndDrop')
+    ).toBeInTheDocument();
     expect(
       screen.getByText('aiDonation.upload.chooseFile')
     ).toBeInTheDocument();

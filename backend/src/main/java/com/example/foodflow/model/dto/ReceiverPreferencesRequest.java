@@ -2,7 +2,6 @@ package com.example.foodflow.model.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 

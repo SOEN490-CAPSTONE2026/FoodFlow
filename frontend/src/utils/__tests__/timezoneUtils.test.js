@@ -1,8 +1,17 @@
 import {
-  formatTimeInTimezone,
-  formatDateInTimezone,
-  getDateSeparatorInTimezone,
   areDifferentDaysInTimezone,
+  formatDateInTimezone,
+  formatPickupWindowFromParts,
+  formatTimeInTimezone,
+  formatWallClockDate,
+  formatWallClockTime,
+  getDateSeparatorInTimezone,
+  parseExplicitUtcTimestamp,
+  parseBackendUtcDateTimeParts,
+  parseBackendUtcTimestamp,
+  parseLocalDateTimeParts,
+  parseZonedDateTimeParts,
+  toLocalDateInputValue,
 } from '../timezoneUtils';
 
 describe('timezoneUtils', () => {
@@ -152,5 +161,78 @@ describe('timezoneUtils', () => {
 
     localeSpy.mockRestore();
     consoleErrorSpy.mockRestore();
+  });
+
+  it('toLocalDateInputValue preserves local calendar day for date-only payloads', () => {
+    const localDate = new Date(2026, 2, 10, 9, 30, 0);
+    expect(toLocalDateInputValue(localDate)).toBe('2026-03-10');
+  });
+
+  it('parseBackendUtcTimestamp treats naive backend datetime as UTC', () => {
+    const parsed = parseBackendUtcTimestamp('2026-03-10T12:34:56');
+    expect(parsed).not.toBeNull();
+    expect(parsed.getTime()).toBe(Date.UTC(2026, 2, 10, 12, 34, 56));
+  });
+
+  it('parseExplicitUtcTimestamp parses explicit UTC contract timestamps', () => {
+    const parsed = parseExplicitUtcTimestamp('2026-03-10T12:34:56Z');
+    expect(parsed).not.toBeNull();
+    expect(parsed.getTime()).toBe(Date.UTC(2026, 2, 10, 12, 34, 56));
+  });
+
+  it('parseExplicitUtcTimestamp does not infer timezone for naive timestamps', () => {
+    expect(parseExplicitUtcTimestamp('2026-03-10T12:34:56')).toBeNull();
+  });
+
+  it('parseBackendUtcDateTimeParts builds UTC instant from date+time parts', () => {
+    const parsed = parseBackendUtcDateTimeParts('2026-03-10', '08:15:00');
+    expect(parsed).not.toBeNull();
+    expect(parsed.getTime()).toBe(Date.UTC(2026, 2, 10, 8, 15, 0));
+  });
+
+  it('parseLocalDateTimeParts keeps local wall-clock date/time', () => {
+    const parsed = parseLocalDateTimeParts('2026-03-10', '08:15:00');
+    expect(parsed).not.toBeNull();
+    expect(parsed.getFullYear()).toBe(2026);
+    expect(parsed.getMonth()).toBe(2);
+    expect(parsed.getDate()).toBe(10);
+    expect(parsed.getHours()).toBe(8);
+    expect(parsed.getMinutes()).toBe(15);
+  });
+
+  it('parseZonedDateTimeParts resolves wall-clock date/time in UTC timezone', () => {
+    const parsed = parseZonedDateTimeParts('2026-03-10', '08:15:00', 'UTC');
+    expect(parsed).not.toBeNull();
+    expect(parsed.getTime()).toBe(Date.UTC(2026, 2, 10, 8, 15, 0));
+  });
+
+  it('parseZonedDateTimeParts resolves wall-clock date/time in non-UTC timezone', () => {
+    const parsed = parseZonedDateTimeParts(
+      '2026-02-27',
+      '17:45:00',
+      'Asia/Tokyo'
+    );
+    expect(parsed).not.toBeNull();
+    expect(parsed.toISOString()).toBe('2026-02-27T08:45:00.000Z');
+  });
+
+  it('formatWallClockDate formats date part without timezone drift', () => {
+    expect(formatWallClockDate('2026-03-10')).toBe('Mar 10, 2026');
+  });
+
+  it('formatWallClockTime formats time part as wall-clock time', () => {
+    expect(formatWallClockTime('13:05:00')).toBe('1:05 PM');
+  });
+
+  it('formatPickupWindowFromParts combines wall-clock pickup values', () => {
+    expect(
+      formatPickupWindowFromParts('2026-03-10', '09:15:00', '17:45:00')
+    ).toBe('Mar 10, 2026 9:15 AM-5:45 PM');
+  });
+
+  it('invalid inputs return null/empty safe fallbacks', () => {
+    expect(parseBackendUtcTimestamp('not-a-date')).toBeNull();
+    expect(parseBackendUtcDateTimeParts(null, '10:00:00')).toBeNull();
+    expect(toLocalDateInputValue(null)).toBe('');
   });
 });

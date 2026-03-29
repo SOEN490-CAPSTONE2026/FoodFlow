@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import okhttp3.*;
 import java.util.concurrent.TimeUnit;
+import java.util.Locale;
 
 /**
  * Service for making OpenAI API calls with enhanced security and monitoring.
@@ -17,8 +18,10 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class OpenAIService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
+
+    private final BusinessMetricsService businessMetricsService;
 
     @Value("${app.openai.api-key}")
     private String openAIApiKey;
@@ -40,7 +43,8 @@ public class OpenAIService {
     // Security limits
     private static final int MAX_CONTEXT_LENGTH = 20000; // Limit context size
 
-    public OpenAIService() {
+    public OpenAIService(BusinessMetricsService businessMetricsService) {
+        this.businessMetricsService = businessMetricsService;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
@@ -62,11 +66,14 @@ public class OpenAIService {
             JsonNode supportContext, String userLanguage) {
         
         long startTime = System.currentTimeMillis();
-        
+        io.micrometer.core.instrument.Timer.Sample sample = businessMetricsService.startTimer();
+
         try {
             // Input validation to prevent abuse
             if (!validateInput(userMessage, helpPackContent, supportContext)) {
                 logger.warn("OpenAI request blocked due to invalid input");
+                businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
+                businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                 return getEscalationMessage(userLanguage);
             }
             
@@ -142,8 +149,10 @@ public class OpenAIService {
                 long duration = System.currentTimeMillis() - startTime;
                 
                 if (!response.isSuccessful()) {
-                    logger.warn("OpenAI API request failed with status: {} in {}ms", 
+                    logger.warn("OpenAI API request failed with status: {} in {}ms",
                         response.code(), duration);
+                    businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
+                    businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                     return getEscalationMessage(userLanguage);
                 }
 
@@ -158,6 +167,8 @@ public class OpenAIService {
                     if (message != null && message.has("content")) {
                         String result = message.get("content").asText();
                         logger.info("OpenAI API request completed successfully in {}ms", duration);
+                        businessMetricsService.incrementOpenAiCalls("chat_completion");
+                        businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                         return result;
                     }
                 }
@@ -169,6 +180,8 @@ public class OpenAIService {
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
             logger.error("OpenAI API request failed after {}ms", duration, e);
+            businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
+            businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
             return getEscalationMessage(userLanguage);
         }
     }
@@ -272,6 +285,8 @@ public class OpenAIService {
      * Build the system prompt for the FoodFlow assistant
      */
     private String buildSystemPrompt(String language) {
+        String normalizedLanguage = normalizeLanguage(language);
+        String languageName = getLanguageName(normalizedLanguage);
         return String.format(
                 """
                         You are the FoodFlow Support Assistant, helping users with questions about using the FoodFlow food sharing platform.
@@ -295,7 +310,7 @@ public class OpenAIService {
 
                         If asked about anything outside this scope, escalate to human support.
                         """,
-                language.equals("fr") ? "French" : "English");
+                languageName);
     }
 
     /**
@@ -318,10 +333,38 @@ public class OpenAIService {
      * Get escalation message in the appropriate language
      */
     private String getEscalationMessage(String language) {
-        if ("fr".equals(language)) {
-            return "Je ne peux pas répondre à cette question. Veuillez contacter notre équipe de support pour obtenir de l'aide.";
-        } else {
-            return "I'm unable to answer this question. Please contact our support team for assistance.";
+        return switch (normalizeLanguage(language)) {
+            case "fr" -> "Je ne peux pas repondre a cette question. Veuillez contacter notre equipe de support pour obtenir de l'aide.";
+            case "es" -> "No puedo responder esta pregunta. Ponte en contacto con nuestro equipo de soporte para obtener ayuda.";
+            case "zh" -> "Wo wu fa huida zhe ge wenti. Qing lianxi women de zhichi tuandui huode bangzhu.";
+            case "ar" -> "La astati'u alradd ealaa hadha alsuwal. Yurjaa altawasul mae fariq aldaem limusaeadatak.";
+            case "pt" -> "Nao consigo responder a esta pergunta. Entre em contato com nossa equipe de suporte para obter ajuda.";
+            default -> "I'm unable to answer this question. Please contact our support team for assistance.";
+        };
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) {
+            return "en";
         }
+        String normalized = language.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("-")) {
+            normalized = normalized.substring(0, normalized.indexOf('-'));
+        }
+        return switch (normalized) {
+            case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
+            default -> "en";
+        };
+    }
+
+    private String getLanguageName(String language) {
+        return switch (normalizeLanguage(language)) {
+            case "fr" -> "French";
+            case "es" -> "Spanish";
+            case "zh" -> "Chinese";
+            case "ar" -> "Arabic";
+            case "pt" -> "Portuguese";
+            default -> "English";
+        };
     }
 }

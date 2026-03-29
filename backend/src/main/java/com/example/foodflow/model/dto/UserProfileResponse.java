@@ -11,6 +11,7 @@ public class UserProfileResponse {
     private String profilePhoto;
     private String organizationName;
     private String organizationAddress;
+    private Boolean onboardingCompleted;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -33,6 +34,9 @@ public class UserProfileResponse {
 
     public String getOrganizationAddress() { return organizationAddress; }
     public void setOrganizationAddress(String organizationAddress) { this.organizationAddress = organizationAddress; }
+
+    public Boolean getOnboardingCompleted() { return onboardingCompleted; }
+    public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
 
     // Alias methods for frontend compatibility
     public String getPhoneNumber() { return phone; }

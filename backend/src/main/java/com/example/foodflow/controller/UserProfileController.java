@@ -1,6 +1,7 @@
 package com.example.foodflow.controller;
 
 import com.example.foodflow.model.dto.RegionResponse;
+import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/profile")
-@CrossOrigin(origins = "*")
 public class UserProfileController {
     
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserProfileController.class);
@@ -99,6 +99,15 @@ public class UserProfileController {
             @Valid @RequestBody UpdateRegionRequest request) {
         
         RegionResponse response = userProfileService.updateRegionSettings(currentUser, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/onboarding")
+    public ResponseEntity<UserProfileResponse> updateOnboarding(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody UpdateOnboardingRequest request) {
+
+        UserProfileResponse response = userProfileService.updateOnboarding(currentUser, request);
         return ResponseEntity.ok(response);
     }
 }

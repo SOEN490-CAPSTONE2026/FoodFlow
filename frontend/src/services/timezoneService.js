@@ -8,71 +8,120 @@
  * @param {string} address - Full address string (e.g., "123 Main St, Montreal, QC H3A 0G4, Canada")
  * @returns {Promise<string>} - Timezone identifier (e.g., "America/Toronto")
  */
-export const inferTimezoneFromAddress = async address => {
+const GOOGLE_GEOCODE_URL =
+  'https://maps.googleapis.com/maps/api/geocode/json?address=';
+const GOOGLE_TIMEZONE_URL =
+  'https://maps.googleapis.com/maps/api/timezone/json?location=';
+
+const getAddressComponent = (components = [], type) =>
+  components.find(component => component.types?.includes(type));
+
+const geocodeAddress = async (address, apiKey) => {
+  const geocodeUrl = `${GOOGLE_GEOCODE_URL}${encodeURIComponent(address)}&key=${apiKey}`;
+  const geocodeResponse = await fetch(geocodeUrl);
+  const geocodeData = await geocodeResponse.json();
+
+  if (
+    geocodeData.status !== 'OK' ||
+    !Array.isArray(geocodeData.results) ||
+    geocodeData.results.length === 0
+  ) {
+    return null;
+  }
+
+  return geocodeData.results[0];
+};
+
+const fetchTimezoneForCoordinates = async (lat, lng, apiKey) => {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const timezoneUrl = `${GOOGLE_TIMEZONE_URL}${lat},${lng}&timestamp=${timestamp}&key=${apiKey}`;
+  const timezoneResponse = await fetch(timezoneUrl);
+  const timezoneData = await timezoneResponse.json();
+
+  if (timezoneData.status !== 'OK' || !timezoneData.timeZoneId) {
+    return null;
+  }
+
+  return timezoneData.timeZoneId;
+};
+
+/**
+ * Infer region details and timezone from an address.
+ * Returns best-effort city/country with timezone fallback to browser timezone.
+ */
+export const inferRegionFromAddress = async address => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
   if (!apiKey) {
-    console.warn(
-      'Google Maps API key not found, falling back to browser timezone'
-    );
-    return getBrowserTimezone();
+    const browserTimezone = getBrowserTimezone();
+    return {
+      timezone: browserTimezone,
+      city: '',
+      country: '',
+      countryCode: '',
+      source: 'browser-fallback',
+    };
   }
 
   if (!address || address.trim().length === 0) {
-    console.warn('Empty address provided, falling back to browser timezone');
-    return getBrowserTimezone();
+    const browserTimezone = getBrowserTimezone();
+    return {
+      timezone: browserTimezone,
+      city: '',
+      country: '',
+      countryCode: '',
+      source: 'browser-fallback',
+    };
   }
 
   try {
-    // Step 1: Geocode address to get lat/lng coordinates
-    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
-    const geocodeResponse = await fetch(geocodeUrl);
-    const geocodeData = await geocodeResponse.json();
-
-    if (
-      geocodeData.status !== 'OK' ||
-      !geocodeData.results ||
-      geocodeData.results.length === 0
-    ) {
-      console.warn(
-        'Geocoding failed:',
-        geocodeData.status,
-        '- Falling back to browser timezone'
-      );
-      return getBrowserTimezone();
+    const geocoded = await geocodeAddress(address, apiKey);
+    if (!geocoded?.geometry?.location) {
+      const browserTimezone = getBrowserTimezone();
+      return {
+        timezone: browserTimezone,
+        city: '',
+        country: '',
+        countryCode: '',
+        source: 'browser-fallback',
+      };
     }
 
-    const location = geocodeData.results[0].geometry.location;
+    const location = geocoded.geometry.location;
     const { lat, lng } = location;
+    const components = geocoded.address_components || [];
+    const cityComponent =
+      getAddressComponent(components, 'locality') ||
+      getAddressComponent(components, 'postal_town') ||
+      getAddressComponent(components, 'administrative_area_level_2');
+    const countryComponent = getAddressComponent(components, 'country');
 
-    console.log(`Geocoded address to coordinates: lat=${lat}, lng=${lng}`);
+    const timezone =
+      (await fetchTimezoneForCoordinates(lat, lng, apiKey)) ||
+      getBrowserTimezone();
 
-    // Step 2: Get timezone from coordinates using Google Time Zone API
-    const timestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-    const timezoneUrl = `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lng}&timestamp=${timestamp}&key=${apiKey}`;
-    const timezoneResponse = await fetch(timezoneUrl);
-    const timezoneData = await timezoneResponse.json();
-
-    if (timezoneData.status !== 'OK' || !timezoneData.timeZoneId) {
-      console.warn(
-        'Time Zone API failed:',
-        timezoneData.status,
-        '- Falling back to browser timezone'
-      );
-      return getBrowserTimezone();
-    }
-
-    const inferredTimezone = timezoneData.timeZoneId;
-    console.log(
-      `Inferred timezone: ${inferredTimezone} from address: ${address}`
-    );
-
-    return inferredTimezone;
+    return {
+      timezone,
+      city: cityComponent?.long_name || '',
+      country: countryComponent?.long_name || '',
+      countryCode: countryComponent?.short_name || '',
+      source: 'google',
+    };
   } catch (error) {
-    console.error('Error inferring timezone from address:', error);
-    // Always fallback to browser timezone on error
-    return getBrowserTimezone();
+    const browserTimezone = getBrowserTimezone();
+    return {
+      timezone: browserTimezone,
+      city: '',
+      country: '',
+      countryCode: '',
+      source: 'browser-fallback',
+    };
   }
+};
+
+export const inferTimezoneFromAddress = async address => {
+  const region = await inferRegionFromAddress(address);
+  return region?.timezone || getBrowserTimezone();
 };
 
 /**

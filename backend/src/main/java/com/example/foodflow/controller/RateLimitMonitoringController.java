@@ -2,7 +2,6 @@ package com.example.foodflow.controller;
 
 import com.example.foodflow.service.RateLimitingService;
 import com.example.foodflow.model.entity.User;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +14,13 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:3000")
 public class RateLimitMonitoringController {
 
-    @Autowired
-    private RateLimitingService rateLimitingService;
+    private final RateLimitingService rateLimitingService;
+
+    public RateLimitMonitoringController(RateLimitingService rateLimitingService) {
+        this.rateLimitingService = rateLimitingService;
+    }
 
     /**
      * Get comprehensive rate limiting statistics (admin only)

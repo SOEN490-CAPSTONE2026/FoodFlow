@@ -21,7 +21,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "${spring.web.cors.allowed-origins}")
 public class ImageController {
 
     private final DonationImageService donationImageService;

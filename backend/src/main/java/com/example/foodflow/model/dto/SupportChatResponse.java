@@ -1,6 +1,5 @@
 package com.example.foodflow.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**

@@ -3,8 +3,18 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ReceiverHelp from '../ReceiverHelp';
 
+const mockStartReceiverTutorial = jest.fn();
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: key => key }),
+}));
+
+jest.mock('../../../contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    canReplayReceiverTutorial: true,
+    isReceiverTutorialActive: false,
+    startReceiverTutorial: mockStartReceiverTutorial,
+  }),
 }));
 
 const renderWithRouter = component =>
@@ -27,5 +37,11 @@ describe('ReceiverHelp', () => {
     expect(
       screen.getByText('receiverHelp.faq.items.q1.answer')
     ).toBeInTheDocument();
+  });
+
+  test('starts tutorial from help page', () => {
+    renderWithRouter(<ReceiverHelp />);
+    fireEvent.click(screen.getByText('onboarding.help.replayButton'));
+    expect(mockStartReceiverTutorial).toHaveBeenCalled();
   });
 });

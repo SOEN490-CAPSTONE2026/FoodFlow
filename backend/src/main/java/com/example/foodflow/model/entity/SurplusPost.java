@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -177,7 +178,7 @@ public class SurplusPost {
         if (expiryOverridden == null) {
             expiryOverridden = false;
         }
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(ZoneOffset.UTC);
         updatedAt = createdAt;
     }
     
@@ -192,7 +193,7 @@ public class SurplusPost {
         if (expiryOverridden == null) {
             expiryOverridden = false;
         }
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
     
     // Constructors

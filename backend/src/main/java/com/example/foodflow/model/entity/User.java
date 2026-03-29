@@ -78,6 +78,8 @@ public class User {
 
     @Column(name = "donation_count")
     private Integer donationCount = 0;
+    @Column(name = "onboarding_completed", nullable = false)
+    private Boolean onboardingCompleted = false;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Organization organization;
@@ -171,4 +173,6 @@ public class User {
 
     public Integer getDonationCount() { return donationCount; }
     public void setDonationCount(Integer donationCount) { this.donationCount = donationCount; }
+    public Boolean getOnboardingCompleted() { return onboardingCompleted; }
+    public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
 }
