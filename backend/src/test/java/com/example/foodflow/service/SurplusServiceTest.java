@@ -1255,7 +1255,7 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithFutureFabrication, donor))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(com.example.foodflow.exception.domain.InvalidSurplusPostException.class)
                 .hasMessageContaining("Fabrication date cannot be in the future");
 
         verify(expiryCalculationService).isValidFabricationDate(LocalDate.now().plusDays(1));
@@ -1288,7 +1288,7 @@ class SurplusServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> surplusService.createSurplusPost(requestWithInvalidExpiry, donor))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(com.example.foodflow.exception.domain.InvalidSurplusPostException.class)
                 .hasMessageContaining("Expiry date must be after fabrication date");
 
         verify(expiryCalculationService).isValidFabricationDate(LocalDate.now());

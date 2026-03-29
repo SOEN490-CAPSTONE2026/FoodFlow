@@ -195,7 +195,8 @@ class FeedIntegrationTest {
                                 + "\"pickupFrom\": \"15:00:00\","
                                 + "\"pickupTo\": \"18:00:00\","
                                 + "\"temperatureCategory\": \"ROOM_TEMPERATURE\","
-                                + "\"packagingType\": \"BOXED\""
+                                + "\"packagingType\": \"BOXED\","
+                                + "\"pickupSlots\": [{\"pickupDate\": \"2030-01-01\", \"startTime\": \"15:00:00\", \"endTime\": \"18:00:00\"}]"
                                 + "}";
 
                 mockMvc.perform(post("/api/surplus")

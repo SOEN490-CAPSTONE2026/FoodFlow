@@ -62,8 +62,11 @@ class AuthControllerIntegrationTest {
         RegisterDonorRequest request = new RegisterDonorRequest();
         request.setEmail("existing@test.com");
         request.setPassword("TestSecure123!");
+        request.setConfirmPassword("TestSecure123!");
         request.setPhone("+1234567890");
         request.setOrganizationName("Test Org");
+        request.setContactPerson("Test Person");
+        request.setAddress("123 Test St");
         
         when(authService.registerDonor(any(RegisterDonorRequest.class)))
             .thenThrow(new com.example.foodflow.exception.domain.InvalidClaimException("Email already exists"));

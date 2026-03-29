@@ -197,14 +197,14 @@ public class SurplusService {
 
         if (fabricationDate != null) {
             if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
-                throw new IllegalArgumentException("Fabrication date cannot be in the future");
+                throw new com.example.foodflow.exception.domain.InvalidSurplusPostException("Fabrication date cannot be in the future");
             }
             post.setFabricationDate(fabricationDate);
         }
 
         if (expiryDate != null && fabricationDate != null &&
                 !expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
-            throw new IllegalArgumentException(
+            throw new com.example.foodflow.exception.domain.InvalidSurplusPostException(
                     "Expiry date must be after fabrication date and within reasonable limits");
         }
         post.setExpiryDate(expiryDate);
@@ -415,7 +415,7 @@ public class SurplusService {
 
         if (fabricationDate != null) {
             if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
-                throw new IllegalArgumentException("Fabrication date cannot be in the future");
+                throw new com.example.foodflow.exception.domain.InvalidSurplusPostException("Fabrication date cannot be in the future");
             }
             post.setFabricationDate(fabricationDate);
         } else {
@@ -424,7 +424,7 @@ public class SurplusService {
 
         if (expiryDate != null && fabricationDate != null &&
                 !expiryCalculationService.isValidExpiryDate(fabricationDate, expiryDate)) {
-            throw new IllegalArgumentException(
+            throw new com.example.foodflow.exception.domain.InvalidSurplusPostException(
                     "Expiry date must be after fabrication date and within reasonable limits");
         }
         post.setExpiryDate(expiryDate);

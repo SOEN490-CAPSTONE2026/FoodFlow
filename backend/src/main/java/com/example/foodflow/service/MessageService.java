@@ -223,7 +223,7 @@ public class MessageService {
     public MessageHistoryResponse getMessageHistoryByPostId(Long postId, User currentUser, int page, int size) {
         // Find conversation for this post where user is a participant
         Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
-            .orElseThrow(() -> new IllegalArgumentException("No conversation found for this post"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.ConversationNotFoundException("No conversation found for this post"));
         
         // Get paginated messages
         Pageable pageable = PageRequest.of(page, size);

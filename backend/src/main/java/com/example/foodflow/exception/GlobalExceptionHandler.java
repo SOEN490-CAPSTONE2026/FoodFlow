@@ -382,4 +382,35 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
+
+                        /**
+                 * Handle MessageNotFoundException (404)
+                 */
+                @ExceptionHandler(com.example.foodflow.exception.domain.MessageNotFoundException.class)
+                public ResponseEntity<ErrorResponse> handleMessageNotFoundException(
+                                com.example.foodflow.exception.domain.MessageNotFoundException ex,
+                                HttpServletRequest request) {
+                        ErrorResponse errorResponse = new ErrorResponse(
+                                        HttpStatus.NOT_FOUND.value(),
+                                        "Message Not Found",
+                                        ex.getMessage(),
+                                        request.getRequestURI());
+                        log.warn("Message not found on {}: {}", request.getRequestURI(), ex.getMessage());
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                }
+        /**
+         * Handle ConversationNotFoundException (404)
+         */
+        @ExceptionHandler(com.example.foodflow.exception.domain.ConversationNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleConversationNotFoundException(
+                        com.example.foodflow.exception.domain.ConversationNotFoundException ex,
+                        HttpServletRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(
+                                HttpStatus.NOT_FOUND.value(),
+                                "Conversation Not Found",
+                                ex.getMessage(),
+                                request.getRequestURI());
+                log.warn("Conversation not found on {}: {}", request.getRequestURI(), ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
 }

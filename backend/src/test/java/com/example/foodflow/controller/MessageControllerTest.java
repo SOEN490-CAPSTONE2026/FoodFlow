@@ -176,7 +176,7 @@ class MessageControllerTest {
     void getMessageHistoryByPost_NotFound_ShouldReturn404() throws Exception {
         // Given
         when(messageService.getMessageHistoryByPostId(eq(999L), any(User.class), anyInt(), anyInt()))
-            .thenThrow(new IllegalArgumentException("Post not found"));
+            .thenThrow(new com.example.foodflow.exception.domain.ConversationNotFoundException("Post not found"));
         
         // When & Then
         mockMvc.perform(get("/api/messages/history/999")
