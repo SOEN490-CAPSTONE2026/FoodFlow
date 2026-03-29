@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from './StripePaymentForm';
@@ -7,7 +7,7 @@ import PaymentMethodManager from './PaymentMethodManager';
 import PaymentHistory from './PaymentHistory';
 import PaymentInvoices from './PaymentInvoices';
 import PaymentRefunds from './PaymentRefunds';
-import api from '../../services/api';
+import api, { donationStatsAPI } from '../../services/api';
 import './PaymentPage.css';
 
 const stripePromise = loadStripe(
@@ -23,6 +23,27 @@ function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [platformStats, setPlatformStats] = useState(null);
+  const [platformStatsLoading, setPlatformStatsLoading] = useState(true);
+
+  // Fetch platform-wide donation stats from the backend on mount
+  const fetchPlatformStats = useCallback(async () => {
+    setPlatformStatsLoading(true);
+    try {
+      const response = await donationStatsAPI.getPlatformTotals();
+      setPlatformStats(response.data);
+    } catch (err) {
+      console.error('Failed to load platform donation stats:', err);
+      // Non-critical — the page still works with local estimates
+      setPlatformStats(null);
+    } finally {
+      setPlatformStatsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPlatformStats();
+  }, [fetchPlatformStats]);
 
   const predefinedAmounts = [5, 10, 25, 50, 100];
   const supportedCurrencies = ['USD', 'CAD', 'EUR', 'GBP'];
@@ -85,16 +106,43 @@ function PaymentPage() {
     return selectedAmount || parseFloat(customAmount) || 0;
   };
 
-  const getImpactMetrics = amount => {
-    // Frontend-only estimates until backend impact service is connected.
-    const safeAmount = Math.max(0, Number(amount) || 0);
-    return {
-      meals: Math.round(safeAmount * 3),
-      co2Kg: (safeAmount * 0.9).toFixed(1),
-      waterLiters: Math.round(safeAmount * 42),
-      communityPacks: Math.max(1, Math.round(safeAmount / 25)),
-    };
-  };
+  const getImpactMetrics = useCallback(
+    amount => {
+      const safeAmount = Math.max(0, Number(amount) || 0);
+
+      // When platform stats are available from the backend, use them to
+      // derive per-dollar impact ratios so the estimates stay grounded in
+      // real data.  Falls back to the original static multipliers when the
+      // backend is unreachable.
+      if (platformStats && Number(platformStats.totalAmountDonated) > 0) {
+        const totalDonated = Number(platformStats.totalAmountDonated);
+        const totalDonations = Number(platformStats.totalDonationCount) || 1;
+        const totalDonors = Number(platformStats.totalDonorCount) || 1;
+
+        // Derive per-dollar ratios from real platform data
+        const mealsPerDollar = (totalDonations * 3) / totalDonated;
+        const co2PerDollar = (totalDonations * 0.9) / totalDonated;
+        const waterPerDollar = (totalDonations * 42) / totalDonated;
+        const packsPerDollar = totalDonors / totalDonated;
+
+        return {
+          meals: Math.round(safeAmount * mealsPerDollar),
+          co2Kg: (safeAmount * co2PerDollar).toFixed(1),
+          waterLiters: Math.round(safeAmount * waterPerDollar),
+          communityPacks: Math.max(1, Math.round(safeAmount * packsPerDollar)),
+        };
+      }
+
+      // Fallback: static frontend-only estimates
+      return {
+        meals: Math.round(safeAmount * 3),
+        co2Kg: (safeAmount * 0.9).toFixed(1),
+        waterLiters: Math.round(safeAmount * 42),
+        communityPacks: Math.max(1, Math.round(safeAmount / 25)),
+      };
+    },
+    [platformStats]
+  );
 
   const impactMetrics = getImpactMetrics(getFinalAmount());
 
@@ -206,7 +254,9 @@ function PaymentPage() {
                     <div className="impact-metrics__header">
                       <h3>Estimated Impact</h3>
                       <p>
-                        Live estimate based on your selected donation amount.
+                        {platformStats
+                          ? 'Estimates powered by real platform donation data.'
+                          : 'Live estimate based on your selected donation amount.'}
                       </p>
                     </div>
                     <div className="impact-metrics__grid">
@@ -243,6 +293,51 @@ function PaymentPage() {
                         </span>
                       </article>
                     </div>
+
+                    {platformStats && !platformStatsLoading && (
+                      <div
+                        className="platform-stats-banner"
+                        aria-label="Platform donation totals"
+                      >
+                        <h4>Community Impact So Far</h4>
+                        <div className="platform-stats__grid">
+                          <div className="platform-stat">
+                            <span className="platform-stat__value">
+                              $
+                              {Number(
+                                platformStats.totalAmountDonated
+                              ).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
+                            <span className="platform-stat__label">
+                              Total donated ({platformStats.currency || 'CAD'})
+                            </span>
+                          </div>
+                          <div className="platform-stat">
+                            <span className="platform-stat__value">
+                              {Number(
+                                platformStats.totalDonationCount
+                              ).toLocaleString()}
+                            </span>
+                            <span className="platform-stat__label">
+                              Donations made
+                            </span>
+                          </div>
+                          <div className="platform-stat">
+                            <span className="platform-stat__value">
+                              {Number(
+                                platformStats.totalDonorCount
+                              ).toLocaleString()}
+                            </span>
+                            <span className="platform-stat__label">
+                              Unique donors
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </section>
 
                   <button

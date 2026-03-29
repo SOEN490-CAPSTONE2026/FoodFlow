@@ -902,6 +902,52 @@ export const referralAPI = {
   getAll: () => api.get('/admin/referrals'),
 };
 
+// Donation Stats API (platform-wide donation metrics)
+export const donationStatsAPI = {
+  /**
+   * Get platform-wide donation totals (total amount, count, unique donors)
+   * @returns {Promise} Platform donation totals
+   */
+  getPlatformTotals: () => api.get('/donations/stats/platform'),
+
+  /**
+   * Get detailed platform donation metrics from the database view
+   * Includes time-windowed stats, averages, largest/smallest donations
+   * @returns {Promise} Detailed platform donation metrics
+   */
+  getDetailedMetrics: () => api.get('/donations/stats/platform/detailed'),
+
+  /**
+   * Get badge information for a specific user
+   * @param {number} userId - User ID
+   * @returns {Promise} Badge info including current badge, progress, next tier
+   */
+  getUserBadge: userId => api.get(`/donations/badge/${userId}`),
+
+  /**
+   * Get privacy settings for a user's donor profile
+   * @param {number} userId - User ID
+   * @returns {Promise} Privacy settings
+   */
+  getPrivacySettings: userId => api.get(`/donations/privacy/${userId}`),
+
+  /**
+   * Update privacy settings for a user's donor profile
+   * @param {number} userId - User ID
+   * @param {Object} settings - Privacy settings to update (partial update supported)
+   * @returns {Promise} Updated privacy settings
+   */
+  updatePrivacySettings: (userId, settings) =>
+    api.put(`/donations/privacy/${userId}`, settings),
+
+  /**
+   * Get a user's public donor profile (respects privacy settings)
+   * @param {number} userId - User ID
+   * @returns {Promise} Public-facing donor profile
+   */
+  getPublicProfile: userId => api.get(`/donations/profile/${userId}/public`),
+};
+
 // Export the core axios instance for backward compatibility
 // Safely bind methods with fallbacks for testing
 export const post =
