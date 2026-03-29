@@ -1077,6 +1077,15 @@
       "verificationApprovedDesc": "Your account has been approved by an administrator"
     }
   },
+  "donation": {
+    "title": "Support FoodFlow",
+    "subtitle": "Help us keep rescuing surplus food and delivering more meals to local communities.",
+    "claimsSubtitle": "Help us keep the platform sustainable.",
+    "bannerAriaLabel": "Support FoodFlow",
+    "listAriaLabel": "Donations list",
+    "modalAriaLabel": "Donate Now",
+    "closeAriaLabel": "Close"
+  },
   "donorListFood": {
     "edit": "Edit",
     "delete": "Delete",
@@ -1431,6 +1440,21 @@
       "detailsPrefix": "For more details about how we handle your data, please review our",
       "privacyPolicyLink": "Privacy Policy",
       "detailsSuffix": "."
+    },
+    "paymentHistory": {
+      "title": "Payment History",
+      "description": "Review your recent contributions to FoodFlow.",
+      "toggleAriaLabel": "Toggle payment history",
+      "viewButton": "View ▼",
+      "hideButton": "Hide ▲",
+      "loading": "Loading payment history...",
+      "loadError": "Unable to load payment history right now.",
+      "empty": "You have no payments yet. Your donations will appear here once completed.",
+      "listAriaLabel": "Payment history list",
+      "defaultDescription": "FoodFlow Donation",
+      "refreshButton": "Refresh",
+      "notAvailable": "N/A",
+      "unknownStatus": "Unknown"
     },
     "notificationTypes": {
       "title": "Notification Types",

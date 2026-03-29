@@ -1017,6 +1017,15 @@
       "cancelledClaim": "{{receiverName}} cancelou a reivindicação de \"{{foodTitle}}\""
     }
   },
+  "donation": {
+    "title": "Apoie o FoodFlow",
+    "subtitle": "Ajude-nos a continuar resgatando alimentos excedentes e entregando mais refeicoes para as comunidades locais.",
+    "claimsSubtitle": "Ajude-nos a manter a plataforma sustentavel.",
+    "bannerAriaLabel": "Apoie o FoodFlow",
+    "listAriaLabel": "Lista de doacoes",
+    "modalAriaLabel": "Doar agora",
+    "closeAriaLabel": "Fechar"
+  },
   "donorListFood": {
     "edit": "Editar",
     "delete": "Excluir",
@@ -1376,6 +1385,21 @@
       "detailsPrefix": "Para mais detalhes sobre como tratamos seus dados, revise nossa",
       "privacyPolicyLink": "Política de Privacidade",
       "detailsSuffix": "."
+    },
+    "paymentHistory": {
+      "title": "Histórico de pagamentos",
+      "description": "Revise suas contribuições recentes para o FoodFlow.",
+      "toggleAriaLabel": "Alternar histórico de pagamentos",
+      "viewButton": "Ver ▼",
+      "hideButton": "Ocultar ▲",
+      "loading": "Carregando histórico de pagamentos...",
+      "loadError": "Não foi possível carregar o histórico de pagamentos agora.",
+      "empty": "Você ainda não tem pagamentos. Suas doações aparecerão aqui quando forem concluídas.",
+      "listAriaLabel": "Lista do histórico de pagamentos",
+      "defaultDescription": "Doação FoodFlow",
+      "refreshButton": "Atualizar",
+      "notAvailable": "N/D",
+      "unknownStatus": "Desconhecido"
     },
     "notificationTypes": {
       "title": "Tipos de notificação",

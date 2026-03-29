@@ -9,6 +9,7 @@ import {
   Clock,
   Calendar,
   MapPin,
+  Heart,
 } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
@@ -564,6 +565,30 @@ export default function ReceiverMyClaims() {
       </div>
 
       {error && <div className="claimed-page error-message">{error}</div>}
+
+      <section
+        className="claimed-page donation-support-banner"
+        aria-label={t('donation.bannerAriaLabel')}
+      >
+        <div className="claimed-page donation-support-banner-content">
+          <div
+            className="claimed-page donation-support-banner-icon"
+            aria-hidden="true"
+          >
+            <Heart strokeWidth={2} />
+          </div>
+          <div className="claimed-page donation-support-banner-text">
+            <h3>{t('donation.title')}</h3>
+            <p>{t('donation.claimsSubtitle')}</p>
+          </div>
+        </div>
+        <button
+          className="claimed-page donation-support-banner-button"
+          onClick={() => navigate('/payment')}
+        >
+          {t('donation.modalAriaLabel')}
+        </button>
+      </section>
 
       {/* Filters and Sort */}
       <div className="claimed-page donation-filters-container">

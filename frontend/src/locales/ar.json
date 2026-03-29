@@ -1017,6 +1017,15 @@
       "cancelledClaim": "{{receiverName}} ألغى مطالبته بـ \"{{foodTitle}}\""
     }
   },
+  "donation": {
+    "title": "ادعم FoodFlow",
+    "subtitle": "ساعدنا على مواصلة إنقاذ فائض الطعام وتقديم المزيد من الوجبات للمجتمعات المحلية.",
+    "claimsSubtitle": "ساعدنا في الحفاظ على استدامة المنصة.",
+    "bannerAriaLabel": "ادعم FoodFlow",
+    "listAriaLabel": "قائمة التبرعات",
+    "modalAriaLabel": "تبرع الآن",
+    "closeAriaLabel": "إغلاق"
+  },
   "donorListFood": {
     "edit": "تعديل",
     "delete": "حذف",
@@ -1374,6 +1383,21 @@
       "detailsPrefix": "لمزيد من التفاصيل حول كيفية تعاملنا مع بياناتك، يرجى مراجعة",
       "privacyPolicyLink": "سياسة الخصوصية",
       "detailsSuffix": "."
+    },
+    "paymentHistory": {
+      "title": "سجل المدفوعات",
+      "description": "راجع مساهماتك الأخيرة في FoodFlow.",
+      "toggleAriaLabel": "إظهار أو إخفاء سجل المدفوعات",
+      "viewButton": "عرض ▼",
+      "hideButton": "إخفاء ▲",
+      "loading": "جارٍ تحميل سجل المدفوعات...",
+      "loadError": "تعذر تحميل سجل المدفوعات حالياً.",
+      "empty": "لا توجد لديك مدفوعات بعد. ستظهر تبرعاتك هنا عند اكتمالها.",
+      "listAriaLabel": "قائمة سجل المدفوعات",
+      "defaultDescription": "تبرع FoodFlow",
+      "refreshButton": "تحديث",
+      "notAvailable": "غير متاح",
+      "unknownStatus": "غير معروف"
     },
     "notificationTypes": {
       "title": "أنواع الإشعارات",

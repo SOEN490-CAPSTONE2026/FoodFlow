@@ -13,6 +13,7 @@
   vertical-align: middle;
 }
 /* Receiver Stats Box */
+
 .claimed-page .claims-header {
   display: flex;
   justify-content: space-between;
@@ -156,6 +157,7 @@
   justify-content: center;
   align-items: center;
   gap: 2rem;
+  margin-top: 0;
   margin-bottom: 2rem;
   width: 100%;
   position: relative;
@@ -243,6 +245,100 @@
   color: #374151;
   font-weight: 500;
   cursor: pointer;
+}
+
+.claimed-page .donation-support-banner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  position: static;
+  width: fit-content;
+  max-width: min(100%, 520px);
+  margin: 0.9rem auto 1rem;
+  padding: 10px 12px;
+  min-height: 72px;
+  border: 1px solid #dbe5ef;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.05),
+    0 6px 14px rgba(15, 23, 42, 0.06);
+}
+
+.claimed-page .donation-support-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.claimed-page .donation-support-banner-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #ecf2f8;
+  color: #0f4c5c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.claimed-page .donation-support-banner-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.claimed-page .donation-support-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.claimed-page .donation-support-banner-text h3 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.claimed-page .donation-support-banner-text p {
+  margin: 0;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.claimed-page .donation-support-banner-button {
+  background: #5fb3c1;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  width: 96px;
+  min-height: unset;
+  padding: 7px 9px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.05;
+  text-align: center;
+  cursor: pointer;
+  white-space: normal;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(15, 76, 92, 0.2);
+  margin-left: 2px;
+}
+
+.claimed-page .donation-support-banner-button:hover {
+  background: #4a919d;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 76, 92, 0.28);
 }
 
 /* Donations Grid */
@@ -614,6 +710,7 @@
 
   .claimed-page .donation-filters-container {
     gap: 1rem;
+    margin-top: 0;
     padding: 0 0.5rem;
     flex-direction: column;
     position: static;
@@ -638,6 +735,27 @@
     position: static;
     justify-content: center;
     width: fit-content;
+  }
+
+  .claimed-page .donation-support-banner {
+    display: flex;
+    position: static;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 0 16px;
+    padding: 12px;
+    min-height: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .claimed-page .donation-support-banner-button {
+    width: 104px;
+    min-height: unset;
+    padding: 8px 9px;
+    font-size: 13px;
+    line-height: 1.05;
   }
 
   .claimed-page .donations-grid {
