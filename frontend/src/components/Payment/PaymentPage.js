@@ -85,6 +85,19 @@ function PaymentPage() {
     return selectedAmount || parseFloat(customAmount) || 0;
   };
 
+  const getImpactMetrics = amount => {
+    // Frontend-only estimates until backend impact service is connected.
+    const safeAmount = Math.max(0, Number(amount) || 0);
+    return {
+      meals: Math.round(safeAmount * 3),
+      co2Kg: (safeAmount * 0.9).toFixed(1),
+      waterLiters: Math.round(safeAmount * 42),
+      communityPacks: Math.max(1, Math.round(safeAmount / 25)),
+    };
+  };
+
+  const impactMetrics = getImpactMetrics(getFinalAmount());
+
   return (
     <div className="payment-page">
       <PaymentWorkspaceBar
@@ -185,6 +198,52 @@ function PaymentPage() {
                   </div>
 
                   {error && <div className="error-message">{error}</div>}
+
+                  <section
+                    className="impact-metrics"
+                    aria-label="Impact metrics"
+                  >
+                    <div className="impact-metrics__header">
+                      <h3>Estimated Impact</h3>
+                      <p>
+                        Live estimate based on your selected donation amount.
+                      </p>
+                    </div>
+                    <div className="impact-metrics__grid">
+                      <article className="impact-metric-card">
+                        <span className="impact-metric-card__value">
+                          {impactMetrics.meals}
+                        </span>
+                        <span className="impact-metric-card__label">
+                          Meals supported
+                        </span>
+                      </article>
+                      <article className="impact-metric-card">
+                        <span className="impact-metric-card__value">
+                          {impactMetrics.co2Kg} kg
+                        </span>
+                        <span className="impact-metric-card__label">
+                          CO<sub>2</sub> reduced
+                        </span>
+                      </article>
+                      <article className="impact-metric-card">
+                        <span className="impact-metric-card__value">
+                          {impactMetrics.waterLiters} L
+                        </span>
+                        <span className="impact-metric-card__label">
+                          Water footprint avoided
+                        </span>
+                      </article>
+                      <article className="impact-metric-card">
+                        <span className="impact-metric-card__value">
+                          {impactMetrics.communityPacks}
+                        </span>
+                        <span className="impact-metric-card__label">
+                          Community food packs
+                        </span>
+                      </article>
+                    </div>
+                  </section>
 
                   <button
                     className="continue-btn"

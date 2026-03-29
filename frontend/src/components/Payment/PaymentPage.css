@@ -348,6 +348,60 @@
   font-size: 0.98rem;
 }
 
+.impact-metrics {
+  margin: 16px 0 20px;
+  padding: 14px;
+  border: 1px solid rgba(98, 182, 203, 0.2);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fcff 0%, #f2fbfd 100%);
+}
+
+.impact-metrics__header {
+  margin-bottom: 10px;
+}
+
+.impact-metrics__header h3 {
+  margin: 0;
+  color: var(--payment-navy);
+  font-size: 1rem;
+}
+
+.impact-metrics__header p {
+  margin: 4px 0 0;
+  color: #587083;
+  font-size: 0.86rem;
+}
+
+.impact-metrics__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.impact-metric-card {
+  padding: 10px;
+  border: 1px solid rgba(98, 182, 203, 0.25);
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 74px;
+}
+
+.impact-metric-card__value {
+  color: var(--payment-navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.impact-metric-card__label {
+  color: #587083;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
 .payment-currency-picker {
   margin-bottom: 18px;
 }
@@ -900,6 +954,10 @@
   .payment-container {
     margin-top: 12px;
     padding: 24px;
+
+  .impact-metrics__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
     border-radius: 24px;
   }
 
