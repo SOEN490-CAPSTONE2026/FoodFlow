@@ -22,6 +22,101 @@ import java.util.Locale;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    /**
+     * Handle DonationNotFoundException (404)
+     */
+    @ExceptionHandler(com.example.foodflow.exception.domain.DonationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDonationNotFoundException(
+            com.example.foodflow.exception.domain.DonationNotFoundException ex,
+            HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI());
+        log.warn("Donation not found on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * Handle UnauthorizedAccessException (403)
+     */
+    @ExceptionHandler(com.example.foodflow.exception.domain.UnauthorizedAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(
+            com.example.foodflow.exception.domain.UnauthorizedAccessException ex,
+            HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage(),
+                request.getRequestURI());
+        log.warn("Unauthorized access on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    /**
+     * Handle InvalidClaimException (400)
+     */
+    @ExceptionHandler(com.example.foodflow.exception.domain.InvalidClaimException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidClaimException(
+            com.example.foodflow.exception.domain.InvalidClaimException ex,
+            HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid Claim",
+                ex.getMessage(),
+                request.getRequestURI());
+        log.warn("Invalid claim on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handle ClaimNotFoundException (404)
+     */
+    @ExceptionHandler(com.example.foodflow.exception.domain.ClaimNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleClaimNotFoundException(
+            com.example.foodflow.exception.domain.ClaimNotFoundException ex,
+            HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Claim Not Found",
+                ex.getMessage(),
+                request.getRequestURI());
+        log.warn("Claim not found on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * Handle InvalidClaimStateException (409)
+     */
+    @ExceptionHandler(com.example.foodflow.exception.domain.InvalidClaimStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidClaimStateException(
+            com.example.foodflow.exception.domain.InvalidClaimStateException ex,
+            HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Invalid Claim State",
+                ex.getMessage(),
+                request.getRequestURI());
+        log.warn("Invalid claim state on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * Handle PaymentFailedException (402)
+     */
+    @ExceptionHandler(com.example.foodflow.exception.domain.PaymentFailedException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentFailedException(
+            com.example.foodflow.exception.domain.PaymentFailedException ex,
+            HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.PAYMENT_REQUIRED.value(),
+                "Payment Failed",
+                ex.getMessage(),
+                request.getRequestURI());
+        log.warn("Payment failed on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(errorResponse);
+    }
 
         private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
