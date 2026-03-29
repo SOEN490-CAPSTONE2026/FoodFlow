@@ -56,12 +56,8 @@ public class ConversationController {
     public ResponseEntity<ConversationResponse> getConversation(
             @PathVariable Long id,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            ConversationResponse conversation = conversationService.getConversationResponse(id, currentUser);
-            return ResponseEntity.ok(conversation);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        ConversationResponse conversation = conversationService.getConversationResponse(id, currentUser);
+        return ResponseEntity.ok(conversation);
     }
     
     /**
@@ -71,12 +67,8 @@ public class ConversationController {
     public ResponseEntity<List<MessageResponse>> getConversationMessages(
             @PathVariable Long id,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            List<MessageResponse> messages = messageService.getConversationMessages(id, currentUser);
-            return ResponseEntity.ok(messages);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        List<MessageResponse> messages = messageService.getConversationMessages(id, currentUser);
+        return ResponseEntity.ok(messages);
     }
     
     /**
@@ -86,12 +78,8 @@ public class ConversationController {
     public ResponseEntity<Void> markConversationAsRead(
             @PathVariable Long id,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            messageService.markConversationAsRead(id, currentUser);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        messageService.markConversationAsRead(id, currentUser);
+        return ResponseEntity.ok().build();
     }
 
      /**
@@ -103,12 +91,8 @@ public class ConversationController {
     public ResponseEntity<ConversationResponse> getConversationByPost(
             @PathVariable Long postId,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            ConversationResponse conversation = conversationService.getConversationByPost(postId, currentUser);
-            return ResponseEntity.ok(conversation);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        ConversationResponse conversation = conversationService.getConversationByPost(postId, currentUser);
+        return ResponseEntity.ok(conversation);
     }
 
 
@@ -122,14 +106,10 @@ public class ConversationController {
             @PathVariable Long postId,
             @Valid @RequestBody StartPostConversationRequest request,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            ConversationResponse conversation = conversationService.createOrGetPostConversation(
-                postId, request.getOtherUserId(), currentUser
-            );
-            return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        ConversationResponse conversation = conversationService.createOrGetPostConversation(
+            postId, request.getOtherUserId(), currentUser
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
 
     /**
@@ -140,11 +120,7 @@ public class ConversationController {
     public ResponseEntity<ConversationResponse> expressInterest(
             @PathVariable Long postId,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            ConversationResponse conversation = conversationService.expressInterestInDonation(postId, currentUser);
-            return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        ConversationResponse conversation = conversationService.expressInterestInDonation(postId, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
 }
