@@ -36,7 +36,6 @@ import SurplusFormModal from '../DonorDashboard/SurplusFormModal';
 import ConfirmPickupModal from '../DonorDashboard/ConfirmPickupModal';
 import ClaimedSuccessModal from '../DonorDashboard/ClaimedSuccessModal';
 import RescheduleModal from '../DonorDashboard/RescheduleModal';
-import DonateNowModal from '../DonorDashboard/DonateNowModal';
 import ReportUserModal from '../ReportUserModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import DonationTimeline from '../shared/DonationTimeline';
@@ -266,7 +265,6 @@ export default function DonorListFood() {
   // Report and Feedback modal states
   const [showReportModal, setShowReportModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [isDonateNowModalOpen, setIsDonateNowModalOpen] = useState(false);
   const [reportTargetUser, setReportTargetUser] = useState(null);
   const [feedbackTargetUser, setFeedbackTargetUser] = useState(null);
   const [feedbackClaimId, setFeedbackClaimId] = useState(null);
@@ -982,16 +980,11 @@ export default function DonorListFood() {
             </div>
             <button
               className="donation-support-banner-button"
-              onClick={() => setIsDonateNowModalOpen(true)}
+              onClick={() => navigate('/payment')}
             >
               {t('donorLayout.donateNow')}
             </button>
           </section>
-
-          <DonateNowModal
-            isOpen={isDonateNowModalOpen}
-            onClose={() => setIsDonateNowModalOpen(false)}
-          />
 
           <section
             className="donor-list-grid"

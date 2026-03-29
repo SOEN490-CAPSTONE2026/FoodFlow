@@ -14,7 +14,6 @@ import {
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
 import { useNotification } from '../../contexts/NotificationContext';
-import DonateNowModal from '../DonorDashboard/DonateNowModal';
 import {
   getDietaryTagLabel,
   getPrimaryFoodCategory,
@@ -60,7 +59,6 @@ export default function ReceiverMyClaims() {
     claimId: null,
     postTitle: '',
   });
-  const [isDonateNowModalOpen, setIsDonateNowModalOpen] = useState(false);
   const [rating, setRating] = useState({ averageRating: 0, totalReviews: 0 });
   const [focusedDonationId, setFocusedDonationId] = useState(null);
 
@@ -586,16 +584,11 @@ export default function ReceiverMyClaims() {
         </div>
         <button
           className="claimed-page donation-support-banner-button"
-          onClick={() => setIsDonateNowModalOpen(true)}
+          onClick={() => navigate('/payment')}
         >
           {t('donation.modalAriaLabel')}
         </button>
       </section>
-
-      <DonateNowModal
-        isOpen={isDonateNowModalOpen}
-        onClose={() => setIsDonateNowModalOpen(false)}
-      />
 
       {/* Filters and Sort */}
       <div className="claimed-page donation-filters-container">
