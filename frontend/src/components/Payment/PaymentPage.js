@@ -24,11 +24,9 @@ function PaymentPage() {
   const [error, setError] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [platformStats, setPlatformStats] = useState(null);
-  const [platformStatsLoading, setPlatformStatsLoading] = useState(true);
 
   // Fetch platform-wide donation stats from the backend on mount
   const fetchPlatformStats = useCallback(async () => {
-    setPlatformStatsLoading(true);
     try {
       const response = await donationStatsAPI.getPlatformTotals();
       setPlatformStats(response.data);
@@ -36,8 +34,6 @@ function PaymentPage() {
       console.error('Failed to load platform donation stats:', err);
       // Non-critical — the page still works with local estimates
       setPlatformStats(null);
-    } finally {
-      setPlatformStatsLoading(false);
     }
   }, []);
 
@@ -293,51 +289,6 @@ function PaymentPage() {
                         </span>
                       </article>
                     </div>
-
-                    {platformStats && !platformStatsLoading && (
-                      <div
-                        className="platform-stats-banner"
-                        aria-label="Platform donation totals"
-                      >
-                        <h4>Community Impact So Far</h4>
-                        <div className="platform-stats__grid">
-                          <div className="platform-stat">
-                            <span className="platform-stat__value">
-                              $
-                              {Number(
-                                platformStats.totalAmountDonated
-                              ).toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </span>
-                            <span className="platform-stat__label">
-                              Total donated ({platformStats.currency || 'CAD'})
-                            </span>
-                          </div>
-                          <div className="platform-stat">
-                            <span className="platform-stat__value">
-                              {Number(
-                                platformStats.totalDonationCount
-                              ).toLocaleString()}
-                            </span>
-                            <span className="platform-stat__label">
-                              Donations made
-                            </span>
-                          </div>
-                          <div className="platform-stat">
-                            <span className="platform-stat__value">
-                              {Number(
-                                platformStats.totalDonorCount
-                              ).toLocaleString()}
-                            </span>
-                            <span className="platform-stat__label">
-                              Unique donors
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </section>
 
                   <button
