@@ -102,12 +102,12 @@ public class ClaimService {
         LocalDateTime effectiveExpiry = ExpiryDateTimeResolver.resolveEffectiveExpiryUtc(surplusPost);
         if (effectiveExpiry != null &&
                 !LocalDateTime.now(clock).isBefore(effectiveExpiry)) {
-            throw new RuntimeException("This donation has expired and cannot be claimed");
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException("This donation has expired and cannot be claimed");
         }
 
         // Check if post status is EXPIRED
         if (surplusPost.getStatus() == PostStatus.EXPIRED) {
-            throw new RuntimeException("This donation has expired and cannot be claimed");
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException("This donation has expired and cannot be claimed");
         }
 
         if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
@@ -641,7 +641,7 @@ public class ClaimService {
         Timer.Sample sample = businessMetricsService.startTimer();
 
         Claim claim = claimRepository.findById(claimId)
-            .orElseThrow(() -> new RuntimeException("Claim not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.ClaimNotFoundException(claimId));
 
         claim.setStatus(ClaimStatus.COMPLETED);
         claimRepository.save(claim);

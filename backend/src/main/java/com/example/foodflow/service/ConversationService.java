@@ -170,7 +170,7 @@ public class ConversationService {
         
         // Validate user is a participant
         if (!conversation.isParticipant(currentUser.getId())) {
-            throw new BusinessException("error.conversation.not_participant");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to view this conversation");
         }
         
         return conversation;
@@ -208,7 +208,7 @@ public class ConversationService {
     @Transactional(readOnly = true)
     public ConversationResponse getConversationByPost(Long postId, User currentUser) {
         Conversation conversation = conversationRepository.findByPostIdAndUserId(postId, currentUser.getId())
-            .orElseThrow(() -> new IllegalArgumentException("No conversation found for this post"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.ConversationNotFoundException("No conversation found for this post"));
         
         // Get last message
         List<Message> messages = messageRepository.findByConversationId(conversation.getId());

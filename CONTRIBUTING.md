@@ -95,10 +95,8 @@ public class MyController {
 **❌ Don't Use Field Injection**
 ```java
 @RestController
-public class MyController {
-    @Autowired  // DON'T DO THIS
-    private MyService myService;
-}
+@CrossOrigin(origins = "http://localhost:3000")  // DON'T DO THIS
+public class MyController { }
 ```
 
 Benefits: Makes dependencies explicit, enables immutability, easier testing, better IDE support.
@@ -146,6 +144,35 @@ public ResponseEntity<MyResponse> myEndpoint(@Valid @RequestBody MyRequest reque
 ```
 
 Benefits: Consistent error responses, cleaner controller code, centralized error logging.
+
+### Error Handling Patterns (Backend)
+
+All backend error handling must follow these standards:
+
+- **No per-endpoint try/catch in controllers.** Let exceptions propagate to the GlobalExceptionHandler.
+- **Use custom exception classes** for domain errors (e.g., DonationNotFoundException, UnauthorizedAccessException, InvalidClaimException, etc.).
+- **Never throw generic RuntimeException for business logic errors.** Always use a specific exception.
+- **GlobalExceptionHandler** must handle all custom exceptions and map them to appropriate HTTP status codes (e.g., 404, 403, 400, 409, 402).
+- **All error responses** must use the ErrorResponse structure:
+  - `error`: short error type (e.g., "Not Found", "Forbidden")
+  - `message`: human-readable message
+  - `status`: HTTP status code
+  - `timestamp`: ISO8601 timestamp
+  - `path`: request path
+- **Integration tests** must verify that error scenarios return the correct structure and status code.
+
+Example error response:
+```json
+{
+  "error": "Not Found",
+  "message": "Donation with ID 123 not found",
+  "status": 404,
+  "timestamp": "2026-03-29T12:34:56.789Z",
+  "path": "/api/donations/123"
+}
+```
+
+See `GlobalExceptionHandler.java` and `ErrorResponse.java` for implementation details.
 
 ### Code Review Checklist
 

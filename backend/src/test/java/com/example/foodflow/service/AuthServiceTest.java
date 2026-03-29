@@ -939,7 +939,7 @@ class AuthServiceTest {
             authService.login(loginRequest);
         });
         
-        assertTrue(ex.getMessage().contains("account has been deactivated"));
+        assertTrue(ex.getMessage().contains("account_deactivated"));
         verify(metricsService).incrementAuthFailure("account_deactivated");
         verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
     }

@@ -1158,7 +1158,7 @@ class ClaimServiceTest {
         // When & Then
         assertThatThrownBy(() -> claimService.completeClaim(999L))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Claim not found");
+                .hasMessageContaining("not found");
 
         verify(claimRepository, never()).save(any());
     }

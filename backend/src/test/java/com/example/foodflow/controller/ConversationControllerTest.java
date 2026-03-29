@@ -141,7 +141,7 @@ class ConversationControllerTest {
     void getConversation_Forbidden_ShouldReturn403() throws Exception {
         // Given
         when(conversationService.getConversationResponse(eq(1L), any()))
-            .thenThrow(new IllegalArgumentException("Access denied"));
+            .thenThrow(new com.example.foodflow.exception.domain.UnauthorizedAccessException("Access denied"));
         
         // When & Then
         mockMvc.perform(get("/api/conversations/1")
@@ -198,7 +198,7 @@ class ConversationControllerTest {
     void getConversationByPost_NotFound_ShouldReturn404() throws Exception {
         // Given
         when(conversationService.getConversationByPost(eq(999L), any(User.class)))
-            .thenThrow(new IllegalArgumentException("Not found"));
+            .thenThrow(new com.example.foodflow.exception.domain.ConversationNotFoundException("Not found"));
         
         // When & Then
         mockMvc.perform(get("/api/conversations/post/999")

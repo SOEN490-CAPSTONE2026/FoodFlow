@@ -279,17 +279,17 @@ class SurplusControllerTest {
         CompleteSurplusRequest completionRequest = new CompleteSurplusRequest("999999");
 
         when(surplusService.completeSurplusPost(eq(1L), eq("999999"), any()))
-            .thenThrow(new RuntimeException("Invalid OTP code"));
+            .thenThrow(new com.example.foodflow.exception.domain.InvalidClaimException("Invalid OTP code"));
 
-        // When & Then - Service exceptions result in 500 error or are not caught
-        // This test verifies the service method is called with the right parameters
-        try {
-            mockMvc.perform(patch("/api/surplus/1/complete")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(completionRequest)));
-        } catch (Exception e) {
-            // Exception is expected to propagate
-        }
+        mockMvc.perform(patch("/api/surplus/1/complete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(completionRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid Claim"))
+                .andExpect(jsonPath("$.message").value("Invalid OTP code"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/surplus/1/complete"));
     }
 
     @Test
@@ -299,17 +299,17 @@ class SurplusControllerTest {
         CompleteSurplusRequest completionRequest = new CompleteSurplusRequest("123456");
 
         when(surplusService.completeSurplusPost(eq(1L), eq("123456"), any()))
-            .thenThrow(new RuntimeException("You are not authorized to complete this post"));
+            .thenThrow(new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to complete this post"));
 
-        // When & Then - Service exceptions result in 500 error or are not caught
-        // This test verifies the service method is called with the right parameters
-        try {
-            mockMvc.perform(patch("/api/surplus/1/complete")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(completionRequest)));
-        } catch (Exception e) {
-            // Exception is expected to propagate
-        }
+        mockMvc.perform(patch("/api/surplus/1/complete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(completionRequest)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"))
+                .andExpect(jsonPath("$.message").value("You are not authorized to complete this post"))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/api/surplus/1/complete"));
     }
 
     @Test

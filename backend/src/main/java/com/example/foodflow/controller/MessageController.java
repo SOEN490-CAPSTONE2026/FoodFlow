@@ -64,14 +64,10 @@ public class MessageController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @AuthenticationPrincipal User currentUser) {
-        try {
-            MessageHistoryResponse response = messageService.getMessageHistoryByPostId(
-                postId, currentUser, page, size
-            );
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        MessageHistoryResponse response = messageService.getMessageHistoryByPostId(
+            postId, currentUser, page, size
+        );
+        return ResponseEntity.ok(response);
     }
 
 }

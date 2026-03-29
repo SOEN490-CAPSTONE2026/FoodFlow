@@ -286,10 +286,9 @@ class ConversationServiceTest {
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversation));
 
         // When & Then
-        // FIXED: Changed from IllegalArgumentException to BusinessException
         assertThatThrownBy(() -> conversationService.getConversation(1L, user3))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("error.conversation.not_participant");
+                .isInstanceOf(com.example.foodflow.exception.domain.UnauthorizedAccessException.class)
+                .hasMessage("You are not authorized to view this conversation");
     }
 
     @Test
@@ -349,10 +348,9 @@ class ConversationServiceTest {
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversation));
 
         // When & Then
-        // FIXED: Changed from IllegalArgumentException to BusinessException
         assertThatThrownBy(() -> conversationService.getConversationResponse(1L, user3))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("error.conversation.not_participant");
+                .isInstanceOf(com.example.foodflow.exception.domain.UnauthorizedAccessException.class)
+                .hasMessage("You are not authorized to view this conversation");
     }
 
     // ==================== Tests for getConversationByPost ====================
@@ -381,7 +379,7 @@ class ConversationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> conversationService.getConversationByPost(1L, user1))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(com.example.foodflow.exception.domain.ConversationNotFoundException.class)
                 .hasMessageContaining("No conversation found for this post");
     }
 
