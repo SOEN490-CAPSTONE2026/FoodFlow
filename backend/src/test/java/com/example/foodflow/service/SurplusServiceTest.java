@@ -407,7 +407,7 @@ class SurplusServiceTest {
         // When & Then
         assertThatThrownBy(() -> surplusService.completeSurplusPost(999L, "123456", donor))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Surplus post not found");
+                .hasMessageContaining("Donation with ID 999 not found");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
@@ -840,7 +840,7 @@ class SurplusServiceTest {
         // When & Then
         assertThatThrownBy(() -> surplusService.confirmPickup(999L, "123456", donor))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Surplus post not found");
+                .hasMessageContaining("Donation with ID 999 not found");
 
         verify(surplusPostRepository, never()).save(any(SurplusPost.class));
         verify(claimRepository, never()).save(any(com.example.foodflow.model.entity.Claim.class));
@@ -1655,7 +1655,7 @@ class SurplusServiceTest {
         // When & Then
         assertThatThrownBy(() -> surplusService.getTimelineForPost(999L, donor))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Surplus post not found");
+                .hasMessageContaining("Donation with ID 999 not found");
 
         verify(timelineRepository, never()).findBySurplusPostIdAndVisibleToUsersOrderByTimestampDesc(anyLong(),
                 anyBoolean());
@@ -1868,7 +1868,7 @@ class SurplusServiceTest {
         // When & Then
         assertThatThrownBy(() -> surplusService.getSurplusPostByIdForDonor(999L, donor))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Surplus post not found");
+                .hasMessageContaining("Donation with ID 999 not found");
     }
 
     @Test
@@ -1951,7 +1951,7 @@ class SurplusServiceTest {
         // When & Then
         assertThatThrownBy(() -> surplusService.updateSurplusPost(999L, request, donor))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Surplus post not found");
+                .hasMessageContaining("Donation with ID 999 not found");
     }
 
     @Test
@@ -2036,7 +2036,7 @@ class SurplusServiceTest {
         // When & Then
         assertThatThrownBy(() -> surplusService.deleteSurplusPost(999L, donor))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Surplus post not found");
+                .hasMessageContaining("Donation with ID 999 not found");
 
         verify(surplusPostRepository, never()).delete(any(SurplusPost.class));
     }

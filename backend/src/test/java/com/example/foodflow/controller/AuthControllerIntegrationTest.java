@@ -66,13 +66,18 @@ class AuthControllerIntegrationTest {
         request.setOrganizationName("Test Org");
         
         when(authService.registerDonor(any(RegisterDonorRequest.class)))
-            .thenThrow(new RuntimeException("Email already exists"));
+            .thenThrow(new com.example.foodflow.exception.domain.InvalidClaimException("Email already exists"));
         
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("Invalid Claim"))
+            .andExpect(jsonPath("$.message").value("Email already exists"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.path").value("/api/auth/register/donor"));
     }
     
     @Test
@@ -121,14 +126,18 @@ class AuthControllerIntegrationTest {
         request.setPassword("WrongPassword");
         
         when(authService.login(any(LoginRequest.class)))
-            .thenThrow(new RuntimeException("Invalid credentials"));
+            .thenThrow(new com.example.foodflow.exception.BusinessException("error.auth.invalid_credentials"));
         
         // When & Then
         mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Invalid credentials"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("Business Rule Violation"))
+            .andExpect(jsonPath("$.message").value("Invalid email or password."))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.path").value("/api/auth/login"));
     }
     
     @Test
@@ -296,13 +305,17 @@ class AuthControllerIntegrationTest {
     void verifyEmail_InvalidToken_ShouldReturn400() throws Exception {
         // Given
         when(authService.verifyEmail("invalid-token"))
-            .thenThrow(new RuntimeException("Invalid verification token"));
+            .thenThrow(new com.example.foodflow.exception.domain.InvalidClaimException("Invalid verification token"));
         
         // When & Then
         mockMvc.perform(post("/api/auth/verify-email")
-                .param("token", "invalid-token"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Invalid verification token"));
+            .param("token", "invalid-token"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("Invalid Claim"))
+            .andExpect(jsonPath("$.message").value("Invalid verification token"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.path").value("/api/auth/verify-email"));
     }
     
     @Test
