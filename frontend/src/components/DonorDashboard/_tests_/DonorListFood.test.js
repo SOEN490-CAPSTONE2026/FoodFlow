@@ -80,6 +80,9 @@ jest.mock('../../../services/api', () => ({
   reportAPI: {
     createReport: jest.fn(),
   },
+  conversationAPI: {
+    createOrGetPostConversation: jest.fn(),
+  },
   feedbackAPI: {
     getFeedbackForClaim: jest.fn(),
     submitFeedback: jest.fn(),
@@ -169,6 +172,7 @@ jest.mock('lucide-react', () => ({
   Upload: () => <span>UploadIcon</span>,
   Star: () => <span>StarIcon</span>,
   MessageCircle: () => <span>MessageCircleIcon</span>,
+  Heart: () => <span>HeartIcon</span>,
   Sparkles: () => <span>SparklesIcon</span>,
   MoreHorizontal: () => <span>MoreHorizontalIcon</span>,
   KeyRound: () => <span>KeyRoundIcon</span>,

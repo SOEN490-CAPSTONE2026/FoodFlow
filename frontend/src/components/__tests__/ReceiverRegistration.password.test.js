@@ -6,6 +6,10 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { authAPI } from '../../services/api';
 
 jest.mock('../../services/api');
+jest.mock('../../services/timezoneService', () => ({
+  inferTimezoneFromAddress: jest.fn().mockResolvedValue('America/Toronto'),
+  getBrowserTimezone: jest.fn().mockReturnValue('America/Toronto'),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: key => key }),
   initReactI18next: { type: '3rdParty', init: () => {} },

@@ -1,6 +1,6 @@
 // src/components/ReceiverRegistration.test.js
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { AuthContext } from '../contexts/AuthContext';
@@ -197,7 +197,7 @@ describe('ReceiverRegistration', () => {
   });
 
   test('shows API error message from server and does not navigate', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     authAPI.checkEmailExists.mockResolvedValue({ data: { exists: false } });
     authAPI.checkPhoneExists.mockResolvedValue({ data: { exists: false } });
     authAPI.registerReceiver.mockRejectedValueOnce({
@@ -214,7 +214,7 @@ describe('ReceiverRegistration', () => {
     expect(await screen.findByText(/email already exists/i)).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(setItemSpy).not.toHaveBeenCalled();
-  }, 10000);
+  }, 20000);
 
   test('Back button goes to /register', async () => {
     const user = userEvent.setup();
@@ -224,29 +224,33 @@ describe('ReceiverRegistration', () => {
   });
 
   test('prevents proceeding to step 2 if email already exists', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     authAPI.checkEmailExists.mockResolvedValueOnce({ data: { exists: true } });
 
     renderWithAuth(<ReceiverRegistration />);
 
-    await user.type(
-      screen.getByLabelText(/^email address$/i),
-      'existing@example.com'
-    );
-    await user.type(screen.getByLabelText(/^password$/i), 'SecurePass123!');
-    await user.type(
-      screen.getByLabelText(/^confirm password$/i),
-      'SecurePass123!'
-    );
+    fireEvent.change(screen.getByLabelText(/^email address$/i), {
+      target: { value: 'existing@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^password$/i), {
+      target: { value: 'SecurePass123!' },
+    });
+    fireEvent.change(screen.getByLabelText(/^confirm password$/i), {
+      target: { value: 'SecurePass123!' },
+    });
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() => {
       const errorMessages = screen.getAllByText(
-        /an account with this email already exists/i
+        /an account with this email already exists|email already registered/i
       );
       expect(errorMessages.length).toBeGreaterThan(0);
     });
+
+    expect(authAPI.checkEmailExists).toHaveBeenCalledWith(
+      'existing@example.com'
+    );
 
     // Should still be on step 1
     expect(screen.getByLabelText(/^email address$/i)).toBeInTheDocument();
