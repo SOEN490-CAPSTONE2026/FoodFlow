@@ -364,11 +364,11 @@ public class SurplusService {
     @Timed(value = "surplus.service.getById", description = "Time taken to get surplus post by ID")
     public SurplusResponse getSurplusPostByIdForDonor(Long postId, User donor) {
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         // Verify the requesting user is the owner
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new RuntimeException("You are not authorized to view this post");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to view this post");
         }
 
         String donorTimezone = donor.getTimezone() != null ? donor.getTimezone() : "UTC";
@@ -385,17 +385,17 @@ public class SurplusService {
         Timer.Sample sample = businessMetricsService.startTimer();
 
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         // Verify the requesting user is the owner
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new RuntimeException("You are not authorized to update this post");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to update this post");
         }
 
         // Only allow updates for AVAILABLE posts
         if (post.getStatus() != PostStatus.AVAILABLE) {
-            throw new RuntimeException(
-                    "Cannot edit a post that has been claimed or completed. Current status: " + post.getStatus());
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException(
+                "Cannot edit a post that has been claimed or completed. Current status: " + post.getStatus());
         }
 
         // Update basic fields
@@ -1139,11 +1139,11 @@ public class SurplusService {
     @Transactional
     public SurplusResponse overrideExpiry(Long postId, String expiryDateRaw, String reason, User actor) {
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (actor.getRole() != com.example.foodflow.model.entity.UserRole.ADMIN
-                && !post.getDonor().getId().equals(actor.getId())) {
-            throw new RuntimeException("You are not authorized to override expiry for this post");
+            && !post.getDonor().getId().equals(actor.getId())) {
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to override expiry for this post");
         }
 
         LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
@@ -1166,11 +1166,11 @@ public class SurplusService {
     @Transactional
     public SurplusResponse clearExpiryOverride(Long postId, User actor) {
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (actor.getRole() != com.example.foodflow.model.entity.UserRole.ADMIN
-                && !post.getDonor().getId().equals(actor.getId())) {
-            throw new RuntimeException("You are not authorized to clear expiry override for this post");
+            && !post.getDonor().getId().equals(actor.getId())) {
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to clear expiry override for this post");
         }
 
         LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
@@ -1323,16 +1323,16 @@ public class SurplusService {
         Timer.Sample sample = businessMetricsService.startTimer();
 
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new RuntimeException(
-                    "You are not authorized to complete this post. Only the post owner can mark it as completed.");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                "You are not authorized to complete this post. Only the post owner can mark it as completed.");
         }
 
         if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new RuntimeException(
-                    "Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException(
+                "Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
         }
 
         if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
@@ -1498,26 +1498,26 @@ public class SurplusService {
     public SurplusResponse confirmPickup(long postId, String otpCode, User donor) {
 
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new RuntimeException("You are not authorized to confirm this pickup.");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to confirm this pickup.");
         }
 
         if (post.getOtpCode() == null) {
-            throw new RuntimeException("No OTP is set for this donation.");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("No OTP is set for this donation.");
         }
 
         if (!post.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid or expired OTP code.");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("Invalid or expired OTP code.");
         }
 
         if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new RuntimeException("Donation is not ready for pickup. Current status: " + post.getStatus());
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException("Donation is not ready for pickup. Current status: " + post.getStatus());
         }
 
         Claim claim = claimRepository.findBySurplusPost(post)
-                .orElseThrow(() -> new RuntimeException("No active claim found for this post"));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.ClaimNotFoundException("No active claim found for this post"));
 
         // Validate pickup time with tolerance
         LocalDate confirmedDate = claim.getConfirmedPickupDate();
@@ -1577,17 +1577,17 @@ public class SurplusService {
     public void deleteSurplusPost(Long postId, User donor) {
 
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new RuntimeException("You are not authorized to delete this post.");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to delete this post.");
         }
 
         if (post.getStatus() == PostStatus.CLAIMED ||
                 post.getStatus() == PostStatus.READY_FOR_PICKUP ||
                 post.getStatus() == PostStatus.COMPLETED) {
 
-            throw new RuntimeException("You cannot delete a post that has already been claimed or completed.");
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException("You cannot delete a post that has already been claimed or completed.");
         }
 
         List<Claim> claims = claimRepository.findBySurplusPostId(postId);
@@ -1608,7 +1608,7 @@ public class SurplusService {
     public List<DonationTimelineDTO> getTimelineForPost(Long postId, User user) {
         // Fetch the post
         SurplusPost post = surplusPostRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Surplus post not found"));
+            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         // Authorization check: user must be the donor or a receiver with an
         // active/completed claim

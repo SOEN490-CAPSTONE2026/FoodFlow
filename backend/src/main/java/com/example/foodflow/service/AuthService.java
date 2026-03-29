@@ -106,13 +106,13 @@ public class AuthService {
         if (!passwordErrors.isEmpty()) {
             String errorMessage = String.join("; ", passwordErrors);
             log.warn("Registration failed: Password policy violation for email: {} - {}", request.getEmail(), errorMessage);
-            throw new RuntimeException(errorMessage);
+            throw new com.example.foodflow.exception.domain.InvalidClaimException(errorMessage);
         }
 
         // Validate password confirmation
         if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
             log.warn("Registration failed: Passwords do not match for email: {}", request.getEmail());
-            throw new RuntimeException("Passwords do not match");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("Passwords do not match");
         }
         
         // Check if user already exists
@@ -208,12 +208,12 @@ public class AuthService {
         if (!passwordErrors.isEmpty()) {
             String errorMessage = String.join("; ", passwordErrors);
             log.warn("Registration failed: Password policy violation for email: {} - {}", request.getEmail(), errorMessage);
-            throw new RuntimeException(errorMessage);
+            throw new com.example.foodflow.exception.domain.InvalidClaimException(errorMessage);
         }
 
         // Validate password confirmation
         if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("Passwords do not match");
         }
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -318,9 +318,9 @@ public class AuthService {
 
             // Check if account is deactivated
             if (user.getAccountStatus() == AccountStatus.DEACTIVATED) {
-                    log.warn("Login failed: Account deactivated for user: {}", request.getEmail());
-                    metricsService.incrementAuthFailure("account_deactivated");
-                    throw new RuntimeException("Your account has been deactivated. Please contact support for assistance.");
+                log.warn("Login failed: Account deactivated for user: {}", request.getEmail());
+                metricsService.incrementAuthFailure("account_deactivated");
+                throw new com.example.foodflow.exception.BusinessException("error.auth.account_deactivated");
             }
 
             String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
@@ -518,7 +518,7 @@ public class AuthService {
         if (elapsedSeconds > 60) {
             log.warn("Reset code expired for email: {}. Elapsed: {}s", email, elapsedSeconds);
             resetCodes.remove(email);
-            throw new RuntimeException("Reset code has expired. Please request a new code.");
+            throw new RuntimeException("Reset code has expired");
         }
         
         // Verify the code matches
@@ -551,32 +551,32 @@ public class AuthService {
         // Verify current password matches
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             log.warn("Incorrect current password provided for user: {}", user.getEmail());
-            throw new RuntimeException("Incorrect current password");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("Incorrect current password");
         }
         
         // Verify new passwords match
         if (!newPassword.equals(confirmPassword)) {
             log.warn("New password and confirmation do not match for user: {}", user.getEmail());
-            throw new RuntimeException("New password and confirmation do not match");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("New password and confirmation do not match");
         }
         
         // Verify new password is different from current
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             log.warn("New password is same as current password for user: {}", user.getEmail());
-            throw new RuntimeException("New password must be different from current password");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("New password must be different from current password");
         }
         
         // Validate password against policy (already validated by @ValidPassword, but double-check)
         List<String> validationErrors = passwordValidator.validatePassword(newPassword);
         if (!validationErrors.isEmpty()) {
             log.warn("Password policy validation failed for user: {} - Errors: {}", user.getEmail(), validationErrors);
-            throw new RuntimeException(String.join("; ", validationErrors));
+            throw new com.example.foodflow.exception.domain.InvalidClaimException(String.join("; ", validationErrors));
         }
 
         // Check password history
         if (passwordValidator.isPasswordInHistory(user, newPassword)) {
             log.warn("Password reuse detected for user: {}", user.getEmail());
-            throw new RuntimeException("You cannot reuse a recent password. Please choose a different password");
+            throw new com.example.foodflow.exception.domain.InvalidClaimException("You cannot reuse a recent password. Please choose a different password");
         }
 
         // Hash and update the password
