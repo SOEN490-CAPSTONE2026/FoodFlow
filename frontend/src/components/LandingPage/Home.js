@@ -87,7 +87,10 @@ const Home = () => {
           aria-label={t('donation.bannerAriaLabel')}
         >
           <div className="home-donation-support-banner-content">
-            <div className="home-donation-support-banner-icon" aria-hidden="true">
+            <div
+              className="home-donation-support-banner-icon"
+              aria-hidden="true"
+            >
               <Heart strokeWidth={2} />
             </div>
             <div className="home-donation-support-banner-text">
