@@ -76,6 +76,8 @@ public class User {
     @Column(name = "data_storage_consent")
     private Boolean dataStorageConsent = false;
 
+    @Column(name = "donation_count")
+    private Integer donationCount = 0;
     @Column(name = "onboarding_completed", nullable = false)
     private Boolean onboardingCompleted = false;
 
@@ -169,6 +171,8 @@ public class User {
     public Boolean getDataStorageConsent() { return dataStorageConsent; }
     public void setDataStorageConsent(Boolean dataStorageConsent) { this.dataStorageConsent = dataStorageConsent; }
 
+    public Integer getDonationCount() { return donationCount; }
+    public void setDonationCount(Integer donationCount) { this.donationCount = donationCount; }
     public Boolean getOnboardingCompleted() { return onboardingCompleted; }
     public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
 }

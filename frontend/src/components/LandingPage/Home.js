@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import HomeIllustration from '../../assets/illustrations/home-illustration.jpg';
 import backgroundVideo from '../../assets/LandingPage_VIDEO.mp4';
 import '../LandingPage/style/Home.css';
 
