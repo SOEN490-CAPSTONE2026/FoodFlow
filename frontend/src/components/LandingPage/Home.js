@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import HomeIllustration from '../../assets/illustrations/home-illustration.jpg';
+import { Heart } from 'lucide-react';
 import backgroundVideo from '../../assets/LandingPage_VIDEO.mp4';
 import '../LandingPage/style/Home.css';
 
@@ -81,6 +81,27 @@ const Home = () => {
             {t('landing.home.joinUs')}
           </button>
         </div>
+
+        <section
+          className="home-donation-support-banner"
+          aria-label={t('donation.bannerAriaLabel')}
+        >
+          <div className="home-donation-support-banner-content">
+            <div className="home-donation-support-banner-icon" aria-hidden="true">
+              <Heart strokeWidth={2} />
+            </div>
+            <div className="home-donation-support-banner-text">
+              <h3>{t('donation.title')}</h3>
+              <p>{t('donation.subtitle')}</p>
+            </div>
+          </div>
+          <button
+            className="home-donation-support-banner-button"
+            onClick={() => navigate('/payment')}
+          >
+            {t('donation.modalAriaLabel')}
+          </button>
+        </section>
       </div>
     </div>
   );

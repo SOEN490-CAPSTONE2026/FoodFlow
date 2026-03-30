@@ -18,7 +18,6 @@ import {
   ChevronRight,
   Upload,
   Sparkles,
-  Heart,
   MoreHorizontal,
   MessageCircle,
   KeyRound,
@@ -965,27 +964,6 @@ export default function DonorListFood() {
         </div>
       ) : (
         <>
-          <section
-            className="donation-support-banner"
-            aria-label={t('donation.bannerAriaLabel')}
-          >
-            <div className="donation-support-banner-content">
-              <div className="donation-support-banner-icon" aria-hidden="true">
-                <Heart strokeWidth={2} />
-              </div>
-              <div className="donation-support-banner-text">
-                <h3>{t('donation.title')}</h3>
-                <p>{t('donation.subtitle')}</p>
-              </div>
-            </div>
-            <button
-              className="donation-support-banner-button"
-              onClick={() => navigate('/payment')}
-            >
-              {t('donorLayout.donateNow')}
-            </button>
-          </section>
-
           <section
             className="donor-list-grid"
             aria-label={t('donation.listAriaLabel')}

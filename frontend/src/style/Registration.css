@@ -1,5 +1,6 @@
 .registration-page {
   font-family: 'Inter', sans-serif;
+  --registration-step-size: 50px;
   min-height: 100vh;
   display: flex;
   background: #ffffff;
@@ -149,25 +150,27 @@
   transform: translateY(-2px);
 }
 
-.step-item:not(:last-child)::after {
+.registration-page .step-item:not(:last-child)::after {
   content: '';
   position: absolute;
-  top: 25px;
-  left: 60%;
-  width: 80%;
+  top: calc(var(--registration-step-size) / 2);
+  transform: translateY(-50%);
+  left: calc(50% + (var(--registration-step-size) / 2) + 8px);
+  width: calc(100% - var(--registration-step-size) - 16px);
   height: 3px;
   background: linear-gradient(to right, #e2e8f0 0%, #e2e8f0 100%);
   z-index: -1;
   border-radius: 2px;
 }
 
-.step-item:has(.step-number.completed):not(:last-child)::after {
+.registration-page
+  .step-item:has(.step-number.completed):not(:last-child)::after {
   background: linear-gradient(to right, #0077b6 0%, #0077b6 100%);
 }
 
-.step-number {
-  width: 50px;
-  height: 50px;
+.registration-page .step-number {
+  width: var(--registration-step-size);
+  height: var(--registration-step-size);
   border-radius: 50%;
   background: #e2e8f0;
   color: #718096;
@@ -817,6 +820,10 @@
 
 @media (max-width: 768px) {
   .registration-page {
+    --registration-step-size: 35px;
+  }
+
+  .registration-page {
     flex-direction: column;
   }
 
@@ -840,9 +847,7 @@
     font-size: 0.65rem;
   }
 
-  .step-number {
-    width: 35px;
-    height: 35px;
+  .registration-page .step-number {
     font-size: 0.9rem;
   }
 
@@ -875,6 +880,10 @@
 }
 
 @media (max-width: 480px) {
+  .registration-page {
+    --registration-step-size: 30px;
+  }
+
   .step-indicator {
     padding: 0 5px;
   }
@@ -883,9 +892,7 @@
     font-size: 0.6rem;
   }
 
-  .step-number {
-    width: 30px;
-    height: 30px;
+  .registration-page .step-number {
     font-size: 0.8rem;
   }
 
