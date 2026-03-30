@@ -312,73 +312,6 @@
   transform: translateY(-1px);
 }
 
-.home-donation-support-banner {
-  width: 100%;
-  margin-top: 2rem;
-  padding: 1rem 1.1rem;
-  border-radius: 16px;
-  border: 1px solid rgba(190, 233, 232, 0.55);
-  background: rgba(18, 59, 84, 0.72);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.home-donation-support-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
-}
-
-.home-donation-support-banner-icon {
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(135deg, #62b6cb 0%, #83c5be 100%);
-  flex-shrink: 0;
-}
-
-.home-donation-support-banner-text h3 {
-  margin: 0 0 0.2rem;
-  font-size: 1.1rem;
-  color: #ffffff;
-}
-
-.home-donation-support-banner-text p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.home-donation-support-banner-button {
-  border: none;
-  border-radius: 999px;
-  padding: 0.7rem 1.2rem;
-  background: linear-gradient(45deg, #547f95, #62b6cb);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 8px 20px rgba(98, 182, 203, 0.35);
-}
-
-.home-donation-support-banner-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(98, 182, 203, 0.42);
-}
-
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -526,16 +459,6 @@
     padding: 1rem 2rem;
     font-size: 1rem;
   }
-
-  .home-donation-support-banner {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: left;
-  }
-
-  .home-donation-support-banner-button {
-    width: 100%;
-  }
 }
 
 @media (max-width: 480px) {
@@ -590,18 +513,6 @@
     font-size: 0.9rem;
     width: 100%;
     max-width: 280px;
-  }
-
-  .home-donation-support-banner {
-    padding: 0.9rem;
-  }
-
-  .home-donation-support-banner-text h3 {
-    font-size: 1rem;
-  }
-
-  .home-donation-support-banner-text p {
-    font-size: 0.88rem;
   }
 }
 
