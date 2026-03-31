@@ -44,6 +44,9 @@ public class EmailService {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${email.frontend-url:${frontend.url}}")
+    private String emailFrontendUrl;
+
     // ──────────────────────────────────────────────────────────────
     // Brand constants
     // ──────────────────────────────────────────────────────────────
@@ -138,7 +141,7 @@ public class EmailService {
     }
 
     private String buildFrontendUrl(String path) {
-        String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+        String baseUrl = emailFrontendUrl.endsWith("/") ? emailFrontendUrl.substring(0, emailFrontendUrl.length() - 1) : emailFrontendUrl;
         String normalizedPath = path.startsWith("/") ? path : "/" + path;
         return baseUrl + normalizedPath;
     }
@@ -1216,7 +1219,7 @@ public class EmailService {
                 </div>
             </body>
             </html>
-            """.formatted(userName, reasonText, messageSection, buildFrontendUrl(""));
+            """.formatted(userName, reasonText, messageSection, frontendUrl);
     }
 
     /**
@@ -1504,6 +1507,7 @@ public class EmailService {
                 getMessage("email.ready_for_pickup.label.pickup_date", locale), pickupDate,
                 getMessage("email.ready_for_pickup.label.pickup_time", locale), pickupTime,
                 getMessage("email.ready_for_pickup.code_reminder", locale),
+                buildFrontendUrl("/receiver/dashboard"),
                 getMessage("email.ready_for_pickup.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -2552,7 +2556,7 @@ public class EmailService {
             + "</table>"
             + "<p style=\"margin:12px 0 0 0; font-size:14px; color:#374151;\">You may also re-register with updated information.</p>"
             + "</td></tr></table>"
-            + ctaButton("Re-Register", buildFrontendUrl("/register"), COLOR_PRIMARY);
+            + ctaButton("Re-Register", frontendUrl + "/register", COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("FoodFlow Registration Update", COLOR_DANGER, content, FOOTER_AUTOMATED);
     }
