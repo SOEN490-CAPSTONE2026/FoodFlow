@@ -317,12 +317,62 @@ const AdminUsers = () => {
     }
   };
 
+  const handleDeleteFromAlert = async () => {
+    if (!selectedUser || !alertMessage.trim()) {
+      setNotificationMessage(
+        t('adminUsers.notifications.deleteMessageRequired')
+      );
+      setNotificationType('error');
+      setShowNotification(true);
+      return;
+    }
+
+    try {
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      await axios.put(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/deactivate`,
+        { adminNotes: alertMessage.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotificationMessage(t('adminUsers.notifications.deleted'));
+      setNotificationType('success');
+      setShowNotification(true);
+      closeAlertModal();
+      fetchUsers();
+    } catch (err) {
+      console.error('Error deleting user from alert modal:', err);
+      setNotificationMessage(
+        err.response?.data || t('adminUsers.notifications.deleteFailed')
+      );
+      setNotificationType('error');
+      setShowNotification(true);
+    }
+  };
+
   // Close alert modal and reset states
   const closeAlertModal = () => {
     setShowAlertModal(false);
     setAlertMessage('');
     setAlertType('');
     setSelectedUser(null);
+  };
+
+  const selectAlertType = type => {
+    if (alertType === type) {
+      setAlertType('');
+      setAlertMessage('');
+      return;
+    }
+
+    setAlertType(type);
+    if (type === 'custom') {
+      setAlertMessage('');
+      return;
+    }
+
+    setAlertMessage(t(`adminUsers.alertTemplates.${type}`));
   };
 
   // File upload handlers
@@ -560,12 +610,12 @@ const AdminUsers = () => {
   // Map language code to display name
   const getLanguageLabel = code => {
     const languageMap = {
-      en: 'English',
-      fr: 'Français',
-      es: 'Español',
-      zh: '中文',
-      ar: 'العربية',
-      pt: 'Português',
+      en: 'ðŸ‡ºðŸ‡¸ English',
+      fr: 'ðŸ‡«ðŸ‡· FranÃ§ais',
+      es: 'ðŸ‡ªðŸ‡¸ EspaÃ±ol',
+      zh: 'ðŸ‡¨ðŸ‡³ ä¸­æ–‡',
+      ar: 'ðŸ‡¸ðŸ‡¦ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©',
+      pt: 'ðŸ‡µðŸ‡¹ PortuguÃªs',
     };
     return languageMap[code] || code || 'N/A';
   };
@@ -984,7 +1034,7 @@ const AdminUsers = () => {
                                       });
                                       return (
                                         <li key={index}>
-                                          • {actionText}{' '}
+                                          {'\u2022'} {actionText}{' '}
                                           {t(
                                             'adminUsers.details.activityLog.on'
                                           )}{' '}
@@ -1030,7 +1080,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowDeactivateModal(false)}
             >
-              ×
+              {'\u00D7'}
             </button>
             <h2>{t('adminUsers.modals.deactivate.title')}</h2>
             <p className="alert-user-name">{selectedUser?.email}</p>
@@ -1105,7 +1155,7 @@ const AdminUsers = () => {
             onClick={e => e.stopPropagation()}
           >
             <button className="modal-close" onClick={closeAlertModal}>
-              ×
+              {'\u00D7'}
             </button>
             <h2>{t('adminUsers.modals.alert.title')}</h2>
             <p className="alert-user-name">
@@ -1122,13 +1172,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'warning' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'warning') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('warning');
-                      setAlertMessage(t('adminUsers.alertTemplates.warning'));
-                    }
+                    selectAlertType('warning');
                   }}
                 >
                   <input
@@ -1153,13 +1197,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'safety' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'safety') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('safety');
-                      setAlertMessage(t('adminUsers.alertTemplates.safety'));
-                    }
+                    selectAlertType('safety');
                   }}
                 >
                   <input
@@ -1184,15 +1222,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'compliance' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'compliance') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('compliance');
-                      setAlertMessage(
-                        t('adminUsers.alertTemplates.compliance')
-                      );
-                    }
+                    selectAlertType('compliance');
                   }}
                 >
                   <input
@@ -1217,13 +1247,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'custom' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'custom') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('custom');
-                      setAlertMessage('');
-                    }
+                    selectAlertType('custom');
                   }}
                 >
                   <input
@@ -1243,6 +1267,31 @@ const AdminUsers = () => {
                     </div>
                   </div>
                 </label>
+
+                <label
+                  className={`alert-option alert-option-delete ${alertType === 'delete' ? 'selected' : ''}`}
+                  onClick={e => {
+                    e.preventDefault();
+                    selectAlertType('delete');
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="alertType"
+                    value="delete"
+                    checked={alertType === 'delete'}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                  <div className="alert-option-content">
+                    <div className="alert-option-title">
+                      {t('adminUsers.alertTypes.delete')}
+                    </div>
+                    <div className="alert-option-desc">
+                      {t('adminUsers.alertDescriptions.delete')}
+                    </div>
+                  </div>
+                </label>
               </div>
             </div>
 
@@ -1256,7 +1305,9 @@ const AdminUsers = () => {
                   placeholder={
                     alertType === 'custom'
                       ? t('adminUsers.modals.alert.customPlaceholder')
-                      : t('adminUsers.modals.alert.editPlaceholder')
+                      : alertType === 'delete'
+                        ? t('adminUsers.modals.alert.deletePlaceholder')
+                        : t('adminUsers.modals.alert.editPlaceholder')
                   }
                   value={alertMessage}
                   onChange={e => setAlertMessage(e.target.value)}
@@ -1274,10 +1325,18 @@ const AdminUsers = () => {
                 {t('common.cancel')}
               </button>
               <button
-                onClick={handleSendAlert}
-                className="btn-confirm btn-send-alert"
+                onClick={
+                  alertType === 'delete'
+                    ? handleDeleteFromAlert
+                    : handleSendAlert
+                }
+                className={`btn-confirm ${
+                  alertType === 'delete' ? 'btn-delete-user' : 'btn-send-alert'
+                }`}
               >
-                {t('adminUsers.actions.sendAlert')}
+                {alertType === 'delete'
+                  ? t('adminUsers.actions.deleteUser')
+                  : t('adminUsers.actions.sendAlert')}
               </button>
             </div>
           </div>
@@ -1299,10 +1358,10 @@ const AdminUsers = () => {
             >
               <h3>
                 {notificationType === 'success'
-                  ? '✓ Success'
+                  ? '\u2713 Success'
                   : notificationType === 'error'
                     ? 'Error'
-                    : 'ℹ Notice'}
+                    : '\u2139 Notice'}
               </h3>
             </div>
             <div className="notification-body">
@@ -1334,7 +1393,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowUserDetailModal(false)}
             >
-              ×
+              {'\u00D7'}
             </button>
 
             <div className="modal-header">
@@ -1512,7 +1571,7 @@ const AdminUsers = () => {
                     <span className="info-value">
                       {userRatings[selectedUserForView.id] !== undefined &&
                       userRatings[selectedUserForView.id].averageRating
-                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} ⭐ (${userRatings[selectedUserForView.id].totalReviews} reviews)`
+                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} \u2605 (${userRatings[selectedUserForView.id].totalReviews} reviews)`
                         : 'No ratings yet'}
                     </span>
                   </div>
@@ -1558,7 +1617,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => closeUploadDocumentModal()}
             >
-              ✕
+              {'\u00D7'}
             </button>
             <div className="modal-header">
               <h3>Upload Supporting Document</h3>
@@ -1590,7 +1649,9 @@ const AdminUsers = () => {
               >
                 {!selectedFile ? (
                   <>
-                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>📎</p>
+                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>
+                      {'\u{1F4CE}'}
+                    </p>
                     <label
                       htmlFor="fileUploadAdmin"
                       style={{
@@ -1620,7 +1681,9 @@ const AdminUsers = () => {
                   </>
                 ) : (
                   <div style={{ color: '#0077b6' }}>
-                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>✓</p>
+                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>
+                      {'\u{1F4CE}'}
+                    </p>
                     <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>
                       {selectedFile.name}
                     </p>
