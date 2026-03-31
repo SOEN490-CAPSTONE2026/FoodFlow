@@ -136,6 +136,12 @@ public class EmailService {
             }
         }
     }
+
+    private String buildFrontendUrl(String path) {
+        String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+        String normalizedPath = path.startsWith("/") ? path : "/" + path;
+        return baseUrl + normalizedPath;
+    }
     /**
      * Send an email verification link to new users
      * @param toEmail recipient email address
@@ -165,9 +171,9 @@ public class EmailService {
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
 
         // Set subject and content (localized)
-        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+        String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
         sendSmtpEmail.setSubject(getMessage("email.verification.subject", locale));
-        sendSmtpEmail.setTextContent(getMessage("email.verification.text_content", locale, verificationLink));
+        sendSmtpEmail.setTextContent(buildVerificationEmailText(verificationLink, locale));
         sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken, locale));
         
         try {
@@ -454,8 +460,8 @@ public class EmailService {
      * Build HTML email body for email verification
      */
     private String buildVerificationEmailBody(String verificationToken, Locale locale) {
-        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
-        
+        String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
+
         return """
             <!DOCTYPE html>
             <html>
@@ -535,20 +541,49 @@ public class EmailService {
             </html>
             """.formatted(
                 getMessage("email.verification.header", locale),
-                getMessage("email.common.hello", locale),
-                getMessage("email.verification.intro", locale),
-                getMessage("email.verification.what_next_title", locale),
-                getMessage("email.verification.what_next_body", locale),
+                getMessage("email.verification.greeting", locale),
+                getMessage("email.verification.thank_you", locale),
+                getMessage("email.verification.next_steps_title", locale),
+                getMessage("email.verification.next_steps", locale),
                 getMessage("email.verification.button_instruction", locale),
                 verificationLink,
-                getMessage("email.verification.button_text", locale),
-                getMessage("email.verification.link_expiry", locale),
-                getMessage("email.verification.alt_link_text", locale),
+                getMessage("email.verification.button", locale),
+                getMessage("email.verification.expiry", locale),
+                getMessage("email.verification.alternative", locale),
                 verificationLink,
-                getMessage("email.verification.ignore_message", locale),
-                getMessage("email.common.footer_copyright", locale),
-                getMessage("email.common.footer_automated", locale),
-                getMessage("email.verification.footer_support", locale)
+                getMessage("email.verification.didnt_register", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.automated", locale),
+                getMessage("email.common.footer.support", locale)
+            );
+    }
+
+    private String buildVerificationEmailText(String verificationLink, Locale locale) {
+        return """
+            %s
+
+            %s
+
+            %s
+            %s
+
+            %s
+            %s
+
+            %s
+
+            %s
+            %s
+            """.formatted(
+                getMessage("email.verification.greeting", locale),
+                getMessage("email.verification.thank_you", locale),
+                getMessage("email.verification.next_steps_title", locale),
+                getMessage("email.verification.next_steps", locale),
+                getMessage("email.verification.button_instruction", locale),
+                verificationLink,
+                getMessage("email.verification.expiry", locale),
+                getMessage("email.verification.didnt_register", locale),
+                getMessage("email.common.footer.support", locale)
             );
     }
     
@@ -594,7 +629,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -613,6 +648,7 @@ public class EmailService {
                 getMessage("email.new_donation.label_quantity", locale), quantity,
                 getMessage("email.new_donation.label_match_reason", locale), matchReason,
                 getMessage("email.new_donation.cta_text", locale),
+                buildFrontendUrl("/receiver/dashboard"),
                 getMessage("email.new_donation.button_text", locale),
                 getMessage("email.common.footer_copyright", locale),
                 getMessage("email.common.footer_notifications", locale),
@@ -662,7 +698,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -681,6 +717,7 @@ public class EmailService {
                 getMessage("email.donation_claimed.label.claimed_by", locale), receiverName,
                 getMessage("email.donation_claimed.label.quantity", locale), quantity,
                 getMessage("email.donation_claimed.instruction", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.donation_claimed.button", locale),
                 getMessage("email.common.footer_copyright", locale),
                 getMessage("email.common.footer_notifications", locale),
@@ -728,7 +765,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -746,6 +783,7 @@ public class EmailService {
                 getMessage("email.claim_canceled.label.donation", locale), title,
                 getMessage("email.claim_canceled.label.reason", locale), reason,
                 getMessage("email.claim_canceled.instruction", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.claim_canceled.button", locale),
                 getMessage("email.common.footer_copyright", locale),
                 getMessage("email.common.footer_notifications", locale),
@@ -771,7 +809,7 @@ public class EmailService {
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
         
         // Determine correct settings URL based on role
-        String settingsUrl = isDonorReview ? "http://localhost:3000/receiver/settings" : "http://localhost:3000/donor/settings";
+        String settingsUrl = isDonorReview ? buildFrontendUrl("/receiver/settings") : buildFrontendUrl("/donor/settings");
         
         return """
             <!DOCTYPE html>
@@ -1227,7 +1265,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1247,6 +1285,7 @@ public class EmailService {
                 getMessage("email.donation_picked_up.label.quantity", locale), quantity,
                 getMessage("email.donation_picked_up.label.picked_up_by", locale), receiverName,
                 getMessage("email.donation_picked_up.thank_you", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.donation_picked_up.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1334,7 +1373,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1354,6 +1393,7 @@ public class EmailService {
                 getMessage("email.donation_completed.label.quantity_received", locale), quantity,
                 getMessage("email.donation_completed.label.from", locale), donorName,
                 getMessage("email.donation_completed.thank_you", locale),
+                buildFrontendUrl("/receiver/dashboard"),
                 getMessage("email.donation_completed.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1443,7 +1483,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1554,7 +1594,7 @@ public class EmailService {
                             <li>%s</li>
                         </ul>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1577,6 +1617,7 @@ public class EmailService {
                 getMessage("email.donation_expired.next_step1", locale),
                 getMessage("email.donation_expired.next_step2", locale),
                 getMessage("email.donation_expired.next_step3", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.donation_expired.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1680,7 +1721,7 @@ public class EmailService {
                         <p><strong>%s</strong></p>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/%s/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1702,7 +1743,7 @@ public class EmailService {
                 getMessage("email.donation_status_updated.label.admin_reason", locale), reason,
                 getMessage("email.donation_status_updated.meaning_title", locale),
                 getMessage("email.donation_status_updated.meaning_message", locale),
-                userType,
+                buildFrontendUrl("/" + userType + "/dashboard"),
                 getMessage("email.donation_status_updated.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -2192,7 +2233,7 @@ public class EmailService {
      * 1. Email Verification
      */
     private String buildVerificationEmailBody(String verificationToken) {
-        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+        String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
 
         String content = p("Hello,")
             + p("Thank you for registering with FoodFlow! We're excited to have you join our community in fighting food waste and helping those in need.")
