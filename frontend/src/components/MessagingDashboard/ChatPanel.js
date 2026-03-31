@@ -143,12 +143,12 @@ const ChatPanel = ({
       setNewMessage('');
       ga4Service.trackMessageSent();
       onMessageSent();
-      textareaRef.current?.focus();
     } catch (err) {
       console.error('Error sending message:', err);
       alert(t('chat.failedToSend'));
     } finally {
       setSending(false);
+      textareaRef.current?.focus();
     }
   };
 
