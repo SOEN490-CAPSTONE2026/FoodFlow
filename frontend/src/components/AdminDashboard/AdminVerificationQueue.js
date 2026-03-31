@@ -349,6 +349,19 @@ const AdminVerificationQueue = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [pendingProfileChanges, setPendingProfileChanges] = useState([]);
+  const [selectedChange, setSelectedChange] = useState(null);
+  const [rejectingChange, setRejectingChange] = useState(false);
+
+  const fetchPendingProfileChanges = async () => {
+    try {
+      const res = await adminVerificationAPI.getPendingProfileChanges();
+      setPendingProfileChanges(res.data || []);
+    } catch (err) {
+      console.error('Error fetching profile changes:', err);
+    }
+  };
+
   const [stats, setStats] = useState({
     totalPending: 0,
     pendingDonors: 0,
@@ -483,6 +496,9 @@ const AdminVerificationQueue = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, userTypeFilter, debouncedSearchTerm, sortBy, sortOrder]);
 
+  useEffect(() => {
+    fetchPendingProfileChanges();
+  }, []);
   // Toggle row expansion
   const toggleRowExpansion = userId => {
     const newExpanded = new Set(expandedRows);
@@ -592,6 +608,46 @@ const AdminVerificationQueue = () => {
     }
   };
 
+  const handleApproveChange = async id => {
+    try {
+      await adminVerificationAPI.approveProfileChange(id);
+
+      setPendingProfileChanges(prev => prev.filter(change => change.id !== id));
+
+      showToast('Profile change approved');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to approve change', 'error');
+    }
+  };
+
+  const handleRejectChange = async (reason, customMessage) => {
+    if (!selectedChange) {
+      return;
+    }
+
+    try {
+      setRejectingChange(true);
+
+      await adminVerificationAPI.rejectProfileChange(
+        selectedChange.id,
+        reason,
+        customMessage
+      );
+
+      setPendingProfileChanges(prev =>
+        prev.filter(change => change.id !== selectedChange.id)
+      );
+
+      showToast('Profile change rejected');
+      setSelectedChange(null);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to reject change', 'error');
+    } finally {
+      setRejectingChange(false);
+    }
+  };
   // Calculate waiting time
   const getWaitingTime = createdAt => {
     const now = new Date();
@@ -1327,7 +1383,61 @@ const AdminVerificationQueue = () => {
           </>
         )}
       </div>
+      <div className="users-section">
+        <div className="users-section-header">
+          <h2>Pending Profile Changes</h2>
+        </div>
 
+        {pendingProfileChanges.length === 0 ? (
+          <div className="empty-state">
+            <UserCheck size={48} color="#9ca3af" />
+            <h3>No Pending Profile Changes</h3>
+            <p>All profile updates have been reviewed.</p>
+          </div>
+        ) : (
+          <div className="users-table-container">
+            <Table className="users-table verification-table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Field</TableHead>
+                  <TableHead>Current</TableHead>
+                  <TableHead>Requested</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingProfileChanges.map(change => (
+                  <TableRow key={change.id}>
+                    <TableCell>{change.userName}</TableCell>
+                    <TableCell>{change.fieldName}</TableCell>
+                    <TableCell>{change.oldValue}</TableCell>
+                    <TableCell>{change.newValue}</TableCell>
+                    <TableCell>
+                      <div className="action-buttons">
+                        <button
+                          className="btn-approve-small"
+                          onClick={() => handleApproveChange(change.id)}
+                          title="Approve"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                        <button
+                          className="btn-reject-small"
+                          onClick={() => setSelectedChange(change)}
+                          title="Reject"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
       {/* Modals */}
       {showApprovalModal && selectedUser && (
         <ApprovalModal
@@ -1362,6 +1472,15 @@ const AdminVerificationQueue = () => {
           }}
           onConfirm={handleManualVerify}
           loading={actionLoading}
+        />
+      )}
+
+      {selectedChange && (
+        <RejectionModal
+          user={selectedChange}
+          onClose={() => setSelectedChange(null)}
+          onConfirm={handleRejectChange}
+          loading={rejectingChange}
         />
       )}
 

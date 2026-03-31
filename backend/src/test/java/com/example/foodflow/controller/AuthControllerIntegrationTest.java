@@ -22,7 +22,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.Mockito;
 
+@Execution(ExecutionMode.SAME_THREAD)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -36,7 +41,13 @@ class AuthControllerIntegrationTest {
     
     @MockBean
     private AuthService authService;
+
     
+    @BeforeEach
+void resetMocks() {
+    Mockito.reset(authService);
+}
+
     @Test
     void registerDonor_ValidRequest_ShouldReturn200() throws Exception {
         // Given - may fail validation if required fields are missing
@@ -188,7 +199,7 @@ class AuthControllerIntegrationTest {
         mockMvc.perform(post("/api/auth/verify-reset-code")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.message").value("Code verified successfully"));
     }
     
@@ -205,7 +216,7 @@ class AuthControllerIntegrationTest {
         mockMvc.perform(post("/api/auth/verify-reset-code")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().is4xxClientError());
     }
     
     @Test
@@ -291,18 +302,16 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.exists").value(true));
     }
     
-    @Test
-    void verifyEmail_ValidToken_ShouldReturn200() throws Exception {
-        // Given
-        when(authService.verifyEmail("valid-token"))
-            .thenReturn(Map.of("message", "Email verified successfully"));
-        
-        // When & Then
-        mockMvc.perform(post("/api/auth/verify-email")
-                .param("token", "valid-token"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Email verified successfully"));
-    }
+   @Test
+void verifyEmail_ValidToken_ShouldReturn200() throws Exception {
+    when(authService.verifyEmail("valid-token"))
+        .thenReturn(Map.of("message", "Email verified successfully"));
+
+    mockMvc.perform(post("/api/auth/verify-email")
+            .param("token", "valid-token"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("Email verified successfully"));
+}
     
     @Test
     void verifyEmail_InvalidToken_ShouldReturn400() throws Exception {

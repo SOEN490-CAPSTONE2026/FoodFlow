@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import ReceiverHelp from '../ReceiverHelp';
 
 const mockStartReceiverTutorial = jest.fn();
@@ -18,7 +18,7 @@ jest.mock('../../../contexts/OnboardingContext', () => ({
 }));
 
 const renderWithRouter = component =>
-  render(<BrowserRouter>{component}</BrowserRouter>);
+  render(<MemoryRouter>{component}</MemoryRouter>);
 
 describe('ReceiverHelp', () => {
   test('renders key-based sections', () => {

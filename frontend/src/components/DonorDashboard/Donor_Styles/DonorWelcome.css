@@ -291,73 +291,6 @@
   box-shadow: 0 4px 12px rgba(98, 182, 203, 0.3);
 }
 
-/* Support Banner */
-.donor-support-banner {
-  margin-bottom: 32px;
-  padding: 16px 18px;
-  border-radius: 16px;
-  border: 1px solid #d8e9f2;
-  background: linear-gradient(135deg, #edf7fb 0%, #f4fbff 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.donor-support-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.donor-support-banner-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(135deg, #1b4965 0%, #62b6cb 100%);
-  flex-shrink: 0;
-}
-
-.donor-support-banner-text h3 {
-  margin: 0 0 4px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #1b4965;
-}
-
-.donor-support-banner-text p {
-  margin: 0;
-  font-size: 14px;
-  color: #4b6170;
-  line-height: 1.45;
-}
-
-.donor-support-banner-button {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 16px;
-  background: linear-gradient(45deg, #547f95, #62b6cb);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 8px 18px rgba(98, 182, 203, 0.28);
-}
-
-.donor-support-banner-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(98, 182, 203, 0.35);
-}
-
 /* Recent Donations Section */
 .recent-donations-section {
   background: white;
@@ -488,18 +421,6 @@
   justify-content: center;
   padding: 48px 24px;
   text-align: center;
-}
-
-@media (max-width: 768px) {
-  .donor-support-banner {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: left;
-  }
-
-  .donor-support-banner-button {
-    width: 100%;
-  }
 }
 
 /* OLD STYLES BELOW - For backwards compatibility */

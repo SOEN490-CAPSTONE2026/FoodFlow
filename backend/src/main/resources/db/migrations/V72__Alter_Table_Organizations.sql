@@ -1,0 +1,8 @@
+ALTER TABLE organizations
+ALTER COLUMN contact_person DROP NOT NULL;
+
+ALTER TABLE organizations
+ALTER COLUMN phone DROP NOT NULL;
+
+ALTER TABLE organizations
+ALTER COLUMN address DROP NOT NULL;

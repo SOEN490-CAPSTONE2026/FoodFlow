@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from './StripePaymentForm';
@@ -7,7 +7,7 @@ import PaymentMethodManager from './PaymentMethodManager';
 import PaymentHistory from './PaymentHistory';
 import PaymentInvoices from './PaymentInvoices';
 import PaymentRefunds from './PaymentRefunds';
-import api, { donationStatsAPI } from '../../services/api';
+import api from '../../services/api';
 import './PaymentPage.css';
 
 const stripePromise = loadStripe(
@@ -23,23 +23,6 @@ function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
-  const [platformStats, setPlatformStats] = useState(null);
-
-  // Fetch platform-wide donation stats from the backend on mount
-  const fetchPlatformStats = useCallback(async () => {
-    try {
-      const response = await donationStatsAPI.getPlatformTotals();
-      setPlatformStats(response.data);
-    } catch (err) {
-      console.error('Failed to load platform donation stats:', err);
-      // Non-critical — the page still works with local estimates
-      setPlatformStats(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPlatformStats();
-  }, [fetchPlatformStats]);
 
   const predefinedAmounts = [5, 10, 25, 50, 100];
   const supportedCurrencies = ['USD', 'CAD', 'EUR', 'GBP'];
@@ -102,43 +85,16 @@ function PaymentPage() {
     return selectedAmount || parseFloat(customAmount) || 0;
   };
 
-  const getImpactMetrics = useCallback(
-    amount => {
-      const safeAmount = Math.max(0, Number(amount) || 0);
-
-      // When platform stats are available from the backend, use them to
-      // derive per-dollar impact ratios so the estimates stay grounded in
-      // real data.  Falls back to the original static multipliers when the
-      // backend is unreachable.
-      if (platformStats && Number(platformStats.totalAmountDonated) > 0) {
-        const totalDonated = Number(platformStats.totalAmountDonated);
-        const totalDonations = Number(platformStats.totalDonationCount) || 1;
-        const totalDonors = Number(platformStats.totalDonorCount) || 1;
-
-        // Derive per-dollar ratios from real platform data
-        const mealsPerDollar = (totalDonations * 3) / totalDonated;
-        const co2PerDollar = (totalDonations * 0.9) / totalDonated;
-        const waterPerDollar = (totalDonations * 42) / totalDonated;
-        const packsPerDollar = totalDonors / totalDonated;
-
-        return {
-          meals: Math.round(safeAmount * mealsPerDollar),
-          co2Kg: (safeAmount * co2PerDollar).toFixed(1),
-          waterLiters: Math.round(safeAmount * waterPerDollar),
-          communityPacks: Math.max(1, Math.round(safeAmount * packsPerDollar)),
-        };
-      }
-
-      // Fallback: static frontend-only estimates
-      return {
-        meals: Math.round(safeAmount * 3),
-        co2Kg: (safeAmount * 0.9).toFixed(1),
-        waterLiters: Math.round(safeAmount * 42),
-        communityPacks: Math.max(1, Math.round(safeAmount / 25)),
-      };
-    },
-    [platformStats]
-  );
+  const getImpactMetrics = amount => {
+    // Frontend-only estimates until backend impact service is connected.
+    const safeAmount = Math.max(0, Number(amount) || 0);
+    return {
+      meals: Math.round(safeAmount * 3),
+      co2Kg: (safeAmount * 0.9).toFixed(1),
+      waterLiters: Math.round(safeAmount * 42),
+      communityPacks: Math.max(1, Math.round(safeAmount / 25)),
+    };
+  };
 
   const impactMetrics = getImpactMetrics(getFinalAmount());
 
@@ -250,9 +206,7 @@ function PaymentPage() {
                     <div className="impact-metrics__header">
                       <h3>Estimated Impact</h3>
                       <p>
-                        {platformStats
-                          ? 'Estimates powered by real platform donation data.'
-                          : 'Live estimate based on your selected donation amount.'}
+                        Live estimate based on your selected donation amount.
                       </p>
                     </div>
                     <div className="impact-metrics__grid">

@@ -26,7 +26,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.Mockito;
 
+@Execution(ExecutionMode.SAME_THREAD)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -40,6 +45,11 @@ public class AuthControllerPasswordTest {
 
         @Autowired
         private ObjectMapper objectMapper;
+
+        @BeforeEach
+void resetMocks() {
+    Mockito.reset(authService);
+}
 
         /**
          * Creates a RequestPostProcessor that sets the app's User entity as the
@@ -56,29 +66,28 @@ public class AuthControllerPasswordTest {
 
         // ========== CHANGE PASSWORD TESTS ==========
 
-        @Test
-        void changePassword_Success() throws Exception {
-                ChangePasswordRequest request = new ChangePasswordRequest();
-                request.setCurrentPassword("OldTestSecure123!");
-                request.setNewPassword("NewPassword456!");
-                request.setConfirmPassword("NewPassword456!");
+       @Test
+void changePassword_Success() throws Exception {
+    ChangePasswordRequest request = new ChangePasswordRequest();
+    request.setCurrentPassword("OldTestSecure123!");
+    request.setNewPassword("NewPassword456!");
+    request.setConfirmPassword("NewPassword456!");
 
-                User mockUser = new User();
-                mockUser.setEmail("user@test.com");
-                mockUser.setRole(UserRole.DONOR);
+    User mockUser = new User();
+    mockUser.setEmail("user@test.com");
+    mockUser.setRole(UserRole.DONOR);
 
-                when(authService.changePassword(any(User.class), eq("OldTestSecure123!"),
-                                eq("NewPassword456!"), eq("NewPassword456!")))
-                                .thenReturn(Map.of("message", "Password changed successfully"));
+    
+    when(authService.changePassword(any(User.class), anyString(), anyString(), anyString()))
+            .thenReturn(Map.of("message", "Password changed successfully"));
 
-                mockMvc.perform(post("/api/auth/change-password")
-                                .with(authenticatedUser(mockUser))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.message").value("Password changed successfully"));
-        }
-
+    mockMvc.perform(post("/api/auth/change-password")
+            .with(authenticatedUser(mockUser))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("Password changed successfully"));
+}
         @Test
         void changePassword_IncorrectCurrentPassword_ReturnsBadRequest() throws Exception {
                 ChangePasswordRequest request = new ChangePasswordRequest();

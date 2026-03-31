@@ -1,154 +1,126 @@
 package com.example.foodflow.service;
 
-import com.example.foodflow.model.dto.RegionResponse;
-import com.example.foodflow.model.dto.UpdateOnboardingRequest;
-import com.example.foodflow.model.dto.UpdateProfileRequest;
-import com.example.foodflow.model.dto.UpdateRegionRequest;
-import com.example.foodflow.model.dto.UserProfileResponse;
-import com.example.foodflow.model.entity.Organization;
-import com.example.foodflow.model.entity.User;
-import com.example.foodflow.repository.OrganizationRepository;
-import com.example.foodflow.repository.UserRepository;
+import com.example.foodflow.model.dto.*;
+import com.example.foodflow.model.entity.*;
+import com.example.foodflow.repository.*;
 import com.example.foodflow.util.TimezoneResolver;
-import com.example.foodflow.service.BusinessMetricsService;
 import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-/**
- * Service for managing user profile settings including region and timezone.
- */
 @Service
 public class UserProfileService {
-    
+
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
     private final BusinessMetricsService businessMetricsService;
-    
-    public UserProfileService(UserRepository userRepository, OrganizationRepository organizationRepository, BusinessMetricsService businessMetricsService) {
+    private final ProfileChangeService profileChangeService;
+    private final SensitiveFieldRegistry sensitiveFieldRegistry;
+    private final ProfileChangeRequestRepository changeRepository;
+
+    public UserProfileService(UserRepository userRepository,
+                              OrganizationRepository organizationRepository,
+                              BusinessMetricsService businessMetricsService,
+                              ProfileChangeService profileChangeService,
+                              SensitiveFieldRegistry sensitiveFieldRegistry,
+                              ProfileChangeRequestRepository changeRepository) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.businessMetricsService = businessMetricsService;
+        this.profileChangeService = profileChangeService;
+        this.sensitiveFieldRegistry = sensitiveFieldRegistry;
+        this.changeRepository = changeRepository;
     }
-    
-    /**
-     * Updates user's region settings (country, city) and automatically resolves timezone.
-     */
-    @Transactional
-    @Timed(value = "userprofile.service.updateRegionSettings", description = "Time taken to update region settings")
-    public RegionResponse updateRegionSettings(User user, UpdateRegionRequest request) {
-        String timezone;
-        if (request.getTimezone() != null && !request.getTimezone().trim().isEmpty()) {
-            String providedTimezone = request.getTimezone().trim();
-            
-            if (providedTimezone.startsWith("UTC") || providedTimezone.startsWith("GMT")) {
-                timezone = TimezoneResolver.convertOffsetToTimezone(providedTimezone);
-            } else {
-                if (TimezoneResolver.isValidTimezone(providedTimezone)) {
-                    timezone = providedTimezone;
-                } else {
-                    timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
-                }
-            }
-        } else {
-            timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
-        }
-        
-        user.setCountry(request.getCountry());
-        user.setCity(request.getCity());
-        user.setTimezone(timezone);
-        
-        userRepository.save(user);
-        businessMetricsService.incrementRegionSettingsUpdates();
-        
-        return buildRegionResponse(user);
-    }
-    
-    /**
-     * Gets current region settings for a user.
-     */
+
+    // ============================================
+    // REGION SETTINGS
+    // ============================================
+
     @Transactional(readOnly = true)
     public RegionResponse getRegionSettings(User user) {
         return buildRegionResponse(user);
     }
-    
-    /**
-     * Gets user profile data including organization information.
-     */
-    @Transactional(readOnly = true)
-    public UserProfileResponse getProfile(User user) {
-        UserProfileResponse response = new UserProfileResponse();
-        response.setId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setFullName(user.getFullName());
-        response.setPhone(user.getPhone());
-        response.setPhoneNumber(user.getPhone());
-        response.setProfilePhoto(user.getProfilePhoto());
-        response.setOnboardingCompleted(Boolean.TRUE.equals(user.getOnboardingCompleted()));
-        
-        Organization org = user.getOrganization();
-        if (org != null) {
-            response.setOrganizationName(org.getName());
-            response.setOrganizationAddress(org.getAddress());
-            response.setAddress(org.getAddress());
-            // Fallback: use org contact info if user fields are empty
-            if (response.getFullName() == null && org.getContactPerson() != null) {
-                response.setFullName(org.getContactPerson());
-            }
-            if (response.getPhone() == null && org.getPhone() != null) {
-                response.setPhone(org.getPhone());
-                response.setPhoneNumber(org.getPhone());
-            }
-        } else {
-            organizationRepository.findByUserId(user.getId()).ifPresent(o -> {
-                response.setOrganizationName(o.getName());
-                response.setOrganizationAddress(o.getAddress());
-                response.setAddress(o.getAddress());
-                if (response.getFullName() == null && o.getContactPerson() != null) {
-                    response.setFullName(o.getContactPerson());
-                }
-                if (response.getPhone() == null && o.getPhone() != null) {
-                    response.setPhone(o.getPhone());
-                    response.setPhoneNumber(o.getPhone());
-                }
-            });
-        }
-        
-        return response;
-    }
-    
-    /**
-     * Updates user profile data.
-     */
+
     @Transactional
-    @Timed(value = "userprofile.service.updateProfile", description = "Time taken to update user profile")
+    @Timed(value = "userprofile.service.updateRegionSettings",
+            description = "Time taken to update region settings")
+    public RegionResponse updateRegionSettings(User user, UpdateRegionRequest request) {
+
+        String timezone;
+
+        if (request.getTimezone() != null && !request.getTimezone().trim().isEmpty()) {
+
+            String providedTimezone = request.getTimezone().trim();
+
+            if (providedTimezone.startsWith("UTC") || providedTimezone.startsWith("GMT")) {
+                timezone = TimezoneResolver.convertOffsetToTimezone(providedTimezone);
+            } else if (TimezoneResolver.isValidTimezone(providedTimezone)) {
+                timezone = providedTimezone;
+            } else {
+                timezone = TimezoneResolver.resolveTimezone(
+                        request.getCity(),
+                        request.getCountry()
+                );
+            }
+
+        } else {
+            timezone = TimezoneResolver.resolveTimezone(
+                    request.getCity(),
+                    request.getCountry()
+            );
+        }
+
+        user.setCountry(request.getCountry());
+        user.setCity(request.getCity());
+        user.setTimezone(timezone);
+
+        userRepository.save(user);
+
+        return buildRegionResponse(user);
+    }
+
+    // ============================================
+    // UPDATE PROFILE
+    // ============================================
+
+    @Transactional
+    @Timed(value = "userprofile.service.updateProfile",
+            description = "Time taken to update user profile")
     public UserProfileResponse updateProfile(User user, UpdateProfileRequest request) {
-        // Validate email uniqueness if changing
-        if (request.getEmail() != null && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
+
+        boolean namePending = false;
+        boolean addressPending = false;
+
+        if (request.getEmail() != null &&
+                !request.getEmail().equalsIgnoreCase(user.getEmail())) {
+
             if (userRepository.existsByEmail(request.getEmail())) {
                 throw new IllegalArgumentException("Email already in use");
             }
+
             user.setEmail(request.getEmail());
         }
 
-        // Validate and set phone (supports both phone and phoneNumber fields)
         String phoneValue = request.getPhone();
         if (phoneValue != null && !phoneValue.trim().isEmpty()) {
-            final Pattern phonePattern = Pattern.compile("^[+0-9 ()-]{7,20}$");
+
+            Pattern phonePattern = Pattern.compile("^[+0-9 ()-]{7,20}$");
+
             if (!phonePattern.matcher(phoneValue).matches()) {
                 throw new IllegalArgumentException("Invalid phone format");
             }
+
             user.setPhone(phoneValue);
         }
 
-        // Full name
-        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+        if (request.getFullName() != null &&
+                !request.getFullName().trim().isEmpty()) {
             user.setFullName(request.getFullName());
         }
 
-        // Profile photo optional
         if (request.getProfilePhoto() != null) {
             user.setProfilePhoto(request.getProfilePhoto());
         }
@@ -156,37 +128,57 @@ public class UserProfileService {
         userRepository.save(user);
         businessMetricsService.incrementProfileUpdates();
 
-        // Organization fields
+        Organization existingOrg =
+                organizationRepository.findByUserId(user.getId()).orElse(null);
+
+        String nameValue = request.getOrganizationName();
         String addressValue = request.getOrganizationAddress();
-        
-        if ((request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) ||
-            (addressValue != null && !addressValue.trim().isEmpty())) {
 
-            Organization org = organizationRepository.findByUserId(user.getId()).orElseGet(() -> {
-                Organization o = new Organization();
-                o.setUser(user);
-                return o;
-            });
-            
-            if (request.getOrganizationName() != null) {
-                org.setName(request.getOrganizationName());
-            }
-            if (addressValue != null) {
-                org.setAddress(addressValue);
-            }
-            if (request.getFullName() != null) {
-                org.setContactPerson(request.getFullName());
-            }
-            if (phoneValue != null) {
-                org.setPhone(phoneValue);
-            }
+        if (nameValue != null && !nameValue.trim().isEmpty()) {
 
-            organizationRepository.save(org);
-            user.setOrganization(org);
+            boolean isSensitive =
+                    sensitiveFieldRegistry.isSensitive("ORGANIZATION", "name");
+
+            if (isSensitive) {
+                namePending = profileChangeService.handleOrganizationFieldUpdate(
+                        user, existingOrg, "name", nameValue);
+            } else {
+                if (existingOrg == null) {
+                    existingOrg = new Organization();
+                    existingOrg.setUser(user);
+                }
+                existingOrg.setName(nameValue);
+                organizationRepository.save(existingOrg);
+            }
         }
-        
-        return getProfile(user);
+
+        if (addressValue != null && !addressValue.trim().isEmpty()) {
+
+            boolean isSensitive =
+                    sensitiveFieldRegistry.isSensitive("ORGANIZATION", "address");
+
+            if (isSensitive) {
+                addressPending = profileChangeService.handleOrganizationFieldUpdate(
+                        user, existingOrg, "address", addressValue);
+            } else {
+                if (existingOrg == null) {
+                    existingOrg = new Organization();
+                    existingOrg.setUser(user);
+                }
+                existingOrg.setAddress(addressValue);
+                organizationRepository.save(existingOrg);
+            }
+        }
+
+        UserProfileResponse response = getProfile(user);
+        response.setOrganizationChangePending(namePending || addressPending);
+
+        return response;
     }
+
+    // ============================================
+    // UPDATE ONBOARDING ✅
+    // ============================================
 
     @Transactional
     public UserProfileResponse updateOnboarding(User user, UpdateOnboardingRequest request) {
@@ -194,19 +186,78 @@ public class UserProfileService {
         userRepository.save(user);
         return getProfile(user);
     }
-    
-    /**
-     * Builds a RegionResponse DTO from a User entity.
-     */
+
+    // ============================================
+    // GET PROFILE
+    // ============================================
+
+    @Transactional(readOnly = true)
+    public UserProfileResponse getProfile(User user) {
+
+        UserProfileResponse response = new UserProfileResponse();
+
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFullName(user.getFullName());
+        response.setPhone(user.getPhone());
+        response.setPhoneNumber(user.getPhone());
+        response.setProfilePhoto(user.getProfilePhoto());
+        response.setOnboardingCompleted(Boolean.TRUE.equals(user.getOnboardingCompleted()));
+
+        Organization org =
+                organizationRepository.findByUserId(user.getId()).orElse(null);
+
+        if (org != null) {
+            response.setOrganizationName(org.getName());
+            response.setOrganizationAddress(org.getAddress());
+            response.setAddress(org.getAddress());
+        }
+
+        Optional<ProfileChangeRequest> pending =
+                changeRepository.findByUser_IdAndEntityTypeAndFieldNameAndStatus(
+                        user.getId(),
+                        "ORGANIZATION",
+                        "name",
+                        ChangeStatus.PENDING
+                );
+
+        pending.ifPresent(request -> {
+            PendingChangeDTO dto = new PendingChangeDTO();
+            dto.setNewValue(request.getNewValue());
+            dto.setStatus(request.getStatus().name());
+            response.setPendingOrganizationChange(dto);
+        });
+
+        Optional<ProfileChangeRequest> rejected =
+                changeRepository.findTopByUser_IdAndEntityTypeAndFieldNameAndStatusOrderByReviewedAtDesc(
+                        user.getId(),
+                        "ORGANIZATION",
+                        "name",
+                        ChangeStatus.REJECTED
+                );
+
+        rejected.ifPresent(request -> {
+            PendingChangeDTO dto = new PendingChangeDTO();
+            dto.setNewValue(request.getNewValue());
+            dto.setStatus(request.getStatus().name());
+            response.setLastRejectedOrganizationChange(dto);
+        });
+
+        return response;
+    }
+
     private RegionResponse buildRegionResponse(User user) {
+
         RegionResponse response = new RegionResponse();
         response.setCountry(user.getCountry());
         response.setCity(user.getCity());
-        
+
         String timezone = user.getTimezone() != null ? user.getTimezone() : "UTC";
         response.setTimezone(timezone);
-        response.setTimezoneOffset(TimezoneResolver.getTimezoneOffset(timezone));
-        
+        response.setTimezoneOffset(
+                TimezoneResolver.getTimezoneOffset(timezone)
+        );
+
         return response;
     }
 }

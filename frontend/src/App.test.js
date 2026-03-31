@@ -14,6 +14,19 @@ jest.mock('axios', () => {
   };
   return { __esModule: true, default: { create: () => handlers, ...handlers } };
 });
+
+jest.mock('./services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn().mockResolvedValue({
+      data: { timezone: 'America/Montreal' },
+    }),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
 // Mock useAnalytics hook
 jest.mock('./hooks/useAnalytics', () => ({ useAnalytics: () => {} }));
 

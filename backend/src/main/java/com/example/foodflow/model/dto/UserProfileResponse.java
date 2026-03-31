@@ -11,6 +11,9 @@ public class UserProfileResponse {
     private String profilePhoto;
     private String organizationName;
     private String organizationAddress;
+    private boolean organizationChangePending;
+    private PendingChangeDTO pendingOrganizationChange;
+    private PendingChangeDTO lastRejectedOrganizationChange;
     private Boolean onboardingCompleted;
 
     // Getters and setters
@@ -44,4 +47,30 @@ public class UserProfileResponse {
 
     public String getAddress() { return organizationAddress; }
     public void setAddress(String address) { this.organizationAddress = address; }
+
+    public boolean isOrganizationChangePending() {
+    return organizationChangePending;
+}
+
+public void setOrganizationChangePending(boolean organizationChangePending) {
+    this.organizationChangePending = organizationChangePending;
+}
+
+public PendingChangeDTO getPendingOrganizationChange() {
+    return pendingOrganizationChange;
+}
+
+public void setPendingOrganizationChange(PendingChangeDTO pendingOrganizationChange) {
+    this.pendingOrganizationChange = pendingOrganizationChange;
+}
+
+public PendingChangeDTO getLastRejectedOrganizationChange() {
+    return lastRejectedOrganizationChange;
+}
+
+public void setLastRejectedOrganizationChange(PendingChangeDTO lastRejectedOrganizationChange) {
+    this.lastRejectedOrganizationChange = lastRejectedOrganizationChange;
+}
+
+
 }

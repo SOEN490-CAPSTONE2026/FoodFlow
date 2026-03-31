@@ -1,5 +1,5 @@
-Product Demo: [https://drive.google.com/file/d/1nEElLNKFA6pm4d5NZZG9k_GQtKXwSGws/view?usp=sharing](https://drive.google.com/file/d/1CU44bG2VqstZmIIO1301CaJXIrd5j8sn/view?usp=sharing)
-Deployment link: https://foodflow-app.com/
+Product Demo: https://drive.google.com/file/d/1nEElLNKFA6pm4d5NZZG9k_GQtKXwSGws/view?usp=sharing
+Deployment link: https://foodflow-org.up.railway.app/
 
 # FoodFlow
 

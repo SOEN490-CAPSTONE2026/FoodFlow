@@ -20,7 +20,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.Mockito;
 
+@Execution(ExecutionMode.SAME_THREAD)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -36,6 +41,11 @@ class AuthControllerTest {
 
         @Autowired
         private ObjectMapper objectMapper;
+
+        @BeforeEach
+void resetMocks() {
+    Mockito.reset(authService);
+}
 
         @Test
         void registerDonor_Success() throws Exception {
@@ -65,31 +75,29 @@ class AuthControllerTest {
         }
 
         @Test
-        void registerReceiver_Success() throws Exception {
-                // Given
-                RegisterReceiverRequest request = new RegisterReceiverRequest();
-                request.setEmail("receiver@test.com");
-                request.setPassword("TestSecure123!");
-                request.setConfirmPassword("TestSecure123!");
-                request.setOrganizationName("Test Charity");
-                request.setContactPerson("Jane Smith");
-                request.setPhone("987-654-3210");
-                request.setAddress("456 Oak Ave");
+void registerReceiver_Success() throws Exception {
+    RegisterReceiverRequest request = new RegisterReceiverRequest();
+    request.setEmail("receiver@test.com");
+    request.setPassword("TestSecure123!");
+    request.setConfirmPassword("TestSecure123!");
+    request.setOrganizationName("Test Charity");
+    request.setContactPerson("Jane Smith");
+    request.setPhone("987-654-3210");
+    request.setAddress("456 Oak Ave");
 
-                AuthResponse response = new AuthResponse("jwt-token", "donor@test.com", "DONOR",
-                                "Registration successful");
-                response.setEmail("receiver@test.com");
+    
+    AuthResponse response = new AuthResponse("jwt-token", "receiver@test.com", "RECEIVER",
+            "Registration successful");
 
-                when(authService.registerReceiver(any(RegisterReceiverRequest.class))).thenReturn(response);
+    when(authService.registerReceiver(any(RegisterReceiverRequest.class))).thenReturn(response);
 
-                // When & Then
-                mockMvc.perform(post("/api/auth/register/receiver")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.token").value("jwt-token"))
-                                .andExpect(jsonPath("$.email").value("receiver@test.com"));
-        }
+    mockMvc.perform(post("/api/auth/register/receiver")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token").value("jwt-token"))
+            .andExpect(jsonPath("$.email").value("receiver@test.com"));
+}
 
         @Test
         void registerDonor_InvalidEmail_BadRequest() throws Exception {

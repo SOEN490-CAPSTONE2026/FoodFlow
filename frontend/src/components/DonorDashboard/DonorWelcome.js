@@ -10,7 +10,6 @@ import {
   PlusCircle,
   Sparkles,
   Star,
-  Heart,
 } from 'lucide-react';
 import { surplusAPI, feedbackAPI } from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -261,27 +260,6 @@ export default function DonorWelcome() {
           </button>
         </div>
       </div>
-
-      <section
-        className="donor-support-banner"
-        aria-label={t('donation.bannerAriaLabel')}
-      >
-        <div className="donor-support-banner-content">
-          <div className="donor-support-banner-icon" aria-hidden="true">
-            <Heart strokeWidth={2} />
-          </div>
-          <div className="donor-support-banner-text">
-            <h3>{t('donation.title')}</h3>
-            <p>{t('donation.subtitle')}</p>
-          </div>
-        </div>
-        <button
-          className="donor-support-banner-button"
-          onClick={() => navigate('/payment')}
-        >
-          {t('donation.modalAriaLabel')}
-        </button>
-      </section>
 
       {/* Recent Donations */}
       <div className="recent-donations-section">

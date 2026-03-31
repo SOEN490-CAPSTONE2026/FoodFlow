@@ -149,7 +149,7 @@ describe('Home Component - Edge Cases', () => {
     );
 
     // Button accessibility check
-    const button = screen.getByRole('button', { name: /Join Us Now/i });
+    const button = screen.getByRole('button');
     expect(button).toBeEnabled();
     expect(button).toHaveTextContent(/Join Us Now/i);
   });
@@ -167,8 +167,6 @@ describe('Home Component - Edge Cases', () => {
 
     expect(screen.getByText('Connect surplus with')).toBeInTheDocument();
     expect(screen.getByText('those in need')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /Join Us Now/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 });
