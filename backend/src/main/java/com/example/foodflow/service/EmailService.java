@@ -1868,8 +1868,8 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         sendSmtpEmail.setSubject(getMessage("email.account_reactivation.subject", locale));
-        sendSmtpEmail.setTextContent(getMessage("email.account_reactivation.text_content", locale));
-        //sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
+        sendSmtpEmail.setTextContent(buildAccountReactivationEmailText(userName, locale));
+        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
         
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
@@ -1878,6 +1878,95 @@ public class EmailService {
             log.error("Failed to send account reactivation email: {}", e.getResponseBody(), e);
             throw e;
         }
+    }
+
+    private String buildAccountReactivationEmailBody(String userName, Locale locale) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
+                    </div>
+
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #065f46; margin: 0; font-size: 14px;">
+                                <strong>%s</strong><br>
+                                %s
+                            </p>
+                        </div>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <p style="text-align: center; margin: 30px 0;">
+                            <a href="%s" style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600;">
+                                %s
+                            </a>
+                        </p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+                    </div>
+
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>%s</p>
+                        <p>%s</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                getMessage("email.account_reactivation.header", locale),
+                getMessage("email.account_reactivation.greeting", locale, userName),
+                getMessage("email.account_reactivation.message", locale),
+                getMessage("email.account_reactivation.meaning_title", locale),
+                getMessage("email.account_reactivation.meaning_message", locale),
+                getMessage("email.account_reactivation.instruction", locale),
+                buildFrontendUrl("/login"),
+                getMessage("email.account_reactivation.button", locale),
+                getMessage("email.account_reactivation.signature", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale)
+            );
+    }
+
+    private String buildAccountReactivationEmailText(String userName, Locale locale) {
+        return """
+            %s
+
+            %s
+
+            %s
+            %s
+
+            %s
+            %s
+
+            %s
+            """.formatted(
+                getMessage("email.account_reactivation.greeting", locale, userName),
+                getMessage("email.account_reactivation.message", locale),
+                getMessage("email.account_reactivation.meaning_title", locale),
+                getMessage("email.account_reactivation.meaning_message", locale),
+                getMessage("email.account_reactivation.instruction", locale),
+                buildFrontendUrl("/login"),
+                getMessage("email.account_reactivation.signature", locale)
+            );
     }
 
     /**
