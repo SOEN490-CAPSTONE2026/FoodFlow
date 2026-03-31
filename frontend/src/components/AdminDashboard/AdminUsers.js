@@ -589,11 +589,37 @@ const AdminUsers = () => {
     control: base => ({
       ...base,
       minHeight: '42px',
+      backgroundColor: '#ffffff',
       border: '1px solid #e5e7eb',
       borderRadius: '6px',
       boxShadow: 'none',
       '&:hover': {
         borderColor: '#d1d5db',
+      },
+    }),
+    valueContainer: base => ({
+      ...base,
+      backgroundColor: '#ffffff',
+      borderRadius: '6px',
+      padding: '2px 10px',
+    }),
+    singleValue: base => ({
+      ...base,
+      color: '#374151',
+    }),
+    placeholder: base => ({
+      ...base,
+      color: '#6b7280',
+    }),
+    indicatorSeparator: base => ({
+      ...base,
+      backgroundColor: '#e5e7eb',
+    }),
+    dropdownIndicator: (base, state) => ({
+      ...base,
+      color: state.isFocused ? '#374151' : '#6b7280',
+      '&:hover': {
+        color: '#374151',
       },
     }),
     option: (base, state) => ({
@@ -608,8 +634,22 @@ const AdminUsers = () => {
     }),
     menu: base => ({
       ...base,
+      overflow: 'hidden',
       borderRadius: '6px',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e5e7eb',
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      zIndex: 30,
+    }),
+    menuList: base => ({
+      ...base,
+      padding: '6px',
+      backgroundColor: '#ffffff',
+      borderRadius: '6px',
+    }),
+    menuPortal: base => ({
+      ...base,
+      zIndex: 9999,
     }),
   };
 
@@ -692,6 +732,7 @@ const AdminUsers = () => {
               options={roleOptions}
               styles={selectStyles}
               className="filter-select-react"
+              menuPortalTarget={document.body}
               placeholder={t('adminUsers.filters.allRoles')}
               isSearchable={false}
             />
@@ -702,6 +743,7 @@ const AdminUsers = () => {
               options={statusOptions}
               styles={selectStyles}
               className="filter-select-react"
+              menuPortalTarget={document.body}
               placeholder={t('adminUsers.filters.allStatus')}
               isSearchable={false}
             />
