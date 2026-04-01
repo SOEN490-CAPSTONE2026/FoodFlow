@@ -2,6 +2,7 @@ package com.example.foodflow.model.dto;
 
 public class DeactivateUserRequest {
     private String adminNotes;
+    private boolean deleteRequested;
 
     public DeactivateUserRequest() {}
 
@@ -15,5 +16,13 @@ public class DeactivateUserRequest {
 
     public void setAdminNotes(String adminNotes) {
         this.adminNotes = adminNotes;
+    }
+
+    public boolean isDeleteRequested() {
+        return deleteRequested;
+    }
+
+    public void setDeleteRequested(boolean deleteRequested) {
+        this.deleteRequested = deleteRequested;
     }
 }
