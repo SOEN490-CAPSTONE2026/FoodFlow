@@ -13,12 +13,10 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import java.util.Locale;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -27,6 +25,7 @@ import java.util.Map;
 public class EmailService {
     
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final String DEFAULT_FRONTEND_URL = "http://localhost:3000";
     
     private final MessageSource messageSource;
     private final UserRepository userRepository;
@@ -41,11 +40,11 @@ public class EmailService {
     @Value("${brevo.from.name}")
     private String fromName;
     
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    @Value("${frontend.url:" + DEFAULT_FRONTEND_URL + "}")
+    private String frontendUrl = DEFAULT_FRONTEND_URL;
 
-    @Value("${email.frontend-url:${frontend.url}}")
-    private String emailFrontendUrl;
+    @Value("${email.frontend-url:${frontend.url:" + DEFAULT_FRONTEND_URL + "}}")
+    private String emailFrontendUrl = DEFAULT_FRONTEND_URL;
 
     // ──────────────────────────────────────────────────────────────
     // Brand constants
@@ -150,7 +149,7 @@ public class EmailService {
         }
 
         if (configuredUrl == null) {
-            throw new IllegalStateException("Frontend URL is not configured");
+            configuredUrl = DEFAULT_FRONTEND_URL;
         }
 
         return configuredUrl.endsWith("/")
@@ -2523,7 +2522,7 @@ public class EmailService {
             + p("A new donation matching your preferences is now available:")
             + detailsCard("Donation", title, "Quantity", quantity, "Why this matches", matchReason)
             + p("Log in to FoodFlow to view details and claim this donation!")
-            + ctaButton("View Donation", frontendUrl + "/receiver/dashboard", COLOR_SUCCESS);
+            + ctaButton("View Donation", buildFrontendUrl("/receiver/dashboard"), COLOR_SUCCESS);
 
         return wrapInBrandedTemplate("&#127869;&#65039; New Donation Available", COLOR_SUCCESS, content, FOOTER_NOTIFICATION);
     }
@@ -2540,7 +2539,7 @@ public class EmailService {
             + p("Great news! Your donation has been claimed:")
             + detailsCard("Donation", title, "Claimed by", receiverName, "Quantity", quantity)
             + p("The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.")
-            + ctaButton("View Claim Details", frontendUrl + "/donor/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Claim Details", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#9989; Your Donation Has Been Claimed!", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
@@ -2557,7 +2556,7 @@ public class EmailService {
             + detailsCard("Donation", title, "Reason", reason)
             + infoBox(COLOR_WARNING, "#fffbeb",
                 "<p style=\"margin:0; font-size:14px; color:#92400e;\">Your donation is now available again for other receivers to claim.</p>")
-            + ctaButton("View Your Donations", frontendUrl + "/donor/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Your Donations", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#8505;&#65039; Claim Canceled", COLOR_WARNING, content, FOOTER_NOTIFICATION);
     }
@@ -2577,8 +2576,8 @@ public class EmailService {
 
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
         String settingsUrl = isDonorReview
-            ? frontendUrl + "/receiver/settings"
-            : frontendUrl + "/donor/settings";
+            ? buildFrontendUrl("/receiver/settings")
+            : buildFrontendUrl("/donor/settings");
 
         String reviewSection = "";
         if (reviewText != null && !reviewText.isEmpty()) {
@@ -2621,7 +2620,7 @@ public class EmailService {
                 + "Your donation has been successfully picked up by " + receiverName + ".</p>")
             + detailsCard("Donation", donationTitle, "Quantity", quantity, "Picked Up By", receiverName)
             + p("Thank you for making a difference in your community! Your donation will help someone in need.")
-            + ctaButton("View Your Dashboard", frontendUrl + "/donor/dashboard", COLOR_SUCCESS);
+            + ctaButton("View Your Dashboard", buildFrontendUrl("/donor/dashboard"), COLOR_SUCCESS);
 
         return wrapInBrandedTemplate("&#10003; Donation Picked Up", COLOR_SUCCESS, content, FOOTER_NOTIFICATION);
     }
@@ -2644,7 +2643,7 @@ public class EmailService {
                 + "&ldquo;" + preview + "&rdquo;"
                 + "</td></tr></table>")
             + p("Log in to FoodFlow to view the full message and reply!")
-            + ctaButton("View Message", frontendUrl + "/donor/messages", COLOR_PRIMARY);
+            + ctaButton("View Message", buildFrontendUrl("/donor/messages"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#128172; New Message Received", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
@@ -2670,7 +2669,7 @@ public class EmailService {
             + "<tr><td style=\"padding:6px 0; font-size:14px; color:#374151;\">&#9989; Earn achievements and points</td></tr>"
             + "</table></td></tr></table>"
             + p("We're excited to have you join our mission to reduce food waste and help those in need!")
-            + ctaButton("Get Started", frontendUrl + "/login", COLOR_SUCCESS);
+            + ctaButton("Get Started", buildFrontendUrl("/login"), COLOR_SUCCESS);
 
         return wrapInBrandedTemplate("&#127881; Welcome to FoodFlow!", COLOR_SUCCESS, content, FOOTER_AUTOMATED);
     }
@@ -2708,7 +2707,7 @@ public class EmailService {
             + "</table>"
             + "<p style=\"margin:12px 0 0 0; font-size:14px; color:#374151;\">You may also re-register with updated information.</p>"
             + "</td></tr></table>"
-            + ctaButton("Re-Register", frontendUrl + "/register", COLOR_PRIMARY);
+            + ctaButton("Re-Register", buildFrontendUrl("/register"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("FoodFlow Registration Update", COLOR_DANGER, content, FOOTER_AUTOMATED);
     }
@@ -2727,7 +2726,7 @@ public class EmailService {
                 + "Your donation from " + donorName + " has been successfully completed. Thank you for helping those in need!</p>")
             + detailsCard("Donation Item", donationTitle, "Quantity Received", quantity, "From", donorName)
             + p("This donation will make a real difference in your community. Your support is deeply appreciated!")
-            + ctaButton("View Your Dashboard", frontendUrl + "/receiver/dashboard", COLOR_INFO);
+            + ctaButton("View Your Dashboard", buildFrontendUrl("/receiver/dashboard"), COLOR_INFO);
 
         return wrapInBrandedTemplate("&#10003; Donation Completed", COLOR_INFO, content, FOOTER_NOTIFICATION);
     }
@@ -2749,7 +2748,7 @@ public class EmailService {
             + infoBox(COLOR_PRIMARY, "#eff6ff",
                 "<p style=\"margin:0; font-size:14px; color:#1e40af;\"><strong>&#128276; Don't forget to bring your pickup code!</strong> "
                 + "You'll need it to confirm the pickup.</p>")
-            + ctaButton("View Pickup Details", frontendUrl + "/receiver/dashboard", COLOR_WARNING);
+            + ctaButton("View Pickup Details", buildFrontendUrl("/receiver/dashboard"), COLOR_WARNING);
 
         return wrapInBrandedTemplate("&#128680; Ready for Pickup!", COLOR_WARNING, content, FOOTER_NOTIFICATION);
     }
@@ -2774,7 +2773,7 @@ public class EmailService {
             + "<tr><td style=\"padding:5px 0 5px 4px; font-size:14px; color:#374151;\">&#8226; If claimed, the receiver will be notified</td></tr>"
             + "<tr><td style=\"padding:5px 0 5px 4px; font-size:14px; color:#374151;\">&#8226; You can create a new donation if food is still available</td></tr>"
             + "</table>"
-            + ctaButton("View Dashboard", frontendUrl + "/donor/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Dashboard", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#128680; Donation Expired", COLOR_DANGER, content, FOOTER_NOTIFICATION);
     }
@@ -2810,7 +2809,7 @@ public class EmailService {
             + "</td></tr></table>"
             + p("<strong>What does this mean?</strong> An administrator has manually updated the status of this donation. "
                 + "This may have been done to resolve an issue, correct an error, or manage the donation lifecycle.")
-            + ctaButton("View Dashboard", frontendUrl + "/" + userType + "/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Dashboard", buildFrontendUrl("/" + userType + "/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#128276; Status Updated by Admin", COLOR_PURPLE, content, FOOTER_NOTIFICATION);
     }
@@ -2841,7 +2840,7 @@ public class EmailService {
                 "<p style=\"margin:0; font-size:14px; color:#065f46;\"><strong>What this means:</strong><br/>"
                 + "You now have full access to your FoodFlow account and can resume using all platform features.</p>")
             + p("You can log in to your account and continue connecting donors with receivers to reduce food waste.")
-            + ctaButton("Log In to Your Account", frontendUrl + "/login", COLOR_SUCCESS)
+            + ctaButton("Log In to Your Account", buildFrontendUrl("/login"), COLOR_SUCCESS)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">"
             + "Welcome back,<br/><strong>The FoodFlow Team</strong></p>";
 
@@ -2866,7 +2865,7 @@ public class EmailService {
                 "<p style=\"margin:0 0 8px 0; font-size:14px; color:#92400e;\"><strong>" + getAdminAlertHeader(normalizedLanguage) + "</strong></p>"
                 + "<div style=\"font-size:14px; color:#92400e; line-height:1.7;\">" + formattedMessage + "</div>")
             + p(getAdminAlertBody(normalizedLanguage))
-            + ctaButton(getAdminAlertCta(normalizedLanguage), frontendUrl + "/login", COLOR_PRIMARY)
+            + ctaButton(getAdminAlertCta(normalizedLanguage), buildFrontendUrl("/login"), COLOR_PRIMARY)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">" 
             + getAdminAlertSignoff(normalizedLanguage) + "<br/><strong>" + getFoodFlowTeamLabel(normalizedLanguage) + "</strong></p>";
 
