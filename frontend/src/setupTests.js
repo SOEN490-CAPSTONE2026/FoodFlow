@@ -796,7 +796,8 @@ i18n.use(initReactI18next).init({
           showingCount_other: 'Showing {{shown}} of {{total}} submissions',
           notAvailable: '—',
           errors: {
-            loadFailed: 'Failed to load referral submissions. Please try again.',
+            loadFailed:
+              'Failed to load referral submissions. Please try again.',
           },
         },
         claimedView: {
