@@ -32,7 +32,7 @@ import EmailVerificationRequired from '../EmailVerificationRequired';
 import AdminApprovalBanner from '../AdminApprovalBanner';
 import { connectToUserQueue, disconnect } from '../../services/socket';
 import BadgeDisplay from '../shared/BadgeDisplay';
-import { profileAPI } from '../../services/api';
+import api, { profileAPI } from '../../services/api';
 
 export default function DonorLayout() {
   const { t } = useTranslation();
@@ -48,6 +48,8 @@ export default function DonorLayout() {
   const [notification, setNotification] = useState(null);
   const [achievementNotification, setAchievementNotification] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const isMessagesPage = location.pathname === '/donor/messages';
 
   const pageTitle = (() => {
     switch (location.pathname) {
@@ -155,6 +157,28 @@ export default function DonorLayout() {
   }, []);
 
   useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get('/conversations');
+        const conversations = Array.isArray(response?.data)
+          ? response.data
+          : [];
+        const totalUnread = conversations.reduce(
+          (sum, conv) => sum + (conv?.unreadCount || 0),
+          0
+        );
+        setUnreadMessagesCount(totalUnread);
+      } catch (err) {
+        console.error('Error fetching unread message count:', err);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     const onDocClick = e => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpen(false);
@@ -182,6 +206,7 @@ export default function DonorLayout() {
           alertType: payload.alertType,
           preferredLanguage: payload.preferredLanguage,
         });
+        setUnreadMessagesCount(prev => prev + 1);
       }
     };
 
@@ -287,7 +312,27 @@ export default function DonorLayout() {
     if (navType === 'POP' && !location.pathname.startsWith('/donor')) {
       navigate('/donor/dashboard', { replace: true });
     }
-  }, [navType, location.pathname, navigate]);
+
+    if (!isMessagesPage) {
+      const refreshUnreadCount = async () => {
+        try {
+          const response = await api.get('/conversations');
+          const conversations = Array.isArray(response?.data)
+            ? response.data
+            : [];
+          const totalUnread = conversations.reduce(
+            (sum, conv) => sum + (conv?.unreadCount || 0),
+            0
+          );
+          setUnreadMessagesCount(totalUnread);
+        } catch (err) {
+          console.error('Error refreshing unread message count:', err);
+        }
+      };
+
+      refreshUnreadCount();
+    }
+  }, [navType, location.pathname, navigate, isMessagesPage]);
 
   const handleLogout = async () => {
     try {
@@ -299,8 +344,6 @@ export default function DonorLayout() {
   };
 
   const isActive = path => location.pathname === path;
-
-  const isMessagesPage = location.pathname === '/donor/messages';
 
   // Close menu when navigating
   useEffect(() => {
@@ -393,7 +436,7 @@ export default function DonorLayout() {
 
           <Link
             to="/donor/messages"
-            className={`donor-nav-link ${isActive('/donor/messages') ? 'active' : ''}`}
+            className={`donor-nav-link donor-nav-link--with-badge ${isActive('/donor/messages') ? 'active' : ''}`}
             data-tour="donor-nav-messages"
             data-tooltip={t('donorLayout.messages')}
           >
@@ -401,6 +444,11 @@ export default function DonorLayout() {
               <Mail size={18} className="lucide" />
             </span>
             {t('donorLayout.messages')}
+            {unreadMessagesCount > 0 && (
+              <span className="donor-nav-count-badge">
+                {unreadMessagesCount}
+              </span>
+            )}
           </Link>
 
           <Link
