@@ -12,6 +12,7 @@ import com.example.foodflow.service.DisputeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@ResourceLock("spring-context-mockmvc")
 class AdminControllerIntegrationTest {
     
     @Autowired
@@ -168,7 +172,7 @@ class AdminControllerIntegrationTest {
         
         when(jwtTokenProvider.getEmailFromToken(anyString())).thenReturn("admin@test.com");
         when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(adminUserService.deactivateUser(eq(2L), eq("Policy violation"), eq(1L)))
+        when(adminUserService.deactivateUser(eq(2L), eq("Policy violation"), eq(1L), eq(false)))
             .thenReturn(testUserResponse);
         
         // When & Then
@@ -189,7 +193,7 @@ class AdminControllerIntegrationTest {
         
         when(jwtTokenProvider.getEmailFromToken(anyString())).thenReturn("admin@test.com");
         when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(adminUserService.deactivateUser(anyLong(), anyString(), anyLong()))
+        when(adminUserService.deactivateUser(anyLong(), anyString(), anyLong(), anyBoolean()))
             .thenThrow(new RuntimeException("Already deactivated"));
         
         // When & Then

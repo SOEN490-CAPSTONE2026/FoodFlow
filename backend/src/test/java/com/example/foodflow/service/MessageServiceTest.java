@@ -8,7 +8,6 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
-import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,10 +76,6 @@ class MessageServiceTest {
         // Setup test conversation
         conversation = new Conversation(sender, recipient);
         conversation.setId(1L);
-
-        // Mock timer
-        Timer.Sample mockSample = mock(Timer.Sample.class);
-        when(businessMetricsService.startTimer()).thenReturn(mockSample);
     }
 
     @Test

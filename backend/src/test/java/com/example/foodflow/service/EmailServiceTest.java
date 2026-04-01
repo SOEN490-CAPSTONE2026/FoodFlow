@@ -40,6 +40,7 @@ class EmailServiceTest {
         ReflectionTestUtils.setField(emailService, "fromEmail", TEST_FROM_EMAIL);
         ReflectionTestUtils.setField(emailService, "fromName", TEST_FROM_NAME);
         ReflectionTestUtils.setField(emailService, "frontendUrl", TEST_FRONTEND_URL);
+        ReflectionTestUtils.setField(emailService, "emailFrontendUrl", TEST_FRONTEND_URL);
     }
 
     @Test
@@ -144,6 +145,7 @@ class EmailServiceTest {
         // Given
         String customFrontendUrl = "https://foodflow.com";
         ReflectionTestUtils.setField(emailService, "frontendUrl", customFrontendUrl);
+        ReflectionTestUtils.setField(emailService, "emailFrontendUrl", customFrontendUrl);
         
         String toEmail = "test@example.com";
         String token = "token-789";
@@ -776,6 +778,7 @@ class EmailServiceTest {
         ReflectionTestUtils.setField(emailService, "fromEmail", newFromEmail);
         ReflectionTestUtils.setField(emailService, "fromName", newFromName);
         ReflectionTestUtils.setField(emailService, "frontendUrl", newFrontendUrl);
+        ReflectionTestUtils.setField(emailService, "emailFrontendUrl", newFrontendUrl);
 
         // Then
         assertEquals(newApiKey, ReflectionTestUtils.getField(emailService, "brevoApiKey"));
