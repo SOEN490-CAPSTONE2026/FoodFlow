@@ -2485,7 +2485,7 @@
     "viewMessageFrom": "View message from {{name}}",
     "closeMessage": "Close message",
     "messageTitle": "Referral Message",
-    "showingCount_one": "Showing {{shown}} of {{total}} submission",
+      "showingCount_one": "Showing {{shown}} of {{total}} submissions",
     "showingCount_other": "Showing {{shown}} of {{total}} submissions",
     "notAvailable": "—",
     "errors": {

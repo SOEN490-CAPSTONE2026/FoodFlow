@@ -425,7 +425,9 @@ describe('AdminUsers', () => {
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.viewDetails')[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('User Details')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.userDetails.title')
+      ).toBeInTheDocument();
       expect(screen.getAllByText('John Donor').length).toBeGreaterThan(0);
     });
   });
@@ -449,8 +451,10 @@ describe('AdminUsers', () => {
     fireEvent.click(screen.getAllByTitle('adminUsers.actions.viewDetails')[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('User Details')).toBeInTheDocument();
-      expect(screen.getByText('Français')).toBeInTheDocument();
+      expect(
+        screen.getByText('adminUsers.userDetails.title')
+      ).toBeInTheDocument();
+      expect(screen.getByText('French')).toBeInTheDocument();
     });
   });
 
@@ -474,3 +478,4 @@ describe('AdminUsers', () => {
     });
   });
 });
+

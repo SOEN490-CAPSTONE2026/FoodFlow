@@ -186,6 +186,7 @@ export default function AdminReferrals() {
 
       <div className="admin-referrals-count">
         {t('adminReferrals.showingCount', {
+          count: filtered.length,
           shown: filtered.length,
           total: referrals.length,
         })}
