@@ -926,7 +926,11 @@
     "verificationQueueDesc": "Revisar y aprobar registros de usuarios pendientes",
     "usersDesc": "Gestionar y supervisar todos los usuarios de la plataforma",
     "impactDesc": "Métricas de impacto ambiental y social de toda la plataforma",
-    "disputesDesc": "Rastrear, revisar y resolver problemas reportados"
+    "disputesDesc": "Rastrear, revisar y resolver problemas reportados",
+    "images": "Im?genes",
+    "imagesDesc": "Modera cargas y administra la biblioteca de im?genes predeterminadas",
+    "referrals": "Referencias",
+    "referralsDesc": "Ver invitaciones comunitarias y sugerencias de negocios enviadas por usuarios"
   },
   "claimedView": {
     "claimed": "Reclamado",
@@ -2135,7 +2139,8 @@
     },
     "status": {
       "active": "Activo",
-      "deactivated": "Desactivado"
+      "deactivated": "Desactivado",
+      "deleted": "Eliminado"
     },
     "actions": {
       "viewDetails": "Ver detalles",
@@ -2207,6 +2212,32 @@
     },
     "errors": {
       "loadFailed": "No se pudieron cargar los usuarios. Inténtalo más tarde."
+    },
+    "userDetails": {
+      "title": "Detalles del usuario",
+      "basicInformation": "Informaci?n b?sica",
+      "id": "ID",
+      "name": "Nombre",
+      "organization": "Organizaci?n",
+      "email": "Correo electr?nico",
+      "phone": "Tel?fono",
+      "preferredLanguage": "Idioma preferido",
+      "licenseDocument": "Documento de licencia",
+      "viewDocument": "Ver documento",
+      "noDocumentUploaded": "No se subi? ning?n documento",
+      "modify": "Modificar",
+      "modifyDocumentTitle": "Subir o reemplazar documento",
+      "registrationNumber": "N?mero de registro",
+      "activityStatistics": "Actividad y estad?sticas",
+      "registrationDate": "Fecha de registro",
+      "lastActive": "?ltima actividad",
+      "totalDonations": "Total de donaciones",
+      "totalClaims": "Total de reclamaciones",
+      "rating": "Calificaci?n",
+      "noRatingsYet": "A?n no hay calificaciones",
+      "reviewsCount": "{{count}} rese?as",
+      "addressInformation": "Informaci?n de direcci?n",
+      "address": "Direcci?n"
     }
   },
   "adminDonations": {
@@ -2257,6 +2288,51 @@
     },
     "errors": {
       "loadFailed": "No se pudieron cargar las donaciones. Inténtalo de nuevo."
+    },
+    "detailsModal": {
+      "title": "Detalles de la donaci?n",
+      "pageTitles": {
+        "basicInfoParticipants": "Informaci?n b?sica y participantes",
+        "timeline": "Cronolog?a",
+        "overrideStatus": "Cambiar estado"
+      },
+      "basicInformation": "Informaci?n b?sica",
+      "participants": "Participantes",
+      "roles": {
+        "donor": "Donante",
+        "receiver": "Receptor"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "T?tulo",
+        "status": "Estado",
+        "flagged": "Marcada",
+        "created": "Creada",
+        "updated": "Actualizada",
+        "name": "Nombre",
+        "email": "Correo electr?nico",
+        "organization": "Organizaci?n",
+        "claimedAt": "Reclamada el"
+      },
+      "values": {
+        "yes": "S?",
+        "no": "No"
+      },
+      "timeline": "Cronolog?a",
+      "actor": "Actor: {{actor}}",
+      "adminOnly": "SOLO ADMIN",
+      "statusChange": "Estado",
+      "noTimeline": "No hay eventos en la cronolog?a.",
+      "overrideStatus": "Cambiar estado",
+      "currentStatus": "Estado actual",
+      "newStatus": "Nuevo estado",
+      "selectNewStatus": "Selecciona un nuevo estado",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Proporciona un motivo para el cambio de estado...",
+      "updating": "Actualizando...",
+      "back": "Atr?s",
+      "next": "Siguiente",
+      "pageOf": "P?gina {{page}} de {{total}}"
     }
   },
   "adminSettings": {
@@ -2514,7 +2590,9 @@
       "body": "Gracias. El equipo de FoodFlow contactará a {{email}} para presentarle la plataforma.",
       "submitAnother": "Enviar otra recomendación"
     },
-    "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+    "errors": {
+      "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
+    }
   },
   "suggestBusiness": {
     "title": "Sugerir un negocio",
@@ -2543,7 +2621,9 @@
       "body": "Gracias por ayudar a hacer crecer la red FoodFlow. Nuestro equipo contactará a {{email}} con más información.",
       "submitAnother": "Enviar otra sugerencia"
     },
-    "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+    "errors": {
+      "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
+    }
   },
   "donorHelp": {
     "hero": {
@@ -2720,6 +2800,90 @@
           "text": "Eso es todo: ya estás listo para empezar a usar FoodFlow como receptor."
         }
       }
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} elemento",
+    "itemsCount_other": "{{count}} elementos",
+    "reasonPrompt": "Motivo (opcional):",
+    "statusOptions": {
+      "pending": "Pendiente",
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "disabled": "Deshabilitada"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "Tipo de alimento",
+      "donor": "Donante",
+      "status": "Estado",
+      "reason": "Motivo",
+      "active": "Activo",
+      "yes": "S?",
+      "no": "No",
+      "none": "-",
+      "generic": "Gen?rico"
+    },
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "disable": "Deshabilitar",
+      "delete": "Eliminar",
+      "add": "Agregar",
+      "deactivate": "Desactivar",
+      "activate": "Activar",
+      "remove": "Quitar"
+    },
+    "uploaded": {
+      "title": "Im?genes subidas",
+      "empty": "No se encontraron cargas para el estado seleccionado.",
+      "alt": "Carga {{id}}"
+    },
+    "library": {
+      "title": "Biblioteca interna de im?genes",
+      "uploadImage": "Subir imagen",
+      "orImageUrl": "O URL de imagen",
+      "selectCategory": "Selecciona una categor?a",
+      "empty": "La biblioteca interna est? vac?a. Agrega tu primera imagen de respaldo.",
+      "alt": "Biblioteca {{id}}"
+    },
+    "errors": {
+      "loadFailed": "No se pudieron cargar los datos de moderaci?n de im?genes.",
+      "selectFoodType": "Selecciona una categor?a de alimento.",
+      "addFailed": "No se pudo agregar la imagen a la biblioteca."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "Todas",
+      "inviteCommunity": "Invitar comunidad",
+      "suggestBusiness": "Sugerir negocio"
+    },
+    "types": {
+      "community": "Comunidad",
+      "business": "Negocio"
+    },
+    "table": {
+      "type": "Tipo",
+      "organization": "Negocio / Organizaci?n",
+      "contactEmail": "Correo de contacto",
+      "contactPhone": "Tel?fono de contacto",
+      "message": "Mensaje",
+      "submittedBy": "Enviado por",
+      "date": "Fecha"
+    },
+    "refresh": "Actualizar",
+    "loading": "Cargando referencias...",
+    "empty": "A?n no hay referencias.",
+    "viewMessage": "Ver mensaje",
+    "viewMessageFrom": "Ver mensaje de {{name}}",
+    "closeMessage": "Cerrar mensaje",
+    "messageTitle": "Mensaje de referencia",
+    "showingCount_one": "Mostrando {{shown}} de {{total}} env?o",
+    "showingCount_other": "Mostrando {{shown}} de {{total}} env?os",
+    "notAvailable": "?",
+    "errors": {
+      "loadFailed": "No se pudieron cargar las referencias. Int?ntalo de nuevo."
     }
   }
 }
