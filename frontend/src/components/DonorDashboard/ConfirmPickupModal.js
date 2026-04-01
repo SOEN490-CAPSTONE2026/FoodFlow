@@ -73,7 +73,7 @@ const ConfirmPickupModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
 
       onClose();
       if (onSuccess) {
-        onSuccess();
+        onSuccess(donationItem.id);
       }
     } catch (err) {
       const errorMessage =
