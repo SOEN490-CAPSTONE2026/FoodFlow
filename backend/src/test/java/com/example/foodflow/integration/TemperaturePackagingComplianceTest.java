@@ -2,6 +2,7 @@ package com.example.foodflow.integration;
 
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
+import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.User;
@@ -30,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration test to verify temperature and packaging type compliance logging.
- * Story: As a donor, I want to log storage temperature and packaging type so that compliance can be verified.
+ * Story: As a donor, I want to log storage temperature and packaging type so
+ * that compliance can be verified.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -54,7 +56,6 @@ class TemperaturePackagingComplianceTest {
 
     private User testDonor;
 
-
     @BeforeEach
     void setUp() {
         // Create organization for the donor
@@ -71,6 +72,7 @@ class TemperaturePackagingComplianceTest {
         testDonor.setEmail("testdonor@compliance.test");
         testDonor.setPassword(passwordEncoder.encode("TestTestSecure123!"));
         testDonor.setRole(UserRole.DONOR);
+        testDonor.setAccountStatus(AccountStatus.ACTIVE);
         testDonor.setOrganization(organization);
         testDonor = userRepository.save(testDonor);
     }
@@ -194,7 +196,6 @@ class TemperaturePackagingComplianceTest {
 
     // Helper methods
 
-
     private CreateSurplusRequest createBaseRequest() {
         CreateSurplusRequest request = new CreateSurplusRequest();
         request.setTitle("Test Donation");
@@ -215,4 +216,3 @@ class TemperaturePackagingComplianceTest {
         return request;
     }
 }
-
