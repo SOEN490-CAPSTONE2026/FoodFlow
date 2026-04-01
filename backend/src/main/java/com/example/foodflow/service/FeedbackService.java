@@ -41,7 +41,7 @@ public class FeedbackService {
     private final AlertService alertService;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
 
     @Value("${app.rating.low-threshold:2.0}")
     private Double lowRatingThreshold;
@@ -54,7 +54,7 @@ public class FeedbackService {
                           @Autowired(required = false) AlertService alertService,
                           @Autowired(required = false) SimpMessagingTemplate messagingTemplate,
                           @Autowired(required = false) NotificationPreferenceService notificationPreferenceService,
-                          @Autowired(required = false) EmailService emailService) {
+                          @Autowired(required = false) EmailNotificationService emailService) {
         this.feedbackRepository = feedbackRepository;
         this.claimRepository = claimRepository;
         this.alertService = alertService;

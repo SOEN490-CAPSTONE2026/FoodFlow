@@ -36,7 +36,7 @@ class SurplusPostSchedulerExpiryNotificationTest {
                 expiryNotificationLogRepository,
                 Mockito.mock(TimelineService.class),
                 new NotificationPreferenceService(new com.fasterxml.jackson.databind.ObjectMapper()),
-                Mockito.mock(EmailService.class),
+                Mockito.mock(EmailNotificationService.class),
                 Mockito.mock(SmsService.class),
                 Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class));
 

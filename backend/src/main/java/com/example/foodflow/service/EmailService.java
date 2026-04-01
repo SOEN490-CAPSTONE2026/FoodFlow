@@ -1,9 +1,6 @@
 package com.example.foodflow.service;
 
-import brevo.ApiClient;
 import brevo.ApiException;
-import brevo.Configuration;
-import brevo.auth.ApiKeyAuth;
 import brevoApi.TransactionalEmailsApi;
 import brevoModel.SendSmtpEmail;
 import brevoModel.SendSmtpEmailSender;
@@ -22,7 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 
 @Service
-public class EmailService {
+public class EmailService implements EmailNotificationService {
     
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private static final String DEFAULT_FRONTEND_URL = "http://localhost:3000";
@@ -30,6 +27,7 @@ public class EmailService {
     private final MessageSource messageSource;
     private final UserRepository userRepository;
     private final BusinessMetricsService businessMetricsService;
+    private final TransactionalEmailClientFactory transactionalEmailClientFactory;
     
     @Value("${brevo.api.key}")
     private String brevoApiKey;
@@ -68,10 +66,12 @@ public class EmailService {
     private static final String[] SUPPORTED_LANGUAGES = {"en", "fr", "es", "zh", "ar", "pt"};
     
     public EmailService(MessageSource messageSource, UserRepository userRepository,
-                        BusinessMetricsService businessMetricsService) {
+                        BusinessMetricsService businessMetricsService,
+                        TransactionalEmailClientFactory transactionalEmailClientFactory) {
         this.messageSource = messageSource;
         this.userRepository = userRepository;
         this.businessMetricsService = businessMetricsService;
+        this.transactionalEmailClientFactory = transactionalEmailClientFactory;
     }
 
     private CreateSmtpEmail sendEmailTracked(TransactionalEmailsApi api, SendSmtpEmail email) throws ApiException {
@@ -162,6 +162,11 @@ public class EmailService {
         String normalizedPath = path.startsWith("/") ? path : "/" + path;
         return baseUrl + normalizedPath;
     }
+
+    private TransactionalEmailsApi createTransactionalEmailsApi() {
+        return transactionalEmailClientFactory.create(brevoApiKey);
+    }
+
     /**
      * Send an email verification link to new users
      * @param toEmail recipient email address
@@ -173,12 +178,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         
-        // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -217,12 +217,7 @@ public class EmailService {
 
         Locale locale = getUserLocale(toEmail);
         
-        // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -259,11 +254,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -294,11 +285,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -327,11 +314,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -362,11 +345,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -397,11 +376,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -911,11 +886,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -947,11 +918,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -991,11 +958,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1322,11 +1285,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1430,11 +1389,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1539,11 +1494,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
 
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
@@ -1653,11 +1604,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
 
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
@@ -1780,11 +1727,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1873,11 +1816,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1998,11 +1937,7 @@ public class EmailService {
 
         Locale locale = getUserLocale(toEmail);
 
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
 
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -2140,11 +2075,7 @@ public class EmailService {
         String language = normalizeSupportedLanguage(languagePreference);
 
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
 
             SendSmtpEmailSender sender = new SendSmtpEmailSender();

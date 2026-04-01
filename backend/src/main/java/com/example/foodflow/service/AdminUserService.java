@@ -52,7 +52,7 @@ public class AdminUserService {
     private final ClaimRepository claimRepository;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final AuditLogger auditLogger;
@@ -64,7 +64,7 @@ public class AdminUserService {
             ClaimRepository claimRepository,
             org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             AuditLogger auditLogger,

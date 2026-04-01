@@ -57,7 +57,7 @@ class SurplusPostSchedulerServiceTest {
     private NotificationPreferenceService notificationPreferenceService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private SmsService smsService;

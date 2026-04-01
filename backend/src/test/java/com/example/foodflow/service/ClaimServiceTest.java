@@ -60,7 +60,7 @@ class ClaimServiceTest {
     private TimelineService timelineService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private GamificationService gamificationService;

@@ -66,7 +66,7 @@ class SurplusExpiryLogicTest {
                 Mockito.mock(GamificationService.class),
                 Mockito.mock(ClaimService.class),
                 Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class),
-                Mockito.mock(EmailService.class),
+                Mockito.mock(EmailNotificationService.class),
                 Mockito.mock(NotificationPreferenceService.class),
                 Mockito.mock(FoodTypeImpactService.class),
                 Mockito.mock(ImpactCalculationService.class),

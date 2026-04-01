@@ -47,7 +47,7 @@ public class ClaimService {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
     private final TimelineService timelineService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final GamificationService gamificationService;
     private final SmsService smsService;
     private final CalendarEventService calendarEventService;
@@ -66,7 +66,7 @@ public class ClaimService {
                        SimpMessagingTemplate messagingTemplate,
                        NotificationPreferenceService notificationPreferenceService,
                        TimelineService timelineService,
-                       EmailService emailService,
+                       EmailNotificationService emailService,
                        GamificationService gamificationService,
                        SmsService smsService,
                        CalendarEventService calendarEventService,

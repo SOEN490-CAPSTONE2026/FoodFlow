@@ -93,7 +93,7 @@ class SurplusServiceTest {
     private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private NotificationPreferenceService notificationPreferenceService;

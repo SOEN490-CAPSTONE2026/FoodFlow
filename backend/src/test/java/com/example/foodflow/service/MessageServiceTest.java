@@ -50,7 +50,7 @@ class MessageServiceTest {
     private NotificationPreferenceService notificationPreferenceService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private GamificationService gamificationService;
@@ -494,4 +494,3 @@ class MessageServiceTest {
         verify(notificationPreferenceService, times(2)).shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), anyString());
     }
 }
-

@@ -36,13 +36,13 @@ public class AdminVerificationService {
     private static final Logger log = LoggerFactory.getLogger(AdminVerificationService.class);
 
     private final UserRepository userRepository;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final EmailVerificationTokenRepository verificationTokenRepository;
     private final NotificationPreferenceService notificationPreferenceService;
     private final SimpMessagingTemplate messagingTemplate;
 
     public AdminVerificationService(UserRepository userRepository,
-                                   EmailService emailService,
+                                   EmailNotificationService emailService,
                                    EmailVerificationTokenRepository verificationTokenRepository,
                                    NotificationPreferenceService notificationPreferenceService,
                                    SimpMessagingTemplate messagingTemplate) {

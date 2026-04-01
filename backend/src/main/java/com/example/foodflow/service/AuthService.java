@@ -44,7 +44,7 @@ public class AuthService {
     private final OrganizationRepository organizationRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final EmailVerificationTokenRepository verificationTokenRepository;
     private final PasswordValidator passwordValidator;
 
@@ -81,7 +81,7 @@ public class AuthService {
                     JwtTokenProvider jwtTokenProvider,
                     MetricsService metricsService,
                     ObjectMapper objectMapper,
-                    EmailService emailService,
+                    EmailNotificationService emailService,
                     EmailVerificationTokenRepository verificationTokenRepository,
                     PasswordValidator passwordValidator) {
         this.userRepository = userRepository;

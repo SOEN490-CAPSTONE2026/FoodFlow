@@ -96,7 +96,7 @@ public class SurplusService {
     private final GamificationService gamificationService;
     private final ClaimService claimService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final FoodTypeImpactService foodTypeImpactService;
     private final ImpactCalculationService impactCalculationService;
@@ -135,7 +135,7 @@ public class SurplusService {
             GamificationService gamificationService,
             ClaimService claimService,
             SimpMessagingTemplate messagingTemplate,
-            EmailService emailService,
+            EmailNotificationService emailService,
             NotificationPreferenceService notificationPreferenceService,
             FoodTypeImpactService foodTypeImpactService,
             ImpactCalculationService impactCalculationService,
