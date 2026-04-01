@@ -954,7 +954,11 @@
     "verificationQueueDesc": "Review and approve pending user registrations",
     "usersDesc": "Manage and monitor all platform users",
     "impactDesc": "Platform-wide environmental and social impact metrics",
-    "disputesDesc": "Track, review, and resolve reported issues"
+    "disputesDesc": "Track, review, and resolve reported issues",
+    "images": "Images",
+    "imagesDesc": "Moderate uploads and manage default library images",
+    "referrals": "Referral Submissions",
+    "referralsDesc": "View community invitations and business suggestions from users"
   },
   "claimedView": {
     "claimed": "Claimed",
@@ -2229,6 +2233,32 @@
         "on": "on"
       }
     },
+    "userDetails": {
+      "title": "User Details",
+      "basicInformation": "Basic Information",
+      "id": "ID",
+      "name": "Name",
+      "organization": "Organization",
+      "email": "Email",
+      "phone": "Phone",
+      "preferredLanguage": "Preferred Language",
+      "licenseDocument": "License Document",
+      "viewDocument": "View Document",
+      "noDocumentUploaded": "No document uploaded",
+      "modify": "Modify",
+      "modifyDocumentTitle": "Upload or replace document",
+      "registrationNumber": "Registration Number",
+      "activityStatistics": "Activity & Statistics",
+      "registrationDate": "Registration Date",
+      "lastActive": "Last Active",
+      "totalDonations": "Total Donations",
+      "totalClaims": "Total Claims",
+      "rating": "Rating",
+      "noRatingsYet": "No ratings yet",
+      "reviewsCount": "{{count}} reviews",
+      "addressInformation": "Address Information",
+      "address": "Address"
+    },
     "modals": {
       "deactivate": {
         "title": "Deactivate User:",
@@ -2329,8 +2359,137 @@
       "clickToLoadFeedback": "Click to expand and load feedback...",
       "noFeedback": "No feedback has been provided yet for this donation."
     },
+    "detailsModal": {
+      "title": "Donation Details",
+      "pageTitles": {
+        "basicInfoParticipants": "Basic Info & Participants",
+        "timeline": "Timeline",
+        "overrideStatus": "Override Status"
+      },
+      "basicInformation": "Basic Information",
+      "participants": "Participants",
+      "roles": {
+        "donor": "Donor",
+        "receiver": "Receiver"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "Title",
+        "status": "Status",
+        "flagged": "Flagged",
+        "created": "Created",
+        "updated": "Updated",
+        "name": "Name",
+        "email": "Email",
+        "organization": "Organization",
+        "claimedAt": "Claimed At"
+      },
+      "values": {
+        "yes": "Yes",
+        "no": "No"
+      },
+      "timeline": "Timeline",
+      "actor": "Actor: {{actor}}",
+      "adminOnly": "ADMIN ONLY",
+      "statusChange": "Status",
+      "noTimeline": "No timeline events available.",
+      "overrideStatus": "Override Status",
+      "currentStatus": "Current Status",
+      "newStatus": "New Status",
+      "selectNewStatus": "Select new status",
+      "reason": "Reason",
+      "reasonPlaceholder": "Provide a reason for the status override...",
+      "updating": "Updating...",
+      "back": "Back",
+      "next": "Next",
+      "pageOf": "Page {{page}} of {{total}}"
+    },
     "errors": {
       "loadFailed": "Failed to load donations. Please try again."
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "reasonPrompt": "Reason (optional):",
+    "statusOptions": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "disabled": "Disabled"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "Food Type",
+      "donor": "Donor",
+      "status": "Status",
+      "reason": "Reason",
+      "active": "Active",
+      "yes": "Yes",
+      "no": "No",
+      "none": "-",
+      "generic": "Generic"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "disable": "Disable",
+      "delete": "Delete",
+      "add": "Add",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "remove": "Remove"
+    },
+    "uploaded": {
+      "title": "Uploaded Images",
+      "empty": "No uploads found for the selected status.",
+      "alt": "Upload {{id}}"
+    },
+    "library": {
+      "title": "Internal Image Library",
+      "uploadImage": "Upload image",
+      "orImageUrl": "Or image URL",
+      "selectCategory": "Select a category",
+      "empty": "Internal library is empty. Add your first fallback image.",
+      "alt": "Library {{id}}"
+    },
+    "errors": {
+      "loadFailed": "Failed to load image moderation data.",
+      "selectFoodType": "Please select a food type category.",
+      "addFailed": "Failed to add library image."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "All",
+      "inviteCommunity": "Invite Community",
+      "suggestBusiness": "Suggest Business"
+    },
+    "types": {
+      "community": "Community",
+      "business": "Business"
+    },
+    "table": {
+      "type": "Type",
+      "organization": "Business / Organization",
+      "contactEmail": "Contact Email",
+      "contactPhone": "Contact Phone",
+      "message": "Message",
+      "submittedBy": "Submitted By",
+      "date": "Date"
+    },
+    "refresh": "Refresh",
+    "loading": "Loading referral submissions...",
+    "empty": "No referral submissions yet.",
+    "viewMessage": "View message",
+    "viewMessageFrom": "View message from {{name}}",
+    "closeMessage": "Close message",
+    "messageTitle": "Referral Message",
+    "showingCount_one": "Showing {{shown}} of {{total}} submission",
+    "showingCount_other": "Showing {{shown}} of {{total}} submissions",
+    "notAvailable": "—",
+    "errors": {
+      "loadFailed": "Failed to load referral submissions. Please try again."
     }
   },
   "adminSettings": {
