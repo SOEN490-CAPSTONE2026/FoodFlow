@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import BadgeDisplay from '../BadgeDisplay';
 import * as gamificationHook from '../../../hooks/useGamification';
@@ -103,6 +103,8 @@ describe('BadgeDisplay', () => {
       </BrowserRouter>
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /achievements/i }));
+
     await waitFor(() => {
       expect(screen.getByText('150')).toBeInTheDocument();
       expect(screen.getByText('Achievements')).toBeInTheDocument();
@@ -139,6 +141,8 @@ describe('BadgeDisplay', () => {
       </BrowserRouter>
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /achievements/i }));
+
     await waitFor(() => {
       expect(screen.getByText('50')).toBeInTheDocument();
       expect(screen.getByText('0 / 1')).toBeInTheDocument();
@@ -174,6 +178,8 @@ describe('BadgeDisplay', () => {
       </BrowserRouter>
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /achievements/i }));
+
     await waitFor(() => {
       expect(screen.getByText('View All Achievements')).toBeInTheDocument();
     });
@@ -208,8 +214,10 @@ describe('BadgeDisplay', () => {
       </BrowserRouter>
     );
 
-    const viewAllButton = screen.getByText('View All Achievements');
-    viewAllButton.click();
+    fireEvent.click(screen.getByRole('button', { name: /achievements/i }));
+
+    const viewAllButton = await screen.findByText('View All Achievements');
+    fireEvent.click(viewAllButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('/donor/achievements');
   });
