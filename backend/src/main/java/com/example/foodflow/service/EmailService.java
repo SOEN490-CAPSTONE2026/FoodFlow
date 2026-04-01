@@ -1974,6 +1974,140 @@ public class EmailService {
     }
 
     /**
+     * Send account deletion notification email
+     */
+    public void sendAccountDeletionEmail(String toEmail, String userName, String reason) throws ApiException {
+        log.info("Sending account deletion email to: {}", toEmail);
+
+        Locale locale = getUserLocale(toEmail);
+
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(brevoApiKey);
+
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        sendSmtpEmail.setSubject(getMessage("email.account_deletion.subject", locale));
+        sendSmtpEmail.setTextContent(buildAccountDeletionEmailText(userName, reason, locale));
+        sendSmtpEmail.setHtmlContent(buildAccountDeletionEmailBody(userName, reason, locale));
+
+        try {
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
+            log.info("Account deletion email sent successfully. Message ID: {}", result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send account deletion email: {}", e.getResponseBody(), e);
+            throw e;
+        }
+    }
+
+    private String buildAccountDeletionEmailBody(String userName, String reason, Locale locale) {
+        String resolvedReason = (reason != null && !reason.isBlank())
+                ? reason
+                : getMessage("email.account_deletion.default_reason", locale);
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #dc2626 0%%, #991b1b 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
+                    </div>
+
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #991b1b; margin: 0; font-size: 14px;">
+                                <strong>%s</strong><br>
+                                %s
+                            </p>
+                        </div>
+
+                        <div style="background-color: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #9a3412; margin: 0; font-size: 14px;">
+                                <strong>%s</strong><br>
+                                %s
+                            </p>
+                        </div>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+                    </div>
+
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>%s</p>
+                        <p>%s</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                getMessage("email.account_deletion.header", locale),
+                getMessage("email.account_deletion.greeting", locale, userName),
+                getMessage("email.account_deletion.message", locale),
+                getMessage("email.account_deletion.reason_title", locale),
+                resolvedReason,
+                getMessage("email.account_deletion.meaning_title", locale),
+                getMessage("email.account_deletion.meaning_message", locale),
+                getMessage("email.account_deletion.support", locale),
+                getMessage("email.account_deletion.signature", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale)
+            );
+    }
+
+    private String buildAccountDeletionEmailText(String userName, String reason, Locale locale) {
+        String resolvedReason = (reason != null && !reason.isBlank())
+                ? reason
+                : getMessage("email.account_deletion.default_reason", locale);
+
+        return """
+            %s
+
+            %s
+
+            %s
+            %s
+
+            %s
+            %s
+
+            %s
+            """.formatted(
+                getMessage("email.account_deletion.greeting", locale, userName),
+                getMessage("email.account_deletion.message", locale),
+                getMessage("email.account_deletion.reason_title", locale),
+                resolvedReason,
+                getMessage("email.account_deletion.meaning_title", locale),
+                getMessage("email.account_deletion.meaning_message", locale),
+                getMessage("email.account_deletion.support", locale)
+            );
+    }
+
+    /**
      * Send an admin alert email to a user
      * @param toEmail recipient email address
      * @param userName user's display name
