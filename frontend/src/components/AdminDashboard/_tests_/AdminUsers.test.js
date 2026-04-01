@@ -124,6 +124,13 @@ describe('AdminUsers', () => {
       expect(screen.getByText('John Donor')).toBeInTheDocument();
       expect(screen.getByText('Jane Receiver')).toBeInTheDocument();
     });
+
+    expect(axios.get).toHaveBeenCalledWith(
+      expect.stringContaining('/admin/users'),
+      expect.objectContaining({
+        params: expect.objectContaining({ accountStatus: 'ACTIVE' }),
+      })
+    );
   });
 
   test('filters users by search term', async () => {
@@ -205,7 +212,11 @@ describe('AdminUsers', () => {
       expect(axios.get).toHaveBeenLastCalledWith(
         expect.stringContaining('/admin/users'),
         expect.objectContaining({
-          params: expect.objectContaining({ page: 0, size: 20 }),
+          params: expect.objectContaining({
+            page: 0,
+            size: 20,
+            accountStatus: 'ACTIVE',
+          }),
         })
       );
     });
@@ -432,7 +443,7 @@ describe('AdminUsers', () => {
     });
   });
 
-  test('shows preferred language in user detail modal', async () => {
+  test('user detail modal no longer shows preferred language', async () => {
     const detailResponse = {
       ...mockUsers[0],
       languagePreference: 'fr',
@@ -454,8 +465,73 @@ describe('AdminUsers', () => {
       expect(
         screen.getByText('adminUsers.userDetails.title')
       ).toBeInTheDocument();
-      expect(screen.getByText('French')).toBeInTheDocument();
+      expect(
+        screen.queryByText('adminUsers.userDetails.preferredLanguage')
+      ).not.toBeInTheDocument();
     });
+  });
+
+  test('user detail modal hides removed personal-information fields', async () => {
+    const detailResponse = {
+      ...mockUsers[0],
+      languagePreference: 'fr',
+      supportingDocumentUrl: 'http://localhost:8080/document.pdf',
+      businessLicense: '487474',
+      address: '123 Test Street',
+      lastActive: '2026-03-13T00:00:00Z',
+    };
+
+    axios.get.mockImplementation(url => {
+      if (url.includes('/admin/users/1')) {
+        return Promise.resolve({ data: detailResponse });
+      }
+      return Promise.resolve(mockResponse);
+    });
+
+    render(<AdminUsers />);
+    await screen.findByText('John Donor');
+
+    fireEvent.click(screen.getAllByTitle('adminUsers.actions.viewDetails')[0]);
+
+    await screen.findByText('adminUsers.userDetails.title');
+
+    expect(
+      screen.queryByText('adminUsers.userDetails.name')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.organization')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.email')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.phone')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.preferredLanguage')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.licenseDocument')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.registrationNumber')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.lastActive')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.totalDonations')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.rating')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('adminUsers.userDetails.addressInformation')
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('adminUsers.userDetails.id')).toBeInTheDocument();
+    expect(
+      screen.getByText('adminUsers.userDetails.registrationDate')
+    ).toBeInTheDocument();
   });
 
   test('shows alert-required notification when sending empty alert', async () => {

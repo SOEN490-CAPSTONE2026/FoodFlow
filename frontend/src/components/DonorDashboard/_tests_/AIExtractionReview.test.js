@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import AIExtractionReview from '../AIExtractionReview';
 import { surplusAPI } from '../../../services/api';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 jest.mock('../../../contexts/TimezoneContext', () => ({
   useTimezone: () => ({
@@ -156,20 +157,27 @@ describe('AIExtractionReview', () => {
   const mockOnSubmitStart = jest.fn();
   const mockOnSubmitError = jest.fn();
 
-  const renderComponent = (props = {}) =>
-    render(
+  const renderComponent = (props = {}) => {
+    const { authValue, ...componentProps } = props;
+
+    return render(
       <MemoryRouter>
-        <AIExtractionReview
-          data={mockData}
-          imageFile={mockImageFile}
-          onReUpload={mockOnReUpload}
-          onCancel={mockOnCancel}
-          onSubmitStart={mockOnSubmitStart}
-          onSubmitError={mockOnSubmitError}
-          {...props}
-        />
+        <AuthContext.Provider
+          value={{ accountStatus: 'ACTIVE', ...(authValue || {}) }}
+        >
+          <AIExtractionReview
+            data={mockData}
+            imageFile={mockImageFile}
+            onReUpload={mockOnReUpload}
+            onCancel={mockOnCancel}
+            onSubmitStart={mockOnSubmitStart}
+            onSubmitError={mockOnSubmitError}
+            {...componentProps}
+          />
+        </AuthContext.Provider>
       </MemoryRouter>
     );
+  };
 
   const completePickupStep = () => {
     fireEvent.change(screen.getByTestId('date-picker-Select date'), {
@@ -297,6 +305,46 @@ describe('AIExtractionReview', () => {
       expect(mockOnSubmitError).toHaveBeenCalled();
       expect(toast.error).toHaveBeenCalledWith('Database connection failed');
     });
+  });
+
+  test('shows approval modal and skips AI donation submission when account is not approved', async () => {
+    renderComponent({
+      authValue: { accountStatus: 'PENDING_ADMIN_APPROVAL' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    completePickupStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Donation' }));
+
+    await waitFor(() => {
+      expect(surplusAPI.create).not.toHaveBeenCalled();
+    });
+
+    expect(
+      screen.getByText('common.approvalRequired.createTitle')
+    ).toBeInTheDocument();
+  });
+
+  test('shows approval modal when AI donation submission is rejected as unapproved', async () => {
+    surplusAPI.create.mockRejectedValue({
+      response: { data: { message: 'Account not approved yet' } },
+    });
+
+    renderComponent();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    completePickupStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Donation' }));
+
+    expect(
+      await screen.findByText('common.approvalRequired.createTitle')
+    ).toBeInTheDocument();
   });
 
   test('navigates to donor list after successful submission', async () => {

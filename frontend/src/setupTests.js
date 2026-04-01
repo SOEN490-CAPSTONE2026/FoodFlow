@@ -137,6 +137,25 @@ i18n.use(initReactI18next).init({
           showPassword: 'Show password',
           time: 'Time',
           location: 'Location',
+          approvalRequired: {
+            badge: 'Approval pending',
+            title: 'Account approval required',
+            message:
+              'Your account is still waiting for FoodFlow admin approval. Please wait until it is approved before continuing.',
+            action: 'Understood',
+            createTitle: 'Account approval required',
+            createMessage:
+              'You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account.',
+            claimTitle: 'Approval required to claim donations',
+            claimMessage:
+              'This action is available once a FoodFlow admin approves your account. Please wait for approval before claiming donations.',
+          },
+        },
+        adminApprovalBanner: {
+          title: 'Account Pending Admin Approval',
+          message:
+            "Your email has been verified! Your account is currently awaiting approval from our admin team. This process typically takes up to 48 hours. You'll receive an email notification once your account is approved.",
+          thankYou: 'Thank you for your patience!',
         },
         landing: {
           home: {

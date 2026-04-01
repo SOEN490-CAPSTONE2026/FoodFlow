@@ -157,6 +157,8 @@ public class AdminUserService {
                 ? buildDeletedAdminNotes(adminNotes)
                 : adminNotes;
 
+        String originalEmail = user.getEmail();
+
         user.setAccountStatus(AccountStatus.DEACTIVATED);
         user.setAdminNotes(storedAdminNotes);
         user.setDeactivatedAt(LocalDateTime.now());
@@ -174,16 +176,23 @@ public class AdminUserService {
                 "User",
                 userId.toString(),
                 null,
-                user.getEmail(),
+                originalEmail,
                 adminNotes));
+
+        User userForNotifications = savedUser;
 
         // Send in-app message with deactivation reason
         userRepository.findById(adminId).ifPresent(adminUser ->
-            sendDeactivationMessage(savedUser, adminUser, adminNotes, deleteRequested)
+            sendDeactivationMessage(userForNotifications, adminUser, adminNotes, deleteRequested)
         );
 
         // Send notifications to user
-        sendAccountStatusNotification(savedUser, deleteRequested ? "deleted" : "deactivated", adminNotes);
+        sendAccountStatusNotification(userForNotifications, deleteRequested ? "deleted" : "deactivated", adminNotes);
+
+        if (deleteRequested) {
+            anonymizeDeletedUser(savedUser);
+            savedUser = userRepository.save(savedUser);
+        }
 
         return convertToAdminUserResponse(savedUser);
     }
@@ -597,6 +606,32 @@ public class AdminUserService {
         return stripped.isEmpty() ? null : stripped;
     }
 
+    private void anonymizeDeletedUser(User user) {
+        user.setEmail(buildDeletedEmail(user.getId()));
+        user.setFullName(null);
+        user.setPhone(null);
+        user.setCountry(null);
+        user.setCity(null);
+        user.setTimezone(null);
+        user.setLanguagePreference("en");
+        user.setProfilePhoto(null);
+
+        if (user.getOrganization() != null) {
+            user.getOrganization().setName("Deleted Organization");
+            user.getOrganization().setContactPerson("Deleted User");
+            user.getOrganization().setPhone("Deleted");
+            user.getOrganization().setAddress("Deleted");
+            user.getOrganization().setBusinessLicense(null);
+            user.getOrganization().setCharityRegistrationNumber(null);
+            user.getOrganization().setSupportingDocumentUrl(null);
+            user.getOrganization().setTimezone(null);
+        }
+    }
+
+    private String buildDeletedEmail(Long userId) {
+        return "deleted-user-" + userId + "@deleted.foodflow.local";
+    }
+
     /**
      * Update a user's supporting document URL
      */
@@ -705,10 +740,19 @@ public class AdminUserService {
         // Include account deactivation events from the audit log
         List<AuditLog> deactivations = auditLogRepository
                 .findByEntityIdAndActionOrderByTimestampDesc(userId.toString(), "DEACTIVATE_USER");
-        for (AuditLog auditEntry : deactivations) {
+        List<AuditLog> deletions = auditLogRepository
+                .findByEntityIdAndActionOrderByTimestampDesc(userId.toString(), "DELETE_USER");
+        List<AuditLog> accountStatusChanges = new ArrayList<>();
+        if (deactivations != null) {
+            accountStatusChanges.addAll(deactivations);
+        }
+        if (deletions != null) {
+            accountStatusChanges.addAll(deletions);
+        }
+        for (AuditLog auditEntry : accountStatusChanges) {
             if (activities.size() >= limit) break;
             activities.add(new UserActivityDTO(
-                    "DEACTIVATE_USER",
+                    auditEntry.getAction(),
                     auditEntry.getTimestamp(),
                     userId,
                     "User",

@@ -255,7 +255,22 @@
     "time": "Hora",
     "retry": "Tentar novamente",
     "less": "Menos",
-    "more": "Mais"
+    "more": "Mais",
+    "approvalRequired": {
+      "badge": "Aprovação pendente",
+      "title": "Aprovação da conta necessária",
+      "message": "Sua conta ainda está aguardando a aprovação do administrador do FoodFlow. Aguarde a aprovação antes de continuar.",
+      "action": "Entendi",
+      "createTitle": "Aprovação da conta necessária",
+      "createMessage": "Você pode preparar os detalhes da doação, mas a publicação continuará bloqueada até que um administrador do FoodFlow aprove sua conta.",
+      "claimTitle": "Aprovação necessária para solicitar doações",
+      "claimMessage": "Esta ação estará disponível quando um administrador do FoodFlow aprovar sua conta. Aguarde a aprovação antes de solicitar doações."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "Conta pendente de aprovação do administrador",
+    "message": "Seu e-mail foi verificado! Sua conta está aguardando aprovação da nossa equipe administrativa. Esse processo normalmente leva até 48 horas. Você receberá uma notificação por e-mail assim que sua conta for aprovada.",
+    "thankYou": "Obrigado pela sua paciência!"
   },
   "validation": {
     "required": "Este campo é obrigatório",
@@ -2270,6 +2285,7 @@
         "CLAIM": "Solicitou {{item}}",
         "VERIFICATION": "Verificação concluída",
         "DEACTIVATE_USER": "Conta desativada",
+        "DELETE_USER": "Conta excluída: {{item}}",
         "quantityOf": "{{quantity}} de {{title}}",
         "noActivity": "Sem atividade recente",
         "on": "em"

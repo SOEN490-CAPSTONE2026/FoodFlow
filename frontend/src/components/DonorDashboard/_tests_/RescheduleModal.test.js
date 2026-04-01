@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import RescheduleModal from '../RescheduleModal';
 import { surplusAPI } from '../../../services/api';
 import { useTimezone } from '../../../contexts/TimezoneContext';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 // Mock dependencies
 jest.mock('../../../services/api');
@@ -853,6 +854,84 @@ describe('RescheduleModal', () => {
           screen.getByText('Failed to reschedule donation.')
         ).toBeInTheDocument();
       });
+    });
+
+    it('should show approval modal and skip reschedule when account is not approved', async () => {
+      render(
+        <AuthContext.Provider
+          value={{ accountStatus: 'PENDING_ADMIN_APPROVAL' }}
+        >
+          <RescheduleModal
+            isOpen={true}
+            onClose={mockOnClose}
+            donationItem={mockDonationItem}
+            onSuccess={mockOnSuccess}
+          />
+        </AuthContext.Provider>
+      );
+
+      const dateInput = screen.getByPlaceholderText('Select date');
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
+      const startTimeInput = screen.getByPlaceholderText('Start');
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
+      const endTimeInput = screen.getByPlaceholderText('End');
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
+      fireEvent.click(screen.getByText('Create New Donation'));
+
+      expect(surplusAPI.create).not.toHaveBeenCalled();
+      expect(
+        await screen.findByText('Account approval required')
+      ).toBeInTheDocument();
+    });
+
+    it('should show approval modal when reschedule is rejected as unapproved', async () => {
+      surplusAPI.create.mockRejectedValue({
+        response: { data: { message: 'Account not approved yet' } },
+      });
+
+      render(
+        <AuthContext.Provider value={{ accountStatus: 'ACTIVE' }}>
+          <RescheduleModal
+            isOpen={true}
+            onClose={mockOnClose}
+            donationItem={mockDonationItem}
+            onSuccess={mockOnSuccess}
+          />
+        </AuthContext.Provider>
+      );
+
+      const dateInput = screen.getByPlaceholderText('Select date');
+      fireEvent.change(dateInput, {
+        target: { value: '2025-02-01T00:00:00Z' },
+      });
+
+      const startTimeInput = screen.getByPlaceholderText('Start');
+      fireEvent.change(startTimeInput, {
+        target: { value: '2025-01-27T09:00:00Z' },
+      });
+
+      const endTimeInput = screen.getByPlaceholderText('End');
+      fireEvent.change(endTimeInput, {
+        target: { value: '2025-01-27T17:00:00Z' },
+      });
+
+      fireEvent.click(screen.getByText('Create New Donation'));
+
+      expect(
+        await screen.findByText('Account approval required')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('Account not approved yet')
+      ).not.toBeInTheDocument();
     });
 
     it('should disable buttons while submitting', async () => {

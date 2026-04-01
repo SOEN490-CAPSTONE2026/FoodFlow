@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,13 @@ import {
   packagingTypeOptions,
 } from '../../constants/foodConstants';
 import { computeSuggestedExpiry } from '../../utils/expiryRules';
+import {
+  isApprovedAccount,
+  isApprovalRequiredError,
+} from '../../utils/approvalUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { AuthContext } from '../../contexts/AuthContext';
+import ApprovalRequiredModal from '../ApprovalRequiredModal';
 import './Donor_Styles/AIDonation.css';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -33,11 +39,14 @@ export default function AIExtractionReview({
 }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { accountStatus } = useContext(AuthContext) || {};
   const { userTimezone } = useTimezone();
   const autocompleteRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expiryTouched, setExpiryTouched] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [showApprovalRequiredModal, setShowApprovalRequiredModal] =
+    useState(false);
 
   // Parse AI-extracted data into form state
   const [formData, setFormData] = useState({
@@ -402,6 +411,11 @@ export default function AIExtractionReview({
       return;
     }
 
+    if (!isApprovedAccount(accountStatus)) {
+      setShowApprovalRequiredModal(true);
+      return;
+    }
+
     onSubmitStart?.();
     setIsSubmitting(true);
 
@@ -451,6 +465,10 @@ export default function AIExtractionReview({
         navigate('/donor/list');
       }, 1500);
     } catch (err) {
+      if (isApprovalRequiredError(err)) {
+        setShowApprovalRequiredModal(true);
+        return;
+      }
       onSubmitError?.();
       toast.error(err.response?.data?.message || 'Failed to create donation');
     } finally {
@@ -1017,6 +1035,18 @@ export default function AIExtractionReview({
           )}
         </div>
       </form>
+      <ApprovalRequiredModal
+        isOpen={showApprovalRequiredModal}
+        onClose={() => setShowApprovalRequiredModal(false)}
+        title={t(
+          'common.approvalRequired.createTitle',
+          'Account approval required'
+        )}
+        message={t(
+          'common.approvalRequired.createMessage',
+          'You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account.'
+        )}
+      />
     </div>
   );
 }

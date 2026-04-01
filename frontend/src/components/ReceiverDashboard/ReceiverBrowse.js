@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import ga4Service from '../../services/ga4Service';
 import {
@@ -47,7 +47,13 @@ import {
   parseLocalDateTimeParts,
 } from '../../utils/timezoneUtils';
 import { normalizeStatus } from '../../utils/statusUtils';
+import {
+  isApprovedAccount,
+  isApprovalRequiredError,
+} from '../../utils/approvalUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { AuthContext } from '../../contexts/AuthContext';
+import ApprovalRequiredModal from '../ApprovalRequiredModal';
 import FiltersPanel from './FiltersPanel';
 import MapViewModal from './DonationsMap/MapViewModal';
 import './ReceiverBrowseModal.css';
@@ -57,6 +63,7 @@ const libraries = ['places'];
 
 export default function ReceiverBrowse() {
   const { t } = useTranslation();
+  const { accountStatus } = useContext(AuthContext) || {};
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
     libraries: libraries,
@@ -109,6 +116,8 @@ export default function ReceiverBrowse() {
   const [expressingInterest, setExpressingInterest] = useState(null);
   const [focusedDonationId, setFocusedDonationId] = useState(null);
   const [savedNotification, setSavedNotification] = useState('');
+  const [showApprovalRequiredModal, setShowApprovalRequiredModal] =
+    useState(false);
 
   const getRecommendationData = item => {
     // Mock logic to determine if item is recommended
@@ -655,6 +664,12 @@ export default function ReceiverBrowse() {
         setClaimTargetItem(null);
       } catch (error) {
         console.error('Error claiming post:', error);
+        if (isApprovalRequiredError(error)) {
+          setClaimModalOpen(false);
+          setClaimTargetItem(null);
+          setShowApprovalRequiredModal(true);
+          return;
+        }
         alert(
           error.response?.data?.message || t('receiverBrowse.failedToClaim')
         );
@@ -667,6 +682,11 @@ export default function ReceiverBrowse() {
 
   const handleClaimDonation = useCallback(
     item => {
+      if (!isApprovedAccount(accountStatus)) {
+        setShowApprovalRequiredModal(true);
+        return;
+      }
+
       if (
         item.pickupSlots &&
         Array.isArray(item.pickupSlots) &&
@@ -693,7 +713,7 @@ export default function ReceiverBrowse() {
 
       confirmClaim(item, legacySlot);
     },
-    [confirmClaim, t]
+    [accountStatus, confirmClaim, t]
   );
 
   const handleExpressInterest = useCallback(
@@ -1589,6 +1609,18 @@ export default function ReceiverBrowse() {
         loading={claiming}
         formatFn={formatPickupTime}
       />
+      <ApprovalRequiredModal
+        isOpen={showApprovalRequiredModal}
+        onClose={() => setShowApprovalRequiredModal(false)}
+        title={t(
+          'common.approvalRequired.claimTitle',
+          'Approval required to claim donations'
+        )}
+        message={t(
+          'common.approvalRequired.claimMessage',
+          'This action is available once a FoodFlow admin approves your account. Please wait for approval before claiming donations.'
+        )}
+      />
     </div>
   );
 }
@@ -1613,9 +1645,14 @@ function ClaimModal({
   return (
     <div className="claim-modal-overlay" role="dialog" aria-modal="true">
       <div className="claim-modal-card">
-        <h3>Choose a pickup slot</h3>
+        <h3>{t('receiverBrowse.choosePickupSlot', 'Choose a pickup slot')}</h3>
         {slots.length === 0 && (
-          <div className="claim-modal-empty">No proposed slots available.</div>
+          <div className="claim-modal-empty">
+            {t(
+              'receiverBrowse.noProposedSlots',
+              'No proposed slots available.'
+            )}
+          </div>
         )}
         <div className="claim-slots-list">
           {slots.map((slot, idx) => {

@@ -255,7 +255,22 @@
     "time": "时间",
     "retry": "重试",
     "less": "更少",
-    "more": "更多"
+    "more": "更多",
+    "approvalRequired": {
+      "badge": "等待审核",
+      "title": "账户需要审核批准",
+      "message": "您的账户仍在等待 FoodFlow 管理员批准。请在获批后再继续。",
+      "action": "知道了",
+      "createTitle": "账户需要审核批准",
+      "createMessage": "您可以先准备捐赠信息，但在 FoodFlow 管理员批准您的账户之前，暂时无法发布捐赠。",
+      "claimTitle": "认领捐赠前需要审核批准",
+      "claimMessage": "只有在 FoodFlow 管理员批准您的账户后，您才能执行此操作。请等待审核通过后再认领捐赠。"
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "账户正在等待管理员批准",
+    "message": "您的电子邮件已验证成功。您的账户目前正在等待我们的管理员团队批准。该流程通常最多需要 48 小时。账户获批后，您将收到电子邮件通知。",
+    "thankYou": "感谢您的耐心等待！"
   },
   "validation": {
     "required": "此字段为必填项",
@@ -2270,6 +2285,7 @@
         "CLAIM": "领取了{{item}}",
         "VERIFICATION": "完成了验证",
         "DEACTIVATE_USER": "账户已停用",
+        "DELETE_USER": "账户已删除：{{item}}",
         "quantityOf": "{{quantity}}的{{title}}",
         "noActivity": "暂无最近活动",
         "on": "于"

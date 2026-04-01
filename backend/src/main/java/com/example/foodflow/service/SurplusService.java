@@ -13,6 +13,7 @@ import com.example.foodflow.model.dto.PickupSlotResponse;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.dto.UploadEvidenceResponse;
 import com.example.foodflow.model.entity.Claim;
+import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -177,6 +178,7 @@ public class SurplusService {
     @Transactional
     @Timed(value = "surplus.service.create", description = "Time taken to create a surplus post")
     public SurplusResponse createSurplusPost(CreateSurplusRequest request, User donor) {
+        ensureAccountApprovedForDonations(donor);
         Timer.Sample sample = businessMetricsService.startTimer();
         SurplusPost post = new SurplusPost();
 
@@ -601,6 +603,12 @@ public class SurplusService {
                 });
 
         return response;
+    }
+
+    private void ensureAccountApprovedForDonations(User donor) {
+        if (donor == null || donor.getAccountStatus() != AccountStatus.ACTIVE) {
+            throw new BusinessException("error.account.not_approved");
+        }
     }
 
     /**

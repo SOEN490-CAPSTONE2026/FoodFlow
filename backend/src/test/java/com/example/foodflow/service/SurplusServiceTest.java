@@ -5,6 +5,7 @@ import com.example.foodflow.model.dto.DonationTimelineDTO;
 import com.example.foodflow.model.dto.PickupSlotRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.DonationTimeline;
+import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -124,6 +125,7 @@ class SurplusServiceTest {
         donor.setId(1L);
         donor.setEmail("donor@test.com");
         donor.setRole(UserRole.DONOR);
+        donor.setAccountStatus(AccountStatus.ACTIVE);
         donor.setOrganization(organization);
 
         // Create test receiver
@@ -131,6 +133,7 @@ class SurplusServiceTest {
         receiver.setId(2L);
         receiver.setEmail("receiver@test.com");
         receiver.setRole(UserRole.RECEIVER);
+        receiver.setAccountStatus(AccountStatus.ACTIVE);
 
         // Create test request with NEW structure
         request = new CreateSurplusRequest();
@@ -207,6 +210,17 @@ class SurplusServiceTest {
 
         verify(pickupSlotValidationService, times(1)).validateSlots(any());
         verify(surplusPostRepository, times(1)).save(any(SurplusPost.class));
+    }
+
+    @Test
+    void testCreateSurplusPost_UnapprovedDonor_ThrowsException() {
+        donor.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+
+        assertThatThrownBy(() -> surplusService.createSurplusPost(request, donor))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.account.not_approved");
+
+        verify(surplusPostRepository, never()).save(any(SurplusPost.class));
     }
 
     @Test

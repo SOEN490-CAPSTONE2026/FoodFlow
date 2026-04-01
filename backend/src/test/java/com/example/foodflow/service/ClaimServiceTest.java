@@ -3,6 +3,7 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
 import com.example.foodflow.model.dto.PickupSlotRequest;
+import com.example.foodflow.model.entity.AccountStatus;
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -82,11 +83,13 @@ class ClaimServiceTest {
         donor.setId(1L);
         donor.setEmail("donor@test.com");
         donor.setRole(UserRole.DONOR);
+        donor.setAccountStatus(AccountStatus.ACTIVE);
 
         receiver = new User();
         receiver.setId(2L);
         receiver.setEmail("receiver@test.com");
         receiver.setRole(UserRole.RECEIVER);
+        receiver.setAccountStatus(AccountStatus.ACTIVE);
 
         surplusPost = new SurplusPost();
         surplusPost.setId(1L);
@@ -138,6 +141,17 @@ class ClaimServiceTest {
         assertThat(response.getId()).isEqualTo(1L);
         verify(claimRepository).save(any(Claim.class));
         verify(surplusPostRepository).save(argThat(post -> post.getStatus() == PostStatus.CLAIMED));
+    }
+
+    @Test
+    void claimSurplusPost_UnapprovedReceiver_ThrowsException() {
+        receiver.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
+
+        assertThatThrownBy(() -> claimService.claimSurplusPost(claimRequest, receiver))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("error.account.not_approved");
+
+        verify(claimRepository, never()).save(any());
     }
 
     @Test

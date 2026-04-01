@@ -7,7 +7,6 @@ import {
   ChevronDown,
   Power,
   Bell,
-  Edit3,
   Search,
   Users,
   Gift,
@@ -17,13 +16,7 @@ import {
   Info,
   User,
   Building2,
-  Phone as PhoneIcon,
-  Mail,
-  FileText,
   Calendar,
-  Clock,
-  Download,
-  Globe,
 } from 'lucide-react';
 import { feedbackAPI } from '../../services/api';
 import './Admin_Styles/AdminUsers.css';
@@ -51,7 +44,7 @@ const AdminUsers = () => {
 
   // Filters
   const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ACTIVE');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
@@ -514,14 +507,6 @@ const AdminUsers = () => {
         }
       );
 
-      console.log('Backend user data:', response.data);
-      console.log('Address:', response.data.address);
-      console.log('BusinessLicense:', response.data.businessLicense);
-      console.log(
-        'CharityRegistrationNumber:',
-        response.data.charityRegistrationNumber
-      );
-
       // Set the detailed user data
       setSelectedUserForView(response.data);
       setShowUserDetailModal(true);
@@ -556,7 +541,7 @@ const AdminUsers = () => {
   // Reset filters
   const handleResetFilters = () => {
     setRoleFilter('');
-    setStatusFilter('');
+    setStatusFilter('ACTIVE');
     setSearchTerm('');
     setCurrentPage(0);
   };
@@ -605,19 +590,6 @@ const AdminUsers = () => {
     ];
     const charCode = name ? name.charCodeAt(0) : 0;
     return colors[charCode % colors.length];
-  };
-
-  // Map language code to display name
-  const getLanguageLabel = code => {
-    const languageMap = {
-      en: 'English',
-      fr: 'French',
-      es: 'Spanish',
-      zh: 'Chinese',
-      ar: 'Arabic',
-      pt: 'Portuguese',
-    };
-    return languageMap[code] || code || 'N/A';
   };
 
   // React Select options
@@ -1420,113 +1392,6 @@ const AdminUsers = () => {
                     </span>
                     <span className="info-value">{selectedUserForView.id}</span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <User size={16} /> {t('adminUsers.userDetails.name')}
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.contactPerson ||
-                        selectedUserForView.fullName ||
-                        t('adminUsers.notAvailable')}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Building2 size={16} />{' '}
-                      {t('adminUsers.userDetails.organization')}
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.organizationName ||
-                        t('adminUsers.notAvailable')}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Mail size={16} /> {t('adminUsers.userDetails.email')}
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.email}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <PhoneIcon size={16} />{' '}
-                      {t('adminUsers.userDetails.phone')}
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.phone ||
-                        t('adminUsers.notAvailable')}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Globe size={16} />{' '}
-                      {t('adminUsers.userDetails.preferredLanguage')}
-                    </span>
-                    <span className="info-value">
-                      {getLanguageLabel(selectedUserForView.languagePreference)}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <FileText size={16} />{' '}
-                      {t('adminUsers.userDetails.licenseDocument')}
-                    </span>
-                    <span className="info-value">
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '10px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        {selectedUserForView.supportingDocumentUrl ||
-                        selectedUserForView.licenseDocument ||
-                        selectedUserForView.businessLicense ||
-                        selectedUserForView.charityRegistrationNumber ? (
-                          <a
-                            href={
-                              selectedUserForView.supportingDocumentUrl ||
-                              selectedUserForView.licenseDocument ||
-                              `${process.env.REACT_APP_API_BASE_URL}/api/files/licenses/${selectedUserForView.businessLicense || selectedUserForView.charityRegistrationNumber}`
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="license-document-link"
-                          >
-                            <Download size={16} />
-                            {t('adminUsers.userDetails.viewDocument')}
-                          </a>
-                        ) : (
-                          t('adminUsers.userDetails.noDocumentUploaded')
-                        )}
-                        <button
-                          className="btn-modify-document"
-                          onClick={() => setShowUploadDocumentModal(true)}
-                          title={t(
-                            'adminUsers.userDetails.modifyDocumentTitle'
-                          )}
-                        >
-                          {Edit3 && (
-                            <Edit3 size={16} style={{ marginRight: '4px' }} />
-                          )}
-                          {t('adminUsers.userDetails.modify')}
-                        </button>
-                      </div>
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <FileText size={16} />{' '}
-                      {t('adminUsers.userDetails.registrationNumber')}
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.businessLicense ||
-                        selectedUserForView.charityRegistrationNumber ||
-                        selectedUserForView.licenseNumber ||
-                        t('adminUsers.notAvailable')}
-                    </span>
-                  </div>
                 </div>
               </div>
 
@@ -1550,76 +1415,8 @@ const AdminUsers = () => {
                         : t('adminUsers.notAvailable')}
                     </span>
                   </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Clock size={16} />{' '}
-                      {t('adminUsers.userDetails.lastActive')}
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.lastActive
-                        ? new Date(
-                            selectedUserForView.lastActive
-                          ).toLocaleDateString()
-                        : t('adminUsers.notAvailable')}
-                    </span>
-                  </div>
-                  {selectedUserForView.role === 'DONOR' && (
-                    <div className="info-item">
-                      <span className="info-label">
-                        <Gift size={16} />{' '}
-                        {t('adminUsers.userDetails.totalDonations')}
-                      </span>
-                      <span className="info-value">
-                        {selectedUserForView.donationCount || 0}
-                      </span>
-                    </div>
-                  )}
-                  {selectedUserForView.role === 'RECEIVER' && (
-                    <div className="info-item">
-                      <span className="info-label">
-                        <Handshake size={16} />{' '}
-                        {t('adminUsers.userDetails.totalClaims')}
-                      </span>
-                      <span className="info-value">
-                        {selectedUserForView.claimCount || 0}
-                      </span>
-                    </div>
-                  )}
-                  <div className="info-item">
-                    <span className="info-label">
-                      {t('adminUsers.userDetails.rating')}
-                    </span>
-                    <span className="info-value">
-                      {userRatings[selectedUserForView.id] !== undefined &&
-                      userRatings[selectedUserForView.id].averageRating
-                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} \u2B50 (${t('adminUsers.userDetails.reviewsCount', { count: userRatings[selectedUserForView.id].totalReviews })})`
-                        : t('adminUsers.userDetails.noRatingsYet')}
-                    </span>
-                  </div>
                 </div>
               </div>
-
-              {/* Address Information Card */}
-              {selectedUserForView.address && (
-                <div className="info-card">
-                  <div className="info-card-header">
-                    <Building2 size={20} />
-                    <h3>{t('adminUsers.userDetails.addressInformation')}</h3>
-                  </div>
-                  <div className="info-grid">
-                    <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-                      <span className="info-label">
-                        {t('adminUsers.userDetails.address')}
-                      </span>
-                      <span className="info-value">
-                        {typeof selectedUserForView.address === 'string'
-                          ? selectedUserForView.address
-                          : `${selectedUserForView.address.street || ''}, ${selectedUserForView.address.city || ''}, ${selectedUserForView.address.province || ''} ${selectedUserForView.address.postalCode || ''}, ${selectedUserForView.address.country || ''}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
