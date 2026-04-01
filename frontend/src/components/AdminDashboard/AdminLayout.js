@@ -152,11 +152,11 @@ export default function AdminLayout() {
       case '/admin/disputes':
         return t('admin.disputes');
       case '/admin/referrals':
-        return 'Referral Submissions';
+        return t('admin.referrals');
       case '/admin/help':
         return t('admin.help');
       case '/admin/images':
-        return 'Images';
+        return t('admin.images');
       default:
         return t('admin.dashboard');
     }
@@ -182,11 +182,11 @@ export default function AdminLayout() {
       case '/admin/disputes':
         return t('admin.disputesDesc');
       case '/admin/referrals':
-        return 'View community invitations and business suggestions from users';
+        return t('admin.referralsDesc');
       case '/admin/help':
         return t('admin.guides');
       case '/admin/images':
-        return 'Moderate uploads and manage default library images';
+        return t('admin.imagesDesc');
       default:
         return t('admin.administration');
     }
@@ -308,12 +308,12 @@ export default function AdminLayout() {
           <Link
             to="/admin/images"
             className={`admin-nav-link ${isActive('/admin/images') ? 'active' : ''}`}
-            data-tooltip="Images"
+            data-tooltip={t('admin.images')}
           >
             <span className="nav-icon" aria-hidden>
               <Image size={18} className="lucide" />
             </span>
-            Images
+            {t('admin.images')}
           </Link>
 
           <Link
@@ -341,12 +341,12 @@ export default function AdminLayout() {
           <Link
             to="/admin/referrals"
             className={`admin-nav-link ${isActive('/admin/referrals') ? 'active' : ''}`}
-            data-tooltip="Referrals"
+            data-tooltip={t('admin.referrals')}
           >
             <span className="nav-icon" aria-hidden>
               <UserPlus size={18} className="lucide" />
             </span>
-            Referrals
+            {t('admin.referrals')}
           </Link>
 
           <Link
