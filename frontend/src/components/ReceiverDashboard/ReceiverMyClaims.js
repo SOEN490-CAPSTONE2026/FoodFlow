@@ -282,7 +282,7 @@ export default function ReceiverMyClaims() {
   // Format pickup time consistently with ReceiverBrowse
   const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
-      return '—';
+      return '--';
     }
     try {
       return (
@@ -291,11 +291,11 @@ export default function ReceiverMyClaims() {
           String(pickupFrom),
           String(pickupTo),
           'en-US'
-        ) || '—'
+        ) || '--'
       );
     } catch (error) {
       console.error('Error formatting pickup time:', error);
-      return '—';
+      return '--';
     }
   };
 
@@ -543,7 +543,7 @@ export default function ReceiverMyClaims() {
                 {rating.totalReviews > 0 ? (
                   <span className="rating-vertical-wrap">
                     <span className="rating-main">
-                      <span className="rating-star">★</span> Your Rating :
+                      <span className="rating-star">?</span> Your Rating :
                       <span className="rating-number">
                         {rating.averageRating.toFixed(1)}
                       </span>
@@ -556,7 +556,7 @@ export default function ReceiverMyClaims() {
                     </span>
                   </span>
                 ) : (
-                  <span className="no-rating">—</span>
+                  <span className="no-rating">--</span>
                 )}
               </div>
             </div>
@@ -662,7 +662,7 @@ export default function ReceiverMyClaims() {
             {
               key: 'quantity-expiry',
               icon: <Package size={16} className="claimed-page detail-icon" />,
-              value: `${quantityValue} \u00b7 Expires ${expiryValue}`,
+              value: `${quantityValue} ? Expires ${expiryValue}`,
               tone: 'quantity',
             },
             {
