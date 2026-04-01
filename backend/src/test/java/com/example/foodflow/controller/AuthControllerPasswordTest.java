@@ -96,14 +96,14 @@ public class AuthControllerPasswordTest {
 
                 when(authService.changePassword(any(User.class), eq("WrongTestSecure123!"),
                                 eq("NewPassword456!"), eq("NewPassword456!")))
-                                .thenThrow(new RuntimeException("Current password is incorrect"));
+                                .thenThrow(new com.example.foodflow.exception.domain.UnauthorizedAccessException("Incorrect current password"));
 
                 mockMvc.perform(post("/api/auth/change-password")
                                 .with(authenticatedUser(mockUser))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value("Current password is incorrect"));
+                                .andExpect(status().isForbidden())
+                                .andExpect(jsonPath("$.message").value("Incorrect current password"));
         }
 
         @Test

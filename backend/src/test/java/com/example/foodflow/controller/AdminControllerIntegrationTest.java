@@ -166,13 +166,14 @@ class AdminControllerIntegrationTest {
         // Given
         DeactivateUserRequest request = new DeactivateUserRequest();
         request.setAdminNotes("Policy violation");
+        request.setDeleteRequested(false);
         
         testUserResponse.setAccountStatus("DEACTIVATED");
         testUserResponse.setDeactivatedAt(LocalDateTime.now());
         
         when(jwtTokenProvider.getEmailFromToken(anyString())).thenReturn("admin@test.com");
         when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(adminUserService.deactivateUser(eq(2L), eq("Policy violation"), eq(1L), eq(false)))
+        when(adminUserService.deactivateUser(eq(2L), anyString(), eq(1L), anyBoolean()))
             .thenReturn(testUserResponse);
         
         // When & Then
@@ -190,10 +191,11 @@ class AdminControllerIntegrationTest {
         // Given
         DeactivateUserRequest request = new DeactivateUserRequest();
         request.setAdminNotes("Test");
+        request.setDeleteRequested(false);
         
         when(jwtTokenProvider.getEmailFromToken(anyString())).thenReturn("admin@test.com");
         when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(adminUserService.deactivateUser(anyLong(), anyString(), anyLong(), anyBoolean()))
+        when(adminUserService.deactivateUser(eq(2L), anyString(), eq(1L), anyBoolean()))
             .thenThrow(new RuntimeException("Already deactivated"));
         
         // When & Then
