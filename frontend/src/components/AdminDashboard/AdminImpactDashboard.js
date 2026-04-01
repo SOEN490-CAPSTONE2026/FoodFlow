@@ -52,7 +52,7 @@ export default function AdminImpactDashboard() {
   const metricLabels = useMemo(
     () => ({
       foodSaved: t('impactDashboard.foodWeight', 'Food Saved'),
-      co2Reduced: t('impactDashboard.co2Avoided', 'CO₂ Reduced'),
+      co2Reduced: t('impactDashboard.co2Avoided', 'CO2 Reduced'),
       mealsDonated: t('impactDashboard.mealsProvided', 'Meals Donated'),
       waterSaved: t('impactDashboard.waterSaved', 'Water Saved'),
       activeDonors: t('impactDashboard.activeDonors', 'Active Donors'),
@@ -279,7 +279,7 @@ export default function AdminImpactDashboard() {
               <div className="metric-icon-wrapper eco">
                 <Leaf size={24} />
               </div>
-              <h3>{t('impactDashboard.co2Avoided', 'CO₂ Reduced')}</h3>
+              <h3>{t('impactDashboard.co2Avoided', 'CO2 Reduced')}</h3>
             </div>
             <div className="metric-content">
               <div className="metric-value-large">
@@ -478,7 +478,7 @@ export default function AdminImpactDashboard() {
               />
               <Bar
                 dataKey="co2Kg"
-                name="CO₂ Saved (kg)"
+                name="CO2 Saved (kg)"
                 fill="#3b82f6"
                 radius={[8, 8, 0, 0]}
               />

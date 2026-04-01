@@ -153,13 +153,13 @@ const AdminDonations = () => {
 
     try {
       console.log(
-        '🔍 Fetching feedback for donation:',
+        '\u{1F50D} Fetching feedback for donation:',
         donation.id,
         'claimId:',
         donation.claimId
       );
       console.log(
-        '🔍 Donation donorId:',
+        '\u{1F50D} Donation donorId:',
         donation.donorId,
         'receiverId:',
         donation.receiverId
@@ -168,14 +168,14 @@ const AdminDonations = () => {
       const feedbackResponse = await feedbackAPI.getFeedbackForClaim(
         donation.claimId
       );
-      console.log('📦 Full response:', feedbackResponse);
+      console.log('\u{1F4E6} Full response:', feedbackResponse);
       const feedbacks = feedbackResponse.data || [];
-      console.log('📦 Received feedbacks array:', feedbacks);
-      console.log('📦 Number of feedbacks:', feedbacks.length);
+      console.log('\u{1F4E6} Received feedbacks array:', feedbacks);
+      console.log('\u{1F4E6} Number of feedbacks:', feedbacks.length);
 
       if (feedbacks.length > 0) {
         feedbacks.forEach((fb, idx) => {
-          console.log(`📦 Feedback ${idx}:`, fb);
+          console.log(`\u{1F4E6} Feedback ${idx}:`, fb);
           console.log(
             `   - reviewerId: ${fb.reviewerId}, revieweeId: ${fb.revieweeId}`
           );
@@ -191,11 +191,11 @@ const AdminDonations = () => {
       );
 
       console.log(
-        '✅ Donor feedback (reviewerId should be donorId):',
+        '\u2705 Donor feedback (reviewerId should be donorId):',
         donorFeedback
       );
       console.log(
-        '✅ Receiver feedback (reviewerId should be receiverId):',
+        '\u2705 Receiver feedback (reviewerId should be receiverId):',
         receiverFeedback
       );
 
@@ -206,13 +206,16 @@ const AdminDonations = () => {
     } catch (err) {
       // 404 means no feedback yet - this is normal, not an error.
       if (err.response?.status === 404) {
-        console.log('ℹ️ No feedback found for claim', donation.claimId);
+        console.log(
+          '\u2139\uFE0F No feedback found for claim',
+          donation.claimId
+        );
         setFeedbackData(prev => ({
           ...prev,
           [donation.id]: { donorFeedback: null, receiverFeedback: null },
         }));
       } else {
-        console.error('❌ Error fetching feedback:', err);
+        console.error('\u274C Error fetching feedback:', err);
       }
     }
   };
@@ -591,7 +594,7 @@ const AdminDonations = () => {
                       </TableCell>
                       <TableCell data-label="Rating">
                         {!donation.claimId ? (
-                          <span className="table-muted">—</span>
+                          <span className="table-muted">--</span>
                         ) : (
                           (() => {
                             const avgRating = getAverageRating(donation);
@@ -605,7 +608,7 @@ const AdminDonations = () => {
                                 <span>{avgRating}</span>
                               </div>
                             ) : (
-                              <span className="table-muted">—</span>
+                              <span className="table-muted">--</span>
                             );
                           })()
                         )}
@@ -632,7 +635,7 @@ const AdminDonations = () => {
                             <Flag color="#ef4444" size={16} />
                           </div>
                         ) : (
-                          <span className="table-muted">—</span>
+                          <span className="table-muted">--</span>
                         )}
                       </TableCell>
                       <TableCell data-label="Created">
@@ -747,7 +750,7 @@ const AdminDonations = () => {
                                       >
                                         <div className="feedback-header">
                                           <div className="feedback-direction">
-                                            Donor {'→'} Receiver
+                                            Donor {'->'} Receiver
                                           </div>
                                           <div className="rating-display">
                                             {[1, 2, 3, 4, 5].map(star => (
@@ -807,7 +810,7 @@ const AdminDonations = () => {
                                       >
                                         <div className="feedback-header">
                                           <div className="feedback-direction">
-                                            Receiver {'→'} Donor
+                                            Receiver {'->'} Donor
                                           </div>
                                           <div className="rating-display">
                                             {[1, 2, 3, 4, 5].map(star => (
@@ -928,7 +931,7 @@ const AdminDonations = () => {
               className="modal-close donation-admin-modal-close"
               onClick={() => setShowDetailModal(false)}
             >
-              ×
+              x
             </button>
 
             <div className="modal-header donation-admin-modal-header">
@@ -1170,7 +1173,7 @@ const AdminDonations = () => {
                                   {event.oldStatus}
                                 </span>
                                 <span className="donation-admin-arrow">
-                                  {'→'}
+                                  {'->'}
                                 </span>
                                 <span className="donation-admin-new-status">
                                   {event.newStatus}

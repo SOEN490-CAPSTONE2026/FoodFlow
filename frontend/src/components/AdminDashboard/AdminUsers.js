@@ -1040,7 +1040,7 @@ const AdminUsers = () => {
                                       });
                                       return (
                                         <li key={index}>
-                                          â€¢ {actionText}{' '}
+                                          &bull; {actionText}{' '}
                                           {t(
                                             'adminUsers.details.activityLog.on'
                                           )}{' '}
@@ -1086,7 +1086,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowDeactivateModal(false)}
             >
-              Ã—
+              x
             </button>
             <h2>{t('adminUsers.modals.deactivate.title')}</h2>
             <p className="alert-user-name">{selectedUser?.email}</p>
@@ -1161,7 +1161,7 @@ const AdminUsers = () => {
             onClick={e => e.stopPropagation()}
           >
             <button className="modal-close" onClick={closeAlertModal}>
-              Ã—
+              x
             </button>
             <h2>{t('adminUsers.modals.alert.title')}</h2>
             <p className="alert-user-name">
@@ -1364,10 +1364,10 @@ const AdminUsers = () => {
             >
               <h3>
                 {notificationType === 'success'
-                  ? 'âœ“ Success'
+                  ? '\u2705 Success'
                   : notificationType === 'error'
-                    ? 'Error'
-                    : 'â„¹ Notice'}
+                    ? '\u274C Error'
+                    : '\u2139\uFE0F Notice'}
               </h3>
             </div>
             <div className="notification-body">
@@ -1399,7 +1399,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowUserDetailModal(false)}
             >
-              Ã—
+              x
             </button>
 
             <div className="modal-header">
@@ -1592,7 +1592,7 @@ const AdminUsers = () => {
                     <span className="info-value">
                       {userRatings[selectedUserForView.id] !== undefined &&
                       userRatings[selectedUserForView.id].averageRating
-                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} â˜… (${t('adminUsers.userDetails.reviewsCount', { count: userRatings[selectedUserForView.id].totalReviews })})`
+                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} \u2B50 (${t('adminUsers.userDetails.reviewsCount', { count: userRatings[selectedUserForView.id].totalReviews })})`
                         : t('adminUsers.userDetails.noRatingsYet')}
                     </span>
                   </div>
@@ -1640,7 +1640,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => closeUploadDocumentModal()}
             >
-              Ã—
+              x
             </button>
             <div className="modal-header">
               <h3>Upload Supporting Document</h3>
