@@ -140,8 +140,26 @@ public class EmailService {
         }
     }
 
+    private String resolveFrontendBaseUrl() {
+        String configuredUrl = null;
+
+        if (emailFrontendUrl != null && !emailFrontendUrl.isBlank()) {
+            configuredUrl = emailFrontendUrl;
+        } else if (frontendUrl != null && !frontendUrl.isBlank()) {
+            configuredUrl = frontendUrl;
+        }
+
+        if (configuredUrl == null) {
+            throw new IllegalStateException("Frontend URL is not configured");
+        }
+
+        return configuredUrl.endsWith("/")
+                ? configuredUrl.substring(0, configuredUrl.length() - 1)
+                : configuredUrl;
+    }
+
     private String buildFrontendUrl(String path) {
-        String baseUrl = emailFrontendUrl.endsWith("/") ? emailFrontendUrl.substring(0, emailFrontendUrl.length() - 1) : emailFrontendUrl;
+        String baseUrl = resolveFrontendBaseUrl();
         String normalizedPath = path.startsWith("/") ? path : "/" + path;
         return baseUrl + normalizedPath;
     }
