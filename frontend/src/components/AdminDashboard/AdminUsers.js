@@ -610,12 +610,12 @@ const AdminUsers = () => {
   // Map language code to display name
   const getLanguageLabel = code => {
     const languageMap = {
-      en: 'ðŸ‡ºðŸ‡¸ English',
-      fr: 'ðŸ‡«ðŸ‡· FranÃ§ais',
-      es: 'ðŸ‡ªðŸ‡¸ EspaÃ±ol',
-      zh: 'ðŸ‡¨ðŸ‡³ ä¸­æ–‡',
-      ar: 'ðŸ‡¸ðŸ‡¦ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©',
-      pt: 'ðŸ‡µðŸ‡¹ PortuguÃªs',
+      en: 'English',
+      fr: 'French',
+      es: 'Spanish',
+      zh: 'Chinese',
+      ar: 'Arabic',
+      pt: 'Portuguese',
     };
     return languageMap[code] || code || 'N/A';
   };
