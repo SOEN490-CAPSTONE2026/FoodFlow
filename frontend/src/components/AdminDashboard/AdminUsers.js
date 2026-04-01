@@ -332,7 +332,7 @@ const AdminUsers = () => {
         localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
       await axios.put(
         `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/deactivate`,
-        { adminNotes: alertMessage.trim() },
+        { adminNotes: alertMessage.trim(), deleteRequested: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -886,11 +886,17 @@ const AdminUsers = () => {
                     </TableCell>
                     <TableCell data-label="Status">
                       <span
-                        className={`pill pill-status-${user.accountStatus.toLowerCase()}`}
+                        className={`pill pill-status-${
+                          user.accountStatus === 'DELETED'
+                            ? 'deactivated'
+                            : user.accountStatus.toLowerCase()
+                        }`}
                       >
                         {user.accountStatus === 'ACTIVE'
                           ? t('adminUsers.status.active')
-                          : t('adminUsers.status.deactivated')}
+                          : user.accountStatus === 'DELETED'
+                            ? t('adminUsers.status.deleted')
+                            : t('adminUsers.status.deactivated')}
                       </span>
                     </TableCell>
                     <TableCell data-label="Email" className="email-cell">
