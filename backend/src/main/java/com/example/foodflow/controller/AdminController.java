@@ -128,7 +128,8 @@ public class AdminController {
             AdminUserResponse deactivatedUser = adminUserService.deactivateUser(
                 userId, 
                 request.getAdminNotes(), 
-                adminId
+                adminId,
+                request.isDeleteRequested()
             );
             
             return ResponseEntity.ok(deactivatedUser);
