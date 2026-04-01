@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 public class AdminUserService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminUserService.class);
+    private static final String DELETED_NOTE_PREFIX = "[DELETED]";
 
     private final UserRepository userRepository;
     private final SurplusPostRepository surplusPostRepository;
@@ -129,6 +130,14 @@ public class AdminUserService {
      */
     @Transactional
     public AdminUserResponse deactivateUser(Long userId, String adminNotes, Long adminId) {
+        return deactivateUser(userId, adminNotes, adminId, false);
+    }
+
+    /**
+     * Deactivate or mark-delete a user account
+     */
+    @Transactional
+    public AdminUserResponse deactivateUser(Long userId, String adminNotes, Long adminId, boolean deleteRequested) {
         log.info("Deactivating user {} by admin {}", userId, adminId);
 
         User user = userRepository.findById(userId)
@@ -144,8 +153,12 @@ public class AdminUserService {
             throw new RuntimeException("User is already deactivated");
         }
 
+        String storedAdminNotes = deleteRequested
+                ? buildDeletedAdminNotes(adminNotes)
+                : adminNotes;
+
         user.setAccountStatus(AccountStatus.DEACTIVATED);
-        user.setAdminNotes(adminNotes);
+        user.setAdminNotes(storedAdminNotes);
         user.setDeactivatedAt(LocalDateTime.now());
         user.setDeactivatedBy(adminId);
 
@@ -157,7 +170,7 @@ public class AdminUserService {
                 .map(User::getEmail).orElse("unknown-admin");
         auditLogger.logAction(new AuditLog(
                 adminEmail,
-                "DEACTIVATE_USER",
+                deleteRequested ? "DELETE_USER" : "DEACTIVATE_USER",
                 "User",
                 userId.toString(),
                 null,
@@ -166,11 +179,11 @@ public class AdminUserService {
 
         // Send in-app message with deactivation reason
         userRepository.findById(adminId).ifPresent(adminUser ->
-            sendDeactivationMessage(savedUser, adminUser, adminNotes)
+            sendDeactivationMessage(savedUser, adminUser, adminNotes, deleteRequested)
         );
 
         // Send notifications to user
-        sendAccountStatusNotification(savedUser, "deactivated", adminNotes);
+        sendAccountStatusNotification(savedUser, deleteRequested ? "deleted" : "deactivated", adminNotes);
 
         return convertToAdminUserResponse(savedUser);
     }
@@ -207,15 +220,17 @@ public class AdminUserService {
     /**
      * Send a persisted in-app message to the user explaining the deactivation reason.
      */
-    private void sendDeactivationMessage(User user, User adminUser, String reason) {
+    private void sendDeactivationMessage(User user, User adminUser, String reason, boolean deleteRequested) {
         try {
             String userName = user.getOrganization() != null
                     ? user.getOrganization().getName()
                     : user.getEmail();
 
             String messageBody = String.format(
-                "Dear %s, your account has been deactivated by one of our admins for: %s",
-                userName, reason != null && !reason.isBlank() ? reason : "policy violation");
+                "Dear %s, your account has been %s by one of our admins for: %s",
+                userName,
+                deleteRequested ? "deleted" : "deactivated",
+                reason != null && !reason.isBlank() ? reason : "policy violation");
 
             Long userId1 = Math.min(adminUser.getId(), user.getId());
             Long userId2 = Math.max(adminUser.getId(), user.getId());
@@ -259,12 +274,17 @@ public class AdminUserService {
                 ? user.getOrganization().getName()
                 : user.getEmail();
 
-        // Send email notification if preference allows
-        if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "email")) {
+        boolean shouldSendEmail = "deleted".equals(action)
+                || notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "email");
+
+        // Account deletion emails are system-critical and should not be skipped by user preferences.
+        if (shouldSendEmail) {
             try {
                 log.info("Sending {} email to user: {} ({})", action, user.getEmail(), userName);
                 if ("deactivated".equals(action)) {
                     emailService.sendAccountDeactivationEmail(user.getEmail(), userName);
+                } else if ("deleted".equals(action)) {
+                    emailService.sendAccountDeletionEmail(user.getEmail(), userName, adminNotes);
                 } else if ("reactivated".equals(action)) {
                     emailService.sendAccountReactivationEmail(user.getEmail(), userName);
                 }
@@ -273,18 +293,21 @@ public class AdminUserService {
                 log.error("Failed to send {} email to {}: {}", action, user.getEmail(), e.getMessage(), e);
             }
         } else {
-            log.info("Email notification skipped for user {} - preference disabled", user.getEmail());
+            log.info("Account {} email skipped for user {} - preference disabled", action, user.getEmail());
         }
 
         // Send WebSocket notification if preference allows
         if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "websocket")) {
             try {
                 Map<String, Object> notification = new HashMap<>();
-                notification.put("type", action.equals("deactivated") ? "ACCOUNT_DEACTIVATED" : "ACCOUNT_REACTIVATED");
+                notification.put("type",
+                        action.equals("reactivated") ? "ACCOUNT_REACTIVATED" : "ACCOUNT_DEACTIVATED");
 
-                if ("deactivated".equals(action)) {
+                if ("deactivated".equals(action) || "deleted".equals(action)) {
                     notification.put("message",
-                            "Your account has been deactivated by an administrator. Please contact support for more information.");
+                            "deleted".equals(action)
+                                    ? "Your account has been deleted by an administrator. Please contact support for more information."
+                                    : "Your account has been deactivated by an administrator. Please contact support for more information.");
                     if (adminNotes != null && !adminNotes.isEmpty()) {
                         notification.put("reason", adminNotes);
                     }
@@ -505,10 +528,10 @@ public class AdminUserService {
         response.setId(user.getId());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().toString());
-        response.setAccountStatus(user.getAccountStatus() != null ? user.getAccountStatus().toString() : "ACTIVE");
+        response.setAccountStatus(resolveDisplayAccountStatus(user));
         response.setCreatedAt(user.getCreatedAt());
         response.setDeactivatedAt(user.getDeactivatedAt());
-        response.setAdminNotes(user.getAdminNotes());
+        response.setAdminNotes(stripDeletedMarker(user.getAdminNotes()));
         response.setLanguagePreference(user.getLanguagePreference());
 
         // Organization details
@@ -541,6 +564,37 @@ public class AdminUserService {
         }
 
         return response;
+    }
+
+    private String resolveDisplayAccountStatus(User user) {
+        if (user.getAccountStatus() == AccountStatus.DEACTIVATED && isDeletedUser(user)) {
+            return "DELETED";
+        }
+        return user.getAccountStatus() != null ? user.getAccountStatus().toString() : "ACTIVE";
+    }
+
+    private boolean isDeletedUser(User user) {
+        return isDeletedAdminNotes(user.getAdminNotes());
+    }
+
+    private boolean isDeletedAdminNotes(String adminNotes) {
+        return adminNotes != null && adminNotes.startsWith(DELETED_NOTE_PREFIX);
+    }
+
+    private String buildDeletedAdminNotes(String adminNotes) {
+        String trimmedNotes = adminNotes != null ? adminNotes.trim() : "";
+        return trimmedNotes.isEmpty()
+                ? DELETED_NOTE_PREFIX
+                : DELETED_NOTE_PREFIX + " " + trimmedNotes;
+    }
+
+    private String stripDeletedMarker(String adminNotes) {
+        if (!isDeletedAdminNotes(adminNotes)) {
+            return adminNotes;
+        }
+
+        String stripped = adminNotes.substring(DELETED_NOTE_PREFIX.length()).trim();
+        return stripped.isEmpty() ? null : stripped;
     }
 
     /**
