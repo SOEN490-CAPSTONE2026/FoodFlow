@@ -1040,7 +1040,7 @@ const AdminUsers = () => {
                                       });
                                       return (
                                         <li key={index}>
-                                          {'\u2022'} {actionText}{' '}
+                                          â€¢ {actionText}{' '}
                                           {t(
                                             'adminUsers.details.activityLog.on'
                                           )}{' '}
@@ -1086,7 +1086,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowDeactivateModal(false)}
             >
-              {'\u00D7'}
+              Ã—
             </button>
             <h2>{t('adminUsers.modals.deactivate.title')}</h2>
             <p className="alert-user-name">{selectedUser?.email}</p>
@@ -1161,7 +1161,7 @@ const AdminUsers = () => {
             onClick={e => e.stopPropagation()}
           >
             <button className="modal-close" onClick={closeAlertModal}>
-              {'\u00D7'}
+              Ã—
             </button>
             <h2>{t('adminUsers.modals.alert.title')}</h2>
             <p className="alert-user-name">
@@ -1364,10 +1364,10 @@ const AdminUsers = () => {
             >
               <h3>
                 {notificationType === 'success'
-                  ? '\u2713 Success'
+                  ? 'âœ“ Success'
                   : notificationType === 'error'
                     ? 'Error'
-                    : '\u2139 Notice'}
+                    : 'â„¹ Notice'}
               </h3>
             </div>
             <div className="notification-body">
@@ -1399,11 +1399,11 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowUserDetailModal(false)}
             >
-              {'\u00D7'}
+              Ã—
             </button>
 
             <div className="modal-header">
-              <h2>User Details</h2>
+              <h2>{t('adminUsers.userDetails.title')}</h2>
             </div>
 
             <div className="modal-body">
@@ -1411,36 +1411,38 @@ const AdminUsers = () => {
               <div className="info-card">
                 <div className="info-card-header">
                   <Info size={20} />
-                  <h3>Basic Information</h3>
+                  <h3>{t('adminUsers.userDetails.basicInformation')}</h3>
                 </div>
                 <div className="info-grid">
                   <div className="info-item">
                     <span className="info-label">
-                      <User size={16} /> ID
+                      <User size={16} /> {t('adminUsers.userDetails.id')}
                     </span>
                     <span className="info-value">{selectedUserForView.id}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <User size={16} /> Name
+                      <User size={16} /> {t('adminUsers.userDetails.name')}
                     </span>
                     <span className="info-value">
                       {selectedUserForView.contactPerson ||
                         selectedUserForView.fullName ||
-                        'N/A'}
+                        t('adminUsers.notAvailable')}
                     </span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <Building2 size={16} /> Organization
+                      <Building2 size={16} />{' '}
+                      {t('adminUsers.userDetails.organization')}
                     </span>
                     <span className="info-value">
-                      {selectedUserForView.organizationName || 'N/A'}
+                      {selectedUserForView.organizationName ||
+                        t('adminUsers.notAvailable')}
                     </span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <Mail size={16} /> Email
+                      <Mail size={16} /> {t('adminUsers.userDetails.email')}
                     </span>
                     <span className="info-value">
                       {selectedUserForView.email}
@@ -1448,15 +1450,18 @@ const AdminUsers = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <PhoneIcon size={16} /> Phone
+                      <PhoneIcon size={16} />{' '}
+                      {t('adminUsers.userDetails.phone')}
                     </span>
                     <span className="info-value">
-                      {selectedUserForView.phone || 'N/A'}
+                      {selectedUserForView.phone ||
+                        t('adminUsers.notAvailable')}
                     </span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <Globe size={16} /> Preferred Language
+                      <Globe size={16} />{' '}
+                      {t('adminUsers.userDetails.preferredLanguage')}
                     </span>
                     <span className="info-value">
                       {getLanguageLabel(selectedUserForView.languagePreference)}
@@ -1464,7 +1469,8 @@ const AdminUsers = () => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <FileText size={16} /> License Document
+                      <FileText size={16} />{' '}
+                      {t('adminUsers.userDetails.licenseDocument')}
                     </span>
                     <span className="info-value">
                       <div
@@ -1489,33 +1495,36 @@ const AdminUsers = () => {
                             className="license-document-link"
                           >
                             <Download size={16} />
-                            View Document
+                            {t('adminUsers.userDetails.viewDocument')}
                           </a>
                         ) : (
-                          'No document uploaded'
+                          t('adminUsers.userDetails.noDocumentUploaded')
                         )}
                         <button
                           className="btn-modify-document"
                           onClick={() => setShowUploadDocumentModal(true)}
-                          title="Upload or replace document"
+                          title={t(
+                            'adminUsers.userDetails.modifyDocumentTitle'
+                          )}
                         >
                           {Edit3 && (
                             <Edit3 size={16} style={{ marginRight: '4px' }} />
                           )}
-                          Modify
+                          {t('adminUsers.userDetails.modify')}
                         </button>
                       </div>
                     </span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <FileText size={16} /> Registration Number
+                      <FileText size={16} />{' '}
+                      {t('adminUsers.userDetails.registrationNumber')}
                     </span>
                     <span className="info-value">
                       {selectedUserForView.businessLicense ||
                         selectedUserForView.charityRegistrationNumber ||
                         selectedUserForView.licenseNumber ||
-                        'N/A'}
+                        t('adminUsers.notAvailable')}
                     </span>
                   </div>
                 </div>
@@ -1525,37 +1534,40 @@ const AdminUsers = () => {
               <div className="info-card">
                 <div className="info-card-header">
                   <Sparkles size={20} />
-                  <h3>Activity & Statistics</h3>
+                  <h3>{t('adminUsers.userDetails.activityStatistics')}</h3>
                 </div>
                 <div className="info-grid">
                   <div className="info-item">
                     <span className="info-label">
-                      <Calendar size={16} /> Registration Date
+                      <Calendar size={16} />{' '}
+                      {t('adminUsers.userDetails.registrationDate')}
                     </span>
                     <span className="info-value">
                       {selectedUserForView.createdAt
                         ? new Date(
                             selectedUserForView.createdAt
                           ).toLocaleDateString()
-                        : 'N/A'}
+                        : t('adminUsers.notAvailable')}
                     </span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">
-                      <Clock size={16} /> Last Active
+                      <Clock size={16} />{' '}
+                      {t('adminUsers.userDetails.lastActive')}
                     </span>
                     <span className="info-value">
                       {selectedUserForView.lastActive
                         ? new Date(
                             selectedUserForView.lastActive
                           ).toLocaleDateString()
-                        : 'N/A'}
+                        : t('adminUsers.notAvailable')}
                     </span>
                   </div>
                   {selectedUserForView.role === 'DONOR' && (
                     <div className="info-item">
                       <span className="info-label">
-                        <Gift size={16} /> Total Donations
+                        <Gift size={16} />{' '}
+                        {t('adminUsers.userDetails.totalDonations')}
                       </span>
                       <span className="info-value">
                         {selectedUserForView.donationCount || 0}
@@ -1565,7 +1577,8 @@ const AdminUsers = () => {
                   {selectedUserForView.role === 'RECEIVER' && (
                     <div className="info-item">
                       <span className="info-label">
-                        <Handshake size={16} /> Total Claims
+                        <Handshake size={16} />{' '}
+                        {t('adminUsers.userDetails.totalClaims')}
                       </span>
                       <span className="info-value">
                         {selectedUserForView.claimCount || 0}
@@ -1573,12 +1586,14 @@ const AdminUsers = () => {
                     </div>
                   )}
                   <div className="info-item">
-                    <span className="info-label">Rating</span>
+                    <span className="info-label">
+                      {t('adminUsers.userDetails.rating')}
+                    </span>
                     <span className="info-value">
                       {userRatings[selectedUserForView.id] !== undefined &&
                       userRatings[selectedUserForView.id].averageRating
-                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} \u2605 (${userRatings[selectedUserForView.id].totalReviews} reviews)`
-                        : 'No ratings yet'}
+                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} â˜… (${t('adminUsers.userDetails.reviewsCount', { count: userRatings[selectedUserForView.id].totalReviews })})`
+                        : t('adminUsers.userDetails.noRatingsYet')}
                     </span>
                   </div>
                 </div>
@@ -1589,11 +1604,13 @@ const AdminUsers = () => {
                 <div className="info-card">
                   <div className="info-card-header">
                     <Building2 size={20} />
-                    <h3>Address Information</h3>
+                    <h3>{t('adminUsers.userDetails.addressInformation')}</h3>
                   </div>
                   <div className="info-grid">
                     <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-                      <span className="info-label">Address</span>
+                      <span className="info-label">
+                        {t('adminUsers.userDetails.address')}
+                      </span>
                       <span className="info-value">
                         {typeof selectedUserForView.address === 'string'
                           ? selectedUserForView.address
@@ -1623,7 +1640,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => closeUploadDocumentModal()}
             >
-              {'\u00D7'}
+              Ã—
             </button>
             <div className="modal-header">
               <h3>Upload Supporting Document</h3>
