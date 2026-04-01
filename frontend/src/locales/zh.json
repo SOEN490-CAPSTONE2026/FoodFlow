@@ -255,7 +255,22 @@
     "time": "时间",
     "retry": "重试",
     "less": "更少",
-    "more": "更多"
+    "more": "更多",
+    "approvalRequired": {
+      "badge": "等待审核",
+      "title": "账户需要审核批准",
+      "message": "您的账户仍在等待 FoodFlow 管理员批准。请在获批后再继续。",
+      "action": "知道了",
+      "createTitle": "账户需要审核批准",
+      "createMessage": "您可以先准备捐赠信息，但在 FoodFlow 管理员批准您的账户之前，暂时无法发布捐赠。",
+      "claimTitle": "认领捐赠前需要审核批准",
+      "claimMessage": "只有在 FoodFlow 管理员批准您的账户后，您才能执行此操作。请等待审核通过后再认领捐赠。"
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "账户正在等待管理员批准",
+    "message": "您的电子邮件已验证成功。您的账户目前正在等待我们的管理员团队批准。该流程通常最多需要 48 小时。账户获批后，您将收到电子邮件通知。",
+    "thankYou": "感谢您的耐心等待！"
   },
   "validation": {
     "required": "此字段为必填项",
@@ -265,20 +280,20 @@
     "pattern": "格式无效"
   },
   "passwordValidation": {
-    "required": "??????",
-    "minLength": "????????? 10 ???",
-    "uppercase": "??????????????",
-    "lowercase": "??????????????",
-    "digit": "????????????",
-    "specialCharacter": "?????????????? (!@#$%^&*()_+-=[]{}|;:,.<>?)",
-    "commonPassword": "?????????????????",
+    "required": "请输入密码",
+    "minLength": "密码至少需要 10 个字符",
+    "uppercase": "密码必须包含至少一个大写字母",
+    "lowercase": "密码必须包含至少一个小写字母",
+    "digit": "密码必须包含至少一个数字",
+    "specialCharacter": "密码必须包含至少一个特殊字符 (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+    "commonPassword": "密码过于常见，请选择更安全的密码",
     "policy": {
-      "minLength": "?? 10 ???",
-      "uppercase": "???????? (A-Z)",
-      "lowercase": "???????? (a-z)",
-      "digit": "?????? (0-9)",
-      "specialCharacter": "???????? (!@#$%^&*()_+-=[]{}|;:,.<>?)",
-      "commonPassword": "????????"
+      "minLength": "至少 10 个字符",
+      "uppercase": "至少一个大写字母 (A-Z)",
+      "lowercase": "至少一个小写字母 (a-z)",
+      "digit": "至少一个数字 (0-9)",
+      "specialCharacter": "至少一个特殊字符 (!@#$%^&*()_+-=[]{}|;:,.<>?)",
+      "commonPassword": "不能使用常见密码"
     }
   },
   "toast": {
@@ -908,13 +923,17 @@
     "donations": "捐赠",
     "settings": "设置",
     "logout": "退出登录",
-    "toggleMenu": "????",
-    "foodflowHome": "FoodFlow ??",
+    "toggleMenu": "切换菜单",
+    "foodflowHome": "FoodFlow 首页",
     "toggleSidebar": "切换侧边栏",
-    "verificationQueueDesc": "?????????????",
+    "verificationQueueDesc": "审核并批准待处理的用户注册",
     "usersDesc": "管理并监控平台所有用户",
     "impactDesc": "平台范围内的环境与社会影响指标",
-    "disputesDesc": "跟踪、审查并解决已报告的问题"
+    "disputesDesc": "跟踪、审查并解决已报告的问题",
+    "images": "图片",
+    "imagesDesc": "审核上传内容并管理默认图片库",
+    "referrals": "推荐提交",
+    "referralsDesc": "查看用户提交的社区邀请和商家建议"
   },
   "claimedView": {
     "claimed": "已认领",
@@ -1980,116 +1999,116 @@
     }
   },
   "adminWelcome": {
-    "title": "??",
-    "description": "??????????"
+    "title": "欢迎",
+    "description": "这是管理员欢迎页面。"
   },
   "adminHelp": {
-    "title": "??"
+    "title": "帮助"
   },
   "adminCalendar": {
-    "title": "??"
+    "title": "日历"
   },
   "adminAnalytics": {
-    "title": "????????",
-    "subtitle": "????????????????",
-    "loading": "????????...",
-    "temperatureCategories": "????",
-    "packagingTypes": "????",
-    "noTemperatureData": "??????",
-    "noPackagingData": "??????",
-    "totalAnalyzed": "????????",
+    "title": "食品安全合规分析",
+    "subtitle": "监控所有捐赠的温度与包装合规情况",
+    "loading": "正在加载合规数据...",
+    "temperatureCategories": "温度类别",
+    "packagingTypes": "包装类型",
+    "noTemperatureData": "暂无温度数据",
+    "noPackagingData": "暂无包装数据",
+    "totalAnalyzed": "已分析捐赠总数：",
     "errors": {
-      "loadFailed": "????????"
+      "loadFailed": "加载合规数据失败"
     }
   },
   "adminDisputes": {
-    "loading": "??????...",
-    "allCases": "????",
-    "searchPlaceholder": "????...",
-    "emptyTitle": "?????",
-    "emptyDescription": "??????????????",
+    "loading": "正在加载争议...",
+    "allCases": "全部案件",
+    "searchPlaceholder": "搜索案件...",
+    "emptyTitle": "未找到案件",
+    "emptyDescription": "当前筛选条件下没有匹配的争议。",
     "userTypes": {
-      "donor": "???",
-      "receiver": "???"
+      "donor": "捐赠者",
+      "receiver": "接收者"
     },
     "status": {
-      "open": "??",
-      "underReview": "???",
-      "resolved": "???",
-      "closed": "???"
+      "open": "未处理",
+      "underReview": "审核中",
+      "resolved": "已解决",
+      "closed": "已关闭"
     },
     "stats": {
-      "totalCases": "????",
-      "resolvedToday": "?????",
-      "avgResolution": "??????",
-      "avgResolutionValue": "{{count}} ?"
+      "totalCases": "案件总数",
+      "resolvedToday": "今日解决",
+      "avgResolution": "平均解决时长",
+      "avgResolutionValue": "{{count}} 天"
     },
     "table": {
-      "caseId": "????",
-      "reporter": "???",
-      "reportedUser": "?????",
-      "donationId": "????",
-      "created": "????",
-      "status": "??",
-      "action": "??",
-      "view": "??"
+      "caseId": "案件编号",
+      "reporter": "举报人",
+      "reportedUser": "被举报用户",
+      "donationId": "捐赠编号",
+      "created": "创建时间",
+      "status": "状态",
+      "action": "操作",
+      "view": "查看"
     },
     "errors": {
-      "loadFailed": "???????"
+      "loadFailed": "加载争议失败"
     }
   },
   "adminDisputeDetail": {
-    "notAvailable": "???",
-    "backToDisputes": "??????",
-    "caseNotFound": "?????",
-    "caseTitle": "?? {{caseId}}",
-    "createdOn": "??? {{date}} {{time}}",
-    "saveStatusChange": "??????",
-    "statusHint": "????????",
-    "actionsHint": "??????????????????",
-    "resolutionHint": "????????????????",
+    "notAvailable": "无",
+    "backToDisputes": "返回争议列表",
+    "caseNotFound": "未找到案件",
+    "caseTitle": "案件 {{caseId}}",
+    "createdOn": "创建于 {{date}} {{time}}",
+    "saveStatusChange": "保存状态更改",
+    "statusHint": "状态更改需要确认",
+    "actionsHint": "所有操作仅管理员可见，平台用户不可见。",
+    "resolutionHint": "案件在关闭前必须标记为“已解决”",
     "labels": {
-      "caseId": "????",
-      "createdDate": "????",
-      "createdTime": "????",
-      "name": "??",
-      "userId": "????",
-      "donationId": "????",
-      "currentStatus": "????",
-      "updateStatus": "????"
+      "caseId": "案件编号",
+      "createdDate": "创建日期",
+      "createdTime": "创建时间",
+      "name": "姓名",
+      "userId": "用户编号",
+      "donationId": "捐赠编号",
+      "currentStatus": "当前状态",
+      "updateStatus": "更新状态"
     },
     "sections": {
-      "caseInformation": "????",
-      "reporter": "???",
-      "reportedUser": "?????",
-      "relatedDonation": "????",
-      "reportDescription": "????",
-      "caseStatus": "????",
-      "adminActions": "????",
-      "caseResolution": "????"
+      "caseInformation": "案件信息",
+      "reporter": "举报人",
+      "reportedUser": "被举报用户",
+      "relatedDonation": "相关捐赠",
+      "reportDescription": "举报说明",
+      "caseStatus": "案件状态",
+      "adminActions": "管理操作",
+      "caseResolution": "案件处理结果"
     },
     "actions": {
-      "deactivateUser": "??????",
-      "overrideDonation": "??????",
-      "flagUser": "???????",
-      "closeCase": "????"
+      "deactivateUser": "停用用户账户",
+      "overrideDonation": "覆盖捐赠状态",
+      "flagUser": "标记用户以供审核",
+      "closeCase": "关闭案件"
     },
     "alerts": {
-      "statusAlreadySet": "?????? {{status}}",
-      "statusUpdated": "??????",
-      "updateFailed": "???????{{message}}",
-      "deactivateRequested": "?????????",
-      "overrideDonation": "??????",
-      "userFlagged": "?????????",
-      "mustResolveBeforeClose": "????????????????"
+      "statusAlreadySet": "状态已设置为 {{status}}",
+      "statusUpdated": "状态更新成功",
+      "updateFailed": "状态更新失败：{{message}}",
+      "deactivateRequested": "已请求停用用户账户",
+      "overrideDonation": "已覆盖捐赠状态",
+      "userFlagged": "已将用户标记为待审核",
+      "mustResolveBeforeClose": "案件必须先标记为“已解决”才能关闭"
     },
     "confirm": {
-      "changeStatus": "??????????{{status}}???",
-      "deactivateUser": "????????????",
-      "closeCase": "??????????"
+      "changeStatus": "确定要将状态更改为“{{status}}”吗？",
+      "deactivateUser": "确定要停用此用户账户吗？",
+      "closeCase": "确定要关闭此案件吗？"
     },
     "errors": {
-      "loadFailed": "????????"
+      "loadFailed": "加载案件详情失败"
     }
   },
   "adminVerificationQueue": {
@@ -2243,7 +2262,8 @@
     },
     "status": {
       "active": "启用",
-      "deactivated": "停用"
+      "deactivated": "停用",
+      "deleted": "已删除"
     },
     "actions": {
       "viewDetails": "查看详情",
@@ -2265,10 +2285,37 @@
         "CLAIM": "领取了{{item}}",
         "VERIFICATION": "完成了验证",
         "DEACTIVATE_USER": "账户已停用",
+        "DELETE_USER": "账户已删除：{{item}}",
         "quantityOf": "{{quantity}}的{{title}}",
         "noActivity": "暂无最近活动",
         "on": "于"
       }
+    },
+    "userDetails": {
+      "title": "用户详情",
+      "basicInformation": "基本信息",
+      "id": "ID",
+      "name": "姓名",
+      "organization": "机构",
+      "email": "邮箱",
+      "phone": "电话",
+      "preferredLanguage": "首选语言",
+      "licenseDocument": "许可文件",
+      "viewDocument": "查看文件",
+      "noDocumentUploaded": "未上传文件",
+      "modify": "修改",
+      "modifyDocumentTitle": "上传或替换文件",
+      "registrationNumber": "注册号",
+      "activityStatistics": "活动与统计",
+      "registrationDate": "注册日期",
+      "lastActive": "最近活跃时间",
+      "totalDonations": "捐赠总数",
+      "totalClaims": "领取总数",
+      "rating": "评分",
+      "noRatingsYet": "暂无评分",
+      "reviewsCount": "{{count}} 条评价",
+      "addressInformation": "地址信息",
+      "address": "地址"
     },
     "modals": {
       "deactivate": {
@@ -2363,8 +2410,137 @@
       "clickToLoadFeedback": "点击展开并加载反馈...",
       "noFeedback": "此捐赠尚未收到任何反馈。"
     },
+    "detailsModal": {
+      "title": "捐赠详情",
+      "pageTitles": {
+        "basicInfoParticipants": "基本信息与参与者",
+        "timeline": "时间线",
+        "overrideStatus": "覆盖状态"
+      },
+      "basicInformation": "基本信息",
+      "participants": "参与者",
+      "roles": {
+        "donor": "捐赠者",
+        "receiver": "接收者"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "标题",
+        "status": "状态",
+        "flagged": "已标记",
+        "created": "创建时间",
+        "updated": "更新时间",
+        "name": "姓名",
+        "email": "邮箱",
+        "organization": "机构",
+        "claimedAt": "领取时间"
+      },
+      "values": {
+        "yes": "是",
+        "no": "否"
+      },
+      "timeline": "时间线",
+      "actor": "操作者：{{actor}}",
+      "adminOnly": "仅管理员可见",
+      "statusChange": "状态",
+      "noTimeline": "暂无时间线事件。",
+      "overrideStatus": "覆盖状态",
+      "currentStatus": "当前状态",
+      "newStatus": "新状态",
+      "selectNewStatus": "选择新状态",
+      "reason": "原因",
+      "reasonPlaceholder": "请输入覆盖状态的原因...",
+      "updating": "正在更新...",
+      "back": "返回",
+      "next": "下一步",
+      "pageOf": "第 {{page}} / {{total}} 页"
+    },
     "errors": {
       "loadFailed": "加载捐赠失败。请重试。"
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} 项",
+    "itemsCount_other": "{{count}} 项",
+    "reasonPrompt": "原因（可选）：",
+    "statusOptions": {
+      "pending": "待处理",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "disabled": "已禁用"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "食物类型",
+      "donor": "捐赠者",
+      "status": "状态",
+      "reason": "原因",
+      "active": "启用",
+      "yes": "是",
+      "no": "否",
+      "none": "-",
+      "generic": "通用"
+    },
+    "actions": {
+      "approve": "批准",
+      "reject": "拒绝",
+      "disable": "禁用",
+      "delete": "删除",
+      "add": "添加",
+      "deactivate": "停用",
+      "activate": "启用",
+      "remove": "移除"
+    },
+    "uploaded": {
+      "title": "已上传图片",
+      "empty": "所选状态下没有找到上传内容。",
+      "alt": "上传 {{id}}"
+    },
+    "library": {
+      "title": "内部图片库",
+      "uploadImage": "上传图片",
+      "orImageUrl": "或图片链接",
+      "selectCategory": "选择分类",
+      "empty": "内部图片库为空。请添加第一张备用图片。",
+      "alt": "图库 {{id}}"
+    },
+    "errors": {
+      "loadFailed": "加载图片审核数据失败。",
+      "selectFoodType": "请选择一个食物类型分类。",
+      "addFailed": "添加图库图片失败。"
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "全部",
+      "inviteCommunity": "邀请社区组织",
+      "suggestBusiness": "推荐商家"
+    },
+    "types": {
+      "community": "社区",
+      "business": "商家"
+    },
+    "table": {
+      "type": "类型",
+      "organization": "商家 / 机构",
+      "contactEmail": "联系邮箱",
+      "contactPhone": "联系电话",
+      "message": "消息",
+      "submittedBy": "提交人",
+      "date": "日期"
+    },
+    "refresh": "刷新",
+    "loading": "正在加载推荐提交...",
+    "empty": "暂无推荐提交。",
+    "viewMessage": "查看消息",
+    "viewMessageFrom": "查看来自 {{name}} 的消息",
+    "closeMessage": "关闭消息",
+    "messageTitle": "推荐消息",
+    "showingCount_one": "显示 {{shown}} / {{total}} 条提交",
+    "showingCount_other": "显示 {{shown}} / {{total}} 条提交",
+    "notAvailable": "—",
+    "errors": {
+      "loadFailed": "加载推荐提交失败，请重试。"
     }
   },
   "adminSettings": {
@@ -2433,51 +2609,51 @@
     }
   },
   "adminHome": {
-    "defaultAdminName": "???",
-    "loadingDashboardStats": "???????????...",
+    "defaultAdminName": "管理员",
+    "loadingDashboardStats": "正在加载仪表板统计数据...",
     "errors": {
-      "loadStats": "???????????"
+      "loadStats": "加载仪表板统计数据失败"
     },
     "stats": {
-      "totalUsers": "????",
-      "totalDonations": "????",
+      "totalUsers": "用户总数",
+      "totalDonations": "捐赠总数",
       "ongoingClaims": "进行中的认领",
-      "activeDonations": "????",
+      "activeDonations": "活跃捐赠",
       "pendingVerifications": "待审核",
       "completed": "已完成"
     },
     "quickActions": {
-      "title": "????",
+      "title": "快捷操作",
       "subtitle": "访问最关键的管理工具",
-      "viewLess": "??",
-      "viewAllTools": "??????",
+      "viewLess": "收起",
+      "viewAllTools": "查看全部工具",
       "userManagement": {
-        "title": "????",
+        "title": "用户管理",
         "description": "管理用户、角色和权限"
       },
       "reviewDonations": {
-        "title": "????",
+        "title": "审核捐赠",
         "description": "审核并管理捐赠帖子"
       },
       "disputeDashboard": {
-        "title": "????",
-        "description": "???????"
+        "title": "争议看板",
+        "description": "处理争议和举报"
       },
       "messages": {
-        "title": "??",
-        "description": "????????"
+        "title": "消息",
+        "description": "查看平台通信记录"
       },
       "flaggedPosts": {
         "title": "已标记内容",
         "description": "审核被标记内容"
       },
       "pickupSchedule": {
-        "title": "????",
+        "title": "取货安排",
         "description": "查看并管理取货安排"
       },
       "analytics": {
-        "title": "??",
-        "description": "?????????"
+        "title": "分析",
+        "description": "查看平台分析和报告"
       },
       "systemSettings": {
         "title": "系统设置",
@@ -2489,11 +2665,11 @@
       "viewAllActivity": "查看全部活动"
     },
     "activity": {
-      "defaultUser": "???",
-      "defaultDonor": "?????",
-      "defaultDonationTitle": "???",
+      "defaultUser": "新用户",
+      "defaultDonor": "某位捐赠者",
+      "defaultDonationTitle": "新捐赠",
       "userType": {
-        "donor": "???",
+        "donor": "捐赠者",
         "receiver": "接收者"
       },
       "newUserRegistered": "{{name}} 注册为新的 {{userType}}",
@@ -2501,19 +2677,19 @@
       "flaggedPostTitle": "系统标记了一条待审核内容",
       "flaggedPostSubtitle": "帖子 #{{id}} - 检测到不当内容",
       "disputeResolvedTitle": "管理员已解决一条争议",
-      "disputeResolvedSubtitle": "?? #{{id}}",
+      "disputeResolvedSubtitle": "案例 #{{id}}",
       "deactivatedUserTitle": "已停用用户：{{name}}",
       "deactivatedUserSubtitle": "管理员：{{admin}}  ·  原因：{{reason}}  ·  时间：{{timestamp}}",
       "unknownUser": "未知",
       "noReasonProvided": "未提供原因"
     },
     "timeAgo": {
-      "minuteAgo": "1 ???",
-      "minutesAgo": "{{count}} ???",
-      "hourAgo": "1 ???",
-      "hoursAgo": "{{count}} ???",
-      "dayAgo": "1 ??",
-      "daysAgo": "{{count}} ??"
+      "minuteAgo": "1 分钟前",
+      "minutesAgo": "{{count}} 分钟前",
+      "hourAgo": "1 小时前",
+      "hoursAgo": "{{count}} 小时前",
+      "dayAgo": "1 天前",
+      "daysAgo": "{{count}} 天前"
     }
   },
   "calendar": {

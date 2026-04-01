@@ -34,7 +34,7 @@ public class MessageService {
     private final ConversationService conversationService;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final GamificationService gamificationService;
     private final BusinessMetricsService businessMetricsService;
     
@@ -43,7 +43,7 @@ public class MessageService {
                          ConversationService conversationService,
                          SimpMessagingTemplate messagingTemplate,
                          NotificationPreferenceService notificationPreferenceService,
-                         EmailService emailService,
+                         EmailNotificationService emailService,
                          GamificationService gamificationService,
                          BusinessMetricsService businessMetricsService) {
         this.messageRepository = messageRepository;

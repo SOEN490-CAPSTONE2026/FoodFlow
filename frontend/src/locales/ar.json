@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "home": "الرئيسية",
     "howItWorks": "كيف يعمل",
@@ -255,7 +255,22 @@
     "time": "الوقت",
     "retry": "إعادة المحاولة",
     "less": "أقل",
-    "more": "المزيد"
+    "more": "المزيد",
+    "approvalRequired": {
+      "badge": "الموافقة قيد الانتظار",
+      "title": "موافقة الحساب مطلوبة",
+      "message": "لا يزال حسابك بانتظار موافقة مشرف FoodFlow. يرجى الانتظار حتى تتم الموافقة قبل المتابعة.",
+      "action": "فهمت",
+      "createTitle": "موافقة الحساب مطلوبة",
+      "createMessage": "يمكنك تجهيز تفاصيل التبرع، لكن النشر سيبقى مقفلاً حتى يوافق مشرف FoodFlow على حسابك.",
+      "claimTitle": "الموافقة مطلوبة لطلب التبرعات",
+      "claimMessage": "سيصبح هذا الإجراء متاحًا عندما يوافق مشرف FoodFlow على حسابك. يرجى الانتظار قبل طلب التبرعات."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "الحساب بانتظار موافقة المشرف",
+    "message": "تم التحقق من بريدك الإلكتروني! حسابك بانتظار موافقة فريق الإدارة لدينا. تستغرق هذه العملية عادةً ما يصل إلى 48 ساعة. ستتلقى إشعارًا عبر البريد الإلكتروني بمجرد الموافقة على حسابك.",
+    "thankYou": "شكرًا لصبرك!"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -914,7 +929,11 @@
     "verificationQueueDesc": "مراجعة واعتماد تسجيلات المستخدمين المعلقة",
     "usersDesc": "إدارة ومراقبة جميع مستخدمي المنصة",
     "impactDesc": "مقاييس الأثر البيئي والاجتماعي على مستوى المنصة",
-    "disputesDesc": "تتبع ومراجعة وحل المشكلات المبلغ عنها"
+    "disputesDesc": "تتبع ومراجعة وحل المشكلات المبلغ عنها",
+    "images": "الصور",
+    "imagesDesc": "مراجعة وإدارة الصور المرفوعة والمكتبة الداخلية الاحتياطية",
+    "referrals": "الإحالات",
+    "referralsDesc": "عرض طلبات إحالة المجتمع واقتراحات الأعمال من المستخدمين"
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
@@ -2241,7 +2260,8 @@
     },
     "status": {
       "active": "نشط",
-      "deactivated": "معطل"
+      "deactivated": "معطل",
+      "deleted": "محذوف"
     },
     "actions": {
       "viewDetails": "عرض التفاصيل",
@@ -2263,6 +2283,7 @@
         "CLAIM": "طالب بـ {{item}}",
         "VERIFICATION": "اكتمل التحقق",
         "DEACTIVATE_USER": "تم تعطيل الحساب",
+        "DELETE_USER": "تم حذف الحساب: {{item}}",
         "quantityOf": "{{quantity}} من {{title}}",
         "noActivity": "لا يوجد نشاط حديث",
         "on": "في"
@@ -2313,6 +2334,32 @@
     },
     "errors": {
       "loadFailed": "تعذر تحميل المستخدمين. يرجى المحاولة مرة أخرى لاحقًا."
+    },
+    "userDetails": {
+      "title": "تفاصيل المستخدم",
+      "basicInformation": "المعلومات الأساسية",
+      "id": "المعرف",
+      "name": "الاسم",
+      "organization": "المؤسسة",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "preferredLanguage": "اللغة المفضلة",
+      "licenseDocument": "مستند الترخيص",
+      "viewDocument": "عرض المستند",
+      "noDocumentUploaded": "لم يتم رفع أي مستند",
+      "modify": "تعديل",
+      "modifyDocumentTitle": "تعديل المستند أو استبداله",
+      "registrationNumber": "رقم التسجيل",
+      "activityStatistics": "إحصاءات النشاط",
+      "registrationDate": "تاريخ التسجيل",
+      "lastActive": "آخر نشاط",
+      "totalDonations": "إجمالي التبرعات",
+      "totalClaims": "إجمالي المطالبات",
+      "rating": "التقييم",
+      "noRatingsYet": "لا توجد تقييمات بعد",
+      "reviewsCount": "{{count}} تقييمًا",
+      "addressInformation": "معلومات العنوان",
+      "address": "العنوان"
     }
   },
   "adminDonations": {
@@ -2363,6 +2410,51 @@
     },
     "errors": {
       "loadFailed": "تعذر تحميل التبرعات. يرجى المحاولة مرة أخرى."
+    },
+    "detailsModal": {
+      "title": "تفاصيل التبرع",
+      "pageTitles": {
+        "basicInfoParticipants": "المعلومات الأساسية والمشاركون",
+        "timeline": "الخط الزمني",
+        "overrideStatus": "تجاوز الحالة"
+      },
+      "basicInformation": "المعلومات الأساسية",
+      "participants": "المشاركون",
+      "roles": {
+        "donor": "المتبرع",
+        "receiver": "المستلم"
+      },
+      "fields": {
+        "id": "المعرف",
+        "title": "العنوان",
+        "status": "الحالة",
+        "flagged": "تم الإبلاغ",
+        "created": "تاريخ الإنشاء",
+        "updated": "تاريخ التحديث",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "organization": "المؤسسة",
+        "claimedAt": "تاريخ المطالبة"
+      },
+      "values": {
+        "yes": "نعم",
+        "no": "لا"
+      },
+      "timeline": "الخط الزمني",
+      "actor": "المنفذ: {{actor}}",
+      "adminOnly": "للمشرف فقط",
+      "statusChange": "الحالة",
+      "noTimeline": "لا توجد أحداث في الخط الزمني.",
+      "overrideStatus": "تجاوز الحالة",
+      "currentStatus": "الحالة الحالية",
+      "newStatus": "الحالة الجديدة",
+      "selectNewStatus": "اختر الحالة الجديدة",
+      "reason": "السبب",
+      "reasonPlaceholder": "أدخل سبب تجاوز الحالة...",
+      "updating": "جارٍ التحديث...",
+      "back": "رجوع",
+      "next": "التالي",
+      "pageOf": "الصفحة {{page}} من {{total}}"
     }
   },
   "adminSettings": {
@@ -2817,6 +2909,90 @@
           "text": "هذا كل شيء — أنت الآن جاهز لبدء استخدام FoodFlow كمستفيد."
         }
       }
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} عنصر",
+    "itemsCount_other": "{{count}} عناصر",
+    "reasonPrompt": "السبب (اختياري):",
+    "statusOptions": {
+      "pending": "قيد المراجعة",
+      "approved": "تمت الموافقة",
+      "rejected": "مرفوض",
+      "disabled": "معطل"
+    },
+    "fields": {
+      "id": "المعرف",
+      "foodType": "نوع الطعام",
+      "donor": "المتبرع",
+      "status": "الحالة",
+      "reason": "السبب",
+      "active": "نشط",
+      "yes": "نعم",
+      "no": "لا",
+      "none": "-",
+      "generic": "عام"
+    },
+    "actions": {
+      "approve": "اعتماد",
+      "reject": "رفض",
+      "disable": "تعطيل",
+      "delete": "حذف",
+      "add": "إضافة",
+      "deactivate": "إلغاء التفعيل",
+      "activate": "تفعيل",
+      "remove": "إزالة"
+    },
+    "uploaded": {
+      "title": "الصور المرفوعة",
+      "empty": "لا توجد صور مطابقة للحالة المحددة.",
+      "alt": "رفع {{id}}"
+    },
+    "library": {
+      "title": "مكتبة الصور الداخلية",
+      "uploadImage": "رفع صورة",
+      "orImageUrl": "أو رابط صورة",
+      "selectCategory": "اختر فئة",
+      "empty": "مكتبة الصور الداخلية فارغة. أضف أول صورة احتياطية.",
+      "alt": "المكتبة {{id}}"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل بيانات مراجعة الصور.",
+      "selectFoodType": "يرجى اختيار فئة نوع الطعام.",
+      "addFailed": "تعذر إضافة صورة إلى المكتبة."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "الكل",
+      "inviteCommunity": "دعوة جهة مجتمعية",
+      "suggestBusiness": "اقتراح نشاط تجاري"
+    },
+    "types": {
+      "community": "مجتمعي",
+      "business": "نشاط تجاري"
+    },
+    "table": {
+      "type": "النوع",
+      "organization": "الجهة / المؤسسة",
+      "contactEmail": "البريد الإلكتروني للتواصل",
+      "contactPhone": "هاتف التواصل",
+      "message": "الرسالة",
+      "submittedBy": "مُرسلة من",
+      "date": "التاريخ"
+    },
+    "refresh": "تحديث",
+    "loading": "جارٍ تحميل طلبات الإحالة...",
+    "empty": "لا توجد طلبات إحالة بعد.",
+    "viewMessage": "عرض الرسالة",
+    "viewMessageFrom": "عرض رسالة من {{name}}",
+    "closeMessage": "إغلاق الرسالة",
+    "messageTitle": "رسالة الإحالة",
+    "showingCount_one": "عرض {{shown}} من أصل {{total}} طلب",
+    "showingCount_other": "عرض {{shown}} من أصل {{total}} طلبات",
+    "notAvailable": "—",
+    "errors": {
+      "loadFailed": "تعذر تحميل طلبات الإحالة. يرجى المحاولة مرة أخرى."
     }
   }
 }

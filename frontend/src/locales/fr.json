@@ -275,7 +275,22 @@
     "time": "Heure",
     "retry": "Réessayer",
     "less": "Moins",
-    "more": "Plus"
+    "more": "Plus",
+    "approvalRequired": {
+      "badge": "Approbation en attente",
+      "title": "Approbation du compte requise",
+      "message": "Votre compte attend toujours l’approbation de l’administrateur FoodFlow. Veuillez patienter avant de continuer.",
+      "action": "Compris",
+      "createTitle": "Approbation du compte requise",
+      "createMessage": "Vous pouvez préparer les détails du don, mais la publication reste bloquée jusqu’à l’approbation de votre compte par un administrateur FoodFlow.",
+      "claimTitle": "Approbation requise pour réclamer des dons",
+      "claimMessage": "Cette action sera disponible une fois votre compte approuvé par un administrateur FoodFlow. Veuillez patienter avant de réclamer des dons."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "Compte en attente d’approbation administrateur",
+    "message": "Votre adresse e-mail a été vérifiée ! Votre compte est actuellement en attente d’approbation par notre équipe d’administration. Ce processus prend généralement jusqu’à 48 heures. Vous recevrez un e-mail de notification une fois votre compte approuvé.",
+    "thankYou": "Merci pour votre patience !"
   },
   "validation": {
     "required": "Ce champ est requis",
@@ -953,7 +968,11 @@
     "verificationQueueDesc": "Examiner et approuver les inscriptions en attente",
     "usersDesc": "Gérer et surveiller tous les utilisateurs de la plateforme",
     "impactDesc": "Indicateurs d’impact environnemental et social à l’échelle de la plateforme",
-    "disputesDesc": "Suivre, examiner et résoudre les problèmes signalés"
+    "disputesDesc": "Suivre, examiner et résoudre les problèmes signalés",
+    "images": "Images",
+    "imagesDesc": "Mod?rez les t?l?versements et g?rez la biblioth?que d?images par d?faut",
+    "referrals": "Recommandations",
+    "referralsDesc": "Voir les invitations communautaires et les suggestions d?entreprises envoy?es par les utilisateurs"
   },
   "claimedView": {
     "claimed": "Réclamé",
@@ -2308,7 +2327,8 @@
     },
     "status": {
       "active": "Actif",
-      "deactivated": "Désactivé"
+      "deactivated": "Désactivé",
+      "deleted": "Supprim?"
     },
     "actions": {
       "viewDetails": "Voir les détails",
@@ -2330,6 +2350,7 @@
         "CLAIM": "A réclamé {{item}}",
         "VERIFICATION": "Vérification complétée",
         "DEACTIVATE_USER": "Compte désactivé",
+        "DELETE_USER": "Compte supprimé : {{item}}",
         "quantityOf": "{{quantity}} de {{title}}",
         "noActivity": "Aucune activité récente",
         "on": "le"
@@ -2380,6 +2401,32 @@
     },
     "errors": {
       "loadFailed": "Impossible de charger les utilisateurs. Veuillez réessayer plus tard."
+    },
+    "userDetails": {
+      "title": "D?tails de l?utilisateur",
+      "basicInformation": "Informations de base",
+      "id": "ID",
+      "name": "Nom",
+      "organization": "Organisation",
+      "email": "E-mail",
+      "phone": "T?l?phone",
+      "preferredLanguage": "Langue pr?f?r?e",
+      "licenseDocument": "Document de licence",
+      "viewDocument": "Voir le document",
+      "noDocumentUploaded": "Aucun document t?l?vers?",
+      "modify": "Modifier",
+      "modifyDocumentTitle": "T?l?verser ou remplacer le document",
+      "registrationNumber": "Num?ro d?enregistrement",
+      "activityStatistics": "Activit? et statistiques",
+      "registrationDate": "Date d?inscription",
+      "lastActive": "Derni?re activit?",
+      "totalDonations": "Total des dons",
+      "totalClaims": "Total des r?clamations",
+      "rating": "Note",
+      "noRatingsYet": "Aucune note pour le moment",
+      "reviewsCount": "{{count}} avis",
+      "addressInformation": "Informations d?adresse",
+      "address": "Adresse"
     }
   },
   "adminDonations": {
@@ -2430,6 +2477,51 @@
     },
     "errors": {
       "loadFailed": "Impossible de charger les dons. Veuillez réessayer."
+    },
+    "detailsModal": {
+      "title": "D?tails du don",
+      "pageTitles": {
+        "basicInfoParticipants": "Infos de base et participants",
+        "timeline": "Chronologie",
+        "overrideStatus": "Forcer le statut"
+      },
+      "basicInformation": "Informations de base",
+      "participants": "Participants",
+      "roles": {
+        "donor": "Donneur",
+        "receiver": "B?n?ficiaire"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "Titre",
+        "status": "Statut",
+        "flagged": "Signal?",
+        "created": "Cr??",
+        "updated": "Mis ? jour",
+        "name": "Nom",
+        "email": "E-mail",
+        "organization": "Organisation",
+        "claimedAt": "R?clam? le"
+      },
+      "values": {
+        "yes": "Oui",
+        "no": "Non"
+      },
+      "timeline": "Chronologie",
+      "actor": "Acteur : {{actor}}",
+      "adminOnly": "ADMIN UNIQUEMENT",
+      "statusChange": "Statut",
+      "noTimeline": "Aucun ?v?nement de chronologie disponible.",
+      "overrideStatus": "Forcer le statut",
+      "currentStatus": "Statut actuel",
+      "newStatus": "Nouveau statut",
+      "selectNewStatus": "S?lectionnez un nouveau statut",
+      "reason": "Raison",
+      "reasonPlaceholder": "Indiquez une raison pour la modification du statut...",
+      "updating": "Mise ? jour...",
+      "back": "Retour",
+      "next": "Suivant",
+      "pageOf": "Page {{page}} sur {{total}}"
     }
   },
   "adminSettings": {
@@ -2884,6 +2976,90 @@
           "text": "C’est tout, vous êtes prêt à commencer à utiliser FoodFlow en tant que receveur."
         }
       }
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} ?l?ment",
+    "itemsCount_other": "{{count}} ?l?ments",
+    "reasonPrompt": "Raison (facultative) :",
+    "statusOptions": {
+      "pending": "En attente",
+      "approved": "Approuv?e",
+      "rejected": "Rejet?e",
+      "disabled": "D?sactiv?e"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "Type d?aliment",
+      "donor": "Donneur",
+      "status": "Statut",
+      "reason": "Raison",
+      "active": "Actif",
+      "yes": "Oui",
+      "no": "Non",
+      "none": "-",
+      "generic": "G?n?rique"
+    },
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "disable": "D?sactiver",
+      "delete": "Supprimer",
+      "add": "Ajouter",
+      "deactivate": "D?sactiver",
+      "activate": "Activer",
+      "remove": "Retirer"
+    },
+    "uploaded": {
+      "title": "Images t?l?vers?es",
+      "empty": "Aucun t?l?versement trouv? pour le statut s?lectionn?.",
+      "alt": "T?l?versement {{id}}"
+    },
+    "library": {
+      "title": "Biblioth?que interne d?images",
+      "uploadImage": "T?l?verser une image",
+      "orImageUrl": "Ou URL d?image",
+      "selectCategory": "S?lectionnez une cat?gorie",
+      "empty": "La biblioth?que interne est vide. Ajoutez votre premi?re image de secours.",
+      "alt": "Biblioth?que {{id}}"
+    },
+    "errors": {
+      "loadFailed": "Impossible de charger les donn?es de mod?ration des images.",
+      "selectFoodType": "Veuillez s?lectionner une cat?gorie d?aliment.",
+      "addFailed": "Impossible d?ajouter l?image ? la biblioth?que."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "Toutes",
+      "inviteCommunity": "Inviter une communaut?",
+      "suggestBusiness": "Sugg?rer une entreprise"
+    },
+    "types": {
+      "community": "Communaut?",
+      "business": "Entreprise"
+    },
+    "table": {
+      "type": "Type",
+      "organization": "Entreprise / Organisation",
+      "contactEmail": "E-mail de contact",
+      "contactPhone": "T?l?phone de contact",
+      "message": "Message",
+      "submittedBy": "Envoy? par",
+      "date": "Date"
+    },
+    "refresh": "Actualiser",
+    "loading": "Chargement des recommandations...",
+    "empty": "Aucune recommandation pour le moment.",
+    "viewMessage": "Voir le message",
+    "viewMessageFrom": "Voir le message de {{name}}",
+    "closeMessage": "Fermer le message",
+    "messageTitle": "Message de recommandation",
+    "showingCount_one": "Affichage de {{shown}} sur {{total}} soumission",
+    "showingCount_other": "Affichage de {{shown}} sur {{total}} soumissions",
+    "notAvailable": "?",
+    "errors": {
+      "loadFailed": "Impossible de charger les recommandations. Veuillez r?essayer."
     }
   }
 }

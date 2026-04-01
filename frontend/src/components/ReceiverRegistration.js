@@ -737,7 +737,35 @@ const ReceiverRegistration = () => {
         </div>
         <div className="form-container">
           <div className="success-screen">
-            <div className="success-icon">✓</div>
+            <div
+              aria-hidden="true"
+              style={{
+                width: '80px',
+                height: '80px',
+                margin: '0 auto 30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                userSelect: 'none',
+              }}
+            >
+              <svg
+                width="80"
+                height="80"
+                viewBox="0 0 80 80"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="40" cy="40" r="40" fill="#16a34a" />
+                <path
+                  d="M24 40.5L35 51.5L57 24.5"
+                  stroke="white"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
             <h1>{t('receiverRegistration.successTitle')}</h1>
             <div className="success-details">
               <p className="status-badge">

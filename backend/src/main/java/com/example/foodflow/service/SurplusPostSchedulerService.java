@@ -47,7 +47,7 @@ public class SurplusPostSchedulerService {
     private final ExpiryNotificationLogRepository expiryNotificationLogRepository;
     private final TimelineService timelineService;
     private final NotificationPreferenceService notificationPreferenceService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final SmsService smsService;
     private final SimpMessagingTemplate messagingTemplate;
     private final Clock clock;
@@ -70,7 +70,7 @@ public class SurplusPostSchedulerService {
             ExpiryNotificationLogRepository expiryNotificationLogRepository,
             TimelineService timelineService,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             SmsService smsService,
             SimpMessagingTemplate messagingTemplate,
             Clock clock) {
@@ -91,7 +91,7 @@ public class SurplusPostSchedulerService {
             ExpiryNotificationLogRepository expiryNotificationLogRepository,
             TimelineService timelineService,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             SmsService smsService,
             SimpMessagingTemplate messagingTemplate) {
         this(surplusPostRepository, claimRepository, expiryNotificationLogRepository, timelineService,
@@ -103,7 +103,7 @@ public class SurplusPostSchedulerService {
             ClaimRepository claimRepository,
             TimelineService timelineService,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             SmsService smsService,
             SimpMessagingTemplate messagingTemplate) {
         this(surplusPostRepository, claimRepository, null, timelineService, notificationPreferenceService, emailService, smsService,

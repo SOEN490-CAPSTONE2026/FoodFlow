@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SurplusFormModal from '../SurplusFormModal';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 jest.mock('../../../contexts/TimezoneContext', () => ({
   TimezoneProvider: ({ children }) => children,
@@ -90,6 +91,11 @@ jest.mock('react-i18next', () => ({
         'surplusForm.steps.foodDetails': 'Food Details',
         'surplusForm.steps.quantityDates': 'Quantity & Dates',
         'surplusForm.steps.pickupInfo': 'Pickup Info',
+        'common.approvalRequired.badge': 'Approval pending',
+        'common.approvalRequired.action': 'Understood',
+        'common.approvalRequired.createTitle': 'Account approval required',
+        'common.approvalRequired.createMessage':
+          'You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account.',
       };
       // Handle interpolation
       let result = translations[key] || key;
@@ -137,7 +143,15 @@ import {
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
-  return render(ui, options);
+  const authValue = {
+    accountStatus: 'ACTIVE',
+    ...(options.authValue || {}),
+  };
+
+  return render(
+    <AuthContext.Provider value={authValue}>{ui}</AuthContext.Provider>,
+    options
+  );
 };
 
 // Mock @react-google-maps/api with autocomplete simulation
@@ -243,6 +257,8 @@ jest.mock('lucide-react', () => ({
   ChevronLeft: () => <span data-testid="chevron-left-icon">&#8249;</span>,
   ChevronRight: () => <span data-testid="chevron-right-icon">&#8250;</span>,
   Sparkles: () => <span data-testid="sparkles-icon">&#10024;</span>,
+  AlertTriangle: () => <span data-testid="alert-triangle-icon">Alert</span>,
+  Clock3: () => <span data-testid="clock3-icon">Clock3</span>,
 }));
 
 // Mock localStorage
@@ -591,6 +607,57 @@ describe('SurplusFormModal', () => {
     await waitFor(() => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
+  });
+
+  test('shows approval modal and skips submission when account is not approved', async () => {
+    renderWithProviders(<SurplusFormModal {...defaultProps} />, {
+      authValue: { accountStatus: 'PENDING_ADMIN_APPROVAL' },
+    });
+
+    await fillStep1();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep2();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
+    fireEvent.click(screen.getByText('Create Donation'));
+
+    await waitFor(() => {
+      expect(mockSurplusAPI.create).not.toHaveBeenCalled();
+    });
+
+    expect(screen.getByText('Account approval required')).toBeInTheDocument();
+  });
+
+  test('shows approval modal when backend rejects unapproved account', async () => {
+    mockSurplusAPI.create.mockRejectedValue({
+      response: { data: { message: 'Account not approved yet' } },
+    });
+
+    renderWithProviders(<SurplusFormModal {...defaultProps} />);
+
+    await fillStep1();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep2();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep3();
+    fireEvent.click(screen.getByText('Next'));
+
+    await fillStep4();
+    fireEvent.click(screen.getByText('Create Donation'));
+
+    expect(
+      await screen.findByText('Account approval required')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Account not approved yet')
+    ).not.toBeInTheDocument();
   });
 
   // Cancel button functionality

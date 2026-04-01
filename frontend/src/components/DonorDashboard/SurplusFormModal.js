@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useContext } from 'react';
 import {
   X,
   Calendar,
@@ -29,7 +29,13 @@ import {
 } from '../../constants/foodConstants';
 import { computeSuggestedExpiry } from '../../utils/expiryRules';
 import { toLocalDateInputValue } from '../../utils/timezoneUtils';
+import {
+  isApprovedAccount,
+  isApprovalRequiredError,
+} from '../../utils/approvalUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { AuthContext } from '../../contexts/AuthContext';
+import ApprovalRequiredModal from '../ApprovalRequiredModal';
 import './Donor_Styles/SurplusFormModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -43,6 +49,7 @@ const SurplusFormModal = ({
   postId = null,
 }) => {
   const { t } = useTranslation();
+  const { accountStatus } = useContext(AuthContext) || {};
 
   // Load Google Maps script with Places library
   const { isLoaded: isMapsLoaded } = useLoadScript({
@@ -87,6 +94,8 @@ const SurplusFormModal = ({
   const [donationPhotoPreview, setDonationPhotoPreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [photoError, setPhotoError] = useState('');
+  const [showApprovalRequiredModal, setShowApprovalRequiredModal] =
+    useState(false);
   const autocompleteRef = useRef(null);
   const translatedFoodTypeOptions = useMemo(
     () =>
@@ -472,6 +481,11 @@ const SurplusFormModal = ({
     setMessage('');
     setError('');
 
+    if (!isApprovedAccount(accountStatus)) {
+      setShowApprovalRequiredModal(true);
+      return;
+    }
+
     try {
       // Format pickup slots for submission
       const formattedSlots = pickupSlots.map(slot => ({
@@ -585,6 +599,10 @@ const SurplusFormModal = ({
       }, 1500);
     } catch (err) {
       console.error('Error in handleSubmit:', err);
+      if (isApprovalRequiredError(err)) {
+        setShowApprovalRequiredModal(true);
+        return;
+      }
       setError(err.response?.data?.message || t('surplusForm.failed'));
     }
   };
@@ -1336,6 +1354,18 @@ const SurplusFormModal = ({
           )}
         </form>
       </div>
+      <ApprovalRequiredModal
+        isOpen={showApprovalRequiredModal}
+        onClose={() => setShowApprovalRequiredModal(false)}
+        title={t(
+          'common.approvalRequired.createTitle',
+          'Account approval required'
+        )}
+        message={t(
+          'common.approvalRequired.createMessage',
+          'You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account.'
+        )}
+      />
     </div>
   );
 };

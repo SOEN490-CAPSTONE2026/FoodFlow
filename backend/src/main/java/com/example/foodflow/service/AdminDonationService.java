@@ -41,7 +41,7 @@ public class AdminDonationService {
     private final ClaimRepository claimRepository;
     private final DonationTimelineRepository timelineRepository;
     private final NotificationPreferenceService notificationPreferenceService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final SimpMessagingTemplate messagingTemplate;
     
     public AdminDonationService(
@@ -51,7 +51,7 @@ public class AdminDonationService {
             UserRepository userRepository,
             TimelineService timelineService,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             SimpMessagingTemplate messagingTemplate) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;

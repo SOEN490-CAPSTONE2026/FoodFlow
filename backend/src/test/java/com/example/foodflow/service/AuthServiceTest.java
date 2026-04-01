@@ -50,7 +50,7 @@ class AuthServiceTest {
     private EmailVerificationTokenRepository verificationTokenRepository;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private com.example.foodflow.repository.PasswordResetTokenRepository passwordResetTokenRepository;

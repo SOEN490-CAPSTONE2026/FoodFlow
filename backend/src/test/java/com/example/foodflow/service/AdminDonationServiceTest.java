@@ -50,7 +50,7 @@ class AdminDonationServiceTest {
     private NotificationPreferenceService notificationPreferenceService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;

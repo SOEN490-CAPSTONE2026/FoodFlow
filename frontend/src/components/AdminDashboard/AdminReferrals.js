@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { referralAPI } from '../../services/api';
 import { UserPlus, Building2, Share2, RefreshCw, Eye, X } from 'lucide-react';
 import './Admin_Styles/AdminReferrals.css';
 
 export default function AdminReferrals() {
+  const { t, i18n } = useTranslation();
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,7 +19,7 @@ export default function AdminReferrals() {
       const response = await referralAPI.getAll();
       setReferrals(response.data || []);
     } catch (err) {
-      setError('Failed to load referral submissions. Please try again.');
+      setError(t('adminReferrals.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -34,9 +36,9 @@ export default function AdminReferrals() {
 
   const formatDate = dateStr => {
     if (!dateStr) {
-      return '-';
+      return t('adminReferrals.notAvailable');
     }
-    return new Date(dateStr).toLocaleDateString('en-CA', {
+    return new Date(dateStr).toLocaleDateString(i18n.language || 'en-CA', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -54,10 +56,10 @@ export default function AdminReferrals() {
               onClick={() => setFilter(type)}
             >
               {type === 'ALL'
-                ? 'All'
+                ? t('adminReferrals.filters.all')
                 : type === 'INVITE_COMMUNITY'
-                  ? 'Invite Community'
-                  : 'Suggest Business'}
+                  ? t('adminReferrals.filters.inviteCommunity')
+                  : t('adminReferrals.filters.suggestBusiness')}
             </button>
           ))}
         </div>
@@ -65,10 +67,10 @@ export default function AdminReferrals() {
           className="referral-refresh-btn"
           onClick={fetchReferrals}
           disabled={loading}
-          aria-label="Refresh"
+          aria-label={t('adminReferrals.refresh')}
         >
           <RefreshCw size={16} className={loading ? 'spin' : ''} />
-          Refresh
+          {t('adminReferrals.refresh')}
         </button>
       </div>
 
@@ -80,12 +82,12 @@ export default function AdminReferrals() {
 
       {loading ? (
         <div className="admin-referrals-loading">
-          Loading referral submissions...
+          {t('adminReferrals.loading')}
         </div>
       ) : filtered.length === 0 ? (
         <div className="admin-referrals-empty">
           <UserPlus size={48} />
-          <p>No referral submissions yet.</p>
+          <p>{t('adminReferrals.empty')}</p>
         </div>
       ) : (
         <div className="admin-referrals-table-wrapper">
@@ -95,40 +97,42 @@ export default function AdminReferrals() {
           >
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Business / Organization</th>
-                <th>Contact Email</th>
-                <th>Contact Phone</th>
-                <th>Message</th>
-                <th>Submitted By</th>
-                <th>Date</th>
+                <th>{t('adminReferrals.table.type')}</th>
+                <th>{t('adminReferrals.table.organization')}</th>
+                <th>{t('adminReferrals.table.contactEmail')}</th>
+                <th>{t('adminReferrals.table.contactPhone')}</th>
+                <th>{t('adminReferrals.table.message')}</th>
+                <th>{t('adminReferrals.table.submittedBy')}</th>
+                <th>{t('adminReferrals.table.date')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(ref => (
                 <tr key={ref.id}>
-                  <td data-label="Type">
+                  <td data-label={t('adminReferrals.table.type')}>
                     <span
                       className={`referral-type-badge referral-type-badge--${ref.referralType === 'INVITE_COMMUNITY' ? 'community' : 'business'}`}
                     >
                       {ref.referralType === 'INVITE_COMMUNITY' ? (
                         <>
-                          <Share2 size={12} /> Community
+                          <Share2 size={12} />{' '}
+                          {t('adminReferrals.types.community')}
                         </>
                       ) : (
                         <>
-                          <Building2 size={12} /> Business
+                          <Building2 size={12} />{' '}
+                          {t('adminReferrals.types.business')}
                         </>
                       )}
                     </span>
                   </td>
                   <td
-                    data-label="Business / Organization"
+                    data-label={t('adminReferrals.table.organization')}
                     className="referral-name"
                   >
                     {ref.businessName}
                   </td>
-                  <td data-label="Contact Email">
+                  <td data-label={t('adminReferrals.table.contactEmail')}>
                     <a
                       href={`mailto:${ref.contactEmail}`}
                       className="referral-email-link"
@@ -136,28 +140,41 @@ export default function AdminReferrals() {
                       {ref.contactEmail}
                     </a>
                   </td>
-                  <td data-label="Contact Phone">
-                    {ref.contactPhone || '\u2014'}
+                  <td data-label={t('adminReferrals.table.contactPhone')}>
+                    {ref.contactPhone || t('adminReferrals.notAvailable')}
                   </td>
-                  <td data-label="Message" className="referral-message-cell">
+                  <td
+                    data-label={t('adminReferrals.table.message')}
+                    className="referral-message-cell"
+                  >
                     {ref.message ? (
                       <button
                         type="button"
                         className="referral-action-btn"
                         onClick={() => setSelectedMessageReferral(ref)}
-                        title="View message"
-                        aria-label={`View message from ${ref.businessName}`}
+                        title={t('adminReferrals.viewMessage')}
+                        aria-label={t('adminReferrals.viewMessageFrom', {
+                          name: ref.businessName,
+                        })}
                       >
                         <Eye size={16} />
                       </button>
                     ) : (
-                      <span className="referral-message-empty">{'\u2014'}</span>
+                      <span className="referral-message-empty">
+                        {t('adminReferrals.notAvailable')}
+                      </span>
                     )}
                   </td>
-                  <td data-label="Submitted By" className="referral-submitter">
+                  <td
+                    data-label={t('adminReferrals.table.submittedBy')}
+                    className="referral-submitter"
+                  >
                     {ref.submittedByEmail}
                   </td>
-                  <td data-label="Date" className="referral-date">
+                  <td
+                    data-label={t('adminReferrals.table.date')}
+                    className="referral-date"
+                  >
                     {formatDate(ref.createdAt)}
                   </td>
                 </tr>
@@ -168,8 +185,11 @@ export default function AdminReferrals() {
       )}
 
       <div className="admin-referrals-count">
-        Showing {filtered.length} of {referrals.length} submission
-        {referrals.length !== 1 ? 's' : ''}
+        {t('adminReferrals.showingCount', {
+          count: filtered.length,
+          shown: filtered.length,
+          total: referrals.length,
+        })}
       </div>
 
       {selectedMessageReferral && (
@@ -185,12 +205,12 @@ export default function AdminReferrals() {
               type="button"
               className="referral-message-modal-close"
               onClick={() => setSelectedMessageReferral(null)}
-              aria-label="Close message"
+              aria-label={t('adminReferrals.closeMessage')}
             >
               <X size={20} />
             </button>
             <div className="referral-message-modal-header">
-              <h2>Referral Message</h2>
+              <h2>{t('adminReferrals.messageTitle')}</h2>
               <p>{selectedMessageReferral.businessName}</p>
             </div>
             <div className="referral-message-modal-body">

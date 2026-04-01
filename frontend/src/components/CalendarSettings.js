@@ -256,7 +256,7 @@ const CalendarSettings = () => {
                   provider: connectionStatus.provider || 'GOOGLE',
                 })
               : t('calendar.summary.notConnected')}{' '}
-            •{' '}
+            &bull;{' '}
             {events.length === 1
               ? t('calendar.summary.syncedEventSingular', {
                   count: events.length,
@@ -291,7 +291,7 @@ const CalendarSettings = () => {
             {isExpanded
               ? tx('calendar.hide', 'Hide')
               : tx('calendar.edit', 'Edit')}{' '}
-            {isExpanded ? '▲' : '▼'}
+            {isExpanded ? '?' : '?'}
           </button>
         </div>
       </div>
@@ -713,7 +713,7 @@ const CalendarSettings = () => {
                 onClick={() => setShowConnectionDetailsModal(false)}
                 aria-label={t('calendar.closeModalAria')}
               >
-                Ã—
+                &times;
               </button>
             </div>
             <div className="modal-body">
@@ -848,7 +848,7 @@ const CalendarSettings = () => {
                 onClick={() => setShowDisconnectModal(false)}
                 aria-label={t('calendar.closeModalAria')}
               >
-                Ã—
+                &times;
               </button>
             </div>
             <div className="modal-body">

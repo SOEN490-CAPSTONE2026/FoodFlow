@@ -612,11 +612,11 @@
   right: 20px;
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 36px;
   color: #6b7280;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -692,6 +692,16 @@
   background: #f0f9ff;
 }
 
+.alert-option-delete:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.alert-option-delete.selected {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
 .alert-option input[type='radio'] {
   margin-top: 2px;
   width: 18px;
@@ -729,6 +739,18 @@
   background: #62b6cb;
 }
 
+.alert-option-delete input[type='radio']:hover {
+  border-color: #dc2626;
+}
+
+.alert-option-delete input[type='radio']:checked {
+  border-color: #dc2626;
+}
+
+.alert-option-delete input[type='radio']:checked::after {
+  background: #dc2626;
+}
+
 .alert-option-content {
   flex: 1;
 }
@@ -739,6 +761,10 @@
   color: #1b4965;
   margin-bottom: 4px;
   text-align: left;
+}
+
+.alert-option-delete .alert-option-title {
+  color: #b91c1c;
 }
 
 .alert-option-desc {
@@ -836,6 +862,14 @@
 
 .btn-send-alert:hover {
   background: #4a9fb5;
+}
+
+.btn-delete-user {
+  background: #dc2626;
+}
+
+.btn-delete-user:hover {
+  background: #b91c1c;
 }
 
 .btn-cancel {

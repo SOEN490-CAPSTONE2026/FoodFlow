@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "home": "Home",
     "howItWorks": "How it works",
@@ -276,7 +276,22 @@
     "syncing": "Syncing...",
     "retry": "Retry",
     "less": "Less",
-    "more": "More"
+    "more": "More",
+    "approvalRequired": {
+      "badge": "Approval pending",
+      "title": "Account approval required",
+      "message": "Your account is still waiting for FoodFlow admin approval. Please wait until it is approved before continuing.",
+      "action": "Understood",
+      "createTitle": "Account approval required",
+      "createMessage": "You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account.",
+      "claimTitle": "Approval required to claim donations",
+      "claimMessage": "This action is available once a FoodFlow admin approves your account. Please wait for approval before claiming donations."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "Account Pending Admin Approval",
+    "message": "Your email has been verified! Your account is currently awaiting approval from our admin team. This process typically takes up to 48 hours. You'll receive an email notification once your account is approved.",
+    "thankYou": "Thank you for your patience!"
   },
   "validation": {
     "required": "This field is required",
@@ -954,7 +969,11 @@
     "verificationQueueDesc": "Review and approve pending user registrations",
     "usersDesc": "Manage and monitor all platform users",
     "impactDesc": "Platform-wide environmental and social impact metrics",
-    "disputesDesc": "Track, review, and resolve reported issues"
+    "disputesDesc": "Track, review, and resolve reported issues",
+    "images": "Images",
+    "imagesDesc": "Moderate uploads and manage default library images",
+    "referrals": "Referral Submissions",
+    "referralsDesc": "View community invitations and business suggestions from users"
   },
   "claimedView": {
     "claimed": "Claimed",
@@ -2200,13 +2219,15 @@
     },
     "status": {
       "active": "Active",
-      "deactivated": "Deactivated"
+      "deactivated": "Deactivated",
+      "deleted": "Deleted"
     },
     "actions": {
       "viewDetails": "View Details",
       "deactivate": "Deactivate",
       "reactivate": "Reactivate",
-      "sendAlert": "Send Alert"
+      "sendAlert": "Send Alert",
+      "deleteUser": "Delete User"
     },
     "details": {
       "totalActivity": "Total Activity",
@@ -2222,10 +2243,37 @@
         "CLAIM": "Claimed {{item}}",
         "VERIFICATION": "Completed verification",
         "DEACTIVATE_USER": "Account deactivated",
+        "DELETE_USER": "Account deleted: {{item}}",
         "quantityOf": "{{quantity}} of {{title}}",
         "noActivity": "No recent activity",
         "on": "on"
       }
+    },
+    "userDetails": {
+      "title": "User Details",
+      "basicInformation": "Basic Information",
+      "id": "ID",
+      "name": "Name",
+      "organization": "Organization",
+      "email": "Email",
+      "phone": "Phone",
+      "preferredLanguage": "Preferred Language",
+      "licenseDocument": "License Document",
+      "viewDocument": "View Document",
+      "noDocumentUploaded": "No document uploaded",
+      "modify": "Modify",
+      "modifyDocumentTitle": "Upload or replace document",
+      "registrationNumber": "Registration Number",
+      "activityStatistics": "Activity & Statistics",
+      "registrationDate": "Registration Date",
+      "lastActive": "Last Active",
+      "totalDonations": "Total Donations",
+      "totalClaims": "Total Claims",
+      "rating": "Rating",
+      "noRatingsYet": "No ratings yet",
+      "reviewsCount": "{{count}} reviews",
+      "addressInformation": "Address Information",
+      "address": "Address"
     },
     "modals": {
       "deactivate": {
@@ -2240,25 +2288,29 @@
         "title": "Send Alert to:",
         "alertType": "Alert Type",
         "customPlaceholder": "Enter your custom message...",
-        "editPlaceholder": "Edit message"
+        "editPlaceholder": "Edit message",
+        "deletePlaceholder": "Write the reason and any final note for deleting this user..."
       }
     },
     "alertTypes": {
       "warning": "Warning",
       "safety": "Safety Notice",
       "compliance": "Compliance Reminder",
-      "custom": "Custom Alert"
+      "custom": "Custom Alert",
+      "delete": "Delete User"
     },
     "alertDescriptions": {
       "warning": "Send a warning about policy violations",
       "safety": "Important safety information",
       "compliance": "Remind about compliance requirements",
-      "custom": "Send a custom message"
+      "custom": "Send a custom message",
+      "delete": "Deactivate this user and save your message as the admin reason"
     },
     "alertTemplates": {
       "warning": "Dear User,\n\nWe have detected a policy violation in your recent activity. Please review our platform policies and ensure compliance to avoid further action.\n\nThank you for your cooperation.",
       "safety": "Dear User,\n\nPlease be aware of the following safety guidelines when handling food donations:\n\n- Maintain proper food storage temperatures\n- Check expiration dates regularly\n- Follow hygiene protocols\n\nYour safety and the safety of recipients is our top priority.",
-      "compliance": "Dear User,\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance."
+      "compliance": "Dear User,\n\nThis is a friendly reminder to ensure your account meets all compliance requirements:\n\n✓ Complete profile information\n✓ Updated documentation\n✓ Adherence to platform policies\n\nPlease review your account settings and update any missing information.\n\nThank you for maintaining compliance.",
+      "delete": "This account is being removed from platform access for the following reason:\n\n"
     },
     "notifications": {
       "reasonRequired": "Please provide a reason for deactivation",
@@ -2268,7 +2320,10 @@
       "reactivateFailed": "Failed to reactivate user",
       "alertRequired": "Please enter an alert message",
       "alertSent": "Alert sent successfully",
-      "alertFailed": "Failed to send alert"
+      "alertFailed": "Failed to send alert",
+      "deleteMessageRequired": "Please enter a reason before deleting this user",
+      "deleted": "User deleted successfully",
+      "deleteFailed": "Failed to delete user"
     },
     "errors": {
       "loadFailed": "Failed to load users. Please try again later."
@@ -2320,8 +2375,137 @@
       "clickToLoadFeedback": "Click to expand and load feedback...",
       "noFeedback": "No feedback has been provided yet for this donation."
     },
+    "detailsModal": {
+      "title": "Donation Details",
+      "pageTitles": {
+        "basicInfoParticipants": "Basic Info & Participants",
+        "timeline": "Timeline",
+        "overrideStatus": "Override Status"
+      },
+      "basicInformation": "Basic Information",
+      "participants": "Participants",
+      "roles": {
+        "donor": "Donor",
+        "receiver": "Receiver"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "Title",
+        "status": "Status",
+        "flagged": "Flagged",
+        "created": "Created",
+        "updated": "Updated",
+        "name": "Name",
+        "email": "Email",
+        "organization": "Organization",
+        "claimedAt": "Claimed At"
+      },
+      "values": {
+        "yes": "Yes",
+        "no": "No"
+      },
+      "timeline": "Timeline",
+      "actor": "Actor: {{actor}}",
+      "adminOnly": "ADMIN ONLY",
+      "statusChange": "Status",
+      "noTimeline": "No timeline events available.",
+      "overrideStatus": "Override Status",
+      "currentStatus": "Current Status",
+      "newStatus": "New Status",
+      "selectNewStatus": "Select new status",
+      "reason": "Reason",
+      "reasonPlaceholder": "Provide a reason for the status override...",
+      "updating": "Updating...",
+      "back": "Back",
+      "next": "Next",
+      "pageOf": "Page {{page}} of {{total}}"
+    },
     "errors": {
       "loadFailed": "Failed to load donations. Please try again."
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "reasonPrompt": "Reason (optional):",
+    "statusOptions": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "disabled": "Disabled"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "Food Type",
+      "donor": "Donor",
+      "status": "Status",
+      "reason": "Reason",
+      "active": "Active",
+      "yes": "Yes",
+      "no": "No",
+      "none": "-",
+      "generic": "Generic"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "disable": "Disable",
+      "delete": "Delete",
+      "add": "Add",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "remove": "Remove"
+    },
+    "uploaded": {
+      "title": "Uploaded Images",
+      "empty": "No uploads found for the selected status.",
+      "alt": "Upload {{id}}"
+    },
+    "library": {
+      "title": "Internal Image Library",
+      "uploadImage": "Upload image",
+      "orImageUrl": "Or image URL",
+      "selectCategory": "Select a category",
+      "empty": "Internal library is empty. Add your first fallback image.",
+      "alt": "Library {{id}}"
+    },
+    "errors": {
+      "loadFailed": "Failed to load image moderation data.",
+      "selectFoodType": "Please select a food type category.",
+      "addFailed": "Failed to add library image."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "All",
+      "inviteCommunity": "Invite Community",
+      "suggestBusiness": "Suggest Business"
+    },
+    "types": {
+      "community": "Community",
+      "business": "Business"
+    },
+    "table": {
+      "type": "Type",
+      "organization": "Business / Organization",
+      "contactEmail": "Contact Email",
+      "contactPhone": "Contact Phone",
+      "message": "Message",
+      "submittedBy": "Submitted By",
+      "date": "Date"
+    },
+    "refresh": "Refresh",
+    "loading": "Loading referral submissions...",
+    "empty": "No referral submissions yet.",
+    "viewMessage": "View message",
+    "viewMessageFrom": "View message from {{name}}",
+    "closeMessage": "Close message",
+    "messageTitle": "Referral Message",
+    "showingCount_one": "Showing {{shown}} of {{total}} submissions",
+    "showingCount_other": "Showing {{shown}} of {{total}} submissions",
+    "notAvailable": "—",
+    "errors": {
+      "loadFailed": "Failed to load referral submissions. Please try again."
     }
   },
   "adminSettings": {

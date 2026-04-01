@@ -223,6 +223,7 @@ public class GlobalExceptionHandler {
                                 "Business Rule Violation",
                                 localizedMessage,
                                 request.getRequestURI());
+                errorResponse.setCode(ex.getMessageKey());
 
                 log.warn("Business exception on {}: {}", request.getRequestURI(), ex.getMessageKey());
 

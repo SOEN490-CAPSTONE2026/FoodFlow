@@ -18,6 +18,9 @@ jest.mock('../../services/socket', () => ({
 }));
 jest.mock('../MessagingDashboard/MessageNotification', () => () => null);
 jest.mock('./ReceiverPreferences', () => () => null);
+jest.mock('../AdminApprovalBanner', () => () => (
+  <div data-testid="admin-approval-banner">Approval banner</div>
+));
 jest.mock('./Receiver_Styles/ReceiverLayout.css', () => ({}), {
   virtual: true,
 });
@@ -40,7 +43,7 @@ describe('ReceiverLayout admin approval banner', () => {
       </MemoryRouter>
     );
 
-    const banner = screen.getByText(/Account Pending Admin Approval/i);
+    const banner = screen.getByTestId('admin-approval-banner');
     expect(banner).toBeInTheDocument();
   });
 
@@ -55,7 +58,7 @@ describe('ReceiverLayout admin approval banner', () => {
       </MemoryRouter>
     );
 
-    const results = screen.queryByText(/Account Pending Admin Approval/i);
+    const results = screen.queryByTestId('admin-approval-banner');
     expect(results).toBeNull();
   });
 
@@ -70,7 +73,7 @@ describe('ReceiverLayout admin approval banner', () => {
       </MemoryRouter>
     );
 
-    const results = screen.queryByText(/Account Pending Admin Approval/i);
+    const results = screen.queryByTestId('admin-approval-banner');
     expect(results).toBeNull();
   });
 });

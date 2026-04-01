@@ -53,7 +53,7 @@ class SurplusImpactComputationIntegrationTest {
                 Mockito.mock(GamificationService.class),
                 claimService,
                 Mockito.mock(org.springframework.messaging.simp.SimpMessagingTemplate.class),
-                Mockito.mock(EmailService.class),
+                Mockito.mock(EmailNotificationService.class),
                 Mockito.mock(NotificationPreferenceService.class),
                 new FoodTypeImpactService(new ObjectMapper()),
                 Mockito.mock(ImpactCalculationService.class),
