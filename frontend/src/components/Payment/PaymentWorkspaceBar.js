@@ -1,25 +1,23 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 function PaymentWorkspaceBar({ views, activeView, onChange }) {
+  const { t } = useTranslation();
   const sectionDescriptions = {
-    donate:
-      'Help us fight food waste and support communities with a secure donation.',
-    methods:
-      'Manage your saved cards and bank accounts for faster future payments.',
-    history:
-      'Review your recent transactions and track payment activity in one place.',
-    invoices:
-      'View and download invoices for your completed FoodFlow payments.',
-    refunds: 'Check refund activity and submit refund requests when needed.',
+    donate: t('paymentPage.workspace.descriptions.donate'),
+    methods: t('paymentPage.workspace.descriptions.methods'),
+    history: t('paymentPage.workspace.descriptions.history'),
+    invoices: t('paymentPage.workspace.descriptions.invoices'),
+    refunds: t('paymentPage.workspace.descriptions.refunds'),
   };
 
   return (
     <div className="payment-workspace-shell">
       <div className="payment-topnav__intro">
-        <h2>Payment Workspace</h2>
+        <h2>{t('paymentPage.workspace.title')}</h2>
         <p>
           {sectionDescriptions[activeView] ||
-            'Move through billing sections like separate pages in one flow.'}
+            t('paymentPage.workspace.descriptions.fallback')}
         </p>
       </div>
 
@@ -27,7 +25,7 @@ function PaymentWorkspaceBar({ views, activeView, onChange }) {
         <div
           className="payment-topnav__tabs payment-topnav__tabs--claims"
           role="tablist"
-          aria-label="Payment sections"
+          aria-label={t('paymentPage.workspace.ariaLabel')}
         >
           {views.map(view => (
             <button

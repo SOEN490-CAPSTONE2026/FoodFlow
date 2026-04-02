@@ -272,6 +272,78 @@
     "message": "Seu e-mail foi verificado! Sua conta está aguardando aprovação da nossa equipe administrativa. Esse processo normalmente leva até 48 horas. Você receberá uma notificação por e-mail assim que sua conta for aprovada.",
     "thankYou": "Obrigado pela sua paciência!"
   },
+  "paymentPage": {
+    "workspace": {
+      "title": "Espaço de Pagamento",
+      "ariaLabel": "Seções de pagamento",
+      "descriptions": {
+        "donate": "Ajude-nos a combater o desperdício de alimentos e apoiar comunidades com uma doação segura.",
+        "methods": "Gerencie seus cartões e contas bancárias salvos para pagamentos futuros mais rápidos.",
+        "history": "Revise suas transações recentes e acompanhe sua atividade de pagamentos em um só lugar.",
+        "invoices": "Veja e baixe as faturas dos seus pagamentos concluídos no FoodFlow.",
+        "refunds": "Confira a atividade de reembolsos e envie solicitações quando necessário.",
+        "fallback": "Passe pelas seções de cobrança como páginas separadas em um único fluxo."
+      }
+    },
+    "tabs": {
+      "donate": "Doar",
+      "methods": "Métodos",
+      "history": "Histórico",
+      "invoices": "Faturas",
+      "refunds": "Reembolsos"
+    },
+    "steps": {
+      "amount": "Valor",
+      "payment": "Pagamento"
+    },
+    "amount": {
+      "title": "Selecionar valor da doação",
+      "currency": "Moeda",
+      "customLabel": "Ou insira um valor personalizado:",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "Método de pagamento",
+      "savedOrNew": "Escolha seu cartão padrão salvo ou informe um novo.",
+      "noSavedDefault": "Nenhum cartão padrão salvo foi encontrado. Informe um novo método de pagamento.",
+      "loading": "Carregando métodos de pagamento salvos...",
+      "useSaved": "Usar método padrão salvo",
+      "defaultBadge": "Cartão padrão salvo",
+      "useNew": "Usar um novo cartão",
+      "newCardHint": "Abra o formulário do cartão Stripe na próxima etapa.",
+      "addSavedHint": "Adicione um cartão salvo na aba Métodos para reutilizá-lo aqui."
+    },
+    "savedMethod": {
+      "bankAccount": "Conta bancária",
+      "card": "Cartão",
+      "bankEnding": "{{bankName}} terminando em {{last4}}",
+      "cardEnding": "{{brand}} terminando em {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "Métricas de impacto",
+      "title": "Impacto estimado",
+      "poweredByData": "Estimativas baseadas em dados reais de doações da plataforma.",
+      "liveEstimate": "Estimativa ao vivo com base no valor de doação selecionado.",
+      "meals": "Refeições apoiadas",
+      "co2": "CO2 reduzido",
+      "water": "Pegada hídrica evitada",
+      "communityPacks": "Cestas alimentares comunitárias"
+    },
+    "actions": {
+      "processing": "Processando...",
+      "continueToPayment": "Continuar para o pagamento {{amount}}"
+    },
+    "security": {
+      "lock": "Cadeado",
+      "notice": "Protegido pelo Stripe - Suas informações de pagamento estão criptografadas e seguras"
+    },
+    "errors": {
+      "minimumAmount": "Insira um valor válido (mínimo de $1)",
+      "unableToContinue": "Não foi possível continuar com este método de pagamento agora.",
+      "initializationFailed": "Falha ao iniciar o pagamento. Tente novamente."
+    },
+    "donationDescription": "Doação FoodFlow"
+  },
   "validation": {
     "required": "Este campo é obrigatório",
     "email": "Por favor, insira um e-mail válido",

@@ -10,6 +10,7 @@ import {
   Calendar,
   MapPin,
   Heart,
+  Star,
 } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
@@ -543,7 +544,13 @@ export default function ReceiverMyClaims() {
                 {rating.totalReviews > 0 ? (
                   <span className="rating-vertical-wrap">
                     <span className="rating-main">
-                      <span className="rating-star">?</span> Your Rating :
+                      <Star
+                        size={18}
+                        className="rating-star"
+                        fill="#f59e0b"
+                        color="#f59e0b"
+                      />{' '}
+                      Your Rating :
                       <span className="rating-number">
                         {rating.averageRating.toFixed(1)}
                       </span>
@@ -625,11 +632,16 @@ export default function ReceiverMyClaims() {
           const displayStatus = getDisplayStatus(claim);
 
           // Get the primary food category from foodCategories array
+          const normalizedFoodCategories = Array.isArray(post?.foodCategories)
+            ? post.foodCategories.map(category => category?.name || category)
+            : [];
           const primaryFoodCategory = getPrimaryFoodCategory(
-            post?.foodCategories
+            normalizedFoodCategories
           );
           const resolvedDonationImage = getImageUrl(
-            post?.resolvedDonationImageUrl
+            post?.resolvedDonationImageUrl ||
+              post?.donationImageUrl ||
+              post?.imageUrl
           );
           const pickupWindow = formatPickupTime(
             claim.confirmedPickupSlot?.pickupDate ||
@@ -639,7 +651,9 @@ export default function ReceiverMyClaims() {
             claim.confirmedPickupSlot?.endTime ||
               claim.confirmedPickupSlot?.pickupTo
           );
-          const categoryBadge = getPrimaryFoodCategory(post?.foodCategories);
+          const categoryBadge = getPrimaryFoodCategory(
+            normalizedFoodCategories
+          );
           const dietaryBadges = (
             Array.isArray(post?.dietaryTags) ? post.dietaryTags : []
           )

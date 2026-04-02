@@ -1,6 +1,7 @@
 package com.example.foodflow.model.dto;
 
 import com.example.foodflow.model.entity.Conversation;
+import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import java.time.LocalDateTime;
 
@@ -51,12 +52,18 @@ public class ConversationResponse {
         this.alreadyExists = conversationAlreadyExists;
 
         // Populate donation-anchored fields if present.
-        // Prefer live surplus post status so chat header reflects real donation state.
+        // Prefer live surplus post details so chat metadata stays aligned with the current donation card.
         this.status = conversation.getStatus();
         if (conversation.getSurplusPost() != null) {
-            this.donationId = conversation.getSurplusPost().getId();
-            if (conversation.getSurplusPost().getStatus() != null) {
-                this.status = conversation.getSurplusPost().getStatus().name();
+            SurplusPost surplusPost = conversation.getSurplusPost();
+            this.donationId = surplusPost.getId();
+            this.donationTitle = surplusPost.getTitle();
+            this.donationDescription = surplusPost.getDescription();
+            if (surplusPost.getFoodType() != null) {
+                this.donationPhoto = surplusPost.getFoodType().name();
+            }
+            if (surplusPost.getStatus() != null) {
+                this.status = surplusPost.getStatus().name();
             }
         }
         if (conversation.getDonor() != null) {
@@ -65,9 +72,15 @@ public class ConversationResponse {
         if (conversation.getReceiver() != null) {
             this.receiverId = conversation.getReceiver().getId();
         }
-        this.donationTitle = conversation.getDonationTitle();
-        this.donationPhoto = conversation.getDonationPhoto();
-        this.donationDescription = conversation.getDonationDescription();
+        if (this.donationTitle == null) {
+            this.donationTitle = conversation.getDonationTitle();
+        }
+        if (this.donationPhoto == null) {
+            this.donationPhoto = conversation.getDonationPhoto();
+        }
+        if (this.donationDescription == null) {
+            this.donationDescription = conversation.getDonationDescription();
+        }
     }
     
     // Getters and Setters
