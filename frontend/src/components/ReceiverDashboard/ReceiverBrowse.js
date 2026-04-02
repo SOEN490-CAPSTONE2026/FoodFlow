@@ -128,7 +128,7 @@ export default function ReceiverBrowse() {
     const postIds = items.map(item => item.id).filter(id => id > 0);
     const recommendationData = await recommendationAPI.getTopRecommendations(
       postIds,
-      80
+      50
     );
     setRecommendations(recommendationData);
   }, []);
@@ -1193,7 +1193,21 @@ export default function ReceiverBrowse() {
                         onMouseEnter={() => setHoveredRecommended(item.id)}
                         onMouseLeave={() => setHoveredRecommended(null)}
                       >
-                        <Star size={14} fill="#ffffff" color="#ffffff" />
+                        <div className="badge-stars">
+                          <Star
+                            size={18}
+                            fill="#ffffff"
+                            color="#ffffff"
+                            strokeWidth={1.5}
+                          />
+                          <Star
+                            size={12}
+                            fill="#ffffff"
+                            color="#ffffff"
+                            strokeWidth={1.5}
+                            className="badge-star-small"
+                          />
+                        </div>
 
                         {/* Tooltip */}
                         {hoveredRecommended === item.id && (

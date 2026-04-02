@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FoodFlowLogo from '../../assets/Logo.png';
+import api from '../../services/api';
 import {
   foodTypeImages,
   getFoodTypeLabel,
@@ -16,6 +17,7 @@ const ConversationsSidebar = ({
 }) => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
+  const [liveDonationImages, setLiveDonationImages] = useState({});
 
   const getProfilePhotoUrl = photoUrl => {
     if (!photoUrl) {
@@ -78,6 +80,58 @@ const ConversationsSidebar = ({
   // Count unread conversations
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDonationImages = async () => {
+      const candidates = conversations.filter(
+        conversation =>
+          conversation?.donationId &&
+          !conversation?.resolvedDonationImageUrl &&
+          !liveDonationImages[conversation.id]
+      );
+
+      if (candidates.length === 0) {
+        return;
+      }
+
+      const results = await Promise.all(
+        candidates.map(async conversation => {
+          try {
+            const response = await api.get(
+              `/surplus/${conversation.donationId}`
+            );
+            const post = response?.data || {};
+            return [
+              conversation.id,
+              post.resolvedDonationImageUrl ||
+                post.donationImageUrl ||
+                post.imageUrl ||
+                null,
+            ];
+          } catch (error) {
+            return [conversation.id, null];
+          }
+        })
+      );
+
+      if (!isMounted) {
+        return;
+      }
+
+      setLiveDonationImages(previous => ({
+        ...previous,
+        ...Object.fromEntries(results.filter(([, imageUrl]) => imageUrl)),
+      }));
+    };
+
+    loadDonationImages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [conversations, liveDonationImages]);
+
   const getDonationAvatarUrl = conversation => {
     const rawName = conversation?.otherUserName || '';
     const rawEmail = conversation?.otherUserEmail || '';
@@ -96,11 +150,28 @@ const ConversationsSidebar = ({
       return getProfilePhotoUrl(conversation.resolvedDonationImageUrl);
     }
 
+    if (liveDonationImages[conversation?.id]) {
+      return getProfilePhotoUrl(liveDonationImages[conversation.id]);
+    }
+
     if (!conversation?.donationPhoto) {
       return null;
     }
     const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
     return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+  };
+
+  const getDonationFallbackAvatarUrl = conversation => {
+    if (isAdminSupportConversation(conversation)) {
+      return FoodFlowLogo;
+    }
+
+    if (conversation?.donationPhoto) {
+      const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+      return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+    }
+
+    return null;
   };
 
   const isAdminSupportConversation = conversation => {
@@ -172,6 +243,9 @@ const ConversationsSidebar = ({
           filteredConversations.map(conversation => {
             const displayName = getOtherParticipantDisplayName(conversation);
             const isAdminSupport = isAdminSupportConversation(conversation);
+            const donationAvatarUrl = getDonationAvatarUrl(conversation);
+            const fallbackDonationAvatar =
+              getDonationFallbackAvatarUrl(conversation);
 
             return (
               <div
@@ -184,11 +258,16 @@ const ConversationsSidebar = ({
                 <div
                   className={`conversation-avatar ${isAdminSupport ? 'admin-support' : ''}`}
                 >
-                  {getDonationAvatarUrl(conversation) ? (
+                  {donationAvatarUrl ? (
                     <img
-                      src={getDonationAvatarUrl(conversation)}
+                      src={donationAvatarUrl}
                       alt={conversation.donationTitle || displayName}
                       className={`conversation-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
+                      onError={event => {
+                        if (fallbackDonationAvatar) {
+                          event.currentTarget.src = fallbackDonationAvatar;
+                        }
+                      }}
                     />
                   ) : conversation.otherUserProfilePhoto ? (
                     <img

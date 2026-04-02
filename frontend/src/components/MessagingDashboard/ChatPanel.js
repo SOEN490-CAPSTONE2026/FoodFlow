@@ -353,6 +353,19 @@ const ChatPanel = ({
     return null;
   };
 
+  const getConversationFallbackAvatar = () => {
+    if (isAdminSupportParticipant()) {
+      return FoodFlowLogo;
+    }
+
+    if (conversation?.donationPhoto) {
+      const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+      return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+    }
+
+    return null;
+  };
+
   if (!conversation) {
     return (
       <div
@@ -368,6 +381,7 @@ const ChatPanel = ({
 
   const statusInfo = getStatusInfo();
   const conversationAvatarUrl = getConversationAvatarUrl();
+  const conversationFallbackAvatar = getConversationFallbackAvatar();
   const otherParticipantDisplayName = getOtherParticipantDisplayName();
   const isAdminSupport = isAdminSupportParticipant();
 
@@ -460,6 +474,12 @@ const ChatPanel = ({
                               otherParticipantDisplayName
                             }
                             className={`message-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
+                            onError={event => {
+                              if (conversationFallbackAvatar) {
+                                event.currentTarget.src =
+                                  conversationFallbackAvatar;
+                              }
+                            }}
                           />
                         ) : (
                           otherParticipantDisplayName.charAt(0).toUpperCase()

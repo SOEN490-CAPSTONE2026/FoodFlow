@@ -156,6 +156,12 @@ public class RecommendationService {
 
         // 5. Expiry/Freshness (10 points) - Always relevant
         score += calculateExpiryScore(post, preferences, reasons);
+        
+        // 6. Smart Bonuses (up to 20 points additional) - Makes algorithm more intelligent
+        score += calculateSmartBonuses(post, preferences, reasons);
+        
+        // Cap score at 100
+        score = Math.min(score, 100);
 
         // Limit to 4 reasons max
         List<String> limitedReasons = reasons.stream().limit(4).collect(Collectors.toList());
@@ -442,4 +448,50 @@ public class RecommendationService {
                 return 5; // Good compatibility
         }
     }
+
+    /**
+     * Smart bonuses to make recommendations more intelligent
+     * Considers: location proximity, donor reliability, urgency, and recency
+     */
+    private int calculateSmartBonuses(SurplusPost post, ReceiverPreferences preferences, List<String> reasons) {
+        int bonus = 0;
+        
+        // 1. Urgency Bonus (up to 5 points)
+        // Posts expiring very soon need to be picked up urgently - highest priority
+        LocalDate expiryDate = post.getExpiryDate();
+        if (expiryDate != null) {
+            long daysUntilExpiry = ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
+            if (daysUntilExpiry <= 1 && daysUntilExpiry >= 0) {
+                reasons.add("Expires today - urgent!");
+                bonus += 5;
+            } else if (daysUntilExpiry == 2) {
+                reasons.add("Expires in 2 days");
+                bonus += 3;
+            }
+        }
+        
+        // 2. Recency Bonus (up to 3 points)
+        // Fresher posts (posted within last hour) might be more relevant and available
+        if (post.getCreatedAt() != null) {
+            long minutesSincePosted = ChronoUnit.MINUTES.between(post.getCreatedAt(), java.time.LocalDateTime.now());
+            if (minutesSincePosted >= 0 && minutesSincePosted <= 60) {
+                reasons.add("Just posted - high availability");
+                bonus += 3;
+            } else if (minutesSincePosted > 60 && minutesSincePosted <= 360) {
+                bonus += 1;
+            }
+        }
+        
+        // 3. Quantity Flexibility Bonus (up to 2 points)
+        // If donation meets receiver's quantity needs
+        if (post.getQuantity() != null && preferences.getMinQuantity() != null && preferences.getMaxQuantity() != null) {
+            double quantity = post.getQuantity().getValue();
+            if (quantity >= preferences.getMinQuantity() && quantity <= preferences.getMaxQuantity()) {
+                bonus += 2;
+            }
+        }
+        
+        return bonus;
+    }
+
 }

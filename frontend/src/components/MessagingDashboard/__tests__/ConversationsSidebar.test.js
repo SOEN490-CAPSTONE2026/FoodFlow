@@ -3,6 +3,15 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ConversationsSidebar from '../ConversationsSidebar';
 
+const mockGet = jest.fn();
+
+jest.mock('../../../services/api', () => ({
+  __esModule: true,
+  default: {
+    get: (...args) => mockGet(...args),
+  },
+}));
+
 describe('ConversationsSidebar', () => {
   const mockConversations = [
     {
@@ -36,6 +45,7 @@ describe('ConversationsSidebar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGet.mockReset();
   });
 
   test('renders sidebar header with title', () => {
@@ -80,6 +90,38 @@ describe('ConversationsSidebar', () => {
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
     expect(screen.getByText('Bob Wilson')).toBeInTheDocument();
+  });
+
+  test('uses the live donation image when a conversation has a donation id', async () => {
+    mockGet.mockResolvedValue({
+      data: { resolvedDonationImageUrl: '/api/files/donation-images/live.jpg' },
+    });
+
+    render(
+      <ConversationsSidebar
+        conversations={[
+          {
+            id: 10,
+            donationId: 99,
+            donationTitle: 'Fresh Vegetables',
+            otherUserName: 'John Doe',
+            otherUserEmail: 'john@test.com',
+            lastMessagePreview: 'Hello there',
+            lastMessageAt: '2025-01-01T12:00:00Z',
+            unreadCount: 1,
+          },
+        ]}
+        selectedConversation={null}
+        onSelectConversation={mockOnSelectConversation}
+        onNewConversation={mockOnNewConversation}
+      />
+    );
+
+    const avatar = await screen.findByAltText('Fresh Vegetables');
+    expect(avatar).toHaveAttribute(
+      'src',
+      'http://localhost:8080/api/files/donation-images/live.jpg'
+    );
   });
 
   test('calls onSelectConversation when conversation is clicked', () => {

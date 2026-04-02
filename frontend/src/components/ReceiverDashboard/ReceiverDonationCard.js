@@ -99,7 +99,16 @@ export default function ReceiverDonationCard({
           onMouseEnter={() => setHoveredRecommended(item.id)}
           onMouseLeave={() => setHoveredRecommended(null)}
         >
-          <Star size={14} fill="#ffffff" color="#ffffff" />
+          <div className="badge-stars">
+            <Star size={18} fill="#ffffff" color="#ffffff" strokeWidth={1.5} />
+            <Star
+              size={12}
+              fill="#ffffff"
+              color="#ffffff"
+              strokeWidth={1.5}
+              className="badge-star-small"
+            />
+          </div>
 
           {hoveredRecommended === item.id && (
             <div className="recommendation-tooltip">

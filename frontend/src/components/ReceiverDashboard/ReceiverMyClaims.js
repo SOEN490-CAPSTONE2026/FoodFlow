@@ -643,6 +643,9 @@ export default function ReceiverMyClaims() {
               post?.donationImageUrl ||
               post?.imageUrl
           );
+          const fallbackDonationImage =
+            foodTypeImages[primaryFoodCategory] ||
+            foodTypeImages['Prepared Meals'];
           const pickupWindow = formatPickupTime(
             claim.confirmedPickupSlot?.pickupDate ||
               claim.confirmedPickupSlot?.date,
@@ -727,12 +730,11 @@ export default function ReceiverMyClaims() {
               {/* Image */}
               <div className="claimed-page card-image">
                 <img
-                  src={
-                    resolvedDonationImage ||
-                    foodTypeImages[primaryFoodCategory] ||
-                    foodTypeImages['Prepared Meals']
-                  }
+                  src={resolvedDonationImage || fallbackDonationImage}
                   alt={post?.title || 'Donation'}
+                  onError={event => {
+                    event.currentTarget.src = fallbackDonationImage;
+                  }}
                 />
                 <span
                   className={`claimed-page status-badge status-${displayStatus.toLowerCase().replace(' ', '-')}`}
