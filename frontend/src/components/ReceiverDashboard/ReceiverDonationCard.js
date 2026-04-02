@@ -101,13 +101,6 @@ export default function ReceiverDonationCard({
         >
           <div className="badge-stars">
             <Star size={18} fill="#ffffff" color="#ffffff" strokeWidth={1.5} />
-            <Star
-              size={12}
-              fill="#ffffff"
-              color="#ffffff"
-              strokeWidth={1.5}
-              className="badge-star-small"
-            />
           </div>
 
           {hoveredRecommended === item.id && (

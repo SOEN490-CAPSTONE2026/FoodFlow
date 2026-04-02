@@ -529,14 +529,40 @@ export default function ReceiverMyClaims() {
         className="claimed-page claims-header"
         data-tour="receiver-my-claims"
       >
-        <div className="claimed-page claims-header-text">
+        {/* Donation Banner - Left Side */}
+        <section
+          className="claimed-page donation-support-banner"
+          aria-label={t('donation.bannerAriaLabel')}
+        >
+          <div className="claimed-page donation-support-banner-content">
+            <div
+              className="claimed-page donation-support-banner-icon"
+              aria-hidden="true"
+            >
+              <Heart strokeWidth={2} />
+            </div>
+            <div className="claimed-page donation-support-banner-text">
+              <h3>{t('donation.title')}</h3>
+              <p>{t('donation.claimsSubtitle')}</p>
+            </div>
+          </div>
+          <button
+            className="claimed-page donation-support-banner-button"
+            onClick={() => navigate('/payment')}
+          >
+            {t('donation.modalAriaLabel')}
+          </button>
+        </section>
+
+        {/* Title and Subtitle - Center */}
+        <div className="claimed-page claims-header-center">
           <h1>{t('receiverMyClaims.title')}</h1>
           <p className="claimed-page claimed-subtitle">
             {t('receiverMyClaims.subtitle')}
           </p>
         </div>
 
-        {/* Rating Stats Box */}
+        {/* Rating Stats Box - Right Side */}
         <div className="receiver-stats-box">
           <div className="stat-item">
             <div className="stat-info">
@@ -570,32 +596,6 @@ export default function ReceiverMyClaims() {
           </div>
         </div>
       </div>
-
-      {error && <div className="claimed-page error-message">{error}</div>}
-
-      <section
-        className="claimed-page donation-support-banner"
-        aria-label={t('donation.bannerAriaLabel')}
-      >
-        <div className="claimed-page donation-support-banner-content">
-          <div
-            className="claimed-page donation-support-banner-icon"
-            aria-hidden="true"
-          >
-            <Heart strokeWidth={2} />
-          </div>
-          <div className="claimed-page donation-support-banner-text">
-            <h3>{t('donation.title')}</h3>
-            <p>{t('donation.claimsSubtitle')}</p>
-          </div>
-        </div>
-        <button
-          className="claimed-page donation-support-banner-button"
-          onClick={() => navigate('/payment')}
-        >
-          {t('donation.modalAriaLabel')}
-        </button>
-      </section>
 
       {/* Filters and Sort */}
       <div className="claimed-page donation-filters-container">
