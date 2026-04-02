@@ -1203,6 +1203,14 @@ jest.mock('@react-google-maps/api', () => ({
 
 // Mock recommendation API and all other APIs
 jest.mock('./services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(() => Promise.resolve({ data: {} })),
+    post: jest.fn(() => Promise.resolve({ data: {} })),
+    put: jest.fn(() => Promise.resolve({ data: {} })),
+    delete: jest.fn(() => Promise.resolve({ data: {} })),
+    patch: jest.fn(() => Promise.resolve({ data: {} })),
+  },
   recommendationAPI: {
     getBrowseRecommendations: jest.fn(() => Promise.resolve({})),
     getRecommendationForPost: jest.fn(() => Promise.resolve(null)),
@@ -1258,6 +1266,11 @@ jest.mock('./services/api', () => ({
   claimsAPI: {
     myClaims: jest.fn(() => Promise.resolve({ data: [] })),
     cancel: jest.fn(() => Promise.resolve({})),
+  },
+  feedbackAPI: {
+    getMyRating: jest.fn(() =>
+      Promise.resolve({ data: { averageRating: 0, totalReviews: 0 } })
+    ),
   },
   savedDonationAPI: {
     save: jest.fn(() => Promise.resolve({})),

@@ -35,7 +35,9 @@ jest.mock('../AIImageUpload', () => {
         <button
           onClick={() =>
             onImageSelect(
-              new File(['test'], 'upload.jpg', { type: 'image/jpeg' })
+              new global.File(['test'], 'upload.jpg', {
+                type: 'image/jpeg',
+              })
             )
           }
         >

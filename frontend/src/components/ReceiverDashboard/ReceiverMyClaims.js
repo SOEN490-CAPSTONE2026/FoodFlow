@@ -206,7 +206,10 @@ export default function ReceiverMyClaims() {
       setError(null);
     } catch (error) {
       console.error('Error fetching claims:', error);
-      setError(t('receiverMyClaims.failedToLoad'));
+      setError(
+        t('receiverMyClaims.failedToLoad') ||
+          'Failed to load your claimed donations'
+      );
       setClaims([]);
     } finally {
       setLoading(false);
@@ -847,7 +850,17 @@ export default function ReceiverMyClaims() {
         })}
       </div>
 
-      {sortedClaims.length === 0 && !loading && (
+      {error && !loading && (
+        <div
+          className="claimed-page empty-state claimed-page error-state"
+          role="alert"
+        >
+          <Package size={48} className="claimed-page empty-icon" />
+          <p>{error}</p>
+        </div>
+      )}
+
+      {sortedClaims.length === 0 && !loading && !error && (
         <div className="claimed-page empty-state">
           <Package size={48} className="claimed-page empty-icon" />
           <p>

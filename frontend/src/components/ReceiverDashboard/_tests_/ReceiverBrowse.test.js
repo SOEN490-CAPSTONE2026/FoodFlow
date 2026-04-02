@@ -338,7 +338,7 @@ describe('ReceiverBrowse Component', () => {
       await waitFor(() => {
         expect(recommendationAPI.getTopRecommendations).toHaveBeenCalledWith(
           [123],
-          80
+          50
         );
       });
     });
