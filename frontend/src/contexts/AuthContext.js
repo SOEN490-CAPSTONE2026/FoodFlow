@@ -85,9 +85,7 @@ export const AuthProvider = ({ children }) => {
         null
     );
     setUserId(
-      localStorage.getItem('userId') ||
-        sessionStorage.getItem('userId') ||
-        null
+      localStorage.getItem('userId') || sessionStorage.getItem('userId') || null
     );
     setOrganizationName(
       localStorage.getItem('organizationName') ||
