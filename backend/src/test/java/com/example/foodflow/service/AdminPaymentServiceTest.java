@@ -235,7 +235,7 @@ class AdminPaymentServiceTest {
     void rejectRefund() {
         RefundResponse refundResponse = RefundResponse.builder()
                 .id(1L)
-                .status(RefundStatus.REJECTED)
+                .status(RefundStatus.FAILED)
                 .build();
 
         when(refundService.rejectRefund(1L, adminUser, "Rejected"))
@@ -244,7 +244,7 @@ class AdminPaymentServiceTest {
         RefundResponse result = adminPaymentService.rejectRefund(1L, adminUser, "Rejected");
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(RefundStatus.REJECTED);
+        assertThat(result.getStatus()).isEqualTo(RefundStatus.FAILED);
         verify(refundService).rejectRefund(1L, adminUser, "Rejected");
     }
 

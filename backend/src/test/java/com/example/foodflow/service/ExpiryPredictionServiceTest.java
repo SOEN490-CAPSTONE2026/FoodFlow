@@ -42,7 +42,6 @@ class ExpiryPredictionServiceTest {
     void predictPreparedFoodRoomTemperature() {
         surplusPost.setFoodType(FoodType.PREPARED);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -57,7 +56,6 @@ class ExpiryPredictionServiceTest {
     void predictPreparedFoodRefrigerated() {
         surplusPost.setFoodType(FoodType.PREPARED);
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -70,7 +68,6 @@ class ExpiryPredictionServiceTest {
     void predictProduceRoomTemperature() {
         surplusPost.setFoodType(FoodType.PRODUCE);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -83,7 +80,6 @@ class ExpiryPredictionServiceTest {
     void predictProduceRefrigerated() {
         surplusPost.setFoodType(FoodType.PRODUCE);
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -96,7 +92,6 @@ class ExpiryPredictionServiceTest {
     void predictBakeryItems() {
         surplusPost.setFoodType(FoodType.BAKERY);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -109,7 +104,6 @@ class ExpiryPredictionServiceTest {
     void predictDairyEggs() {
         surplusPost.setFoodType(FoodType.DAIRY_EGGS);
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -122,7 +116,6 @@ class ExpiryPredictionServiceTest {
     void predictMeatPoultry() {
         surplusPost.setFoodType(FoodType.MEAT_POULTRY);
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -135,7 +128,6 @@ class ExpiryPredictionServiceTest {
     void predictSeafood() {
         surplusPost.setFoodType(FoodType.SEAFOOD);
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -148,7 +140,6 @@ class ExpiryPredictionServiceTest {
     void predictPantryItems() {
         surplusPost.setFoodType(FoodType.PANTRY);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -161,7 +152,6 @@ class ExpiryPredictionServiceTest {
     void predictBeverages() {
         surplusPost.setFoodType(FoodType.BEVERAGES);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -174,7 +164,6 @@ class ExpiryPredictionServiceTest {
     void predictFrozenFood() {
         surplusPost.setFoodType(FoodType.PRODUCE);
         surplusPost.setTemperatureCategory(TemperatureCategory.FROZEN);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -188,7 +177,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.PANTRY);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
         surplusPost.setPackagingType(PackagingType.SEALED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -202,7 +190,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.MEAT_POULTRY);
         surplusPost.setTemperatureCategory(TemperatureCategory.FROZEN);
         surplusPost.setPackagingType(PackagingType.VACUUM_PACKED);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -216,7 +203,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.PRODUCE);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
         surplusPost.setPackagingType(PackagingType.LOOSE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -230,7 +216,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.BAKERY);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
         surplusPost.setFabricationDate(LocalDate.now().minusDays(1));
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -243,7 +228,6 @@ class ExpiryPredictionServiceTest {
     void predictWithNullFoodType() {
         surplusPost.setFoodType(null);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -256,7 +240,6 @@ class ExpiryPredictionServiceTest {
     void predictWithNullTemperature() {
         surplusPost.setFoodType(FoodType.PANTRY);
         surplusPost.setTemperatureCategory(null);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -270,7 +253,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.PANTRY);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
         surplusPost.setPackagingType(null);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -285,7 +267,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
         surplusPost.setPackagingType(PackagingType.SEALED);
         surplusPost.setFabricationDate(LocalDate.now());
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -306,7 +287,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFabricationDate(LocalDate.now());
         surplusPost.setTitle("Test");
         surplusPost.setDescription("Test Description");
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -319,7 +299,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.PANTRY);
         surplusPost.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
         surplusPost.setPackagingType(PackagingType.BULK);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
@@ -333,7 +312,6 @@ class ExpiryPredictionServiceTest {
         surplusPost.setFoodType(FoodType.BEVERAGES);
         surplusPost.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
         surplusPost.setPackagingType(PackagingType.OTHER);
-        surplusPost.setCreatedAt(LocalDateTime.now());
 
         ExpiryPredictionService.PredictionResult result = expiryPredictionService.predict(surplusPost);
 
