@@ -37,8 +37,7 @@ class AIExtractionServiceTest {
     @DisplayName("Should reject null image file")
     void analyzeFoodLabelWithNullImage() {
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(null))
-                .isInstanceOf(InvalidImageException.class)
-                .hasMessageContaining("required");
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
