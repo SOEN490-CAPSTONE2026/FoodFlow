@@ -9,8 +9,10 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PaymentMethodType;
 import com.example.foodflow.repository.PaymentMethodRepository;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.SetupIntent;
 import com.stripe.param.SetupIntentCreateParams;
+import com.stripe.param.CustomerUpdateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,55 +25,66 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentMethodService {
-    
+
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentAuditService paymentAuditService;
+    private final PaymentService paymentService;
 
     public SetupIntentResponse createSetupIntent(User user) {
         try {
+            String customerId = paymentService.getOrCreateStripeCustomerId(user);
             SetupIntentCreateParams params = SetupIntentCreateParams.builder()
-                .addPaymentMethodType("card")
-                .addPaymentMethodType("us_bank_account")
-                .build();
+                    .setCustomer(customerId)
+                    .setUsage(SetupIntentCreateParams.Usage.OFF_SESSION)
+                    .addPaymentMethodType("card")
+                    .build();
 
             SetupIntent setupIntent = SetupIntent.create(params);
 
             return SetupIntentResponse.builder()
-                .clientSecret(setupIntent.getClientSecret())
-                .setupIntentId(setupIntent.getId())
-                .status(setupIntent.getStatus())
-                .message("Setup intent created successfully")
-                .build();
+                    .clientSecret(setupIntent.getClientSecret())
+                    .setupIntentId(setupIntent.getId())
+                    .status(setupIntent.getStatus())
+                    .message("Setup intent created successfully")
+                    .build();
         } catch (StripeException e) {
             log.error("Stripe error creating setup intent: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to create payment method setup: " + e.getUserMessage());
         }
     }
-    
+
     @Transactional
     public PaymentMethodResponse attachPaymentMethod(AttachPaymentMethodRequest request, User user) {
         try {
             Organization organization = user.getOrganization();
-            
+            String customerId = paymentService.getOrCreateStripeCustomerId(user);
+
             // Retrieve payment method from Stripe
-            com.stripe.model.PaymentMethod stripePaymentMethod = 
-                com.stripe.model.PaymentMethod.retrieve(request.getPaymentMethodId());
-            
-            // Attach to customer if needed (customer ID should be stored from payment creation)
-            // For now, we'll just save the payment method details
-            
+            com.stripe.model.PaymentMethod stripePaymentMethod = com.stripe.model.PaymentMethod
+                    .retrieve(request.getPaymentMethodId());
+
+            String existingCustomerId = stripePaymentMethod.getCustomer();
+            if (existingCustomerId == null) {
+                stripePaymentMethod = stripePaymentMethod.attach(
+                        com.stripe.param.PaymentMethodAttachParams.builder()
+                                .setCustomer(customerId)
+                                .build());
+            } else if (!customerId.equals(existingCustomerId)) {
+                throw new RuntimeException("Payment method belongs to a different customer");
+            }
+
             // Check if already attached
             if (paymentMethodRepository.existsByOrganizationIdAndStripePaymentMethodId(
-                organization.getId(), request.getPaymentMethodId())) {
+                    organization.getId(), request.getPaymentMethodId())) {
                 throw new RuntimeException("Payment method already attached");
             }
-            
+
             // Create payment method entity
             PaymentMethod paymentMethod = new PaymentMethod();
             paymentMethod.setOrganization(organization);
             paymentMethod.setStripePaymentMethodId(request.getPaymentMethodId());
             paymentMethod.setPaymentMethodType(mapPaymentMethodType(stripePaymentMethod.getType()));
-            
+
             // Extract card details if card type
             if ("card".equals(stripePaymentMethod.getType())) {
                 com.stripe.model.PaymentMethod.Card card = stripePaymentMethod.getCard();
@@ -80,114 +93,124 @@ public class PaymentMethodService {
                 paymentMethod.setCardExpMonth(card.getExpMonth().intValue());
                 paymentMethod.setCardExpYear(card.getExpYear().intValue());
             }
-            
+
             // Extract bank details if ACH type
             if ("us_bank_account".equals(stripePaymentMethod.getType())) {
                 com.stripe.model.PaymentMethod.UsBankAccount bankAccount = stripePaymentMethod.getUsBankAccount();
                 paymentMethod.setBankName(bankAccount.getBankName());
                 paymentMethod.setBankLast4(bankAccount.getLast4());
             }
-            
+
             // Set as default if requested or if first payment method
             boolean isFirstMethod = paymentMethodRepository
-                .findByOrganizationIdOrderByIsDefaultDescCreatedAtDesc(organization.getId())
-                .isEmpty();
-            
-            if (request.getSetAsDefault() || isFirstMethod) {
+                    .findByOrganizationIdOrderByIsDefaultDescCreatedAtDesc(organization.getId())
+                    .isEmpty();
+
+            boolean shouldSetDefault = Boolean.TRUE.equals(request.getSetAsDefault()) || isFirstMethod;
+            if (shouldSetDefault) {
                 // Clear existing default
                 paymentMethodRepository.clearDefaultForOrganization(organization.getId());
                 paymentMethod.setIsDefault(true);
+                updateStripeDefaultPaymentMethod(customerId, request.getPaymentMethodId());
             }
-            
+
             paymentMethod = paymentMethodRepository.save(paymentMethod);
-            
+
             // Audit log
             paymentAuditService.logPaymentMethodEvent(paymentMethod.getId(), "PAYMENT_METHOD_ATTACHED",
-                "Payment method attached: " + paymentMethod.getPaymentMethodType(), user.getId(), null);
-            
-            log.info("Payment method attached: {} for organization: {}", request.getPaymentMethodId(), organization.getId());
-            
+                    "Payment method attached: " + paymentMethod.getPaymentMethodType(), user.getId(), null);
+
+            log.info("Payment method attached: {} for organization: {}", request.getPaymentMethodId(),
+                    organization.getId());
+
             return toPaymentMethodResponse(paymentMethod);
-            
+
         } catch (StripeException e) {
             log.error("Stripe error attaching payment method: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to attach payment method: " + e.getUserMessage());
         }
     }
-    
+
     @Transactional
     public void detachPaymentMethod(Long paymentMethodId, User user) {
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
-            .orElseThrow(() -> new RuntimeException("Payment method not found"));
-        
+                .orElseThrow(() -> new RuntimeException("Payment method not found"));
+
         // Verify user owns this payment method
         if (!paymentMethod.getOrganization().getId().equals(user.getOrganization().getId())) {
             throw new RuntimeException("Unauthorized access to payment method");
         }
-        
+
         try {
             // Detach from Stripe
-            com.stripe.model.PaymentMethod stripePaymentMethod = 
-                com.stripe.model.PaymentMethod.retrieve(paymentMethod.getStripePaymentMethodId());
+            com.stripe.model.PaymentMethod stripePaymentMethod = com.stripe.model.PaymentMethod
+                    .retrieve(paymentMethod.getStripePaymentMethodId());
             stripePaymentMethod.detach();
-            
+
             // Delete from database
             paymentMethodRepository.delete(paymentMethod);
-            
+
             // Audit log
             paymentAuditService.logPaymentMethodEvent(paymentMethodId, "PAYMENT_METHOD_DETACHED",
-                "Payment method detached", user.getId(), null);
-            
+                    "Payment method detached", user.getId(), null);
+
             log.info("Payment method detached: {}", paymentMethodId);
-            
+
         } catch (StripeException e) {
             log.error("Stripe error detaching payment method: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to detach payment method: " + e.getUserMessage());
         }
     }
-    
+
     @Transactional
     public PaymentMethodResponse setDefaultPaymentMethod(Long paymentMethodId, User user) {
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
-            .orElseThrow(() -> new RuntimeException("Payment method not found"));
-        
+                .orElseThrow(() -> new RuntimeException("Payment method not found"));
+
         // Verify user owns this payment method
         if (!paymentMethod.getOrganization().getId().equals(user.getOrganization().getId())) {
             throw new RuntimeException("Unauthorized access to payment method");
         }
-        
+
         // Clear existing default
         paymentMethodRepository.clearDefaultForOrganization(user.getOrganization().getId());
-        
+
         // Set new default
         paymentMethod.setIsDefault(true);
         paymentMethod = paymentMethodRepository.save(paymentMethod);
-        
+        try {
+            String customerId = paymentService.getOrCreateStripeCustomerId(user);
+            updateStripeDefaultPaymentMethod(customerId, paymentMethod.getStripePaymentMethodId());
+        } catch (StripeException e) {
+            log.error("Stripe error setting default payment method: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to set default payment method: " + e.getUserMessage());
+        }
+
         // Audit log
         paymentAuditService.logPaymentMethodEvent(paymentMethodId, "DEFAULT_PAYMENT_METHOD_SET",
-            "Set as default payment method", user.getId(), null);
-        
+                "Set as default payment method", user.getId(), null);
+
         log.info("Default payment method set: {}", paymentMethodId);
-        
+
         return toPaymentMethodResponse(paymentMethod);
     }
-    
+
     public List<PaymentMethodResponse> listPaymentMethods(User user) {
         Long organizationId = user.getOrganization().getId();
         List<PaymentMethod> methods = paymentMethodRepository
-            .findByOrganizationIdOrderByIsDefaultDescCreatedAtDesc(organizationId);
+                .findByOrganizationIdOrderByIsDefaultDescCreatedAtDesc(organizationId);
         return methods.stream()
-            .map(this::toPaymentMethodResponse)
-            .collect(Collectors.toList());
+                .map(this::toPaymentMethodResponse)
+                .collect(Collectors.toList());
     }
-    
+
     public PaymentMethodResponse getDefaultPaymentMethod(User user) {
         Long organizationId = user.getOrganization().getId();
         return paymentMethodRepository.findByOrganizationIdAndIsDefaultTrue(organizationId)
-            .map(this::toPaymentMethodResponse)
-            .orElse(null);
+                .map(this::toPaymentMethodResponse)
+                .orElse(null);
     }
-    
+
     private PaymentMethodType mapPaymentMethodType(String stripeType) {
         return switch (stripeType) {
             case "card" -> PaymentMethodType.CARD;
@@ -196,20 +219,31 @@ public class PaymentMethodService {
             default -> PaymentMethodType.OTHER;
         };
     }
-    
+
+    private void updateStripeDefaultPaymentMethod(String customerId, String paymentMethodId) throws StripeException {
+        Customer customer = Customer.retrieve(customerId);
+        customer.update(
+                CustomerUpdateParams.builder()
+                        .setInvoiceSettings(
+                                CustomerUpdateParams.InvoiceSettings.builder()
+                                        .setDefaultPaymentMethod(paymentMethodId)
+                                        .build())
+                        .build());
+    }
+
     private PaymentMethodResponse toPaymentMethodResponse(PaymentMethod method) {
         return PaymentMethodResponse.builder()
-            .id(method.getId())
-            .stripePaymentMethodId(method.getStripePaymentMethodId())
-            .paymentMethodType(method.getPaymentMethodType())
-            .cardBrand(method.getCardBrand())
-            .cardLast4(method.getCardLast4())
-            .cardExpMonth(method.getCardExpMonth())
-            .cardExpYear(method.getCardExpYear())
-            .bankName(method.getBankName())
-            .bankLast4(method.getBankLast4())
-            .isDefault(method.getIsDefault())
-            .createdAt(method.getCreatedAt())
-            .build();
+                .id(method.getId())
+                .stripePaymentMethodId(method.getStripePaymentMethodId())
+                .paymentMethodType(method.getPaymentMethodType())
+                .cardBrand(method.getCardBrand())
+                .cardLast4(method.getCardLast4())
+                .cardExpMonth(method.getCardExpMonth())
+                .cardExpYear(method.getCardExpYear())
+                .bankName(method.getBankName())
+                .bankLast4(method.getBankLast4())
+                .isDefault(method.getIsDefault())
+                .createdAt(method.getCreatedAt())
+                .build();
     }
 }

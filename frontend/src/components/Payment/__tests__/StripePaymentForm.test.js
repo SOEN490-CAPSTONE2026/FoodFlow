@@ -21,6 +21,8 @@ const renderComponent = (props = {}) => {
     amount: 50,
     currency: 'USD',
     onBack: jest.fn(),
+    clientSecret: 'pi_secret_123',
+    savedMethodLabel: '',
     ...props,
   };
 
@@ -89,6 +91,16 @@ describe('StripePaymentForm', () => {
         screen.getByText(/Any future date, any 3-digit CVC, any zip code/i)
       ).toBeInTheDocument();
     });
+
+    it('should show saved payment method summary when confirming a saved card', () => {
+      renderComponent({ savedMethodLabel: 'Visa ending in 4242' });
+
+      expect(
+        screen.getByText(/Confirm your donation with the saved default method/i)
+      ).toBeInTheDocument();
+      expect(screen.getByText('Visa ending in 4242')).toBeInTheDocument();
+      expect(screen.queryByTestId('payment-element')).not.toBeInTheDocument();
+    });
   });
 
   describe('Back Button', () => {
@@ -144,6 +156,30 @@ describe('StripePaymentForm', () => {
       await waitFor(() => {
         expect(mockConfirmPayment).toHaveBeenCalledWith({
           elements: {},
+          confirmParams: {
+            return_url: 'http://localhost:3000/payment/success',
+          },
+        });
+      });
+    });
+
+    it('should confirm a saved payment method with the client secret', async () => {
+      mockConfirmPayment.mockResolvedValueOnce({});
+
+      renderComponent({
+        amount: 30,
+        clientSecret: 'pi_saved_secret',
+        savedMethodLabel: 'Visa ending in 4242',
+      });
+
+      const form = screen
+        .getByRole('button', { name: /Confirm USD 30\.00/i })
+        .closest('form');
+      fireEvent.submit(form);
+
+      await waitFor(() => {
+        expect(mockConfirmPayment).toHaveBeenCalledWith({
+          clientSecret: 'pi_saved_secret',
           confirmParams: {
             return_url: 'http://localhost:3000/payment/success',
           },

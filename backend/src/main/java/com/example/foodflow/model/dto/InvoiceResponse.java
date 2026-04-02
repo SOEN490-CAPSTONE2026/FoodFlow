@@ -23,6 +23,8 @@ public class InvoiceResponse {
     private LocalDate dueDate;
     private LocalDate issuedDate;
     private BigDecimal totalAmount;
+    private BigDecimal refundedAmount;
+    private BigDecimal netAmount;
     private BigDecimal taxAmount;
     private BigDecimal subtotalAmount;
     private LocalDateTime createdAt;

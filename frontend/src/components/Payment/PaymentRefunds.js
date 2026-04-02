@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { paymentAPI, refundAPI } from '../../services/api';
-import RefundRequestModal from './RefundRequestModal';
 
 function PaymentRefunds({ active }) {
   const [payments, setPayments] = useState([]);
@@ -9,7 +8,6 @@ function PaymentRefunds({ active }) {
   const [refundLoading, setRefundLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [refundPayment, setRefundPayment] = useState(null);
 
   const loadPayments = async () => {
     setLoading(true);
@@ -57,7 +55,10 @@ function PaymentRefunds({ active }) {
       <div className="payment-tools-card__header">
         <div>
           <h3>Refunds</h3>
-          <p>Review refund activity and create refund requests.</p>
+          <p>
+            Review refund activity for your money donations. Refund requests are
+            handled by FoodFlow admins.
+          </p>
         </div>
         <button
           type="button"
@@ -97,15 +98,6 @@ function PaymentRefunds({ active }) {
                 >
                   View Refunds
                 </button>
-                {payment.status === 'SUCCEEDED' && (
-                  <button
-                    type="button"
-                    className="secondary-btn payment-tools-btn"
-                    onClick={() => setRefundPayment(payment)}
-                  >
-                    Request Refund
-                  </button>
-                )}
               </div>
             </article>
           ))}
@@ -120,6 +112,10 @@ function PaymentRefunds({ active }) {
                 <h4>Refund History</h4>
                 <p>Payment #{selectedPayment.id}</p>
               </div>
+            </div>
+
+            <div className="payment-tools-placeholder">
+              Refund review decisions are handled by FoodFlow admins.
             </div>
 
             {refundLoading ? (
@@ -148,21 +144,6 @@ function PaymentRefunds({ active }) {
           </div>
         </div>
       )}
-
-      <RefundRequestModal
-        payment={refundPayment}
-        onClose={() => setRefundPayment(null)}
-        onSubmitted={async () => {
-          await loadPayments();
-          if (selectedPayment) {
-            await loadRefunds(
-              refundPayment && refundPayment.id === selectedPayment.id
-                ? refundPayment
-                : selectedPayment
-            );
-          }
-        }}
-      />
     </section>
   );
 }

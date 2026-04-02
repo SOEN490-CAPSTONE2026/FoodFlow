@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
+import { useNavigate } from 'react-router-dom';
 import StripePaymentForm from './StripePaymentForm';
 import PaymentWorkspaceBar from './PaymentWorkspaceBar';
 import PaymentMethodManager from './PaymentMethodManager';
 import PaymentHistory from './PaymentHistory';
 import PaymentInvoices from './PaymentInvoices';
 import PaymentRefunds from './PaymentRefunds';
-import api, { donationStatsAPI } from '../../services/api';
+import { donationStatsAPI, paymentAPI } from '../../services/api';
 import './PaymentPage.css';
 
 const stripePromise = loadStripe(
@@ -15,6 +16,7 @@ const stripePromise = loadStripe(
 );
 
 function PaymentPage() {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('donate');
   const [step, setStep] = useState(1);
   const [selectedAmount, setSelectedAmount] = useState(null);
@@ -24,6 +26,26 @@ function PaymentPage() {
   const [error, setError] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [platformStats, setPlatformStats] = useState(null);
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
+  const [paymentMethodChoice, setPaymentMethodChoice] = useState('new');
+  const [savedMethodRequiresAction, setSavedMethodRequiresAction] =
+    useState(false);
+
+  const formatSavedMethodLabel = method => {
+    if (!method) {
+      return '';
+    }
+
+    if (method.paymentMethodType === 'ACH_DEBIT') {
+      return `${method.bankName || 'Bank account'} ending in ${method.bankLast4 || '----'}`;
+    }
+
+    const brand = method.cardBrand
+      ? method.cardBrand.charAt(0).toUpperCase() + method.cardBrand.slice(1)
+      : 'Card';
+    return `${brand} ending in ${method.cardLast4 || '----'}`;
+  };
 
   // Fetch platform-wide donation stats from the backend on mount
   const fetchPlatformStats = useCallback(async () => {
@@ -40,6 +62,29 @@ function PaymentPage() {
   useEffect(() => {
     fetchPlatformStats();
   }, [fetchPlatformStats]);
+
+  const loadDefaultPaymentMethod = useCallback(async () => {
+    setLoadingPaymentMethods(true);
+    try {
+      const response = await paymentAPI.listMethods();
+      const methods = Array.isArray(response.data) ? response.data : [];
+      const defaultMethod =
+        methods.find(method => method.isDefault) || methods[0] || null;
+      setDefaultPaymentMethod(defaultMethod);
+      setPaymentMethodChoice(defaultMethod ? 'saved' : 'new');
+    } catch (requestError) {
+      setDefaultPaymentMethod(null);
+      setPaymentMethodChoice('new');
+    } finally {
+      setLoadingPaymentMethods(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeView === 'donate') {
+      loadDefaultPaymentMethod();
+    }
+  }, [activeView, loadDefaultPaymentMethod]);
 
   const predefinedAmounts = [5, 10, 25, 50, 100];
   const supportedCurrencies = ['USD', 'CAD', 'EUR', 'GBP'];
@@ -76,16 +121,45 @@ function PaymentPage() {
 
     setLoading(true);
     setError('');
+    setSavedMethodRequiresAction(false);
 
     try {
-      const response = await api.post('/payments/create-intent', {
+      const response = await paymentAPI.createIntent({
         amount,
         currency: selectedCurrency,
         paymentType: 'ONE_TIME',
         description: 'FoodFlow Donation',
+        paymentMethodId:
+          paymentMethodChoice === 'saved'
+            ? defaultPaymentMethod?.stripePaymentMethodId
+            : undefined,
       });
 
-      setClientSecret(response.data.clientSecret);
+      const intent = response.data || {};
+      if (
+        paymentMethodChoice === 'saved' &&
+        (intent.status === 'succeeded' || intent.status === 'processing')
+      ) {
+        const query = new URLSearchParams();
+        if (intent.status === 'succeeded') {
+          query.set('redirect_status', 'succeeded');
+        }
+        if (intent.paymentIntentId) {
+          query.set('payment_intent', intent.paymentIntentId);
+        }
+        navigate(
+          `/payment/success${query.toString() ? `?${query.toString()}` : ''}`
+        );
+        return;
+      }
+
+      if (!intent.clientSecret) {
+        setError('Unable to continue with this payment method right now.');
+        return;
+      }
+
+      setClientSecret(intent.clientSecret || '');
+      setSavedMethodRequiresAction(paymentMethodChoice === 'saved');
       setStep(2);
     } catch (err) {
       console.error('Error creating payment intent:', err);
@@ -141,6 +215,7 @@ function PaymentPage() {
   );
 
   const impactMetrics = getImpactMetrics(getFinalAmount());
+  const savedMethodLabel = formatSavedMethodLabel(defaultPaymentMethod);
 
   return (
     <div className="payment-page">
@@ -191,9 +266,6 @@ function PaymentPage() {
                 <div className="amount-selection">
                   <div className="payment-section-heading">
                     <h2>Select Donation Amount</h2>
-                    <p>
-                      Choose a quick amount, currency, or enter a custom gift.
-                    </p>
                   </div>
 
                   <div className="payment-currency-picker">
@@ -201,9 +273,7 @@ function PaymentPage() {
                     <select
                       id="payment-currency"
                       value={selectedCurrency}
-                      onChange={event =>
-                        setSelectedCurrency(event.target.value)
-                      }
+                      onChange={event => setSelectedCurrency(event.target.value)}
                     >
                       {supportedCurrencies.map(currency => (
                         <option key={currency} value={currency}>
@@ -239,6 +309,85 @@ function PaymentPage() {
                         onChange={handleCustomAmountChange}
                       />
                     </div>
+                  </div>
+
+                  <div className="payment-method-choice">
+                    <div className="payment-section-heading">
+                      <h3>Payment Method</h3>
+                      <p>
+                        {defaultPaymentMethod
+                          ? 'Choose your saved default card or enter a new one.'
+                          : 'No saved default card found. Enter a new payment method.'}
+                      </p>
+                    </div>
+
+                    {loadingPaymentMethods ? (
+                      <div className="payment-tools-placeholder">
+                        Loading saved payment methods...
+                      </div>
+                    ) : defaultPaymentMethod ? (
+                      <div className="payment-method-choice__options">
+                        <label
+                          className={`payment-method-choice__option-card ${
+                            paymentMethodChoice === 'saved'
+                              ? 'payment-method-choice__option-card--selected'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="payment-method-choice"
+                            checked={paymentMethodChoice === 'saved'}
+                            onChange={() => setPaymentMethodChoice('saved')}
+                          />
+                          <span className="payment-method-choice__option-copy">
+                            <span className="payment-method-choice__option-title">
+                              Use saved default method
+                            </span>
+                            <span className="payment-method-choice__option-subtitle">
+                              {savedMethodLabel}
+                            </span>
+                            <span className="payment-method-choice__option-badge">
+                              Default card on file
+                            </span>
+                          </span>
+                        </label>
+                        <label
+                          className={`payment-method-choice__option-card ${
+                            paymentMethodChoice === 'new'
+                              ? 'payment-method-choice__option-card--selected'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="payment-method-choice"
+                            checked={paymentMethodChoice === 'new'}
+                            onChange={() => setPaymentMethodChoice('new')}
+                          />
+                          <span className="payment-method-choice__option-copy">
+                            <span className="payment-method-choice__option-title">
+                              Use a new card
+                            </span>
+                            <span className="payment-method-choice__option-subtitle">
+                              Open the Stripe card form on the next step.
+                            </span>
+                          </span>
+                        </label>
+                        {paymentMethodChoice === 'saved' && (
+                          <div className="payment-method-choice__summary">
+                            Your donation will charge the saved default method
+                            first. If Stripe needs extra verification, FoodFlow
+                            will show a secure confirmation step before
+                            completion.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="payment-tools-placeholder">
+                        Add a saved card in the Methods tab to reuse it here.
+                      </div>
+                    )}
                   </div>
 
                   {error && <div className="error-message">{error}</div>}
@@ -318,6 +467,10 @@ function PaymentPage() {
                       amount={getFinalAmount()}
                       currency={selectedCurrency}
                       onBack={() => setStep(1)}
+                      clientSecret={clientSecret}
+                      savedMethodLabel={
+                        savedMethodRequiresAction ? savedMethodLabel : ''
+                      }
                     />
                   </Elements>
                 </div>

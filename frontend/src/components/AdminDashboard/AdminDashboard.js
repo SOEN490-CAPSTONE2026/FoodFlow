@@ -17,6 +17,7 @@ import AdminReferrals from './AdminReferrals';
 import AdminSettings from './AdminSettings';
 import AdminDonations from './AdminDonations';
 import AdminImages from './AdminImages';
+import AdminMoneyDonations from './AdminMoneyDonations';
 
 export default function AdminDashboard() {
   return (
@@ -35,6 +36,7 @@ export default function AdminDashboard() {
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="impact" element={<AdminImpactDashboard />} />
           <Route path="donations" element={<AdminDonations />} />
+          <Route path="money-donations" element={<AdminMoneyDonations />} />
           <Route path="images" element={<AdminImages />} />
           <Route path="calendar" element={<AdminCalendar />} />
           <Route path="messages" element={<AdminMessages />} />

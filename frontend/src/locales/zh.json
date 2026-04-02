@@ -933,7 +933,85 @@
     "images": "图片",
     "imagesDesc": "审核上传内容并管理默认图片库",
     "referrals": "推荐提交",
-    "referralsDesc": "查看用户提交的社区邀请和商家建议"
+    "referralsDesc": "查看用户提交的社区邀请和商家建议",
+    "moneyDonations": "金钱捐赠",
+    "moneyDonationsDesc": "跟踪金钱捐赠、退款申请和发票状态"
+  },
+  "adminPayments": {
+    "eyebrow": "管理财务",
+    "title": "金钱捐赠交易",
+    "description": "查看每一笔金钱捐赠，审核待处理退款，并在管理员决定后核对发票金额。",
+    "loading": "正在加载交易...",
+    "empty": "当前筛选条件下没有金钱捐赠交易。",
+    "transactionId": "交易 #{{id}}",
+    "refundLabel": "退款",
+    "noDescription": "暂无说明",
+    "invoiceMissing": "暂无发票",
+    "pagination": "第 {{current}} / {{total}} 页",
+    "errors": {
+      "loadFailed": "无法加载金钱捐赠交易。",
+      "decisionFailed": "无法更新这条退款申请。"
+    },
+    "kpis": {
+      "totalVolume": "总金额",
+      "successfulTransactions": "成功交易",
+      "pendingRefundRequests": "待审核退款",
+      "netVolume": "净入账金额"
+    },
+    "filters": {
+      "search": "搜索",
+      "searchPlaceholder": "按交易编号、机构、Stripe intent 搜索...",
+      "paymentStatus": "支付状态",
+      "refundStatus": "退款状态",
+      "currency": "币种",
+      "fromDate": "开始日期",
+      "toDate": "结束日期",
+      "all": "全部",
+      "allCurrencies": "全部币种"
+    },
+    "errors": {
+      "loadFailed": "无法加载资金捐赠交易。",
+      "decisionFailed": "无法更新这条退款申请。",
+      "createFailed": "无法创建这条退款申请。",
+      "amountRequired": "请输入有效的退款金额。"
+    },
+    "columns": {
+      "transaction": "交易",
+      "organization": "机构",
+      "gross": "原始金额",
+      "refunded": "已退款金额",
+      "net": "净金额",
+      "invoice": "发票",
+      "paymentStatus": "支付状态",
+      "createdAt": "创建时间",
+      "currency": "币种",
+      "invoiceStatus": "发票状态"
+    },
+    "details": {
+      "transaction": "交易详情"
+    },
+    "refunds": {
+      "title": "退款申请",
+      "empty": "这笔交易暂无退款记录。",
+      "pendingCount": "{{count}} 条待审核",
+      "createTitle": "创建退款申请",
+      "amount": "退款金额",
+      "reason": "退款原因",
+      "requestedBy": "申请人",
+      "adminNotes": "管理员备注",
+      "notesPlaceholder": "在批准或拒绝前添加内部备注。",
+      "noReason": "未提供原因"
+    },
+    "actions": {
+      "refresh": "刷新",
+      "reset": "重置筛选",
+      "createRefundRequest": "创建申请",
+      "saving": "保存中...",
+      "approveRefund": "批准退款",
+      "rejectRefund": "拒绝退款",
+      "previous": "上一页",
+      "next": "下一页"
+    }
   },
   "claimedView": {
     "claimed": "已认领",
@@ -2329,6 +2407,8 @@
       "alert": {
         "title": "发送提醒给：",
         "alertType": "提醒类型",
+        "userLanguage": "用户语言",
+        "languageWarning": "消息必须用用户偏好的语言编写。系统将按您输入的方式发送。",
         "customPlaceholder": "输入你的自定义消息...",
         "editPlaceholder": "编辑消息"
       }

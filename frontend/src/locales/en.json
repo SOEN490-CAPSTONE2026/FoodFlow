@@ -973,7 +973,81 @@
     "images": "Images",
     "imagesDesc": "Moderate uploads and manage default library images",
     "referrals": "Referral Submissions",
-    "referralsDesc": "View community invitations and business suggestions from users"
+    "referralsDesc": "View community invitations and business suggestions from users",
+    "moneyDonations": "Money Donations",
+    "moneyDonationsDesc": "Track monetary donations, refund requests, and invoice health"
+  },
+  "adminPayments": {
+    "eyebrow": "Admin Finance",
+    "title": "Money Donation Transactions",
+    "description": "Monitor every monetary donation, review pending refunds, and verify invoice totals after admin decisions.",
+    "loading": "Loading payment transactions...",
+    "empty": "No monetary donation transactions match the current filters.",
+    "transactionId": "Transaction #{{id}}",
+    "refundLabel": "Refund",
+    "noDescription": "No description provided",
+    "invoiceMissing": "No invoice yet",
+    "pagination": "Page {{current}} of {{total}}",
+    "errors": {
+      "loadFailed": "Unable to load money donation transactions.",
+      "decisionFailed": "Unable to update this refund request.",
+      "createFailed": "Unable to create this refund request.",
+      "amountRequired": "Enter a valid refund amount."
+    },
+    "kpis": {
+      "totalVolume": "Total volume",
+      "successfulTransactions": "Successful transactions",
+      "pendingRefundRequests": "Pending refund requests",
+      "netVolume": "Net collected volume"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search by transaction ID, organization, Stripe intent...",
+      "paymentStatus": "Payment status",
+      "refundStatus": "Refund status",
+      "currency": "Currency",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "all": "All",
+      "allCurrencies": "All currencies"
+    },
+    "columns": {
+      "transaction": "Transaction",
+      "organization": "Organization",
+      "gross": "Gross amount",
+      "refunded": "Refunded amount",
+      "net": "Net amount",
+      "invoice": "Invoice",
+      "paymentStatus": "Payment status",
+      "createdAt": "Created",
+      "currency": "Currency",
+      "invoiceStatus": "Invoice status"
+    },
+    "details": {
+      "transaction": "Transaction details"
+    },
+    "refunds": {
+      "title": "Refund requests",
+      "empty": "No refund activity on this transaction.",
+      "pendingCount": "{{count}} pending review",
+      "createTitle": "Create refund request",
+      "amount": "Refund amount",
+      "reason": "Refund reason",
+      "requestedBy": "Requested by",
+      "adminNotes": "Admin notes",
+      "notesPlaceholder": "Add internal notes before approving or rejecting this refund.",
+      "noReason": "No reason provided"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "reset": "Reset filters",
+      "createRefundRequest": "Create refund request",
+      "saving": "Saving...",
+      "approveRefund": "Approve refund",
+      "rejectRefund": "Reject refund",
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "claimedView": {
     "claimed": "Claimed",
@@ -2287,6 +2361,8 @@
       "alert": {
         "title": "Send Alert to:",
         "alertType": "Alert Type",
+        "userLanguage": "User Language",
+        "languageWarning": "The message must be written in the user's preferred language. The system will send it exactly as you type it.",
         "customPlaceholder": "Enter your custom message...",
         "editPlaceholder": "Edit message",
         "deletePlaceholder": "Write the reason and any final note for deleting this user..."

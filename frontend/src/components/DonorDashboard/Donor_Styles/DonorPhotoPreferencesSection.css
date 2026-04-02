@@ -98,6 +98,7 @@
   border: 1px solid #e6edf4;
   border-radius: 12px;
   padding: 0.8rem;
+  text-align: left;
 }
 
 .donor-photo-preview {
@@ -112,12 +113,12 @@
 .donor-photo-preview-wrap {
   position: relative;
   width: fit-content;
-  margin: 0.65rem auto 0;
+  margin: 0.65rem 0 0;
 }
 
 .donor-file-input-wrap {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   margin-top: 0.35rem;
 }
 

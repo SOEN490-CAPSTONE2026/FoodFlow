@@ -22,5 +22,8 @@ public class RefundResponse {
     private RefundStatus status;
     private LocalDateTime processedAt;
     private String requestedByName;
+    private String reviewedByName;
+    private LocalDateTime reviewedAt;
+    private String adminNotes;
     private LocalDateTime createdAt;
 }

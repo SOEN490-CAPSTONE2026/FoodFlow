@@ -11,6 +11,7 @@ import {
   Users,
   UserCheck,
   Heart,
+  CircleDollarSign,
   Mail,
   ChevronRight,
   ChevronLeft,
@@ -157,6 +158,8 @@ export default function AdminLayout() {
         return t('admin.help');
       case '/admin/images':
         return t('admin.images');
+      case '/admin/money-donations':
+        return t('admin.moneyDonations');
       default:
         return t('admin.dashboard');
     }
@@ -187,6 +190,8 @@ export default function AdminLayout() {
         return t('admin.guides');
       case '/admin/images':
         return t('admin.imagesDesc');
+      case '/admin/money-donations':
+        return t('admin.moneyDonationsDesc');
       default:
         return t('admin.administration');
     }
@@ -306,6 +311,17 @@ export default function AdminLayout() {
           </Link>
 
           <Link
+            to="/admin/money-donations"
+            className={`admin-nav-link ${isActive('/admin/money-donations') ? 'active' : ''}`}
+            data-tooltip={t('admin.moneyDonations')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <CircleDollarSign size={18} className="lucide" />
+            </span>
+            {t('admin.moneyDonations')}
+          </Link>
+
+          <Link
             to="/admin/images"
             className={`admin-nav-link ${isActive('/admin/images') ? 'active' : ''}`}
             data-tooltip={t('admin.images')}
@@ -389,15 +405,12 @@ export default function AdminLayout() {
             <button className="user-profile-pic" type="button">
               <div
                 className="account-avatar"
-                style={
-                  profilePhotoUrl
-                    ? {
-                        backgroundImage: `url(${profilePhotoUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }
-                    : undefined
-                }
+                style={{
+                  backgroundImage: `url(${profilePhotoUrl || Logo})`,
+                  backgroundSize: profilePhotoUrl ? 'cover' : '70%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
               ></div>
               <div className="account-text">
                 <span className="account-name">

@@ -616,6 +616,66 @@ export const adminDonationAPI = {
     }),
 };
 
+export const adminPaymentAPI = {
+  getTransactions: (filters = {}) => {
+    const params = new URLSearchParams();
+
+    if (filters.status) {
+      params.append('status', filters.status);
+    }
+    if (filters.refundStatus) {
+      params.append('refundStatus', filters.refundStatus);
+    }
+    if (filters.currency) {
+      params.append('currency', filters.currency);
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+    if (filters.fromDate) {
+      params.append('fromDate', filters.fromDate);
+    }
+    if (filters.toDate) {
+      params.append('toDate', filters.toDate);
+    }
+
+    params.append('page', filters.page || 0);
+    params.append('size', filters.size || 12);
+
+    return api.get(`/admin/payments?${params.toString()}`);
+  },
+  getSummary: (filters = {}) => {
+    const params = new URLSearchParams();
+
+    if (filters.status) {
+      params.append('status', filters.status);
+    }
+    if (filters.refundStatus) {
+      params.append('refundStatus', filters.refundStatus);
+    }
+    if (filters.currency) {
+      params.append('currency', filters.currency);
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+    if (filters.fromDate) {
+      params.append('fromDate', filters.fromDate);
+    }
+    if (filters.toDate) {
+      params.append('toDate', filters.toDate);
+    }
+
+    return api.get(`/admin/payments/summary?${params.toString()}`);
+  },
+  createRefundRequest: (paymentId, payload) =>
+    api.post(`/admin/payments/${paymentId}/refund-requests`, payload),
+  approveRefund: (refundId, adminNotes) =>
+    api.post(`/admin/payments/refunds/${refundId}/approve`, { adminNotes }),
+  rejectRefund: (refundId, adminNotes) =>
+    api.post(`/admin/payments/refunds/${refundId}/reject`, { adminNotes }),
+};
+
 /**
  * Admin API functions for user verification queue management
  */

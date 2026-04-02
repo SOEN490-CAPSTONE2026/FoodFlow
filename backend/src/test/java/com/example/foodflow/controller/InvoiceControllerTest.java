@@ -116,12 +116,13 @@ class InvoiceControllerTest {
     void downloadInvoice_Success() throws Exception {
         InvoiceResponse response = buildInvoiceResponse();
         when(invoiceService.getInvoiceByIdForUser(eq(1L), any(User.class))).thenReturn(response);
-        when(invoiceService.downloadInvoice(eq(1L), any(User.class))).thenReturn("invoice-data".getBytes());
+        when(invoiceService.downloadInvoice(eq(1L), any(User.class))).thenReturn("%PDF-test".getBytes());
 
         mockMvc.perform(get("/api/payments/invoices/1/download").with(authentication(authentication)))
             .andExpect(status().isOk())
+            .andExpect(content().contentType("application/pdf"))
             .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("INV-100.pdf")))
-            .andExpect(content().bytes("invoice-data".getBytes()));
+            .andExpect(content().bytes("%PDF-test".getBytes()));
     }
 
     private InvoiceResponse buildInvoiceResponse() {

@@ -945,7 +945,81 @@
     "images": "Im?genes",
     "imagesDesc": "Modera cargas y administra la biblioteca de im?genes predeterminadas",
     "referrals": "Referencias",
-    "referralsDesc": "Ver invitaciones comunitarias y sugerencias de negocios enviadas por usuarios"
+    "referralsDesc": "Ver invitaciones comunitarias y sugerencias de negocios enviadas por usuarios",
+    "moneyDonations": "Donaciones monetarias",
+    "moneyDonationsDesc": "Supervisa donaciones monetarias, solicitudes de reembolso y el estado de las facturas"
+  },
+  "adminPayments": {
+    "eyebrow": "Finanzas Admin",
+    "title": "Transacciones de donaciones monetarias",
+    "description": "Supervisa cada donación monetaria, revisa reembolsos pendientes y verifica los importes de factura después de la decisión del admin.",
+    "loading": "Cargando transacciones...",
+    "empty": "No hay transacciones de donaciones monetarias con estos filtros.",
+    "transactionId": "Transacción #{{id}}",
+    "refundLabel": "Reembolso",
+    "noDescription": "Sin descripción",
+    "invoiceMissing": "Sin factura",
+    "pagination": "Página {{current}} de {{total}}",
+    "errors": {
+      "loadFailed": "No se pudieron cargar las transacciones monetarias.",
+      "decisionFailed": "No se pudo actualizar esta solicitud de reembolso.",
+      "createFailed": "No se pudo crear esta solicitud de reembolso.",
+      "amountRequired": "Introduce un importe de reembolso válido."
+    },
+    "kpis": {
+      "totalVolume": "Volumen total",
+      "successfulTransactions": "Transacciones exitosas",
+      "pendingRefundRequests": "Reembolsos pendientes",
+      "netVolume": "Volumen neto recaudado"
+    },
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar por ID, organización, intento de Stripe...",
+      "paymentStatus": "Estado del pago",
+      "refundStatus": "Estado del reembolso",
+      "currency": "Moneda",
+      "fromDate": "Desde",
+      "toDate": "Hasta",
+      "all": "Todos",
+      "allCurrencies": "Todas las monedas"
+    },
+    "columns": {
+      "transaction": "Transacción",
+      "organization": "Organización",
+      "gross": "Importe bruto",
+      "refunded": "Importe reembolsado",
+      "net": "Importe neto",
+      "invoice": "Factura",
+      "paymentStatus": "Estado del pago",
+      "createdAt": "Creado",
+      "currency": "Moneda",
+      "invoiceStatus": "Estado de la factura"
+    },
+    "details": {
+      "transaction": "Detalles de la transacción"
+    },
+    "refunds": {
+      "title": "Solicitudes de reembolso",
+      "empty": "No hay actividad de reembolso en esta transacción.",
+      "pendingCount": "{{count}} pendientes",
+      "createTitle": "Crear solicitud de reembolso",
+      "amount": "Importe del reembolso",
+      "reason": "Motivo del reembolso",
+      "requestedBy": "Solicitado por",
+      "adminNotes": "Notas del admin",
+      "notesPlaceholder": "Añade notas internas antes de aprobar o rechazar este reembolso.",
+      "noReason": "Sin motivo"
+    },
+    "actions": {
+      "refresh": "Actualizar",
+      "reset": "Restablecer filtros",
+      "createRefundRequest": "Crear solicitud",
+      "saving": "Guardando...",
+      "approveRefund": "Aprobar reembolso",
+      "rejectRefund": "Rechazar reembolso",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    }
   },
   "claimedView": {
     "claimed": "Reclamado",
@@ -2195,6 +2269,8 @@
       "alert": {
         "title": "Enviar alerta a:",
         "alertType": "Tipo de alerta",
+        "userLanguage": "Idioma del usuario",
+        "languageWarning": "El mensaje debe escribirse en el idioma preferido del usuario. El sistema lo enviará exactamente como lo escribas.",
         "customPlaceholder": "Escribe tu mensaje personalizado...",
         "editPlaceholder": "Editar mensaje"
       }

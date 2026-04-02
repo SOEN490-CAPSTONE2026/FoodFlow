@@ -14,8 +14,10 @@ import java.util.Optional;
 public interface RefundRepository extends JpaRepository<Refund, Long> {
     
     Optional<Refund> findByStripeRefundId(String stripeRefundId);
-    
+
     List<Refund> findByPaymentId(Long paymentId);
+
+    List<Refund> findByPaymentIdOrderByCreatedAtDesc(Long paymentId);
     
     @Query("SELECT r FROM Refund r WHERE r.payment.organization.id = :organizationId ORDER BY r.createdAt DESC")
     List<Refund> findByOrganizationId(@Param("organizationId") Long organizationId);

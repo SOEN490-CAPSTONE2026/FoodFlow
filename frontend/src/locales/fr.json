@@ -972,7 +972,81 @@
     "images": "Images",
     "imagesDesc": "Mod?rez les t?l?versements et g?rez la biblioth?que d?images par d?faut",
     "referrals": "Recommandations",
-    "referralsDesc": "Voir les invitations communautaires et les suggestions d?entreprises envoy?es par les utilisateurs"
+    "referralsDesc": "Voir les invitations communautaires et les suggestions d?entreprises envoy?es par les utilisateurs",
+    "moneyDonations": "Dons monétaires",
+    "moneyDonationsDesc": "Suivre les dons monétaires, les demandes de remboursement et l’état des factures"
+  },
+  "adminPayments": {
+    "eyebrow": "Finance Admin",
+    "title": "Transactions de dons monétaires",
+    "description": "Suivez chaque don monétaire, validez les remboursements en attente et vérifiez les montants des factures après décision admin.",
+    "loading": "Chargement des transactions...",
+    "empty": "Aucune transaction de don monétaire ne correspond aux filtres.",
+    "transactionId": "Transaction n°{{id}}",
+    "refundLabel": "Remboursement",
+    "noDescription": "Aucune description fournie",
+    "invoiceMissing": "Aucune facture",
+    "pagination": "Page {{current}} sur {{total}}",
+    "errors": {
+      "loadFailed": "Impossible de charger les transactions de dons monétaires.",
+      "decisionFailed": "Impossible de mettre à jour cette demande de remboursement.",
+      "createFailed": "Impossible de créer cette demande de remboursement.",
+      "amountRequired": "Saisissez un montant de remboursement valide."
+    },
+    "kpis": {
+      "totalVolume": "Volume total",
+      "successfulTransactions": "Transactions réussies",
+      "pendingRefundRequests": "Demandes de remboursement en attente",
+      "netVolume": "Volume net collecté"
+    },
+    "filters": {
+      "search": "Recherche",
+      "searchPlaceholder": "Rechercher par ID, organisation, intention Stripe...",
+      "paymentStatus": "Statut du paiement",
+      "refundStatus": "Statut du remboursement",
+      "currency": "Devise",
+      "fromDate": "Date de début",
+      "toDate": "Date de fin",
+      "all": "Tous",
+      "allCurrencies": "Toutes les devises"
+    },
+    "columns": {
+      "transaction": "Transaction",
+      "organization": "Organisation",
+      "gross": "Montant brut",
+      "refunded": "Montant remboursé",
+      "net": "Montant net",
+      "invoice": "Facture",
+      "paymentStatus": "Statut du paiement",
+      "createdAt": "Créé le",
+      "currency": "Devise",
+      "invoiceStatus": "Statut de la facture"
+    },
+    "details": {
+      "transaction": "Détails de la transaction"
+    },
+    "refunds": {
+      "title": "Demandes de remboursement",
+      "empty": "Aucun remboursement sur cette transaction.",
+      "pendingCount": "{{count}} en attente",
+      "createTitle": "Créer une demande de remboursement",
+      "amount": "Montant du remboursement",
+      "reason": "Motif du remboursement",
+      "requestedBy": "Demandé par",
+      "adminNotes": "Notes admin",
+      "notesPlaceholder": "Ajoutez une note interne avant d’approuver ou rejeter ce remboursement.",
+      "noReason": "Aucun motif fourni"
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "reset": "Réinitialiser",
+      "createRefundRequest": "Créer la demande",
+      "saving": "Enregistrement...",
+      "approveRefund": "Approuver",
+      "rejectRefund": "Rejeter",
+      "previous": "Précédent",
+      "next": "Suivant"
+    }
   },
   "claimedView": {
     "claimed": "Réclamé",
@@ -2368,6 +2442,8 @@
       "alert": {
         "title": "Envoyer une alerte à :",
         "alertType": "Type d'alerte",
+        "userLanguage": "Langue de l'utilisateur",
+        "languageWarning": "Le message doit être rédigé dans la langue préférée de l'utilisateur. Le système l'enverra exactement tel que vous le tapez.",
         "customPlaceholder": "Saisissez votre message personnalisé...",
         "editPlaceholder": "Modifier le message"
       }

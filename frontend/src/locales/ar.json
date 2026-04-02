@@ -933,7 +933,85 @@
     "images": "الصور",
     "imagesDesc": "مراجعة وإدارة الصور المرفوعة والمكتبة الداخلية الاحتياطية",
     "referrals": "الإحالات",
-    "referralsDesc": "عرض طلبات إحالة المجتمع واقتراحات الأعمال من المستخدمين"
+    "referralsDesc": "عرض طلبات إحالة المجتمع واقتراحات الأعمال من المستخدمين",
+    "moneyDonations": "التبرعات المالية",
+    "moneyDonationsDesc": "متابعة التبرعات المالية وطلبات الاسترداد وحالة الفواتير"
+  },
+  "adminPayments": {
+    "eyebrow": "المالية الإدارية",
+    "title": "معاملات التبرعات المالية",
+    "description": "راقب كل تبرع مالي، وراجع طلبات الاسترداد المعلقة، وتحقق من مبالغ الفواتير بعد قرار المشرف.",
+    "loading": "جارٍ تحميل المعاملات...",
+    "empty": "لا توجد معاملات تبرعات مالية مطابقة للفلاتر الحالية.",
+    "transactionId": "المعاملة #{{id}}",
+    "refundLabel": "استرداد",
+    "noDescription": "لا توجد تفاصيل",
+    "invoiceMissing": "لا توجد فاتورة",
+    "pagination": "الصفحة {{current}} من {{total}}",
+    "errors": {
+      "loadFailed": "تعذر تحميل معاملات التبرعات المالية.",
+      "decisionFailed": "تعذر تحديث طلب الاسترداد هذا."
+    },
+    "kpis": {
+      "totalVolume": "إجمالي الحجم",
+      "successfulTransactions": "المعاملات الناجحة",
+      "pendingRefundRequests": "طلبات الاسترداد المعلقة",
+      "netVolume": "صافي المبالغ المحصلة"
+    },
+    "filters": {
+      "search": "بحث",
+      "searchPlaceholder": "ابحث بالمعرّف أو المؤسسة أو Stripe intent...",
+      "paymentStatus": "حالة الدفع",
+      "refundStatus": "حالة الاسترداد",
+      "currency": "العملة",
+      "fromDate": "من تاريخ",
+      "toDate": "إلى تاريخ",
+      "all": "الكل",
+      "allCurrencies": "كل العملات"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل معاملات التبرعات المالية.",
+      "decisionFailed": "تعذر تحديث طلب الاسترداد هذا.",
+      "createFailed": "تعذر إنشاء طلب الاسترداد هذا.",
+      "amountRequired": "أدخل مبلغ استرداد صالحًا."
+    },
+    "columns": {
+      "transaction": "المعاملة",
+      "organization": "المؤسسة",
+      "gross": "المبلغ الإجمالي",
+      "refunded": "المبلغ المسترد",
+      "net": "المبلغ الصافي",
+      "invoice": "الفاتورة",
+      "paymentStatus": "حالة الدفع",
+      "createdAt": "تاريخ الإنشاء",
+      "currency": "العملة",
+      "invoiceStatus": "حالة الفاتورة"
+    },
+    "details": {
+      "transaction": "تفاصيل المعاملة"
+    },
+    "refunds": {
+      "title": "طلبات الاسترداد",
+      "empty": "لا توجد عمليات استرداد لهذه المعاملة.",
+      "pendingCount": "{{count}} بانتظار المراجعة",
+      "createTitle": "إنشاء طلب استرداد",
+      "amount": "مبلغ الاسترداد",
+      "reason": "سبب الاسترداد",
+      "requestedBy": "تم الطلب بواسطة",
+      "adminNotes": "ملاحظات المشرف",
+      "notesPlaceholder": "أضف ملاحظات داخلية قبل الموافقة أو الرفض.",
+      "noReason": "لا يوجد سبب"
+    },
+    "actions": {
+      "refresh": "تحديث",
+      "reset": "إعادة ضبط الفلاتر",
+      "createRefundRequest": "إنشاء الطلب",
+      "saving": "جارٍ الحفظ...",
+      "approveRefund": "موافقة على الاسترداد",
+      "rejectRefund": "رفض الاسترداد",
+      "previous": "السابق",
+      "next": "التالي"
+    }
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
@@ -2301,6 +2379,8 @@
       "alert": {
         "title": "إرسال تنبيه إلى:",
         "alertType": "نوع التنبيه",
+        "userLanguage": "لغة المستخدم",
+        "languageWarning": "يجب كتابة الرسالة باللغة المفضلة للمستخدم. سيرسلها النظام تماماً كما تكتبها.",
         "customPlaceholder": "أدخل رسالتك المخصصة...",
         "editPlaceholder": "تعديل الرسالة"
       }

@@ -3,11 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import PaymentPage from '../PaymentPage';
-import api from '../../../services/api';
+import { donationStatsAPI, paymentAPI } from '../../../services/api';
 
 // Mock the dependencies
 jest.mock('../../../services/api', () => ({
-  post: jest.fn(),
+  paymentAPI: {
+    createIntent: jest.fn(),
+    listMethods: jest.fn(),
+  },
+  donationStatsAPI: {
+    getPlatformTotals: jest.fn(),
+  },
 }));
 jest.mock('@stripe/stripe-js', () => ({
   loadStripe: jest.fn(() => Promise.resolve({})),
@@ -27,10 +33,11 @@ jest.mock('@stripe/react-stripe-js', () => ({
 }));
 
 jest.mock('../StripePaymentForm', () => {
-  return function MockStripePaymentForm({ amount, onBack }) {
+  return function MockStripePaymentForm({ amount, onBack, savedMethodLabel }) {
     return (
       <div data-testid="stripe-payment-form">
         <p>Payment Form - Amount: ${amount}</p>
+        {savedMethodLabel && <p>Saved Method: {savedMethodLabel}</p>}
         <button onClick={onBack}>Back</button>
       </div>
     );
@@ -48,6 +55,8 @@ const renderComponent = () => {
 describe('PaymentPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    paymentAPI.listMethods.mockResolvedValue({ data: [] });
+    donationStatsAPI.getPlatformTotals.mockResolvedValue({ data: null });
   });
 
   describe('Initial Render - Step 1', () => {
@@ -216,7 +225,7 @@ describe('PaymentPage', () => {
     });
 
     it('should create payment intent and move to step 2 on successful API call', async () => {
-      api.post.mockResolvedValueOnce({
+      paymentAPI.createIntent.mockResolvedValueOnce({
         data: { clientSecret: 'test_secret_123' },
       });
 
@@ -231,7 +240,7 @@ describe('PaymentPage', () => {
       fireEvent.click(continueBtn);
 
       await waitFor(() => {
-        expect(api.post).toHaveBeenCalledWith('/payments/create-intent', {
+        expect(paymentAPI.createIntent).toHaveBeenCalledWith({
           amount: 50,
           currency: 'USD',
           paymentType: 'ONE_TIME',
@@ -245,7 +254,7 @@ describe('PaymentPage', () => {
     });
 
     it('should show error message when API call fails', async () => {
-      api.post.mockRejectedValueOnce({
+      paymentAPI.createIntent.mockRejectedValueOnce({
         response: { data: { message: 'Payment initialization failed' } },
       });
 
@@ -267,7 +276,7 @@ describe('PaymentPage', () => {
     });
 
     it('should show generic error when API call fails without message', async () => {
-      api.post.mockRejectedValueOnce(new Error('Network error'));
+      paymentAPI.createIntent.mockRejectedValueOnce(new Error('Network error'));
 
       renderComponent();
 
@@ -287,7 +296,7 @@ describe('PaymentPage', () => {
     });
 
     it('should show loading state during payment intent creation', async () => {
-      api.post.mockImplementation(
+      paymentAPI.createIntent.mockImplementation(
         () => new Promise(resolve => setTimeout(resolve, 100))
       );
 
@@ -321,7 +330,7 @@ describe('PaymentPage', () => {
         ).toBeInTheDocument();
       });
 
-      expect(api.post).not.toHaveBeenCalled();
+      expect(paymentAPI.createIntent).not.toHaveBeenCalled();
     });
 
     it('should clear error when selecting new amount', () => {
@@ -352,7 +361,7 @@ describe('PaymentPage', () => {
 
   describe('Step 2 - Payment Form', () => {
     it('should show StripePaymentForm on step 2', async () => {
-      api.post.mockResolvedValueOnce({
+      paymentAPI.createIntent.mockResolvedValueOnce({
         data: { clientSecret: 'test_secret_456' },
       });
 
@@ -375,7 +384,7 @@ describe('PaymentPage', () => {
     });
 
     it('should go back to step 1 when back button is clicked', async () => {
-      api.post.mockResolvedValueOnce({
+      paymentAPI.createIntent.mockResolvedValueOnce({
         data: { clientSecret: 'test_secret_789' },
       });
 
@@ -424,7 +433,7 @@ describe('PaymentPage', () => {
     });
 
     it('should handle amount with custom decimal format', async () => {
-      api.post.mockResolvedValueOnce({
+      paymentAPI.createIntent.mockResolvedValueOnce({
         data: { clientSecret: 'test_secret' },
       });
 
@@ -439,11 +448,107 @@ describe('PaymentPage', () => {
       fireEvent.click(continueBtn);
 
       await waitFor(() => {
-        expect(api.post).toHaveBeenCalledWith('/payments/create-intent', {
+        expect(paymentAPI.createIntent).toHaveBeenCalledWith({
           amount: 42,
           currency: 'USD',
           paymentType: 'ONE_TIME',
           description: 'FoodFlow Donation',
+        });
+      });
+    });
+  });
+
+  describe('Saved Default Card', () => {
+    it('shows the saved default card as a checkout option', async () => {
+      paymentAPI.listMethods.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            stripePaymentMethodId: 'pm_123',
+            paymentMethodType: 'CARD',
+            cardBrand: 'visa',
+            cardLast4: '4242',
+            isDefault: true,
+          },
+        ],
+      });
+
+      renderComponent();
+
+      expect(
+        await screen.findByText(/Use saved default method/i)
+      ).toBeInTheDocument();
+      expect(screen.getByText('Visa ending in 4242')).toBeInTheDocument();
+      expect(screen.getByText('Default card on file')).toBeInTheDocument();
+    });
+
+    it('uses the saved default card when selected', async () => {
+      paymentAPI.listMethods.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            stripePaymentMethodId: 'pm_123',
+            paymentMethodType: 'CARD',
+            cardBrand: 'visa',
+            cardLast4: '4242',
+            isDefault: true,
+          },
+        ],
+      });
+      paymentAPI.createIntent.mockResolvedValueOnce({
+        data: { paymentIntentId: 'pi_123', status: 'succeeded' },
+      });
+
+      renderComponent();
+
+      fireEvent.click(await screen.findByText('$25'));
+      fireEvent.click(
+        screen.getByRole('button', { name: /Continue to Payment \(\$25\)/i })
+      );
+
+      await waitFor(() => {
+        expect(paymentAPI.createIntent).toHaveBeenCalledWith({
+          amount: 25,
+          currency: 'USD',
+          paymentType: 'ONE_TIME',
+          description: 'FoodFlow Donation',
+          paymentMethodId: 'pm_123',
+        });
+      });
+    });
+
+    it('can switch back to using a new card', async () => {
+      paymentAPI.listMethods.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            stripePaymentMethodId: 'pm_123',
+            paymentMethodType: 'CARD',
+            cardBrand: 'visa',
+            cardLast4: '4242',
+            isDefault: true,
+          },
+        ],
+      });
+      paymentAPI.createIntent.mockResolvedValueOnce({
+        data: { clientSecret: 'test_secret_new_card' },
+      });
+
+      renderComponent();
+
+      fireEvent.click(await screen.findByLabelText(/Use a new card/i));
+      fireEvent.click(screen.getByText('$10'));
+      fireEvent.click(
+        screen.getByRole('button', { name: /Continue to Payment \(\$10\)/i })
+      );
+
+      await waitFor(() => {
+        expect(paymentAPI.createIntent).toHaveBeenCalledWith({
+          amount: 10,
+          currency: 'USD',
+          paymentType: 'ONE_TIME',
+          description: 'FoodFlow Donation',
+          paymentMethodId: undefined,
         });
       });
     });

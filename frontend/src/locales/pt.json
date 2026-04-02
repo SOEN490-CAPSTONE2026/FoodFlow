@@ -933,7 +933,85 @@
     "images": "Imagens",
     "imagesDesc": "Modere envios e gerencie a biblioteca padr?o de imagens",
     "referrals": "Indica??es",
-    "referralsDesc": "Ver convites da comunidade e sugest?es de empresas enviadas pelos usu?rios"
+    "referralsDesc": "Ver convites da comunidade e sugest?es de empresas enviadas pelos usu?rios",
+    "moneyDonations": "Doações monetárias",
+    "moneyDonationsDesc": "Acompanhe doações monetárias, pedidos de reembolso e a saúde das faturas"
+  },
+  "adminPayments": {
+    "eyebrow": "Finanças Admin",
+    "title": "Transações de doações monetárias",
+    "description": "Monitore cada doação monetária, revise reembolsos pendentes e confirme os valores das faturas após a decisão do admin.",
+    "loading": "Carregando transações...",
+    "empty": "Nenhuma transação monetária corresponde aos filtros atuais.",
+    "transactionId": "Transação #{{id}}",
+    "refundLabel": "Reembolso",
+    "noDescription": "Sem descrição",
+    "invoiceMissing": "Sem fatura",
+    "pagination": "Página {{current}} de {{total}}",
+    "errors": {
+      "loadFailed": "Não foi possível carregar as transações monetárias.",
+      "decisionFailed": "Não foi possível atualizar esta solicitação de reembolso."
+    },
+    "kpis": {
+      "totalVolume": "Volume total",
+      "successfulTransactions": "Transações bem-sucedidas",
+      "pendingRefundRequests": "Reembolsos pendentes",
+      "netVolume": "Volume líquido arrecadado"
+    },
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar por ID, organização, intent do Stripe...",
+      "paymentStatus": "Status do pagamento",
+      "refundStatus": "Status do reembolso",
+      "currency": "Moeda",
+      "fromDate": "Data inicial",
+      "toDate": "Data final",
+      "all": "Todos",
+      "allCurrencies": "Todas as moedas"
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar as transações de doações monetárias.",
+      "decisionFailed": "Não foi possível atualizar esta solicitação de reembolso.",
+      "createFailed": "Não foi possível criar esta solicitação de reembolso.",
+      "amountRequired": "Informe um valor de reembolso válido."
+    },
+    "columns": {
+      "transaction": "Transação",
+      "organization": "Organização",
+      "gross": "Valor bruto",
+      "refunded": "Valor reembolsado",
+      "net": "Valor líquido",
+      "invoice": "Fatura",
+      "paymentStatus": "Status do pagamento",
+      "createdAt": "Criado em",
+      "currency": "Moeda",
+      "invoiceStatus": "Status da fatura"
+    },
+    "details": {
+      "transaction": "Detalhes da transação"
+    },
+    "refunds": {
+      "title": "Solicitações de reembolso",
+      "empty": "Nenhuma atividade de reembolso nesta transação.",
+      "pendingCount": "{{count}} pendentes",
+      "createTitle": "Criar solicitação de reembolso",
+      "amount": "Valor do reembolso",
+      "reason": "Motivo do reembolso",
+      "requestedBy": "Solicitado por",
+      "adminNotes": "Notas do admin",
+      "notesPlaceholder": "Adicione notas internas antes de aprovar ou rejeitar este reembolso.",
+      "noReason": "Sem motivo informado"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "reset": "Limpar filtros",
+      "createRefundRequest": "Criar solicitação",
+      "saving": "Salvando...",
+      "approveRefund": "Aprovar reembolso",
+      "rejectRefund": "Rejeitar reembolso",
+      "previous": "Anterior",
+      "next": "Próxima"
+    }
   },
   "claimedView": {
     "claimed": "Reclamado",
@@ -2303,6 +2381,8 @@
       "alert": {
         "title": "Enviar alerta para:",
         "alertType": "Tipo de alerta",
+        "userLanguage": "Idioma do usuário",
+        "languageWarning": "A mensagem deve ser escrita no idioma preferido do usuário. O sistema a enviará exatamente como você a digitou.",
         "customPlaceholder": "Digite sua mensagem personalizada...",
         "editPlaceholder": "Editar mensagem"
       }

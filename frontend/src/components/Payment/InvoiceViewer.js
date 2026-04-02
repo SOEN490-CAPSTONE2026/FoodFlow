@@ -28,13 +28,24 @@ function InvoiceViewer({ paymentId }) {
       return;
     }
 
-    const response = await invoiceAPI.download(invoice.id);
-    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-    const anchor = document.createElement('a');
-    anchor.href = blobUrl;
-    anchor.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
-    anchor.click();
-    window.URL.revokeObjectURL(blobUrl);
+    try {
+      const response = await invoiceAPI.download(invoice.id);
+      const pdfBlob =
+        response.data instanceof Blob
+          ? response.data
+          : new Blob([response.data], { type: 'application/pdf' });
+      const blobUrl = window.URL.createObjectURL(pdfBlob);
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+      anchor.click();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          'Unable to download the invoice PDF.'
+      );
+    }
   };
 
   return (

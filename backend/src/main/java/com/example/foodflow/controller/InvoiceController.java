@@ -66,7 +66,7 @@ public class InvoiceController {
                     .build()
                     .toString()
             )
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .contentType(MediaType.APPLICATION_PDF)
             .body(content);
     }
 }

@@ -4,12 +4,12 @@
 
 FoodFlow uses a three-tier observability stack:
 
-| Tool | URL | Purpose |
-|------|-----|---------|
-| Spring Boot Actuator | `http://localhost:8080/actuator` | Raw metrics, health, info |
-| Prometheus | `http://localhost:9090` | Metric storage and alert evaluation |
-| Grafana | `http://localhost:3001` | Dashboards and visualisation |
-| Zipkin | — | Not deployed (monolith; traceId in logs only) |
+| Tool                 | URL                              | Purpose                                       |
+| -------------------- | -------------------------------- | --------------------------------------------- |
+| Spring Boot Actuator | `http://localhost:8080/actuator` | Raw metrics, health, info                     |
+| Prometheus           | `http://localhost:9090`          | Metric storage and alert evaluation           |
+| Grafana              | `http://localhost:3001`          | Dashboards and visualisation                  |
+| Zipkin               | —                                | Not deployed (monolith; traceId in logs only) |
 
 Metrics are scraped from `/actuator/prometheus` every 5 seconds. Alert rules are evaluated at the same interval.
 
@@ -32,11 +32,11 @@ GET /actuator/prometheus      # Raw Prometheus metrics scrape
 
 ## Grafana Dashboards
 
-| Dashboard | What it shows |
-|-----------|--------------|
-| FoodFlow Release 3 | Full production view: system health, app metrics, business metrics, DB performance, external services |
-| FoodFlow API Metrics | Per-endpoint request/error rates, user interactions, claim and surplus post activity |
-| FoodFlow Release 2 | Disputes, feedback, admin actions, WebSocket and email rates |
+| Dashboard            | What it shows                                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| FoodFlow Release 3   | Full production view: system health, app metrics, business metrics, DB performance, external services |
+| FoodFlow API Metrics | Per-endpoint request/error rates, user interactions, claim and surplus post activity                  |
+| FoodFlow Release 2   | Disputes, feedback, admin actions, WebSocket and email rates                                          |
 
 Default credentials: **admin / admin**
 
@@ -47,13 +47,15 @@ Default credentials: **admin / admin**
 ### 1. HighErrorRate
 
 **Severity:** Warning
-**Condition:** `foodflow_http_error_rate > 0.05` sustained for 2 minutes
-**Metric source:** `ApiMetricsInterceptor` — live ratio of HTTP 4xx+5xx responses to total responses
+**Condition:** Error rate > 5% sustained for 2 minutes (calculated from 5-minute time window)
+**Metric source:** `ApiMetricsInterceptor` — Prometheus time-windowed rate of HTTP 4xx+5xx responses
+**Formula:** `rate(http_server_requests_health_total{outcome="FAILURE"}[5m]) / rate(http_server_requests_health_total[5m])`
 
 **What it means:**
-More than 5% of all API requests are returning server errors. This usually indicates a code exception, downstream dependency failure, or database issue affecting multiple request paths.
+More than 5% of API requests failed in the last 5 minutes. This indicates a recent code issue, downstream dependency failure, or database problem. Unlike cumulative metrics, this alert reflects **current system conditions** and clears automatically when errors stop.
 
 **Investigation:**
+
 1. Check `http://localhost:8080/actuator/health` for any DOWN components.
 2. In Prometheus, run: `rate(http_server_requests_count_total{status=~"5.."}[5m])` to identify which endpoints are failing.
 3. Check backend logs: `docker logs foodflow-backend --tail=200`
@@ -61,12 +63,12 @@ More than 5% of all API requests are returning server errors. This usually indic
 
 **Common causes and fixes:**
 
-| Cause | Fix |
-|-------|-----|
-| Database connection refused | Check `foodflow-postgres` container is running; check pool exhaustion alert |
-| Unhandled exception in new code | Check stack traces in logs; roll back recent deploy |
+| Cause                                 | Fix                                                                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Database connection refused           | Check `foodflow-postgres` container is running; check pool exhaustion alert                           |
+| Unhandled exception in new code       | Check stack traces in logs; roll back recent deploy                                                   |
 | External service (Stripe/OpenAI) down | Check `/actuator/health` component statuses; errors in that service's endpoints will inflate the rate |
-| OOM causing crashes | Check HighMemoryUsage alert; increase JVM heap or reduce load |
+| OOM causing crashes                   | Check HighMemoryUsage alert; increase JVM heap or reduce load                                         |
 
 ---
 
@@ -80,6 +82,7 @@ More than 5% of all API requests are returning server errors. This usually indic
 The slowest 5% of requests are taking over 2 seconds. User experience is degraded, and the system may be approaching overload.
 
 **Investigation:**
+
 1. In Prometheus: `histogram_quantile(0.95, sum(rate(http_server_requests_duration_seconds_bucket[5m])) by (le, uri))` — identify the slow endpoints.
 2. Check the "Response Time by Endpoint (P50/P95)" Grafana panel.
 3. Check DB performance: `hikaricp_connections_active / hikaricp_connections_max` for pool pressure.
@@ -87,12 +90,12 @@ The slowest 5% of requests are taking over 2 seconds. User experience is degrade
 
 **Common causes and fixes:**
 
-| Cause | Fix |
-|-------|-----|
-| Slow database queries | Check "Slow Queries" panel; add indexes or optimize JPQL |
-| Connection pool pressure | See DatabaseConnectionPoolExhaustion runbook entry |
+| Cause                              | Fix                                                                |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| Slow database queries              | Check "Slow Queries" panel; add indexes or optimize JPQL           |
+| Connection pool pressure           | See DatabaseConnectionPoolExhaustion runbook entry                 |
 | External API calls on the hot path | Check OpenAI/Stripe latency panels; add timeouts or async handling |
-| Large payload serialisation | Profile the endpoint; consider pagination |
+| Large payload serialisation        | Profile the endpoint; consider pagination                          |
 
 ---
 
@@ -106,6 +109,7 @@ The slowest 5% of requests are taking over 2 seconds. User experience is degrade
 Fewer than 60% of resolved donations are reaching `COMPLETED` status. More than 40% are ending as `NOT_COMPLETED`, which means food is being wasted — the core business metric is degrading.
 
 **Investigation:**
+
 1. Query the database directly:
    ```sql
    SELECT status, COUNT(*) FROM surplus_posts
@@ -118,12 +122,12 @@ Fewer than 60% of resolved donations are reaching `COMPLETED` status. More than 
 
 **Common causes and fixes:**
 
-| Cause | Fix |
-|-------|-----|
-| Donors not completing pickups | Notify donors proactively; check notification delivery (NotificationFailureRate alert) |
-| Pickup slot scheduling issues | Review `pickup_slots` data for conflicts |
-| Bulk test data left in DB | Clean up test records from non-production environments |
-| Receivers claiming but not collecting | Improve receiver matching; check claim-to-pickup conversion |
+| Cause                                 | Fix                                                                                    |
+| ------------------------------------- | -------------------------------------------------------------------------------------- |
+| Donors not completing pickups         | Notify donors proactively; check notification delivery (NotificationFailureRate alert) |
+| Pickup slot scheduling issues         | Review `pickup_slots` data for conflicts                                               |
+| Bulk test data left in DB             | Clean up test records from non-production environments                                 |
+| Receivers claiming but not collecting | Improve receiver matching; check claim-to-pickup conversion                            |
 
 ---
 
@@ -137,23 +141,25 @@ Fewer than 60% of resolved donations are reaching `COMPLETED` status. More than 
 Over 90% of the database connection pool is in use. New requests will queue for a connection. If it reaches 100%, requests will fail with a timeout error, causing the HighErrorRate alert to also fire.
 
 **Investigation:**
+
 1. Check "DB Connection Pool (HikariCP)" panel in the Release 3 dashboard.
 2. In Prometheus: `hikaricp_connections_active`, `hikaricp_connections_pending`, `hikaricp_connections_timeout_total`
 3. Look for slow queries holding connections: check "Slow Queries" panel.
 4. Check `hikaricp_connections_acquire_seconds` — long acquire times mean contention.
 
 **Immediate actions:**
+
 1. If the app is under unusual load, consider rate limiting or scaling.
 2. If queries are hanging, restart the backend: `docker restart foodflow-backend`
 
 **Common causes and fixes:**
 
-| Cause | Fix |
-|-------|-----|
-| Slow queries holding connections | Optimise queries; add database indexes |
-| Connection leak (not closing) | Check for missing `try-with-resources`; review `@Transactional` scopes |
-| Sudden traffic spike | Scale horizontally; increase pool size in `application.properties`: `spring.datasource.hikari.maximum-pool-size=20` |
-| Long-running transactions | Reduce `@Transactional` scope; move non-DB work outside the transaction |
+| Cause                            | Fix                                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Slow queries holding connections | Optimise queries; add database indexes                                                                              |
+| Connection leak (not closing)    | Check for missing `try-with-resources`; review `@Transactional` scopes                                              |
+| Sudden traffic spike             | Scale horizontally; increase pool size in `application.properties`: `spring.datasource.hikari.maximum-pool-size=20` |
+| Long-running transactions        | Reduce `@Transactional` scope; move non-DB work outside the transaction                                             |
 
 ---
 
@@ -167,6 +173,7 @@ Over 90% of the database connection pool is in use. New requests will queue for 
 Less than 10% of disk space remains. The database, logs, and file uploads are all at risk. PostgreSQL will crash if it cannot write WAL segments.
 
 **Investigation:**
+
 1. SSH into the server or check container disk usage:
    ```bash
    docker exec foodflow-backend df -h /
@@ -178,6 +185,7 @@ Less than 10% of disk space remains. The database, logs, and file uploads are al
    ```
 
 **Immediate actions (in order):**
+
 1. Rotate/compress logs: `docker exec foodflow-backend find /app/logs -name "*.log" -mtime +7 -delete`
 2. Remove old uploads if safe to do so.
 3. Prune unused Docker images/volumes on the host: `docker system prune -f`
@@ -195,6 +203,7 @@ Less than 10% of disk space remains. The database, logs, and file uploads are al
 The JVM heap is over 85% full. Garbage collection is running frequently (check GC activity panel). If it reaches ~95%+, the JVM will throw `OutOfMemoryError` and the application will crash.
 
 **Investigation:**
+
 1. Check "JVM Heap Memory" and "GC Activity" panels in the Release 3 Grafana dashboard.
 2. In Prometheus: `jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}`
 3. Check recent traffic spikes (request rate panel) — more load → more object allocation.
@@ -202,12 +211,12 @@ The JVM heap is over 85% full. Garbage collection is running frequently (check G
 
 **Common causes and fixes:**
 
-| Cause | Fix |
-|-------|-----|
+| Cause                             | Fix                                                                                |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
 | Traffic spike causing GC pressure | Temporary: restart backend to clear heap; long-term: scale or optimise allocations |
-| JVM max heap too small | Increase in `docker-compose.yml`: add `-Xmx1g` to the backend command |
-| Memory leak (held references) | Profile with `jmap` or a heap dump; look for growing `List`/`Map` caches |
-| Large response objects | Paginate large API responses; avoid loading full entity graphs |
+| JVM max heap too small            | Increase in `docker-compose.yml`: add `-Xmx1g` to the backend command              |
+| Memory leak (held references)     | Profile with `jmap` or a heap dump; look for growing `List`/`Map` caches           |
+| Large response objects            | Paginate large API responses; avoid loading full entity graphs                     |
 
 ---
 
@@ -217,6 +226,7 @@ FoodFlow uses `micrometer-tracing-bridge-brave` to inject a `traceId` and `spanI
 
 **To correlate all log lines for a single request:**
 Every log line contains `[traceId spanId]`. Copy the traceId from any log line for a request you care about, then:
+
 ```bash
 docker logs foodflow-backend | grep "<traceId>"
 ```
@@ -235,10 +245,10 @@ cd FoodFlow
 docker-compose up -d
 ```
 
-| Service | URL |
-|---------|-----|
-| Backend API | `http://localhost:8080` |
-| Prometheus | `http://localhost:9090/alerts` |
-| Grafana | `http://localhost:3001` (admin/admin) |
-| Raw metrics | `http://localhost:8080/actuator/prometheus` |
-| Health check | `http://localhost:8080/actuator/health` |
+| Service      | URL                                         |
+| ------------ | ------------------------------------------- |
+| Backend API  | `http://localhost:8080`                     |
+| Prometheus   | `http://localhost:9090/alerts`              |
+| Grafana      | `http://localhost:3001` (admin/admin)       |
+| Raw metrics  | `http://localhost:8080/actuator/prometheus` |
+| Health check | `http://localhost:8080/actuator/health`     |
