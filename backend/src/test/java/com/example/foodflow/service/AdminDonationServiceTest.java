@@ -392,7 +392,7 @@ class AdminDonationServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(3L, result.getReceiverId());
+        assertEquals(2L, result.getReceiverId()); // testReceiver.getId() == 2L
         assertEquals("receiver@test.com", result.getReceiverEmail());
         assertEquals("Jane Receiver", result.getReceiverName());
         verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE);
