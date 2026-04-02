@@ -1433,7 +1433,9 @@ describe('Settings', () => {
       const slotCard = container.querySelector('.pickup-slot-card');
       expect(slotCard).toBeInTheDocument();
 
-      const slotTimeInputs = slotCard.querySelectorAll('input[placeholder="--:--"]');
+      const slotTimeInputs = slotCard.querySelectorAll(
+        'input[placeholder="--:--"]'
+      );
       expect(slotTimeInputs).toHaveLength(2);
 
       fireEvent.change(slotTimeInputs[0], { target: { value: '09:00' } });
