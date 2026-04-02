@@ -46,7 +46,7 @@ describe('LandingPage', () => {
 
   beforeEach(() => {
     mockUseLocation.mockReturnValue({ state: null });
-    window.scrollTo = jest.fn();
+    Element.prototype.scrollIntoView = jest.fn();
     jest.useFakeTimers();
   });
 
@@ -94,28 +94,19 @@ describe('LandingPage', () => {
       state: { scrollTo: 'about' },
     });
 
-    // Mock getBoundingClientRect
-    const mockGetBoundingClientRect = jest.fn().mockReturnValue({
-      top: 500,
-    });
-
     // Store original getElementById
     const originalGetElementById = document.getElementById;
 
-    // Mock getElementById to return an element with getBoundingClientRect
+    const mockSection = {
+      scrollIntoView: jest.fn(),
+    };
+
+    // Mock getElementById to return a scrollable element
     document.getElementById = jest.fn(id => {
       if (id === 'about') {
-        return {
-          getBoundingClientRect: mockGetBoundingClientRect,
-        };
+        return mockSection;
       }
       return originalGetElementById.call(document, id);
-    });
-
-    // Mock pageYOffset
-    Object.defineProperty(window, 'pageYOffset', {
-      writable: true,
-      value: 100,
     });
 
     renderWithRouter(<LandingPage />);
@@ -125,10 +116,9 @@ describe('LandingPage', () => {
 
     await waitFor(() => {
       expect(document.getElementById).toHaveBeenCalledWith('about');
-      expect(mockGetBoundingClientRect).toHaveBeenCalled();
-      expect(window.scrollTo).toHaveBeenCalledWith({
-        top: 520, // 500 (elementPosition) + 100 (pageYOffset) - 80 (navbarHeight)
+      expect(mockSection.scrollIntoView).toHaveBeenCalledWith({
         behavior: 'smooth',
+        block: 'start',
       });
     });
 
@@ -146,7 +136,7 @@ describe('LandingPage', () => {
     // Fast-forward timers
     jest.advanceTimersByTime(300);
 
-    expect(window.scrollTo).not.toHaveBeenCalled();
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
   });
 
   test('handles case when scrollTo element does not exist', async () => {
@@ -176,8 +166,8 @@ describe('LandingPage', () => {
       );
     });
 
-    // scrollTo should not be called if element doesn't exist
-    expect(window.scrollTo).not.toHaveBeenCalled();
+    // scrollIntoView should not be called if element doesn't exist
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
 
     // Restore original getElementById
     document.getElementById = originalGetElementById;
@@ -193,23 +183,15 @@ describe('LandingPage', () => {
         state: { scrollTo: sectionId },
       });
 
-      const mockGetBoundingClientRect = jest.fn().mockReturnValue({
-        top: 300,
-      });
-
       const originalGetElementById = document.getElementById;
+      const mockSection = {
+        scrollIntoView: jest.fn(),
+      };
       document.getElementById = jest.fn(id => {
         if (id === sectionId) {
-          return {
-            getBoundingClientRect: mockGetBoundingClientRect,
-          };
+          return mockSection;
         }
         return originalGetElementById.call(document, id);
-      });
-
-      Object.defineProperty(window, 'pageYOffset', {
-        writable: true,
-        value: 50,
       });
 
       const { unmount } = renderWithRouter(<LandingPage />);
@@ -218,9 +200,9 @@ describe('LandingPage', () => {
 
       await waitFor(() => {
         expect(document.getElementById).toHaveBeenCalledWith(sectionId);
-        expect(window.scrollTo).toHaveBeenCalledWith({
-          top: 270, // 300 + 50 - 80
+        expect(mockSection.scrollIntoView).toHaveBeenCalledWith({
           behavior: 'smooth',
+          block: 'start',
         });
       });
 

@@ -291,7 +291,7 @@ const CalendarSettings = () => {
             {isExpanded
               ? tx('calendar.hide', 'Hide')
               : tx('calendar.edit', 'Edit')}{' '}
-            {isExpanded ? '?' : '?'}
+            {isExpanded ? '▲' : '▼'}
           </button>
         </div>
       </div>

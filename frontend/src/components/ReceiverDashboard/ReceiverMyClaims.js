@@ -677,10 +677,18 @@ export default function ReceiverMyClaims() {
 
           const infoRows = [
             {
-              key: 'quantity-expiry',
+              key: 'quantity',
               icon: <Package size={16} className="claimed-page detail-icon" />,
-              value: `${quantityValue} ? Expires ${expiryValue}`,
+              value: quantityValue,
               tone: 'quantity',
+            },
+            {
+              key: 'expiry',
+              icon: <Calendar size={16} className="claimed-page detail-icon" />,
+              prefix: 'Expiry Date',
+              value: expiryValue,
+              emphasizeValue: true,
+              tone: 'expiry',
             },
             {
               key: 'pickup',

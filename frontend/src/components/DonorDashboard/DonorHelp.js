@@ -103,10 +103,31 @@ export default function DonorHelp() {
   return (
     <div className="donor-help">
       {canReplayDonorTutorial && (
-        <section className="help-section tutorial-section">
+        <section
+          className="help-section tutorial-section"
+          style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            padding: '1.5rem 2rem',
+            margin: '0 auto 1.5rem',
+            width: '100%',
+            maxWidth: 'calc(1200px + 4rem)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            border: '1px solid #e8e8e8',
+          }}
+        >
           <div className="section-header">
-            <Sparkles size={24} />
-            <h2>{t('onboarding.help.title')}</h2>
+            <h2
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: 0,
+              }}
+            >
+              <Sparkles size={24} />
+              {t('onboarding.help.title')}
+            </h2>
           </div>
           <p className="section-intro">{t('onboarding.help.donorIntro')}</p>
           <button
@@ -124,8 +145,17 @@ export default function DonorHelp() {
 
       <section className="help-section getting-started">
         <div className="section-header">
-          <BookOpen size={24} />
-          <h2>{t('donorHelp.gettingStarted.title')}</h2>
+          <h2
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              margin: 0,
+            }}
+          >
+            <BookOpen size={24} />
+            {t('donorHelp.gettingStarted.title')}
+          </h2>
         </div>
         <p className="section-intro">{t('donorHelp.gettingStarted.intro')}</p>
       </section>

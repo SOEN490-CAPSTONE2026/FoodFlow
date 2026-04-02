@@ -1,80 +1,36 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import {
-  ChevronDown,
-  ChevronUp,
-  HelpCircle,
+  Plus,
+  Minus,
   BookOpen,
-  MessageCircle,
   Phone,
   Mail,
   Search,
   Clock,
   CheckCircle,
-  Settings,
   Sparkles,
 } from 'lucide-react';
 import { useOnboarding } from '../../contexts/OnboardingContext';
-import './Receiver_Styles/ReceiverHelp.css';
+import '../DonorDashboard/Donor_Styles/DonorHelp.css';
 
 /**
  * Reusable FAQ Item component with expand/collapse functionality
  */
 const FAQItem = ({ question, answer, isOpen, onClick }) => (
-  <div
-    data-no-animate="true"
-    style={{
-      border: '2px solid #e5e7eb',
-      borderRadius: '10px',
-      marginBottom: '12px',
-      backgroundColor: '#ffffff',
-      overflow: 'visible',
-      opacity: 1,
-      transform: 'none',
-      animation: 'none',
-      transition: 'none',
-      visibility: 'visible',
-      position: 'relative',
-      zIndex: 1,
-      height: 'auto',
-      maxHeight: 'none',
-      minHeight: 'auto',
-    }}
-  >
+  <div data-no-animate="true" className={`faq-item ${isOpen ? 'open' : ''}`}>
     <button
       className="faq-question"
       onClick={onClick}
       aria-expanded={isOpen}
       aria-controls={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 20px',
-        backgroundColor: isOpen ? '#e0f2fe' : '#ffffff',
-        border: 'none',
-        cursor: 'pointer',
-        textAlign: 'left',
-        color: isOpen ? '#1B4965' : '#1a1a1a',
-        fontSize: '16px',
-        fontWeight: '600',
-        fontFamily: 'inherit',
-      }}
     >
-      <span
-        style={{
-          color: isOpen ? '#1B4965' : '#1a1a1a',
-          flex: 1,
-          paddingRight: '16px',
-        }}
-      >
-        {question}
-      </span>
+      <span>{question}</span>
       {isOpen ? (
-        <ChevronUp size={24} style={{ color: '#62B6CB', flexShrink: 0 }} />
+        <Minus size={20} style={{ color: '#1b4965', flexShrink: 0 }} />
       ) : (
-        <ChevronDown size={24} style={{ color: '#62B6CB', flexShrink: 0 }} />
+        <Plus size={20} style={{ color: '#9ca3af', flexShrink: 0 }} />
       )}
     </button>
     {isOpen && (
@@ -82,27 +38,19 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
         className="faq-answer"
         id={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
         role="region"
-        style={{
-          padding: '16px 20px',
-          backgroundColor: '#f8fafc',
-          color: '#333333',
-          fontSize: '15px',
-          lineHeight: '1.8',
-          borderTop: '1px solid #e0f2fe',
-          overflow: 'visible',
-          height: 'auto',
-          maxHeight: 'none',
-          minHeight: 'auto',
-          display: 'block',
-          opacity: 1,
-          visibility: 'visible',
-        }}
       >
         {answer}
       </div>
     )}
   </div>
 );
+
+FAQItem.propTypes = {
+  question: PropTypes.string.isRequired,
+  answer: PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
 
 /**
  * Receiver Help Page Component
@@ -136,19 +84,15 @@ export default function ReceiverHelp() {
   const steps = [
     {
       key: 'step1',
-      icon: <Search size={20} />,
+      icon: <Search size={24} />,
     },
     {
       key: 'step2',
-      icon: <Clock size={20} />,
+      icon: <Clock size={24} />,
     },
     {
       key: 'step3',
-      icon: <CheckCircle size={20} />,
-    },
-    {
-      key: 'step4',
-      icon: <Settings size={20} />,
+      icon: <CheckCircle size={24} />,
     },
   ];
 
@@ -159,15 +103,37 @@ export default function ReceiverHelp() {
   return (
     <div className="receiver-help">
       {canReplayReceiverTutorial && (
-        <section className="help-section tutorial-section">
+        <section
+          className="help-section tutorial-section"
+          style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            padding: '1.5rem 2rem',
+            margin: '0 auto 1.5rem',
+            width: '100%',
+            maxWidth: 'calc(1200px + 4rem)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            border: '1px solid #e8e8e8',
+          }}
+        >
           <div className="section-header">
-            <Sparkles size={24} />
-            <h2>{t('onboarding.help.title')}</h2>
+            <h2
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: 0,
+              }}
+            >
+              <Sparkles size={24} />
+              {t('onboarding.help.title')}
+            </h2>
           </div>
           <p className="section-intro">{t('onboarding.help.receiverIntro')}</p>
           <button
             type="button"
             className="tutorial-replay-button"
+            data-tour="receiver-replay-tutorial"
             onClick={startReceiverTutorial}
             disabled={isReceiverTutorialActive}
           >
@@ -179,41 +145,45 @@ export default function ReceiverHelp() {
 
       <section className="help-section getting-started">
         <div className="section-header">
-          <BookOpen size={24} />
-          <h2>{t('receiverHelp.gettingStarted.title')}</h2>
+          <h2
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              margin: 0,
+            }}
+          >
+            <BookOpen size={24} />
+            {t('receiverHelp.gettingStarted.title')}
+          </h2>
         </div>
         <p className="section-intro">
           {t('receiverHelp.gettingStarted.intro')}
         </p>
-        <div className="getting-started-content">
-          {steps.map((step, index) => (
-            <div className="step" key={step.key}>
-              <div className="step-number">{index + 1}</div>
-              <div className="step-content">
-                <div className="step-icon">{step.icon}</div>
-                <h4>
-                  {t(`receiverHelp.gettingStarted.steps.${step.key}.title`)}
-                </h4>
-                <p>
-                  {t(
-                    `receiverHelp.gettingStarted.steps.${step.key}.description`
-                  )}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
       </section>
 
-      <section className="help-section faq-section">
-        <div className="section-header">
-          <HelpCircle size={24} />
-          <h2>{t('receiverHelp.faq.title')}</h2>
+      <div className="category-cards">
+        {steps.map(step => (
+          <div className="category-card" key={step.key}>
+            <div className="category-header">
+              <div className="category-icon">{step.icon}</div>
+              <h3 className="category-title">
+                {t(`receiverHelp.gettingStarted.steps.${step.key}.title`)}
+              </h3>
+            </div>
+            <p className="category-description">
+              {t(`receiverHelp.gettingStarted.steps.${step.key}.description`)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <section className="faq-section">
+        <div className="faq-header">
+          <h2 className="faq-heading">{t('receiverHelp.faq.title')}</h2>
+          <p className="faq-subtitle">{t('receiverHelp.faq.subtitle')}</p>
         </div>
-        <div
-          role="list"
-          style={{ display: 'flex', flexDirection: 'column', gap: '0' }}
-        >
+        <div className="faq-list">
           {faqs.map((faq, index) => (
             <FAQItem
               key={index}
@@ -226,18 +196,24 @@ export default function ReceiverHelp() {
         </div>
       </section>
 
-      <section className="help-section contact-section">
-        <div className="section-header">
-          <MessageCircle size={24} />
-          <h2>{t('receiverHelp.support.title')}</h2>
+      <section className="help-contact-section">
+        <div className="donor-contact-header">
+          <h2 className="donor-contact-heading">
+            {t('receiverHelp.contact.title')}
+          </h2>
+          <p className="donor-contact-subtitle">
+            {t('receiverHelp.contact.subtitle')}
+          </p>
         </div>
-        <p className="section-intro">{t('receiverHelp.support.intro')}</p>
-        <div className="contact-options">
-          <a href="mailto:foodflow.group@gmail.com" className="contact-card">
-            <div className="contact-icon">
+        <div className="donor-contact-options">
+          <a
+            href="mailto:foodflow.group@gmail.com"
+            className="donor-contact-card"
+          >
+            <div className="donor-contact-icon">
               <Mail size={24} />
             </div>
-            <div className="contact-info">
+            <div className="donor-contact-info">
               <h4>{t('receiverHelp.support.emailLabel')}</h4>
               <p>foodflow.group@gmail.com</p>
               <span className="response-time">
@@ -245,11 +221,11 @@ export default function ReceiverHelp() {
               </span>
             </div>
           </a>
-          <a href="tel:1-800-FOODFLOW" className="contact-card">
-            <div className="contact-icon">
+          <a href="tel:1-800-FOODFLOW" className="donor-contact-card">
+            <div className="donor-contact-icon">
               <Phone size={24} />
             </div>
-            <div className="contact-info">
+            <div className="donor-contact-info">
               <h4>{t('receiverHelp.support.phoneLabel')}</h4>
               <p>1-800-FOODFLOW</p>
               <span className="response-time">

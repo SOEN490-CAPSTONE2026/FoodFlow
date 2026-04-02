@@ -56,55 +56,68 @@ const NavigationBar = () => {
 
   const toggleMenu = () => setIsMenuOpen(o => !o);
 
+  const scrollWithOffset = element => {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const scrollToElement = (sectionId, attempts = 8) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      scrollWithOffset(element);
+      return;
+    }
+
+    if (attempts > 0) {
+      setTimeout(() => {
+        scrollToElement(sectionId, attempts - 1);
+      }, 80);
+    }
+  };
+
   const scrollToSection = (sectionId, event) => {
     event.preventDefault();
     setIsMenuOpen(false);
 
     if (location.pathname !== '/') {
-      navigate('/', {
+      sessionStorage.setItem('landingScrollTarget', sectionId);
+      navigate(`/#${sectionId}`, {
         state: { scrollTo: sectionId, from: from || undefined },
       });
     } else {
-      setTimeout(() => {
-        scrollToElement(sectionId);
-      }, 100);
-    }
-  };
-
-  const scrollToElement = sectionId => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const navbarHeight = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition =
-        elementPosition + window.pageYOffset - navbarHeight;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      const url = `${window.location.pathname}${window.location.search}#${sectionId}`;
+      window.history.replaceState(window.history.state, '', url);
+      scrollToElement(sectionId);
     }
   };
 
   const handleLogoClick = () => {
     if (location.pathname !== '/') {
-      navigate('/', { state: { from: from || undefined, scrollTo: 'home' } });
+      sessionStorage.setItem('landingScrollTarget', 'home');
+      navigate('/#home', {
+        state: { from: from || undefined, scrollTo: 'home' },
+      });
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const url = `${window.location.pathname}${window.location.search}#home`;
+      window.history.replaceState(window.history.state, '', url);
+      scrollToElement('home');
     }
     setIsMenuOpen(false);
   };
 
   const handleReturnToDashboard = () => {
-    const target =
-      role === 'RECEIVER'
-        ? '/receiver/browse'
-        : role === 'DONOR'
-          ? '/donor'
-          : role === 'ADMIN'
-            ? '/admin/dashboard'
-            : null;
+    const normalizedRole = (role || '').toUpperCase();
+    let target = '/';
 
-    if (target) {
-      navigate(target);
-      setIsMenuOpen(false);
+    if (normalizedRole.includes('RECEIVER')) {
+      target = '/receiver/browse';
+    } else if (normalizedRole.includes('DONOR')) {
+      target = '/donor';
+    } else if (normalizedRole.includes('ADMIN')) {
+      target = '/admin/dashboard';
     }
+
+    navigate(target);
+    setIsMenuOpen(false);
   };
 
   const handleLanguageSelect = langCode => {

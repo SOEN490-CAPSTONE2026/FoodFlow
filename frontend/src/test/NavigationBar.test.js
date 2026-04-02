@@ -9,6 +9,7 @@ jest.mock('../assets/Logo.png', () => 'test-logo.png');
 
 // Mock scrollTo
 window.scrollTo = jest.fn();
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 // Mock react-router-dom hooks
 const mockNavigate = jest.fn();
@@ -46,6 +47,7 @@ describe('NavigationBar', () => {
     mockNavigate.mockClear();
     mockLogout.mockClear();
     window.scrollTo.mockClear();
+    window.HTMLElement.prototype.scrollIntoView.mockClear();
     mockUseLocation.mockClear();
   });
 
@@ -172,7 +174,7 @@ describe('NavigationBar', () => {
     const logo = screen.getByAltText('Logo').closest('div');
     fireEvent.click(logo);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/', {
+    expect(mockNavigate).toHaveBeenCalledWith('/#home', {
       state: {
         from: undefined,
         scrollTo: 'home',
@@ -183,13 +185,20 @@ describe('NavigationBar', () => {
   test('logo click scrolls to top when already on home page', () => {
     renderWithProviders(false, '/');
 
+    const homeSection = document.createElement('section');
+    const getByIdSpy = jest
+      .spyOn(document, 'getElementById')
+      .mockReturnValue(homeSection);
+
     const logo = screen.getByAltText('Logo').closest('div');
     fireEvent.click(logo);
 
-    expect(window.scrollTo).toHaveBeenCalledWith({
-      top: 0,
+    expect(homeSection.scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
+      block: 'start',
     });
+
+    getByIdSpy.mockRestore();
   });
 
   test('navigation links have click handlers and correct hrefs', () => {
@@ -224,8 +233,8 @@ describe('NavigationBar', () => {
     fireEvent.click(homeLink);
 
     // Should navigate to home with scroll state for the home section
-    expect(mockNavigate).toHaveBeenCalledWith('/', {
-      state: { scrollTo: 'home' },
+    expect(mockNavigate).toHaveBeenCalledWith('/#home', {
+      state: { scrollTo: 'home', from: undefined },
     });
   });
 
@@ -233,33 +242,19 @@ describe('NavigationBar', () => {
     // Mock being on home page
     renderWithProviders(false, '/');
 
-    // Mock element and scroll behavior
-    const mockElement = {
-      getBoundingClientRect: () => ({ top: 100 }),
-    };
-
-    jest.spyOn(document, 'getElementById').mockReturnValue(mockElement);
-
-    Object.defineProperty(window, 'pageYOffset', {
-      writable: true,
-      value: 0,
-    });
-
-    //Fake timers being used to handle the setTimeout in scrollToSection
-    jest.useFakeTimers();
+    const homeSection = document.createElement('section');
+    const getByIdSpy = jest
+      .spyOn(document, 'getElementById')
+      .mockReturnValue(homeSection);
 
     const homeLink = screen.getByText('Home');
     fireEvent.click(homeLink);
 
-    // Advance timers to trigger the setTimeout
-    jest.advanceTimersByTime(150);
-
-    // Should call scrollTo with calculated position
-    expect(window.scrollTo).toHaveBeenCalledWith({
-      top: 20,
+    expect(homeSection.scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
+      block: 'start',
     });
 
-    jest.useRealTimers();
+    getByIdSpy.mockRestore();
   });
 });

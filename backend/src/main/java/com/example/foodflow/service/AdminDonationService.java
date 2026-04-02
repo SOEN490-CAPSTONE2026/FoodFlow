@@ -289,8 +289,14 @@ public class AdminDonationService {
             response.setDonorOrganization(donor.getOrganization().getName());
         }
         
-        // Get claim information if exists (get ACTIVE claim)
+        // Get claim information if exists (prefer ACTIVE, fall back to COMPLETED/NOT_COMPLETED)
         Optional<Claim> claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE);
+        if (!claimOpt.isPresent()) {
+            claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.COMPLETED);
+        }
+        if (!claimOpt.isPresent()) {
+            claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.NOT_COMPLETED);
+        }
         if (claimOpt.isPresent()) {
             Claim claim = claimOpt.get();
             User receiver = claim.getReceiver();

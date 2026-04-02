@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
+import DatePicker from 'react-datepicker';
 import {
   User,
   Globe,
@@ -26,6 +27,7 @@ import {
 } from '../services/api';
 import api from '../services/api';
 import { inferRegionFromAddress } from '../services/timezoneService';
+import 'react-datepicker/dist/react-datepicker.css';
 import '../style/Settings.css';
 
 /**
@@ -426,6 +428,29 @@ const Settings = () => {
       return () => clearTimeout(timer);
     }
   }, [pickupPrefsMessage, pickupPrefsError]);
+
+  const parseTimeStringToDate = timeString => {
+    if (!timeString) {
+      return null;
+    }
+    const [hours, minutes] = timeString.split(':').map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+      return null;
+    }
+
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  const formatTimeDateToString = date => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      return '';
+    }
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
 
   const handlePickupSlotChange = (index, field, value) => {
     setPickupPrefs(prev => {
@@ -1388,11 +1413,14 @@ const Settings = () => {
                   className="preference-item"
                   style={{
                     flexDirection: 'column',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     gap: '0.75rem',
                   }}
                 >
-                  <div className="preference-info">
+                  <div
+                    className="preference-info"
+                    style={{ textAlign: 'center' }}
+                  >
                     <h4>Default Availability Window</h4>
                     <p>
                       Set the broad time range during which you are generally
@@ -1400,7 +1428,12 @@ const Settings = () => {
                     </p>
                   </div>
                   <div
-                    style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}
+                    style={{
+                      display: 'flex',
+                      gap: '1rem',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                    }}
                   >
                     <div>
                       <label
@@ -1409,16 +1442,24 @@ const Settings = () => {
                       >
                         From
                       </label>
-                      <input
-                        type="time"
-                        className="form-input"
-                        value={pickupPrefs.availabilityWindowStart}
-                        onChange={e =>
+                      <DatePicker
+                        selected={parseTimeStringToDate(
+                          pickupPrefs.availabilityWindowStart
+                        )}
+                        onChange={date =>
                           setPickupPrefs(prev => ({
                             ...prev,
-                            availabilityWindowStart: e.target.value,
+                            availabilityWindowStart:
+                              formatTimeDateToString(date),
                           }))
                         }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="HH:mm"
+                        className="form-input"
+                        placeholderText="--:--"
                       />
                     </div>
                     <div>
@@ -1428,16 +1469,23 @@ const Settings = () => {
                       >
                         To
                       </label>
-                      <input
-                        type="time"
-                        className="form-input"
-                        value={pickupPrefs.availabilityWindowEnd}
-                        onChange={e =>
+                      <DatePicker
+                        selected={parseTimeStringToDate(
+                          pickupPrefs.availabilityWindowEnd
+                        )}
+                        onChange={date =>
                           setPickupPrefs(prev => ({
                             ...prev,
-                            availabilityWindowEnd: e.target.value,
+                            availabilityWindowEnd: formatTimeDateToString(date),
                           }))
                         }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Time"
+                        dateFormat="HH:mm"
+                        className="form-input"
+                        placeholderText="--:--"
                       />
                     </div>
                   </div>
@@ -1453,7 +1501,10 @@ const Settings = () => {
                       marginBottom: '0.75rem',
                     }}
                   >
-                    <div className="preference-info">
+                    <div
+                      className="preference-info"
+                      style={{ textAlign: 'center', margin: '0 auto' }}
+                    >
                       <h4>Recurring Pickup Time Slots</h4>
                       <p>
                         These times will be pre-filled when you create a new
@@ -1510,17 +1561,22 @@ const Settings = () => {
                           >
                             Start Time
                           </label>
-                          <input
-                            type="time"
-                            className="form-input"
-                            value={slot.startTime}
-                            onChange={e =>
+                          <DatePicker
+                            selected={parseTimeStringToDate(slot.startTime)}
+                            onChange={date =>
                               handlePickupSlotChange(
                                 index,
                                 'startTime',
-                                e.target.value
+                                formatTimeDateToString(date)
                               )
                             }
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={15}
+                            timeCaption="Time"
+                            dateFormat="HH:mm"
+                            className="form-input"
+                            placeholderText="--:--"
                           />
                         </div>
                         <div>
@@ -1533,17 +1589,22 @@ const Settings = () => {
                           >
                             End Time
                           </label>
-                          <input
-                            type="time"
-                            className="form-input"
-                            value={slot.endTime}
-                            onChange={e =>
+                          <DatePicker
+                            selected={parseTimeStringToDate(slot.endTime)}
+                            onChange={date =>
                               handlePickupSlotChange(
                                 index,
                                 'endTime',
-                                e.target.value
+                                formatTimeDateToString(date)
                               )
                             }
+                            showTimeSelect
+                            showTimeSelectOnly
+                            timeIntervals={15}
+                            timeCaption="Time"
+                            dateFormat="HH:mm"
+                            className="form-input"
+                            placeholderText="--:--"
                           />
                         </div>
                         <div style={{ flex: 1, minWidth: '150px' }}>
@@ -1592,7 +1653,7 @@ const Settings = () => {
                 <button
                   type="button"
                   className="save-changes-btn"
-                  style={{ marginTop: '1rem' }}
+                  style={{ marginTop: '1rem', alignSelf: 'center' }}
                   onClick={handleSavePickupPreferences}
                 >
                   Save Pickup Preferences

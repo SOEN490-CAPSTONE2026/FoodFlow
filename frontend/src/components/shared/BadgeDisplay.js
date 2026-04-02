@@ -15,7 +15,7 @@ const BadgeDisplay = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stats, loading, error } = useGamification();
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   if (error) {
     return (
