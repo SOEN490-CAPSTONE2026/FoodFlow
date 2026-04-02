@@ -28,6 +28,11 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
+		<junit.jupiter.execution.parallel.mode.default>same_thread</junit.jupiter.execution.parallel.mode.default>
+		<junit.jupiter.execution.parallel.mode.classes.default>concurrent</junit.jupiter.execution.parallel.mode.classes.default>
+		<junit.jupiter.execution.parallel.config.strategy>fixed</junit.jupiter.execution.parallel.config.strategy>
+		<junit.jupiter.execution.parallel.config.fixed.parallelism>4</junit.jupiter.execution.parallel.config.fixed.parallelism>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -242,14 +247,14 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
 				<configuration>
-					<argLine>@{argLine}</argLine>
+					<argLine>@{argLine} -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar -Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</argLine>
 					<rerunFailingTestsCount>1</rerunFailingTestsCount>
 					<systemPropertyVariables>
-						<junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
-						<junit.jupiter.execution.parallel.mode.default>same_thread</junit.jupiter.execution.parallel.mode.default>
-						<junit.jupiter.execution.parallel.mode.classes.default>concurrent</junit.jupiter.execution.parallel.mode.classes.default>
-						<junit.jupiter.execution.parallel.config.strategy>fixed</junit.jupiter.execution.parallel.config.strategy>
-						<junit.jupiter.execution.parallel.config.fixed.parallelism>4</junit.jupiter.execution.parallel.config.fixed.parallelism>
+						<junit.jupiter.execution.parallel.enabled>${junit.jupiter.execution.parallel.enabled}</junit.jupiter.execution.parallel.enabled>
+						<junit.jupiter.execution.parallel.mode.default>${junit.jupiter.execution.parallel.mode.default}</junit.jupiter.execution.parallel.mode.default>
+						<junit.jupiter.execution.parallel.mode.classes.default>${junit.jupiter.execution.parallel.mode.classes.default}</junit.jupiter.execution.parallel.mode.classes.default>
+						<junit.jupiter.execution.parallel.config.strategy>${junit.jupiter.execution.parallel.config.strategy}</junit.jupiter.execution.parallel.config.strategy>
+						<junit.jupiter.execution.parallel.config.fixed.parallelism>${junit.jupiter.execution.parallel.config.fixed.parallelism}</junit.jupiter.execution.parallel.config.fixed.parallelism>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
@@ -258,14 +263,14 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>3.2.5</version>
 				<configuration>
-					<argLine>@{argLine}</argLine>
+					<argLine>@{argLine} -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar -Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</argLine>
 					<rerunFailingTestsCount>1</rerunFailingTestsCount>
 					<systemPropertyVariables>
-						<junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
-						<junit.jupiter.execution.parallel.mode.default>same_thread</junit.jupiter.execution.parallel.mode.default>
-						<junit.jupiter.execution.parallel.mode.classes.default>concurrent</junit.jupiter.execution.parallel.mode.classes.default>
-						<junit.jupiter.execution.parallel.config.strategy>fixed</junit.jupiter.execution.parallel.config.strategy>
-						<junit.jupiter.execution.parallel.config.fixed.parallelism>4</junit.jupiter.execution.parallel.config.fixed.parallelism>
+						<junit.jupiter.execution.parallel.enabled>${junit.jupiter.execution.parallel.enabled}</junit.jupiter.execution.parallel.enabled>
+						<junit.jupiter.execution.parallel.mode.default>${junit.jupiter.execution.parallel.mode.default}</junit.jupiter.execution.parallel.mode.default>
+						<junit.jupiter.execution.parallel.mode.classes.default>${junit.jupiter.execution.parallel.mode.classes.default}</junit.jupiter.execution.parallel.mode.classes.default>
+						<junit.jupiter.execution.parallel.config.strategy>${junit.jupiter.execution.parallel.config.strategy}</junit.jupiter.execution.parallel.config.strategy>
+						<junit.jupiter.execution.parallel.config.fixed.parallelism>${junit.jupiter.execution.parallel.config.fixed.parallelism}</junit.jupiter.execution.parallel.config.fixed.parallelism>
 					</systemPropertyVariables>
 				</configuration>
 				<executions>

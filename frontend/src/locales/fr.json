@@ -275,7 +275,94 @@
     "time": "Heure",
     "retry": "Réessayer",
     "less": "Moins",
-    "more": "Plus"
+    "more": "Plus",
+    "approvalRequired": {
+      "badge": "Approbation en attente",
+      "title": "Approbation du compte requise",
+      "message": "Votre compte attend toujours l’approbation de l’administrateur FoodFlow. Veuillez patienter avant de continuer.",
+      "action": "Compris",
+      "createTitle": "Approbation du compte requise",
+      "createMessage": "Vous pouvez préparer les détails du don, mais la publication reste bloquée jusqu’à l’approbation de votre compte par un administrateur FoodFlow.",
+      "claimTitle": "Approbation requise pour réclamer des dons",
+      "claimMessage": "Cette action sera disponible une fois votre compte approuvé par un administrateur FoodFlow. Veuillez patienter avant de réclamer des dons."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "Compte en attente d’approbation administrateur",
+    "message": "Votre adresse e-mail a été vérifiée ! Votre compte est actuellement en attente d’approbation par notre équipe d’administration. Ce processus prend généralement jusqu’à 48 heures. Vous recevrez un e-mail de notification une fois votre compte approuvé.",
+    "thankYou": "Merci pour votre patience !"
+  },
+  "paymentPage": {
+    "workspace": {
+      "title": "Espace Paiement",
+      "ariaLabel": "Sections de paiement",
+      "descriptions": {
+        "donate": "Aidez-nous à lutter contre le gaspillage alimentaire et à soutenir les communautés avec un don sécurisé.",
+        "methods": "Gérez vos cartes et comptes bancaires enregistrés pour des paiements plus rapides.",
+        "history": "Consultez vos transactions récentes et suivez votre activité de paiement au même endroit.",
+        "invoices": "Consultez et téléchargez les factures de vos paiements FoodFlow terminés.",
+        "refunds": "Consultez l’activité des remboursements et soumettez une demande si nécessaire.",
+        "fallback": "Parcourez les sections de facturation comme des pages successives dans un même flux."
+      }
+    },
+    "tabs": {
+      "donate": "Faire un don",
+      "methods": "Moyens de paiement",
+      "history": "Historique",
+      "invoices": "Factures",
+      "refunds": "Remboursements"
+    },
+    "steps": {
+      "amount": "Montant",
+      "payment": "Paiement"
+    },
+    "amount": {
+      "title": "Sélectionner le montant du don",
+      "currency": "Devise",
+      "customLabel": "Ou entrer un montant personnalisé :",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "Moyen de paiement",
+      "savedOrNew": "Choisissez votre carte par défaut enregistrée ou ajoutez-en une nouvelle.",
+      "noSavedDefault": "Aucune carte par défaut enregistrée. Entrez un nouveau moyen de paiement.",
+      "loading": "Chargement des moyens de paiement enregistrés...",
+      "useSaved": "Utiliser le moyen enregistré par défaut",
+      "defaultBadge": "Carte par défaut enregistrée",
+      "useNew": "Utiliser une nouvelle carte",
+      "newCardHint": "Ouvrez le formulaire Stripe à l’étape suivante.",
+      "addSavedHint": "Ajoutez une carte enregistrée dans l’onglet Moyens de paiement pour la réutiliser ici."
+    },
+    "savedMethod": {
+      "bankAccount": "Compte bancaire",
+      "card": "Carte",
+      "bankEnding": "{{bankName}} se terminant par {{last4}}",
+      "cardEnding": "{{brand}} se terminant par {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "Indicateurs d’impact",
+      "title": "Impact estimé",
+      "poweredByData": "Estimations alimentées par les données réelles de dons de la plateforme.",
+      "liveEstimate": "Estimation en direct basée sur le montant du don sélectionné.",
+      "meals": "Repas soutenus",
+      "co2": "CO2 réduit",
+      "water": "Empreinte eau évitée",
+      "communityPacks": "Paniers alimentaires communautaires"
+    },
+    "actions": {
+      "processing": "Traitement...",
+      "continueToPayment": "Continuer vers le paiement {{amount}}"
+    },
+    "security": {
+      "lock": "Verrou",
+      "notice": "Sécurisé par Stripe - Vos informations de paiement sont chiffrées et protégées"
+    },
+    "errors": {
+      "minimumAmount": "Veuillez entrer un montant valide (minimum 1 $)",
+      "unableToContinue": "Impossible de continuer avec ce moyen de paiement pour le moment.",
+      "initializationFailed": "Échec de l’initialisation du paiement. Veuillez réessayer."
+    },
+    "donationDescription": "Don FoodFlow"
   },
   "validation": {
     "required": "Ce champ est requis",
@@ -953,7 +1040,85 @@
     "verificationQueueDesc": "Examiner et approuver les inscriptions en attente",
     "usersDesc": "Gérer et surveiller tous les utilisateurs de la plateforme",
     "impactDesc": "Indicateurs d’impact environnemental et social à l’échelle de la plateforme",
-    "disputesDesc": "Suivre, examiner et résoudre les problèmes signalés"
+    "disputesDesc": "Suivre, examiner et résoudre les problèmes signalés",
+    "images": "Images",
+    "imagesDesc": "Mod?rez les t?l?versements et g?rez la biblioth?que d?images par d?faut",
+    "referrals": "Recommandations",
+    "referralsDesc": "Voir les invitations communautaires et les suggestions d?entreprises envoy?es par les utilisateurs",
+    "moneyDonations": "Dons monétaires",
+    "moneyDonationsDesc": "Suivre les dons monétaires, les demandes de remboursement et l’état des factures"
+  },
+  "adminPayments": {
+    "eyebrow": "Finance Admin",
+    "title": "Transactions de dons monétaires",
+    "description": "Suivez chaque don monétaire, validez les remboursements en attente et vérifiez les montants des factures après décision admin.",
+    "loading": "Chargement des transactions...",
+    "empty": "Aucune transaction de don monétaire ne correspond aux filtres.",
+    "transactionId": "Transaction n°{{id}}",
+    "refundLabel": "Remboursement",
+    "noDescription": "Aucune description fournie",
+    "invoiceMissing": "Aucune facture",
+    "pagination": "Page {{current}} sur {{total}}",
+    "errors": {
+      "loadFailed": "Impossible de charger les transactions de dons monétaires.",
+      "decisionFailed": "Impossible de mettre à jour cette demande de remboursement.",
+      "createFailed": "Impossible de créer cette demande de remboursement.",
+      "amountRequired": "Saisissez un montant de remboursement valide."
+    },
+    "kpis": {
+      "totalVolume": "Volume total",
+      "successfulTransactions": "Transactions réussies",
+      "pendingRefundRequests": "Demandes de remboursement en attente",
+      "netVolume": "Volume net collecté"
+    },
+    "filters": {
+      "search": "Recherche",
+      "searchPlaceholder": "Rechercher par ID, organisation, intention Stripe...",
+      "paymentStatus": "Statut du paiement",
+      "refundStatus": "Statut du remboursement",
+      "currency": "Devise",
+      "fromDate": "Date de début",
+      "toDate": "Date de fin",
+      "all": "Tous",
+      "allCurrencies": "Toutes les devises"
+    },
+    "columns": {
+      "transaction": "Transaction",
+      "organization": "Organisation",
+      "gross": "Montant brut",
+      "refunded": "Montant remboursé",
+      "net": "Montant net",
+      "invoice": "Facture",
+      "paymentStatus": "Statut du paiement",
+      "createdAt": "Créé le",
+      "currency": "Devise",
+      "invoiceStatus": "Statut de la facture"
+    },
+    "details": {
+      "transaction": "Détails de la transaction"
+    },
+    "refunds": {
+      "title": "Demandes de remboursement",
+      "empty": "Aucun remboursement sur cette transaction.",
+      "pendingCount": "{{count}} en attente",
+      "createTitle": "Créer une demande de remboursement",
+      "amount": "Montant du remboursement",
+      "reason": "Motif du remboursement",
+      "requestedBy": "Demandé par",
+      "adminNotes": "Notes admin",
+      "notesPlaceholder": "Ajoutez une note interne avant d’approuver ou rejeter ce remboursement.",
+      "noReason": "Aucun motif fourni"
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "reset": "Réinitialiser",
+      "createRefundRequest": "Créer la demande",
+      "saving": "Enregistrement...",
+      "approveRefund": "Approuver",
+      "rejectRefund": "Rejeter",
+      "previous": "Précédent",
+      "next": "Suivant"
+    }
   },
   "claimedView": {
     "claimed": "Réclamé",
@@ -1931,6 +2096,7 @@
     },
     "faq": {
       "title": "Foire aux questions",
+      "subtitle": "Tout ce que vous devez savoir sur la réclamation des dons et la coordination des collectes.",
       "items": {
         "q1": {
           "question": "Comment réclamer un don ?",
@@ -1974,6 +2140,10 @@
         }
       }
     },
+    "contact": {
+      "title": "Toujours besoin d'aide ?",
+      "subtitle": "Notre équipe de support est là pour vous aider. Contactez-nous via votre canal préféré."
+    },
     "support": {
       "title": "Besoin de plus d'aide ?",
       "intro": "Vous ne trouvez pas ce que vous cherchez ? Notre équipe de support est là pour vous aider.",
@@ -1999,6 +2169,10 @@
       "extractingData": "Extraction des données",
       "preparingResults": "Préparation des résultats",
       "loadingMaps": "Chargement des cartes"
+    },
+    "submitting": {
+      "title": "Soumission du don",
+      "hint": "Veuillez patienter pendant que FoodFlow enregistre votre don IA."
     },
     "toast": {
       "extractionComplete": "Extraction terminée. Vérifiez les détails avant de soumettre.",
@@ -2308,7 +2482,8 @@
     },
     "status": {
       "active": "Actif",
-      "deactivated": "Désactivé"
+      "deactivated": "Désactivé",
+      "deleted": "Supprim?"
     },
     "actions": {
       "viewDetails": "Voir les détails",
@@ -2330,6 +2505,7 @@
         "CLAIM": "A réclamé {{item}}",
         "VERIFICATION": "Vérification complétée",
         "DEACTIVATE_USER": "Compte désactivé",
+        "DELETE_USER": "Compte supprimé : {{item}}",
         "quantityOf": "{{quantity}} de {{title}}",
         "noActivity": "Aucune activité récente",
         "on": "le"
@@ -2347,6 +2523,8 @@
       "alert": {
         "title": "Envoyer une alerte à :",
         "alertType": "Type d'alerte",
+        "userLanguage": "Langue de l'utilisateur",
+        "languageWarning": "Le message doit être rédigé dans la langue préférée de l'utilisateur. Le système l'enverra exactement tel que vous le tapez.",
         "customPlaceholder": "Saisissez votre message personnalisé...",
         "editPlaceholder": "Modifier le message"
       }
@@ -2380,6 +2558,32 @@
     },
     "errors": {
       "loadFailed": "Impossible de charger les utilisateurs. Veuillez réessayer plus tard."
+    },
+    "userDetails": {
+      "title": "D?tails de l?utilisateur",
+      "basicInformation": "Informations de base",
+      "id": "ID",
+      "name": "Nom",
+      "organization": "Organisation",
+      "email": "E-mail",
+      "phone": "T?l?phone",
+      "preferredLanguage": "Langue pr?f?r?e",
+      "licenseDocument": "Document de licence",
+      "viewDocument": "Voir le document",
+      "noDocumentUploaded": "Aucun document t?l?vers?",
+      "modify": "Modifier",
+      "modifyDocumentTitle": "T?l?verser ou remplacer le document",
+      "registrationNumber": "Num?ro d?enregistrement",
+      "activityStatistics": "Activit? et statistiques",
+      "registrationDate": "Date d?inscription",
+      "lastActive": "Derni?re activit?",
+      "totalDonations": "Total des dons",
+      "totalClaims": "Total des r?clamations",
+      "rating": "Note",
+      "noRatingsYet": "Aucune note pour le moment",
+      "reviewsCount": "{{count}} avis",
+      "addressInformation": "Informations d?adresse",
+      "address": "Adresse"
     }
   },
   "adminDonations": {
@@ -2430,6 +2634,51 @@
     },
     "errors": {
       "loadFailed": "Impossible de charger les dons. Veuillez réessayer."
+    },
+    "detailsModal": {
+      "title": "D?tails du don",
+      "pageTitles": {
+        "basicInfoParticipants": "Infos de base et participants",
+        "timeline": "Chronologie",
+        "overrideStatus": "Forcer le statut"
+      },
+      "basicInformation": "Informations de base",
+      "participants": "Participants",
+      "roles": {
+        "donor": "Donneur",
+        "receiver": "B?n?ficiaire"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "Titre",
+        "status": "Statut",
+        "flagged": "Signal?",
+        "created": "Cr??",
+        "updated": "Mis ? jour",
+        "name": "Nom",
+        "email": "E-mail",
+        "organization": "Organisation",
+        "claimedAt": "R?clam? le"
+      },
+      "values": {
+        "yes": "Oui",
+        "no": "Non"
+      },
+      "timeline": "Chronologie",
+      "actor": "Acteur : {{actor}}",
+      "adminOnly": "ADMIN UNIQUEMENT",
+      "statusChange": "Statut",
+      "noTimeline": "Aucun ?v?nement de chronologie disponible.",
+      "overrideStatus": "Forcer le statut",
+      "currentStatus": "Statut actuel",
+      "newStatus": "Nouveau statut",
+      "selectNewStatus": "S?lectionnez un nouveau statut",
+      "reason": "Raison",
+      "reasonPlaceholder": "Indiquez une raison pour la modification du statut...",
+      "updating": "Mise ? jour...",
+      "back": "Retour",
+      "next": "Suivant",
+      "pageOf": "Page {{page}} sur {{total}}"
     }
   },
   "adminSettings": {
@@ -2884,6 +3133,90 @@
           "text": "C’est tout, vous êtes prêt à commencer à utiliser FoodFlow en tant que receveur."
         }
       }
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} ?l?ment",
+    "itemsCount_other": "{{count}} ?l?ments",
+    "reasonPrompt": "Raison (facultative) :",
+    "statusOptions": {
+      "pending": "En attente",
+      "approved": "Approuv?e",
+      "rejected": "Rejet?e",
+      "disabled": "D?sactiv?e"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "Type d?aliment",
+      "donor": "Donneur",
+      "status": "Statut",
+      "reason": "Raison",
+      "active": "Actif",
+      "yes": "Oui",
+      "no": "Non",
+      "none": "-",
+      "generic": "G?n?rique"
+    },
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "disable": "D?sactiver",
+      "delete": "Supprimer",
+      "add": "Ajouter",
+      "deactivate": "D?sactiver",
+      "activate": "Activer",
+      "remove": "Retirer"
+    },
+    "uploaded": {
+      "title": "Images t?l?vers?es",
+      "empty": "Aucun t?l?versement trouv? pour le statut s?lectionn?.",
+      "alt": "T?l?versement {{id}}"
+    },
+    "library": {
+      "title": "Biblioth?que interne d?images",
+      "uploadImage": "T?l?verser une image",
+      "orImageUrl": "Ou URL d?image",
+      "selectCategory": "S?lectionnez une cat?gorie",
+      "empty": "La biblioth?que interne est vide. Ajoutez votre premi?re image de secours.",
+      "alt": "Biblioth?que {{id}}"
+    },
+    "errors": {
+      "loadFailed": "Impossible de charger les donn?es de mod?ration des images.",
+      "selectFoodType": "Veuillez s?lectionner une cat?gorie d?aliment.",
+      "addFailed": "Impossible d?ajouter l?image ? la biblioth?que."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "Toutes",
+      "inviteCommunity": "Inviter une communaut?",
+      "suggestBusiness": "Sugg?rer une entreprise"
+    },
+    "types": {
+      "community": "Communaut?",
+      "business": "Entreprise"
+    },
+    "table": {
+      "type": "Type",
+      "organization": "Entreprise / Organisation",
+      "contactEmail": "E-mail de contact",
+      "contactPhone": "T?l?phone de contact",
+      "message": "Message",
+      "submittedBy": "Envoy? par",
+      "date": "Date"
+    },
+    "refresh": "Actualiser",
+    "loading": "Chargement des recommandations...",
+    "empty": "Aucune recommandation pour le moment.",
+    "viewMessage": "Voir le message",
+    "viewMessageFrom": "Voir le message de {{name}}",
+    "closeMessage": "Fermer le message",
+    "messageTitle": "Message de recommandation",
+    "showingCount_one": "Affichage de {{shown}} sur {{total}} soumission",
+    "showingCount_other": "Affichage de {{shown}} sur {{total}} soumissions",
+    "notAvailable": "?",
+    "errors": {
+      "loadFailed": "Impossible de charger les recommandations. Veuillez r?essayer."
     }
   }
 }

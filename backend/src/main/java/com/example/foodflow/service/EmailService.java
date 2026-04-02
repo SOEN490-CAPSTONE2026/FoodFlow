@@ -1,9 +1,6 @@
 package com.example.foodflow.service;
 
-import brevo.ApiClient;
 import brevo.ApiException;
-import brevo.Configuration;
-import brevo.auth.ApiKeyAuth;
 import brevoApi.TransactionalEmailsApi;
 import brevoModel.SendSmtpEmail;
 import brevoModel.SendSmtpEmailSender;
@@ -13,24 +10,24 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import java.util.Locale;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
 @Service
-public class EmailService {
+public class EmailService implements EmailNotificationService {
     
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final String DEFAULT_FRONTEND_URL = "http://localhost:3000";
     
     private final MessageSource messageSource;
     private final UserRepository userRepository;
     private final BusinessMetricsService businessMetricsService;
+    private final TransactionalEmailClientFactory transactionalEmailClientFactory;
     
     @Value("${brevo.api.key}")
     private String brevoApiKey;
@@ -41,8 +38,11 @@ public class EmailService {
     @Value("${brevo.from.name}")
     private String fromName;
     
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    @Value("${frontend.url:" + DEFAULT_FRONTEND_URL + "}")
+    private String frontendUrl = DEFAULT_FRONTEND_URL;
+
+    @Value("${email.frontend-url:${frontend.url:" + DEFAULT_FRONTEND_URL + "}}")
+    private String emailFrontendUrl = DEFAULT_FRONTEND_URL;
 
     // ──────────────────────────────────────────────────────────────
     // Brand constants
@@ -66,10 +66,12 @@ public class EmailService {
     private static final String[] SUPPORTED_LANGUAGES = {"en", "fr", "es", "zh", "ar", "pt"};
     
     public EmailService(MessageSource messageSource, UserRepository userRepository,
-                        BusinessMetricsService businessMetricsService) {
+                        BusinessMetricsService businessMetricsService,
+                        TransactionalEmailClientFactory transactionalEmailClientFactory) {
         this.messageSource = messageSource;
         this.userRepository = userRepository;
         this.businessMetricsService = businessMetricsService;
+        this.transactionalEmailClientFactory = transactionalEmailClientFactory;
     }
 
     private CreateSmtpEmail sendEmailTracked(TransactionalEmailsApi api, SendSmtpEmail email) throws ApiException {
@@ -136,6 +138,35 @@ public class EmailService {
             }
         }
     }
+
+    private String resolveFrontendBaseUrl() {
+        String configuredUrl = null;
+
+        if (emailFrontendUrl != null && !emailFrontendUrl.isBlank()) {
+            configuredUrl = emailFrontendUrl;
+        } else if (frontendUrl != null && !frontendUrl.isBlank()) {
+            configuredUrl = frontendUrl;
+        }
+
+        if (configuredUrl == null) {
+            configuredUrl = DEFAULT_FRONTEND_URL;
+        }
+
+        return configuredUrl.endsWith("/")
+                ? configuredUrl.substring(0, configuredUrl.length() - 1)
+                : configuredUrl;
+    }
+
+    private String buildFrontendUrl(String path) {
+        String baseUrl = resolveFrontendBaseUrl();
+        String normalizedPath = path.startsWith("/") ? path : "/" + path;
+        return baseUrl + normalizedPath;
+    }
+
+    private TransactionalEmailsApi createTransactionalEmailsApi() {
+        return transactionalEmailClientFactory.create(brevoApiKey);
+    }
+
     /**
      * Send an email verification link to new users
      * @param toEmail recipient email address
@@ -147,12 +178,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         
-        // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -165,9 +191,9 @@ public class EmailService {
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
 
         // Set subject and content (localized)
-        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+        String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
         sendSmtpEmail.setSubject(getMessage("email.verification.subject", locale));
-        sendSmtpEmail.setTextContent(getMessage("email.verification.text_content", locale, verificationLink));
+        sendSmtpEmail.setTextContent(buildVerificationEmailText(verificationLink, locale));
         sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken, locale));
         
         try {
@@ -191,12 +217,7 @@ public class EmailService {
 
         Locale locale = getUserLocale(toEmail);
         
-        // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -233,11 +254,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -268,11 +285,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -301,11 +314,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -336,11 +345,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -371,11 +376,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -454,8 +455,8 @@ public class EmailService {
      * Build HTML email body for email verification
      */
     private String buildVerificationEmailBody(String verificationToken, Locale locale) {
-        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
-        
+        String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
+
         return """
             <!DOCTYPE html>
             <html>
@@ -535,20 +536,49 @@ public class EmailService {
             </html>
             """.formatted(
                 getMessage("email.verification.header", locale),
-                getMessage("email.common.hello", locale),
-                getMessage("email.verification.intro", locale),
-                getMessage("email.verification.what_next_title", locale),
-                getMessage("email.verification.what_next_body", locale),
+                getMessage("email.verification.greeting", locale),
+                getMessage("email.verification.thank_you", locale),
+                getMessage("email.verification.next_steps_title", locale),
+                getMessage("email.verification.next_steps", locale),
                 getMessage("email.verification.button_instruction", locale),
                 verificationLink,
-                getMessage("email.verification.button_text", locale),
-                getMessage("email.verification.link_expiry", locale),
-                getMessage("email.verification.alt_link_text", locale),
+                getMessage("email.verification.button", locale),
+                getMessage("email.verification.expiry", locale),
+                getMessage("email.verification.alternative", locale),
                 verificationLink,
-                getMessage("email.verification.ignore_message", locale),
-                getMessage("email.common.footer_copyright", locale),
-                getMessage("email.common.footer_automated", locale),
-                getMessage("email.verification.footer_support", locale)
+                getMessage("email.verification.didnt_register", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.automated", locale),
+                getMessage("email.common.footer.support", locale)
+            );
+    }
+
+    private String buildVerificationEmailText(String verificationLink, Locale locale) {
+        return """
+            %s
+
+            %s
+
+            %s
+            %s
+
+            %s
+            %s
+
+            %s
+
+            %s
+            %s
+            """.formatted(
+                getMessage("email.verification.greeting", locale),
+                getMessage("email.verification.thank_you", locale),
+                getMessage("email.verification.next_steps_title", locale),
+                getMessage("email.verification.next_steps", locale),
+                getMessage("email.verification.button_instruction", locale),
+                verificationLink,
+                getMessage("email.verification.expiry", locale),
+                getMessage("email.verification.didnt_register", locale),
+                getMessage("email.common.footer.support", locale)
             );
     }
     
@@ -594,7 +624,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -613,6 +643,7 @@ public class EmailService {
                 getMessage("email.new_donation.label_quantity", locale), quantity,
                 getMessage("email.new_donation.label_match_reason", locale), matchReason,
                 getMessage("email.new_donation.cta_text", locale),
+                buildFrontendUrl("/receiver/dashboard"),
                 getMessage("email.new_donation.button_text", locale),
                 getMessage("email.common.footer_copyright", locale),
                 getMessage("email.common.footer_notifications", locale),
@@ -662,7 +693,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -681,6 +712,7 @@ public class EmailService {
                 getMessage("email.donation_claimed.label.claimed_by", locale), receiverName,
                 getMessage("email.donation_claimed.label.quantity", locale), quantity,
                 getMessage("email.donation_claimed.instruction", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.donation_claimed.button", locale),
                 getMessage("email.common.footer_copyright", locale),
                 getMessage("email.common.footer_notifications", locale),
@@ -728,7 +760,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -746,6 +778,7 @@ public class EmailService {
                 getMessage("email.claim_canceled.label.donation", locale), title,
                 getMessage("email.claim_canceled.label.reason", locale), reason,
                 getMessage("email.claim_canceled.instruction", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.claim_canceled.button", locale),
                 getMessage("email.common.footer_copyright", locale),
                 getMessage("email.common.footer_notifications", locale),
@@ -771,7 +804,7 @@ public class EmailService {
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
         
         // Determine correct settings URL based on role
-        String settingsUrl = isDonorReview ? "http://localhost:3000/receiver/settings" : "http://localhost:3000/donor/settings";
+        String settingsUrl = isDonorReview ? buildFrontendUrl("/receiver/settings") : buildFrontendUrl("/donor/settings");
         
         return """
             <!DOCTYPE html>
@@ -853,11 +886,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -889,11 +918,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -933,11 +958,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         // Configure API client
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1227,7 +1248,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1247,6 +1268,7 @@ public class EmailService {
                 getMessage("email.donation_picked_up.label.quantity", locale), quantity,
                 getMessage("email.donation_picked_up.label.picked_up_by", locale), receiverName,
                 getMessage("email.donation_picked_up.thank_you", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.donation_picked_up.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1263,11 +1285,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1334,7 +1352,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1354,6 +1372,7 @@ public class EmailService {
                 getMessage("email.donation_completed.label.quantity_received", locale), quantity,
                 getMessage("email.donation_completed.label.from", locale), donorName,
                 getMessage("email.donation_completed.thank_you", locale),
+                buildFrontendUrl("/receiver/dashboard"),
                 getMessage("email.donation_completed.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1370,11 +1389,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-            
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1443,7 +1458,7 @@ public class EmailService {
                         </div>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/receiver/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1464,6 +1479,7 @@ public class EmailService {
                 getMessage("email.ready_for_pickup.label.pickup_date", locale), pickupDate,
                 getMessage("email.ready_for_pickup.label.pickup_time", locale), pickupTime,
                 getMessage("email.ready_for_pickup.code_reminder", locale),
+                buildFrontendUrl("/receiver/dashboard"),
                 getMessage("email.ready_for_pickup.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1478,11 +1494,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
 
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
@@ -1554,7 +1566,7 @@ public class EmailService {
                             <li>%s</li>
                         </ul>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/donor/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1577,6 +1589,7 @@ public class EmailService {
                 getMessage("email.donation_expired.next_step1", locale),
                 getMessage("email.donation_expired.next_step2", locale),
                 getMessage("email.donation_expired.next_step3", locale),
+                buildFrontendUrl("/donor/dashboard"),
                 getMessage("email.donation_expired.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1591,11 +1604,7 @@ public class EmailService {
         Locale locale = getUserLocale(toEmail);
         
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
 
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
@@ -1680,7 +1689,7 @@ public class EmailService {
                         <p><strong>%s</strong></p>
                         <p>%s</p>
                         <p style="text-align: center;">
-                            <a href="http://localhost:3000/%s/dashboard" class="button" style="color: white !important; text-decoration: none;">%s</a>
+                            <a href="%s" class="button" style="color: white !important; text-decoration: none;">%s</a>
                         </p>
                     </div>
                     <div class="footer">
@@ -1702,7 +1711,7 @@ public class EmailService {
                 getMessage("email.donation_status_updated.label.admin_reason", locale), reason,
                 getMessage("email.donation_status_updated.meaning_title", locale),
                 getMessage("email.donation_status_updated.meaning_message", locale),
-                userType,
+                buildFrontendUrl("/" + userType + "/dashboard"),
                 getMessage("email.donation_status_updated.button", locale),
                 getMessage("email.common.footer", locale),
                 getMessage("email.common.footer.notifications", locale),
@@ -1718,11 +1727,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1811,11 +1816,7 @@ public class EmailService {
         
         Locale locale = getUserLocale(toEmail);
         
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-        apiKey.setApiKey(brevoApiKey);
-        
-        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -1827,8 +1828,8 @@ public class EmailService {
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         sendSmtpEmail.setSubject(getMessage("email.account_reactivation.subject", locale));
-        sendSmtpEmail.setTextContent(getMessage("email.account_reactivation.text_content", locale));
-        //sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
+        sendSmtpEmail.setTextContent(buildAccountReactivationEmailText(userName, locale));
+        sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
         
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
@@ -1837,6 +1838,225 @@ public class EmailService {
             log.error("Failed to send account reactivation email: {}", e.getResponseBody(), e);
             throw e;
         }
+    }
+
+    private String buildAccountReactivationEmailBody(String userName, Locale locale) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
+                    </div>
+
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #065f46; margin: 0; font-size: 14px;">
+                                <strong>%s</strong><br>
+                                %s
+                            </p>
+                        </div>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <p style="text-align: center; margin: 30px 0;">
+                            <a href="%s" style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600;">
+                                %s
+                            </a>
+                        </p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+                    </div>
+
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>%s</p>
+                        <p>%s</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                getMessage("email.account_reactivation.header", locale),
+                getMessage("email.account_reactivation.greeting", locale, userName),
+                getMessage("email.account_reactivation.message", locale),
+                getMessage("email.account_reactivation.meaning_title", locale),
+                getMessage("email.account_reactivation.meaning_message", locale),
+                getMessage("email.account_reactivation.instruction", locale),
+                buildFrontendUrl("/login"),
+                getMessage("email.account_reactivation.button", locale),
+                getMessage("email.account_reactivation.signature", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale)
+            );
+    }
+
+    private String buildAccountReactivationEmailText(String userName, Locale locale) {
+        return """
+            %s
+
+            %s
+
+            %s
+            %s
+
+            %s
+            %s
+
+            %s
+            """.formatted(
+                getMessage("email.account_reactivation.greeting", locale, userName),
+                getMessage("email.account_reactivation.message", locale),
+                getMessage("email.account_reactivation.meaning_title", locale),
+                getMessage("email.account_reactivation.meaning_message", locale),
+                getMessage("email.account_reactivation.instruction", locale),
+                buildFrontendUrl("/login"),
+                getMessage("email.account_reactivation.signature", locale)
+            );
+    }
+
+    /**
+     * Send account deletion notification email
+     */
+    public void sendAccountDeletionEmail(String toEmail, String userName, String reason) throws ApiException {
+        log.info("Sending account deletion email to: {}", toEmail);
+
+        Locale locale = getUserLocale(toEmail);
+
+        TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(fromEmail);
+        sender.setName(fromName);
+        sendSmtpEmail.setSender(sender);
+
+        SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+        recipient.setEmail(toEmail);
+        sendSmtpEmail.setTo(Collections.singletonList(recipient));
+        sendSmtpEmail.setSubject(getMessage("email.account_deletion.subject", locale));
+        sendSmtpEmail.setTextContent(buildAccountDeletionEmailText(userName, reason, locale));
+        sendSmtpEmail.setHtmlContent(buildAccountDeletionEmailBody(userName, reason, locale));
+
+        try {
+            CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
+            log.info("Account deletion email sent successfully. Message ID: {}", result.getMessageId());
+        } catch (ApiException e) {
+            log.error("Failed to send account deletion email: {}", e.getResponseBody(), e);
+            throw e;
+        }
+    }
+
+    private String buildAccountDeletionEmailBody(String userName, String reason, Locale locale) {
+        String resolvedReason = (reason != null && !reason.isBlank())
+                ? reason
+                : getMessage("email.account_deletion.default_reason", locale);
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <div style="background: linear-gradient(135deg, #dc2626 0%%, #991b1b 100%%); padding: 40px 20px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
+                    </div>
+
+                    <div style="padding: 40px 30px;">
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #991b1b; margin: 0; font-size: 14px;">
+                                <strong>%s</strong><br>
+                                %s
+                            </p>
+                        </div>
+
+                        <div style="background-color: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="color: #9a3412; margin: 0; font-size: 14px;">
+                                <strong>%s</strong><br>
+                                %s
+                            </p>
+                        </div>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+
+                        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                            %s
+                        </p>
+                    </div>
+
+                    <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        <p>%s</p>
+                        <p>%s</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                getMessage("email.account_deletion.header", locale),
+                getMessage("email.account_deletion.greeting", locale, userName),
+                getMessage("email.account_deletion.message", locale),
+                getMessage("email.account_deletion.reason_title", locale),
+                resolvedReason,
+                getMessage("email.account_deletion.meaning_title", locale),
+                getMessage("email.account_deletion.meaning_message", locale),
+                getMessage("email.account_deletion.support", locale),
+                getMessage("email.account_deletion.signature", locale),
+                getMessage("email.common.footer", locale),
+                getMessage("email.common.footer.notifications", locale)
+            );
+    }
+
+    private String buildAccountDeletionEmailText(String userName, String reason, Locale locale) {
+        String resolvedReason = (reason != null && !reason.isBlank())
+                ? reason
+                : getMessage("email.account_deletion.default_reason", locale);
+
+        return """
+            %s
+
+            %s
+
+            %s
+            %s
+
+            %s
+            %s
+
+            %s
+            """.formatted(
+                getMessage("email.account_deletion.greeting", locale, userName),
+                getMessage("email.account_deletion.message", locale),
+                getMessage("email.account_deletion.reason_title", locale),
+                resolvedReason,
+                getMessage("email.account_deletion.meaning_title", locale),
+                getMessage("email.account_deletion.meaning_message", locale),
+                getMessage("email.account_deletion.support", locale)
+            );
     }
 
     /**
@@ -1855,11 +2075,7 @@ public class EmailService {
         String language = normalizeSupportedLanguage(languagePreference);
 
         try {
-            ApiClient defaultClient = Configuration.getDefaultApiClient();
-            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
-
-            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+            TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
 
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
@@ -2192,7 +2408,7 @@ public class EmailService {
      * 1. Email Verification
      */
     private String buildVerificationEmailBody(String verificationToken) {
-        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+        String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
 
         String content = p("Hello,")
             + p("Thank you for registering with FoodFlow! We're excited to have you join our community in fighting food waste and helping those in need.")
@@ -2237,7 +2453,7 @@ public class EmailService {
             + p("A new donation matching your preferences is now available:")
             + detailsCard("Donation", title, "Quantity", quantity, "Why this matches", matchReason)
             + p("Log in to FoodFlow to view details and claim this donation!")
-            + ctaButton("View Donation", frontendUrl + "/receiver/dashboard", COLOR_SUCCESS);
+            + ctaButton("View Donation", buildFrontendUrl("/receiver/dashboard"), COLOR_SUCCESS);
 
         return wrapInBrandedTemplate("&#127869;&#65039; New Donation Available", COLOR_SUCCESS, content, FOOTER_NOTIFICATION);
     }
@@ -2254,7 +2470,7 @@ public class EmailService {
             + p("Great news! Your donation has been claimed:")
             + detailsCard("Donation", title, "Claimed by", receiverName, "Quantity", quantity)
             + p("The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.")
-            + ctaButton("View Claim Details", frontendUrl + "/donor/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Claim Details", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#9989; Your Donation Has Been Claimed!", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
@@ -2271,7 +2487,7 @@ public class EmailService {
             + detailsCard("Donation", title, "Reason", reason)
             + infoBox(COLOR_WARNING, "#fffbeb",
                 "<p style=\"margin:0; font-size:14px; color:#92400e;\">Your donation is now available again for other receivers to claim.</p>")
-            + ctaButton("View Your Donations", frontendUrl + "/donor/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Your Donations", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#8505;&#65039; Claim Canceled", COLOR_WARNING, content, FOOTER_NOTIFICATION);
     }
@@ -2291,8 +2507,8 @@ public class EmailService {
 
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
         String settingsUrl = isDonorReview
-            ? frontendUrl + "/receiver/settings"
-            : frontendUrl + "/donor/settings";
+            ? buildFrontendUrl("/receiver/settings")
+            : buildFrontendUrl("/donor/settings");
 
         String reviewSection = "";
         if (reviewText != null && !reviewText.isEmpty()) {
@@ -2335,7 +2551,7 @@ public class EmailService {
                 + "Your donation has been successfully picked up by " + receiverName + ".</p>")
             + detailsCard("Donation", donationTitle, "Quantity", quantity, "Picked Up By", receiverName)
             + p("Thank you for making a difference in your community! Your donation will help someone in need.")
-            + ctaButton("View Your Dashboard", frontendUrl + "/donor/dashboard", COLOR_SUCCESS);
+            + ctaButton("View Your Dashboard", buildFrontendUrl("/donor/dashboard"), COLOR_SUCCESS);
 
         return wrapInBrandedTemplate("&#10003; Donation Picked Up", COLOR_SUCCESS, content, FOOTER_NOTIFICATION);
     }
@@ -2358,7 +2574,7 @@ public class EmailService {
                 + "&ldquo;" + preview + "&rdquo;"
                 + "</td></tr></table>")
             + p("Log in to FoodFlow to view the full message and reply!")
-            + ctaButton("View Message", frontendUrl + "/donor/messages", COLOR_PRIMARY);
+            + ctaButton("View Message", buildFrontendUrl("/donor/messages"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#128172; New Message Received", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
@@ -2384,7 +2600,7 @@ public class EmailService {
             + "<tr><td style=\"padding:6px 0; font-size:14px; color:#374151;\">&#9989; Earn achievements and points</td></tr>"
             + "</table></td></tr></table>"
             + p("We're excited to have you join our mission to reduce food waste and help those in need!")
-            + ctaButton("Get Started", frontendUrl + "/login", COLOR_SUCCESS);
+            + ctaButton("Get Started", buildFrontendUrl("/login"), COLOR_SUCCESS);
 
         return wrapInBrandedTemplate("&#127881; Welcome to FoodFlow!", COLOR_SUCCESS, content, FOOTER_AUTOMATED);
     }
@@ -2422,7 +2638,7 @@ public class EmailService {
             + "</table>"
             + "<p style=\"margin:12px 0 0 0; font-size:14px; color:#374151;\">You may also re-register with updated information.</p>"
             + "</td></tr></table>"
-            + ctaButton("Re-Register", frontendUrl + "/register", COLOR_PRIMARY);
+            + ctaButton("Re-Register", buildFrontendUrl("/register"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("FoodFlow Registration Update", COLOR_DANGER, content, FOOTER_AUTOMATED);
     }
@@ -2441,7 +2657,7 @@ public class EmailService {
                 + "Your donation from " + donorName + " has been successfully completed. Thank you for helping those in need!</p>")
             + detailsCard("Donation Item", donationTitle, "Quantity Received", quantity, "From", donorName)
             + p("This donation will make a real difference in your community. Your support is deeply appreciated!")
-            + ctaButton("View Your Dashboard", frontendUrl + "/receiver/dashboard", COLOR_INFO);
+            + ctaButton("View Your Dashboard", buildFrontendUrl("/receiver/dashboard"), COLOR_INFO);
 
         return wrapInBrandedTemplate("&#10003; Donation Completed", COLOR_INFO, content, FOOTER_NOTIFICATION);
     }
@@ -2463,7 +2679,7 @@ public class EmailService {
             + infoBox(COLOR_PRIMARY, "#eff6ff",
                 "<p style=\"margin:0; font-size:14px; color:#1e40af;\"><strong>&#128276; Don't forget to bring your pickup code!</strong> "
                 + "You'll need it to confirm the pickup.</p>")
-            + ctaButton("View Pickup Details", frontendUrl + "/receiver/dashboard", COLOR_WARNING);
+            + ctaButton("View Pickup Details", buildFrontendUrl("/receiver/dashboard"), COLOR_WARNING);
 
         return wrapInBrandedTemplate("&#128680; Ready for Pickup!", COLOR_WARNING, content, FOOTER_NOTIFICATION);
     }
@@ -2488,7 +2704,7 @@ public class EmailService {
             + "<tr><td style=\"padding:5px 0 5px 4px; font-size:14px; color:#374151;\">&#8226; If claimed, the receiver will be notified</td></tr>"
             + "<tr><td style=\"padding:5px 0 5px 4px; font-size:14px; color:#374151;\">&#8226; You can create a new donation if food is still available</td></tr>"
             + "</table>"
-            + ctaButton("View Dashboard", frontendUrl + "/donor/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Dashboard", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#128680; Donation Expired", COLOR_DANGER, content, FOOTER_NOTIFICATION);
     }
@@ -2524,7 +2740,7 @@ public class EmailService {
             + "</td></tr></table>"
             + p("<strong>What does this mean?</strong> An administrator has manually updated the status of this donation. "
                 + "This may have been done to resolve an issue, correct an error, or manage the donation lifecycle.")
-            + ctaButton("View Dashboard", frontendUrl + "/" + userType + "/dashboard", COLOR_PRIMARY);
+            + ctaButton("View Dashboard", buildFrontendUrl("/" + userType + "/dashboard"), COLOR_PRIMARY);
 
         return wrapInBrandedTemplate("&#128276; Status Updated by Admin", COLOR_PURPLE, content, FOOTER_NOTIFICATION);
     }
@@ -2555,7 +2771,7 @@ public class EmailService {
                 "<p style=\"margin:0; font-size:14px; color:#065f46;\"><strong>What this means:</strong><br/>"
                 + "You now have full access to your FoodFlow account and can resume using all platform features.</p>")
             + p("You can log in to your account and continue connecting donors with receivers to reduce food waste.")
-            + ctaButton("Log In to Your Account", frontendUrl + "/login", COLOR_SUCCESS)
+            + ctaButton("Log In to Your Account", buildFrontendUrl("/login"), COLOR_SUCCESS)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">"
             + "Welcome back,<br/><strong>The FoodFlow Team</strong></p>";
 
@@ -2580,7 +2796,7 @@ public class EmailService {
                 "<p style=\"margin:0 0 8px 0; font-size:14px; color:#92400e;\"><strong>" + getAdminAlertHeader(normalizedLanguage) + "</strong></p>"
                 + "<div style=\"font-size:14px; color:#92400e; line-height:1.7;\">" + formattedMessage + "</div>")
             + p(getAdminAlertBody(normalizedLanguage))
-            + ctaButton(getAdminAlertCta(normalizedLanguage), frontendUrl + "/login", COLOR_PRIMARY)
+            + ctaButton(getAdminAlertCta(normalizedLanguage), buildFrontendUrl("/login"), COLOR_PRIMARY)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">" 
             + getAdminAlertSignoff(normalizedLanguage) + "<br/><strong>" + getFoodFlowTeamLabel(normalizedLanguage) + "</strong></p>";
 

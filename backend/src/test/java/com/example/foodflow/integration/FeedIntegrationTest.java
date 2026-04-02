@@ -3,6 +3,8 @@ package com.example.foodflow.integration;
 import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
+import com.example.foodflow.model.entity.AccountStatus;
+import com.example.foodflow.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +33,18 @@ class FeedIntegrationTest {
         @Autowired
         private ObjectMapper objectMapper;
 
+        @Autowired
+        private UserRepository userRepository;
+
         private static String uniqueEmail(String prefix) {
                 return prefix + "+" + UUID.randomUUID() + "@test.com";
+        }
+
+        private void approveAccount(String email) {
+                userRepository.findByEmail(email).ifPresent(user -> {
+                        user.setAccountStatus(AccountStatus.ACTIVE);
+                        userRepository.save(user);
+                });
         }
 
         @Test
@@ -93,6 +105,9 @@ class FeedIntegrationTest {
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                                 .andExpect(status().isOk());
 
+                // Approve the account after registration
+                approveAccount(donorEmail);
+
                 LoginRequest loginRequest = new LoginRequest(donorEmail, "TestSecure123!");
                 MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -146,6 +161,9 @@ class FeedIntegrationTest {
                                 .content(objectMapper.writeValueAsString(donorRequest)))
                                 .andExpect(status().isOk());
 
+                // Approve the donor account after registration
+                approveAccount(donorEmail);
+
                 LoginRequest donorLogin = new LoginRequest(donorEmail, "TestSecure123!");
                 MvcResult donorLoginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -172,6 +190,9 @@ class FeedIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(receiverRequest)))
                                 .andExpect(status().isOk());
+
+                // Approve the receiver account after registration
+                approveAccount(receiverEmail);
 
                 LoginRequest receiverLogin = new LoginRequest(receiverEmail, "TestSecure123!");
                 MvcResult receiverLoginResult = mockMvc.perform(post("/api/auth/login")

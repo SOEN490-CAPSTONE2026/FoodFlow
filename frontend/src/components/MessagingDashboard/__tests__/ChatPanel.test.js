@@ -221,4 +221,44 @@ describe('ChatPanel', () => {
       screen.queryByText('No messages yet. Start the conversation!')
     ).not.toBeInTheDocument();
   });
+
+  test('loads the live donation image when the conversation payload has no image', async () => {
+    mockGet.mockImplementation(url => {
+      if (url === '/conversations/1/messages') {
+        return Promise.resolve({ data: mockMessages });
+      }
+      if (url === '/surplus/99') {
+        return Promise.resolve({
+          data: {
+            resolvedDonationImageUrl: '/api/files/donation-images/live.jpg',
+          },
+        });
+      }
+      return Promise.resolve({ data: [] });
+    });
+    mockPut.mockResolvedValue({});
+
+    renderWithProviders(
+      <ChatPanel
+        conversation={{
+          ...mockConversation,
+          donationId: 99,
+          donationTitle: 'Fresh Vegetables',
+        }}
+        onMessageSent={mockOnMessageSent}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockGet).toHaveBeenCalledWith('/surplus/99');
+    });
+
+    await waitFor(() => {
+      const avatars = screen.getAllByAltText('Fresh Vegetables');
+      expect(avatars[0]).toHaveAttribute(
+        'src',
+        'http://localhost:8080/api/files/donation-images/live.jpg'
+      );
+    });
+  });
 });

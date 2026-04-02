@@ -14,6 +14,7 @@ import {
   savedDonationAPI,
 } from '../../../services/api';
 import { TimezoneProvider } from '../../../contexts/TimezoneContext';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 // Helper function to render with required providers
 const renderWithProviders = (ui, options = {}) => {
@@ -21,10 +22,16 @@ const renderWithProviders = (ui, options = {}) => {
     userTimezone: 'America/Toronto',
     userRegion: 'CA',
   };
+  const authValue = {
+    accountStatus: 'ACTIVE',
+    ...(options.authValue || {}),
+  };
 
   return render(
     <MemoryRouter>
-      <TimezoneProvider value={mockTimezoneContext}>{ui}</TimezoneProvider>
+      <AuthContext.Provider value={authValue}>
+        <TimezoneProvider value={mockTimezoneContext}>{ui}</TimezoneProvider>
+      </AuthContext.Provider>
     </MemoryRouter>,
     options
   );
@@ -331,7 +338,7 @@ describe('ReceiverBrowse Component', () => {
       await waitFor(() => {
         expect(recommendationAPI.getTopRecommendations).toHaveBeenCalledWith(
           [123],
-          80
+          50
         );
       });
     });
@@ -515,6 +522,46 @@ describe('ReceiverBrowse Component', () => {
           'Failed to claim. It may have already been claimed.'
         );
       });
+    });
+
+    test('shows approval modal and skips claim when account is not approved', async () => {
+      surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />, {
+          authValue: { accountStatus: 'PENDING_ADMIN_APPROVAL' },
+        });
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Claim Donation'));
+      });
+
+      expect(surplusAPI.claim).not.toHaveBeenCalled();
+      expect(
+        await screen.findByText('Approval required to claim donations')
+      ).toBeInTheDocument();
+    });
+
+    test('shows approval modal when backend rejects claim for unapproved account', async () => {
+      global.confirm.mockReturnValue(true);
+      surplusAPI.claim.mockRejectedValue({
+        response: { data: { message: 'Account not approved yet' } },
+      });
+      surplusAPI.list.mockResolvedValue({ data: [createMockDonation()] });
+
+      await act(async () => {
+        renderWithProviders(<ReceiverBrowse />);
+      });
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Claim Donation'));
+      });
+
+      expect(
+        await screen.findByText('Approval required to claim donations')
+      ).toBeInTheDocument();
+      expect(global.alert).not.toHaveBeenCalled();
     });
   });
 

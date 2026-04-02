@@ -6,6 +6,7 @@ import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
@@ -26,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@ResourceLock("spring-context-mockmvc")
 class AuthControllerIntegrationTest {
     
     @Autowired
@@ -36,6 +40,14 @@ class AuthControllerIntegrationTest {
     
     @MockBean
     private AuthService authService;
+
+    private UsernamePasswordAuthenticationToken authenticatedUser(User appUser) {
+        return new UsernamePasswordAuthenticationToken(
+            appUser,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority(appUser.getRole().name()))
+        );
+    }
     
     @Test
     void registerDonor_ValidRequest_ShouldReturn200() throws Exception {
@@ -69,14 +81,14 @@ class AuthControllerIntegrationTest {
         request.setAddress("123 Test St");
         
         when(authService.registerDonor(any(RegisterDonorRequest.class)))
-            .thenThrow(new com.example.foodflow.exception.domain.InvalidClaimException("Email already exists"));
+            .thenThrow(new com.example.foodflow.exception.BusinessException("error.auth.email_exists"));
         
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.error").value("Invalid Claim"))
+            .andExpect(jsonPath("$.error").value("Business Rule Violation"))
             .andExpect(jsonPath("$.message").value("Email already exists"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.timestamp").exists())
@@ -329,17 +341,15 @@ class AuthControllerIntegrationTest {
         user.setEmail("user@test.com");
         user.setRole(UserRole.DONOR);
         
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-            user, null, Collections.singletonList(new SimpleGrantedAuthority("DONOR"))
-        );
+        UsernamePasswordAuthenticationToken auth = authenticatedUser(user);
         
         when(authService.resendVerificationEmail("user@test.com"))
-            .thenReturn(Map.of("message", "Verification email sent"));
+            .thenReturn(Map.of("message", "Verification email sent successfully"));
         
         // When & Then
         mockMvc.perform(post("/api/auth/resend-verification-email")
                 .with(authentication(auth)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Verification email sent"));
+                .andExpect(jsonPath("$.message").value("Verification email sent successfully"));
     }
 }

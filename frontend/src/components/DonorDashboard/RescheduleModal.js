@@ -1,11 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import { surplusAPI } from '../../services/api';
+import {
+  isApprovedAccount,
+  isApprovalRequiredError,
+} from '../../utils/approvalUtils';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { AuthContext } from '../../contexts/AuthContext';
+import ApprovalRequiredModal from '../ApprovalRequiredModal';
 import { toLocalDateInputValue } from '../../utils/timezoneUtils';
 import './Donor_Styles/RescheduleModal.css';
 import 'react-datepicker/dist/react-datepicker.css';
+
+const isApprovedRescheduleAccount = accountStatus =>
+  accountStatus == null || isApprovedAccount(accountStatus);
 
 const parseLocalDate = dateString => {
   if (!dateString || typeof dateString !== 'string') {
@@ -37,11 +46,14 @@ const createEmptySlot = () => ({
 });
 
 const RescheduleModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
+  const { accountStatus } = useContext(AuthContext) || {};
   const { userTimezone } = useTimezone();
   const [pickupSlots, setPickupSlots] = useState([createEmptySlot()]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showApprovalRequiredModal, setShowApprovalRequiredModal] =
+    useState(false);
 
   const expiryDate = useMemo(
     () => parseLocalDate(donationItem?.expiryDate),
@@ -145,6 +157,11 @@ const RescheduleModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
       return;
     }
 
+    if (!isApprovedRescheduleAccount(accountStatus)) {
+      setShowApprovalRequiredModal(true);
+      return;
+    }
+
     const formattedSlots = pickupSlots.map(slot => ({
       pickupDate: formatDate(slot.pickupDate),
       startTime: formatTime(slot.startTime),
@@ -181,6 +198,10 @@ const RescheduleModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
       }
       onClose();
     } catch (err) {
+      if (isApprovalRequiredError(err)) {
+        setShowApprovalRequiredModal(true);
+        return;
+      }
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
@@ -337,6 +358,12 @@ const RescheduleModal = ({ isOpen, onClose, donationItem, onSuccess }) => {
             </div>
           </form>
         </div>
+        <ApprovalRequiredModal
+          isOpen={showApprovalRequiredModal}
+          onClose={() => setShowApprovalRequiredModal(false)}
+          title="Account approval required"
+          message="You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account."
+        />
       </div>
     </div>
   );

@@ -48,7 +48,6 @@ const statusOptions = [
 
 const AdminDonations = () => {
   const { t } = useTranslation();
-  const [donations, setDonations] = useState([]);
   const [filteredDonations, setFilteredDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -107,7 +106,6 @@ const AdminDonations = () => {
       const response = await adminDonationAPI.getAllDonations(filters);
       const data = response.data;
 
-      setDonations(data.content || []);
       setFilteredDonations(data.content || []);
       setTotalPages(data.totalPages || 0);
       setTotalElements(data.totalElements || 0);
@@ -155,13 +153,13 @@ const AdminDonations = () => {
 
     try {
       console.log(
-        '🔍 Fetching feedback for donation:',
+        '\u{1F50D} Fetching feedback for donation:',
         donation.id,
         'claimId:',
         donation.claimId
       );
       console.log(
-        '🔍 Donation donorId:',
+        '\u{1F50D} Donation donorId:',
         donation.donorId,
         'receiverId:',
         donation.receiverId
@@ -170,36 +168,34 @@ const AdminDonations = () => {
       const feedbackResponse = await feedbackAPI.getFeedbackForClaim(
         donation.claimId
       );
-      console.log('📦 Full response:', feedbackResponse);
-
+      console.log('\u{1F4E6} Full response:', feedbackResponse);
       const feedbacks = feedbackResponse.data || [];
-      console.log('📦 Received feedbacks array:', feedbacks);
-      console.log('📦 Number of feedbacks:', feedbacks.length);
+      console.log('\u{1F4E6} Received feedbacks array:', feedbacks);
+      console.log('\u{1F4E6} Number of feedbacks:', feedbacks.length);
 
       if (feedbacks.length > 0) {
         feedbacks.forEach((fb, idx) => {
-          console.log(`📦 Feedback ${idx}:`, fb);
+          console.log(`\u{1F4E6} Feedback ${idx}:`, fb);
           console.log(
             `   - reviewerId: ${fb.reviewerId}, revieweeId: ${fb.revieweeId}`
           );
         });
       }
 
-      // Donor feedback: reviewer is donor (donorId), reviewee is receiver (receiverId)
+      // Donor feedback is written by the donor; receiver feedback is written by the receiver.
       const donorFeedback = feedbacks.find(
         f => f.reviewerId === donation.donorId
       );
-      // Receiver feedback: reviewer is receiver (receiverId), reviewee is donor (donorId)
       const receiverFeedback = feedbacks.find(
         f => f.reviewerId === donation.receiverId
       );
 
       console.log(
-        '✅ Donor feedback (reviewerId should be donorId):',
+        '\u2705 Donor feedback (reviewerId should be donorId):',
         donorFeedback
       );
       console.log(
-        '✅ Receiver feedback (reviewerId should be receiverId):',
+        '\u2705 Receiver feedback (reviewerId should be receiverId):',
         receiverFeedback
       );
 
@@ -208,15 +204,18 @@ const AdminDonations = () => {
         [donation.id]: { donorFeedback, receiverFeedback },
       }));
     } catch (err) {
-      // 404 means no feedback yet - this is normal, not an error
+      // 404 means no feedback yet - this is normal, not an error.
       if (err.response?.status === 404) {
-        console.log('ℹ️ No feedback found for claim', donation.claimId);
+        console.log(
+          '\u2139\uFE0F No feedback found for claim',
+          donation.claimId
+        );
         setFeedbackData(prev => ({
           ...prev,
           [donation.id]: { donorFeedback: null, receiverFeedback: null },
         }));
       } else {
-        console.error('❌ Error fetching feedback:', err);
+        console.error('\u274C Error fetching feedback:', err);
       }
     }
   };
@@ -254,7 +253,7 @@ const AdminDonations = () => {
     return null;
   };
 
-  // Check if any rating is low (≤2)
+  // Check if any rating is low (<=2)
   const hasLowRating = donation => {
     if (!feedbackData[donation.id]) {
       return false;
@@ -281,12 +280,12 @@ const AdminDonations = () => {
           );
           const feedbacks = feedbackResponse.data || [];
 
-          // Separate donor and receiver feedback
+          // Donor feedback is written by the donor; receiver feedback is written by the receiver.
           const donorFeedback = feedbacks.find(
-            f => f.reviewerId === donationData.receiverId
+            f => f.reviewerId === donationData.donorId
           );
           const receiverFeedback = feedbacks.find(
-            f => f.reviewerId === donationData.donorId
+            f => f.reviewerId === donationData.receiverId
           );
 
           donationData.donorFeedback = donorFeedback;
@@ -595,7 +594,7 @@ const AdminDonations = () => {
                       </TableCell>
                       <TableCell data-label="Rating">
                         {!donation.claimId ? (
-                          <span className="table-muted">—</span>
+                          <span className="table-muted">--</span>
                         ) : (
                           (() => {
                             const avgRating = getAverageRating(donation);
@@ -609,7 +608,7 @@ const AdminDonations = () => {
                                 <span>{avgRating}</span>
                               </div>
                             ) : (
-                              <span className="table-muted">—</span>
+                              <span className="table-muted">--</span>
                             );
                           })()
                         )}
@@ -631,12 +630,12 @@ const AdminDonations = () => {
                         ) : hasLowRating(donation) ? (
                           <div
                             className="flagged-cell"
-                            title="Low rating (≤2 stars)"
+                            title="Low rating (<=2 stars)"
                           >
                             <Flag color="#ef4444" size={16} />
                           </div>
                         ) : (
-                          <span className="table-muted">—</span>
+                          <span className="table-muted">--</span>
                         )}
                       </TableCell>
                       <TableCell data-label="Created">
@@ -745,73 +744,13 @@ const AdminDonations = () => {
                                   feedbackData[donation.id].receiverFeedback ? (
                                   <div className="feedback-container">
                                     {feedbackData[donation.id]
-                                      .receiverFeedback && (
-                                      <div
-                                        className={`feedback-card ${feedbackData[donation.id].receiverFeedback.rating <= 2 ? 'low-rating' : ''}`}
-                                      >
-                                        <div className="feedback-header">
-                                          <div className="feedback-direction">
-                                            Donor → Receiver
-                                          </div>
-                                          <div className="rating-display">
-                                            {[1, 2, 3, 4, 5].map(star => (
-                                              <Star
-                                                key={star}
-                                                size={16}
-                                                fill={
-                                                  star <=
-                                                  feedbackData[donation.id]
-                                                    .receiverFeedback.rating
-                                                    ? '#fbbf24'
-                                                    : 'none'
-                                                }
-                                                stroke={
-                                                  star <=
-                                                  feedbackData[donation.id]
-                                                    .receiverFeedback.rating
-                                                    ? '#fbbf24'
-                                                    : '#d1d5db'
-                                                }
-                                              />
-                                            ))}
-                                            <span className="rating-value">
-                                              {
-                                                feedbackData[donation.id]
-                                                  .receiverFeedback.rating
-                                              }
-                                              /5
-                                            </span>
-                                            {feedbackData[donation.id]
-                                              .receiverFeedback.rating <= 2 && (
-                                              <Flag
-                                                size={14}
-                                                color="#ef4444"
-                                                className="low-rating-flag"
-                                              />
-                                            )}
-                                          </div>
-                                        </div>
-                                        {feedbackData[donation.id]
-                                          .receiverFeedback.reviewText && (
-                                          <div className="feedback-text">
-                                            "
-                                            {
-                                              feedbackData[donation.id]
-                                                .receiverFeedback.reviewText
-                                            }
-                                            "
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                    {feedbackData[donation.id]
                                       .donorFeedback && (
                                       <div
                                         className={`feedback-card ${feedbackData[donation.id].donorFeedback.rating <= 2 ? 'low-rating' : ''}`}
                                       >
                                         <div className="feedback-header">
                                           <div className="feedback-direction">
-                                            Receiver → Donor
+                                            Donor {'->'} Receiver
                                           </div>
                                           <div className="rating-display">
                                             {[1, 2, 3, 4, 5].map(star => (
@@ -858,6 +797,66 @@ const AdminDonations = () => {
                                             {
                                               feedbackData[donation.id]
                                                 .donorFeedback.reviewText
+                                            }
+                                            "
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {feedbackData[donation.id]
+                                      .receiverFeedback && (
+                                      <div
+                                        className={`feedback-card ${feedbackData[donation.id].receiverFeedback.rating <= 2 ? 'low-rating' : ''}`}
+                                      >
+                                        <div className="feedback-header">
+                                          <div className="feedback-direction">
+                                            Receiver {'->'} Donor
+                                          </div>
+                                          <div className="rating-display">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                              <Star
+                                                key={star}
+                                                size={16}
+                                                fill={
+                                                  star <=
+                                                  feedbackData[donation.id]
+                                                    .receiverFeedback.rating
+                                                    ? '#fbbf24'
+                                                    : 'none'
+                                                }
+                                                stroke={
+                                                  star <=
+                                                  feedbackData[donation.id]
+                                                    .receiverFeedback.rating
+                                                    ? '#fbbf24'
+                                                    : '#d1d5db'
+                                                }
+                                              />
+                                            ))}
+                                            <span className="rating-value">
+                                              {
+                                                feedbackData[donation.id]
+                                                  .receiverFeedback.rating
+                                              }
+                                              /5
+                                            </span>
+                                            {feedbackData[donation.id]
+                                              .receiverFeedback.rating <= 2 && (
+                                              <Flag
+                                                size={14}
+                                                color="#ef4444"
+                                                className="low-rating-flag"
+                                              />
+                                            )}
+                                          </div>
+                                        </div>
+                                        {feedbackData[donation.id]
+                                          .receiverFeedback.reviewText && (
+                                          <div className="feedback-text">
+                                            "
+                                            {
+                                              feedbackData[donation.id]
+                                                .receiverFeedback.reviewText
                                             }
                                             "
                                           </div>
@@ -932,15 +931,18 @@ const AdminDonations = () => {
               className="modal-close donation-admin-modal-close"
               onClick={() => setShowDetailModal(false)}
             >
-              ×
+              x
             </button>
 
             <div className="modal-header donation-admin-modal-header">
               <h2 className="donation-admin-modal-title">
-                Donation Details{' '}
-                {modalPage === 1 && '- Basic Info & Participants'}
-                {modalPage === 2 && '- Timeline'}
-                {modalPage === 3 && '- Override Status'}
+                {t('adminDonations.detailsModal.title')}{' '}
+                {modalPage === 1 &&
+                  `- ${t('adminDonations.detailsModal.pageTitles.basicInfoParticipants')}`}
+                {modalPage === 2 &&
+                  `- ${t('adminDonations.detailsModal.pageTitles.timeline')}`}
+                {modalPage === 3 &&
+                  `- ${t('adminDonations.detailsModal.pageTitles.overrideStatus')}`}
               </h2>
             </div>
 
@@ -951,13 +953,16 @@ const AdminDonations = () => {
                   <div className="info-card donation-admin-info-card donation-admin-info-card-basic">
                     <div className="info-card-header donation-admin-info-card-header donation-admin-page-one-header">
                       <Info size={20} />
-                      <h3>Basic Information</h3>
+                      <h3>
+                        {t('adminDonations.detailsModal.basicInformation')}
+                      </h3>
                     </div>
                     <div className="donation-admin-basic-card-surface">
                       <div className="info-grid donation-admin-info-grid donation-admin-page-one-grid">
                         <div className="info-item donation-admin-info-item donation-admin-page-one-item">
                           <span className="info-label donation-admin-info-label">
-                            <User size={16} /> ID
+                            <User size={16} />{' '}
+                            {t('adminDonations.detailsModal.fields.id')}
                           </span>
                           <span className="info-value donation-admin-info-value">
                             {selectedDonation.id}
@@ -965,7 +970,8 @@ const AdminDonations = () => {
                         </div>
                         <div className="info-item donation-admin-info-item donation-admin-page-one-item">
                           <span className="info-label donation-admin-info-label">
-                            <Gift size={16} /> Title
+                            <Gift size={16} />{' '}
+                            {t('adminDonations.detailsModal.fields.title')}
                           </span>
                           <span className="info-value donation-admin-info-value">
                             {selectedDonation.title}
@@ -973,7 +979,8 @@ const AdminDonations = () => {
                         </div>
                         <div className="info-item donation-admin-info-item donation-admin-page-one-item">
                           <span className="info-label donation-admin-info-label">
-                            <Sparkles size={16} /> Status
+                            <Sparkles size={16} />{' '}
+                            {t('adminDonations.detailsModal.fields.status')}
                           </span>
                           <span className="info-value donation-admin-info-value">
                             <span
@@ -985,17 +992,19 @@ const AdminDonations = () => {
                         </div>
                         <div className="info-item donation-admin-info-item donation-admin-page-one-item">
                           <span className="info-label donation-admin-info-label">
-                            <Flag size={16} /> Flagged
+                            <Flag size={16} />{' '}
+                            {t('adminDonations.detailsModal.fields.flagged')}
                           </span>
                           <span className="info-value donation-admin-info-value">
                             {selectedDonation.flagged
-                              ? `Yes${selectedDonation.flagReason ? ` - ${selectedDonation.flagReason}` : ''}`
-                              : 'No'}
+                              ? `${t('adminDonations.detailsModal.values.yes')}${selectedDonation.flagReason ? ` - ${selectedDonation.flagReason}` : ''}`
+                              : t('adminDonations.detailsModal.values.no')}
                           </span>
                         </div>
                         <div className="info-item donation-admin-info-item donation-admin-page-one-item">
                           <span className="info-label donation-admin-info-label">
-                            <Calendar size={16} /> Created
+                            <Calendar size={16} />{' '}
+                            {t('adminDonations.detailsModal.fields.created')}
                           </span>
                           <span className="info-value donation-admin-info-value">
                             {formatDate(selectedDonation.createdAt)}
@@ -1003,7 +1012,8 @@ const AdminDonations = () => {
                         </div>
                         <div className="info-item donation-admin-info-item donation-admin-page-one-item">
                           <span className="info-label donation-admin-info-label">
-                            <Clock size={16} /> Updated
+                            <Clock size={16} />{' '}
+                            {t('adminDonations.detailsModal.fields.updated')}
                           </span>
                           <span className="info-value donation-admin-info-value">
                             {formatDate(selectedDonation.updatedAt)}
@@ -1016,20 +1026,20 @@ const AdminDonations = () => {
                   <div className="info-card donation-admin-info-card donation-admin-info-card-basic">
                     <div className="info-card-header donation-admin-info-card-header donation-admin-page-one-header">
                       <Users size={20} />
-                      <h3>Participants</h3>
+                      <h3>{t('adminDonations.detailsModal.participants')}</h3>
                     </div>
                     <div className="donation-admin-participants-grid">
                       <div className="donation-admin-participant-card">
                         <div className="donation-admin-participant-header">
                           <User size={18} />
                           <span className="donation-admin-participant-role">
-                            Donor
+                            {t('adminDonations.detailsModal.roles.donor')}
                           </span>
                         </div>
                         <div className="donation-admin-participant-info">
                           <div className="donation-admin-participant-field">
                             <span className="donation-admin-participant-label">
-                              Name
+                              {t('adminDonations.detailsModal.fields.name')}
                             </span>
                             <div className="donation-admin-participant-name">
                               {selectedDonation.donorName ||
@@ -1038,7 +1048,7 @@ const AdminDonations = () => {
                           </div>
                           <div className="donation-admin-participant-field">
                             <span className="donation-admin-participant-label">
-                              Email
+                              {t('adminDonations.detailsModal.fields.email')}
                             </span>
                             <div className="donation-admin-participant-email">
                               {selectedDonation.donorEmail ||
@@ -1047,7 +1057,9 @@ const AdminDonations = () => {
                           </div>
                           <div className="donation-admin-participant-field">
                             <span className="donation-admin-participant-label">
-                              Organization
+                              {t(
+                                'adminDonations.detailsModal.fields.organization'
+                              )}
                             </span>
                             <div className="donation-admin-participant-org">
                               <Building2 size={14} />
@@ -1065,13 +1077,13 @@ const AdminDonations = () => {
                           <div className="donation-admin-participant-header">
                             <User size={18} />
                             <span className="donation-admin-participant-role">
-                              Receiver
+                              {t('adminDonations.detailsModal.roles.receiver')}
                             </span>
                           </div>
                           <div className="donation-admin-participant-info">
                             <div className="donation-admin-participant-field">
                               <span className="donation-admin-participant-label">
-                                Name
+                                {t('adminDonations.detailsModal.fields.name')}
                               </span>
                               <div className="donation-admin-participant-name">
                                 {selectedDonation.receiverName}
@@ -1079,7 +1091,7 @@ const AdminDonations = () => {
                             </div>
                             <div className="donation-admin-participant-field">
                               <span className="donation-admin-participant-label">
-                                Email
+                                {t('adminDonations.detailsModal.fields.email')}
                               </span>
                               <div className="donation-admin-participant-email">
                                 {selectedDonation.receiverEmail ||
@@ -1088,7 +1100,9 @@ const AdminDonations = () => {
                             </div>
                             <div className="donation-admin-participant-field">
                               <span className="donation-admin-participant-label">
-                                Organization
+                                {t(
+                                  'adminDonations.detailsModal.fields.organization'
+                                )}
                               </span>
                               <div className="donation-admin-participant-org">
                                 <Building2 size={14} />
@@ -1100,7 +1114,9 @@ const AdminDonations = () => {
                             </div>
                             <div className="donation-admin-participant-field">
                               <span className="donation-admin-participant-label">
-                                Claimed At
+                                {t(
+                                  'adminDonations.detailsModal.fields.claimedAt'
+                                )}
                               </span>
                               <div className="donation-admin-claimed-at">
                                 <CheckCircle size={14} />
@@ -1120,7 +1136,7 @@ const AdminDonations = () => {
                 <div className="donation-admin-info-card donation-admin-timeline-card">
                   <div className="donation-admin-info-card-header">
                     <Clock size={20} />
-                    <h3>Timeline</h3>
+                    <h3>{t('adminDonations.detailsModal.timeline')}</h3>
                   </div>
                   <div className="donation-admin-timeline-container">
                     {selectedDonation.timeline &&
@@ -1138,22 +1154,27 @@ const AdminDonations = () => {
                             <div className="donation-admin-timeline-meta">
                               <span>{formatDate(event.timestamp)}</span>
                               <span className="donation-admin-timeline-actor">
-                                Actor: {event.actor}
+                                {t('adminDonations.detailsModal.actor', {
+                                  actor: event.actor,
+                                })}
                               </span>
                               {event.visibleToUsers === false && (
                                 <span className="donation-admin-only-badge">
                                   <ShieldAlert size={14} />
-                                  ADMIN ONLY
+                                  {t('adminDonations.detailsModal.adminOnly')}
                                 </span>
                               )}
                             </div>
                             {event.oldStatus && event.newStatus && (
                               <div className="donation-admin-timeline-status-change">
-                                Status:{' '}
+                                {t('adminDonations.detailsModal.statusChange')}
+                                {': '}
                                 <span className="donation-admin-old-status">
                                   {event.oldStatus}
                                 </span>
-                                <span className="donation-admin-arrow">→</span>
+                                <span className="donation-admin-arrow">
+                                  {'->'}
+                                </span>
                                 <span className="donation-admin-new-status">
                                   {event.newStatus}
                                 </span>
@@ -1169,7 +1190,7 @@ const AdminDonations = () => {
                       ))
                     ) : (
                       <div className="donation-admin-no-timeline">
-                        No timeline events available.
+                        {t('adminDonations.detailsModal.noTimeline')}
                       </div>
                     )}
                   </div>
@@ -1181,12 +1202,12 @@ const AdminDonations = () => {
                 <div className="donation-admin-info-card donation-admin-override-card">
                   <div className="donation-admin-info-card-header donation-admin-override-header">
                     <AlertCircle size={20} />
-                    <h3>Override Status</h3>
+                    <h3>{t('adminDonations.detailsModal.overrideStatus')}</h3>
                   </div>
                   <div className="donation-admin-override-form">
                     <div className="donation-admin-form-group">
                       <label className="donation-admin-form-label">
-                        Current Status:
+                        {t('adminDonations.detailsModal.currentStatus')}:
                       </label>
                       <div className="donation-admin-current-status-display">
                         <span className="donation-admin-current-status-text">
@@ -1196,7 +1217,7 @@ const AdminDonations = () => {
                     </div>
                     <div className="donation-admin-form-group">
                       <label className="donation-admin-form-label">
-                        New Status:
+                        {t('adminDonations.detailsModal.newStatus')}:
                       </label>
                       <Select
                         value={statusOptions.find(
@@ -1209,18 +1230,22 @@ const AdminDonations = () => {
                         )}
                         styles={overrideSelectStyles}
                         className="filter-select-react"
-                        placeholder="Select new status"
+                        placeholder={t(
+                          'adminDonations.detailsModal.selectNewStatus'
+                        )}
                         isSearchable={false}
                       />
                     </div>
                     <div className="donation-admin-form-group">
                       <label className="donation-admin-form-label">
-                        Reason:
+                        {t('adminDonations.detailsModal.reason')}:
                       </label>
                       <textarea
                         value={overrideReason}
                         onChange={e => setOverrideReason(e.target.value)}
-                        placeholder="Provide a reason for the status override..."
+                        placeholder={t(
+                          'adminDonations.detailsModal.reasonPlaceholder'
+                        )}
                         className="donation-admin-override-textarea"
                       />
                     </div>
@@ -1229,7 +1254,9 @@ const AdminDonations = () => {
                       onClick={handleOverrideStatus}
                       disabled={overrideLoading}
                     >
-                      {overrideLoading ? 'Updating...' : 'Override Status'}
+                      {overrideLoading
+                        ? t('adminDonations.detailsModal.updating')
+                        : t('adminDonations.detailsModal.overrideStatus')}
                     </button>
                     {overrideError && (
                       <div className="donation-admin-alert donation-admin-alert-error">
@@ -1256,11 +1283,14 @@ const AdminDonations = () => {
                 disabled={modalPage === 1}
               >
                 <ChevronLeft size={18} />
-                <span>Back</span>
+                <span>{t('adminDonations.detailsModal.back')}</span>
               </button>
 
               <div className="donation-admin-modal-page-indicator">
-                Page {modalPage} of 3
+                {t('adminDonations.detailsModal.pageOf', {
+                  page: modalPage,
+                  total: 3,
+                })}
               </div>
 
               <button
@@ -1268,7 +1298,7 @@ const AdminDonations = () => {
                 onClick={() => setModalPage(modalPage + 1)}
                 disabled={modalPage === 3}
               >
-                <span>Next</span>
+                <span>{t('adminDonations.detailsModal.next')}</span>
                 <ChevronRight size={18} />
               </button>
             </div>

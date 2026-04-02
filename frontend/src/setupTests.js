@@ -137,6 +137,109 @@ i18n.use(initReactI18next).init({
           showPassword: 'Show password',
           time: 'Time',
           location: 'Location',
+          approvalRequired: {
+            badge: 'Approval pending',
+            title: 'Account approval required',
+            message:
+              'Your account is still waiting for FoodFlow admin approval. Please wait until it is approved before continuing.',
+            action: 'Understood',
+            createTitle: 'Account approval required',
+            createMessage:
+              'You can prepare your donation details, but posting is locked until a FoodFlow admin approves your account.',
+            claimTitle: 'Approval required to claim donations',
+            claimMessage:
+              'This action is available once a FoodFlow admin approves your account. Please wait for approval before claiming donations.',
+          },
+        },
+        adminApprovalBanner: {
+          title: 'Account Pending Admin Approval',
+          message:
+            "Your email has been verified! Your account is currently awaiting approval from our admin team. This process typically takes up to 48 hours. You'll receive an email notification once your account is approved.",
+          thankYou: 'Thank you for your patience!',
+        },
+        paymentPage: {
+          workspace: {
+            title: 'Payment Workspace',
+            ariaLabel: 'Payment sections',
+            descriptions: {
+              donate:
+                'Help us fight food waste and support communities with a secure donation.',
+              methods:
+                'Manage your saved cards and bank accounts for faster future payments.',
+              history:
+                'Review your recent transactions and track payment activity in one place.',
+              invoices:
+                'View and download invoices for your completed FoodFlow payments.',
+              refunds:
+                'Check refund activity and submit refund requests when needed.',
+              fallback:
+                'Move through billing sections like separate pages in one flow.',
+            },
+          },
+          tabs: {
+            donate: 'Donate',
+            methods: 'Methods',
+            history: 'History',
+            invoices: 'Invoices',
+            refunds: 'Refunds',
+          },
+          steps: {
+            amount: 'Amount',
+            payment: 'Payment',
+          },
+          amount: {
+            title: 'Select Donation Amount',
+            currency: 'Currency',
+            customLabel: 'Or enter custom amount:',
+            customPlaceholder: '0.00',
+          },
+          paymentMethod: {
+            title: 'Payment Method',
+            savedOrNew: 'Choose your saved default card or enter a new one.',
+            noSavedDefault:
+              'No saved default card found. Enter a new payment method.',
+            loading: 'Loading saved payment methods...',
+            useSaved: 'Use saved default method',
+            defaultBadge: 'Default card on file',
+            useNew: 'Use a new card',
+            newCardHint: 'Open the Stripe card form on the next step.',
+            addSavedHint:
+              'Add a saved card in the Methods tab to reuse it here.',
+          },
+          savedMethod: {
+            bankAccount: 'Bank account',
+            card: 'Card',
+            bankEnding: '{{bankName}} ending in {{last4}}',
+            cardEnding: '{{brand}} ending in {{last4}}',
+          },
+          impact: {
+            ariaLabel: 'Impact metrics',
+            title: 'Estimated Impact',
+            poweredByData: 'Estimates powered by real platform donation data.',
+            liveEstimate:
+              'Live estimate based on your selected donation amount.',
+            meals: 'Meals supported',
+            co2: 'CO2 reduced',
+            water: 'Water footprint avoided',
+            communityPacks: 'Community food packs',
+          },
+          actions: {
+            processing: 'Processing...',
+            continueToPayment: 'Continue to Payment {{amount}}',
+          },
+          security: {
+            lock: 'Lock',
+            notice:
+              'Secured by Stripe - Your payment information is encrypted and secure',
+          },
+          errors: {
+            minimumAmount: 'Please enter a valid amount (minimum $1)',
+            unableToContinue:
+              'Unable to continue with this payment method right now.',
+            initializationFailed:
+              'Failed to initialize payment. Please try again.',
+          },
+          donationDescription: 'FoodFlow Donation',
         },
         landing: {
           home: {
@@ -617,6 +720,189 @@ i18n.use(initReactI18next).init({
           guides: 'Guides and support',
           administration: 'Administration',
         },
+        adminHelp: {
+          title: 'Help',
+        },
+        adminDonations: {
+          title: 'All Donations',
+          searchPlaceholder: 'Search by title, donor, receiver, or ID...',
+          loading: 'Loading donations...',
+          empty: 'No donations found',
+          notAvailable: 'N/A',
+          flaggedDonation: 'Flagged donation',
+          lowRating: 'Low rating (<=2 stars)',
+          stats: {
+            total: 'Total Donations',
+            active: 'Active',
+            completed: 'Completed',
+            flagged: 'Flagged',
+          },
+          filters: {
+            allStatus: 'All Status',
+            reset: 'Reset',
+          },
+          table: {
+            id: 'ID',
+            title: 'Title',
+            status: 'Status',
+            donor: 'Donor',
+            receiver: 'Receiver',
+            rating: 'Rating',
+            flagged: 'Flagged',
+            created: 'Created',
+            updated: 'Updated',
+            actions: 'Actions',
+          },
+          actions: {
+            viewDetails: 'View Details',
+          },
+          details: {
+            foodCategories: 'Food Categories',
+            quantity: 'Quantity',
+            expiryDate: 'Expiry Date',
+            pickupDate: 'Pickup Date',
+            temperature: 'Temperature',
+            packagingConditions: 'Packaging Conditions',
+            description: 'Description',
+            noDescription: 'No description',
+            feedbackRatings: 'Feedback & Ratings',
+            clickToLoadFeedback: 'Click to expand and load feedback...',
+            noFeedback: 'No feedback has been provided yet for this donation.',
+          },
+          detailsModal: {
+            title: 'Donation Details',
+            pageTitles: {
+              basicInfoParticipants: 'Basic Info & Participants',
+              timeline: 'Timeline',
+              overrideStatus: 'Override Status',
+            },
+            basicInformation: 'Basic Information',
+            participants: 'Participants',
+            roles: {
+              donor: 'Donor',
+              receiver: 'Receiver',
+            },
+            fields: {
+              id: 'ID',
+              title: 'Title',
+              status: 'Status',
+              flagged: 'Flagged',
+              created: 'Created',
+              updated: 'Updated',
+              name: 'Name',
+              email: 'Email',
+              organization: 'Organization',
+              claimedAt: 'Claimed At',
+            },
+            values: {
+              yes: 'Yes',
+              no: 'No',
+            },
+            timeline: 'Timeline',
+            actor: 'Actor: {{actor}}',
+            adminOnly: 'ADMIN ONLY',
+            statusChange: 'Status',
+            noTimeline: 'No timeline events available.',
+            overrideStatus: 'Override Status',
+            currentStatus: 'Current Status',
+            newStatus: 'New Status',
+            selectNewStatus: 'Select new status',
+            reason: 'Reason',
+            reasonPlaceholder: 'Provide a reason for the status override...',
+            updating: 'Updating...',
+            back: 'Back',
+            next: 'Next',
+            pageOf: 'Page {{page}} of {{total}}',
+          },
+          errors: {
+            loadFailed: 'Failed to load donations. Please try again.',
+          },
+        },
+        adminImages: {
+          itemsCount_one: '{{count}} item',
+          itemsCount_other: '{{count}} items',
+          reasonPrompt: 'Reason (optional):',
+          statusOptions: {
+            pending: 'Pending',
+            approved: 'Approved',
+            rejected: 'Rejected',
+            disabled: 'Disabled',
+          },
+          fields: {
+            id: 'ID',
+            foodType: 'Food Type',
+            donor: 'Donor',
+            status: 'Status',
+            reason: 'Reason',
+            active: 'Active',
+            yes: 'Yes',
+            no: 'No',
+            none: '-',
+            generic: 'Generic',
+          },
+          actions: {
+            approve: 'Approve',
+            reject: 'Reject',
+            disable: 'Disable',
+            delete: 'Delete',
+            add: 'Add',
+            deactivate: 'Deactivate',
+            activate: 'Activate',
+            remove: 'Remove',
+          },
+          uploaded: {
+            title: 'Uploaded Images',
+            empty: 'No uploads found for the selected status.',
+            alt: 'Upload {{id}}',
+          },
+          library: {
+            title: 'Internal Image Library',
+            uploadImage: 'Upload image',
+            orImageUrl: 'Or image URL',
+            selectCategory: 'Select a category',
+            empty: 'Internal library is empty. Add your first fallback image.',
+            alt: 'Library {{id}}',
+          },
+          errors: {
+            loadFailed: 'Failed to load image moderation data.',
+            selectFoodType: 'Please select a food type category.',
+            addFailed: 'Failed to add library image.',
+          },
+        },
+        adminReferrals: {
+          filters: {
+            all: 'All',
+            inviteCommunity: 'Invite Community',
+            suggestBusiness: 'Suggest Business',
+          },
+          types: {
+            community: 'Community',
+            business: 'Business',
+          },
+          table: {
+            type: 'Type',
+            organization: 'Business / Organization',
+            contactEmail: 'Contact Email',
+            contactPhone: 'Contact Phone',
+            message: 'Message',
+            submittedBy: 'Submitted By',
+            date: 'Date',
+          },
+          refresh: 'Refresh',
+          loading: 'Loading referral submissions...',
+          empty: 'No referral submissions yet.',
+          viewMessage: 'View message',
+          viewMessageFrom: 'View message from {{name}}',
+          closeMessage: 'Close message',
+          messageTitle: 'Referral Message',
+          showingCount_one: 'Showing {{shown}} of {{total}} submissions',
+          showingCount_other: 'Showing {{shown}} of {{total}} submissions',
+          notAvailable: '—',
+          errors: {
+            loadFailed:
+              'Failed to load referral submissions. Please try again.',
+          },
+        },
         claimedView: {
           claimed: 'Claimed',
           untitledDonation: 'Untitled Donation',
@@ -917,6 +1203,14 @@ jest.mock('@react-google-maps/api', () => ({
 
 // Mock recommendation API and all other APIs
 jest.mock('./services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(() => Promise.resolve({ data: {} })),
+    post: jest.fn(() => Promise.resolve({ data: {} })),
+    put: jest.fn(() => Promise.resolve({ data: {} })),
+    delete: jest.fn(() => Promise.resolve({ data: {} })),
+    patch: jest.fn(() => Promise.resolve({ data: {} })),
+  },
   recommendationAPI: {
     getBrowseRecommendations: jest.fn(() => Promise.resolve({})),
     getRecommendationForPost: jest.fn(() => Promise.resolve(null)),
@@ -972,6 +1266,11 @@ jest.mock('./services/api', () => ({
   claimsAPI: {
     myClaims: jest.fn(() => Promise.resolve({ data: [] })),
     cancel: jest.fn(() => Promise.resolve({})),
+  },
+  feedbackAPI: {
+    getMyRating: jest.fn(() =>
+      Promise.resolve({ data: { averageRating: 0, totalReviews: 0 } })
+    ),
   },
   savedDonationAPI: {
     save: jest.fn(() => Promise.resolve({})),

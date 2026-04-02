@@ -1,6 +1,8 @@
 package com.example.foodflow.service;
 
 import brevo.ApiException;
+import brevoModel.CreateSmtpEmail;
+import brevoApi.TransactionalEmailsApi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.HashMap;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
@@ -25,6 +28,12 @@ class EmailServiceTest {
 
     @Mock
     private BusinessMetricsService businessMetricsService;
+
+    @Mock
+    private TransactionalEmailClientFactory transactionalEmailClientFactory;
+
+    @Mock
+    private TransactionalEmailsApi transactionalEmailsApi;
 
     @InjectMocks
     private EmailService emailService;
@@ -40,6 +49,19 @@ class EmailServiceTest {
         ReflectionTestUtils.setField(emailService, "fromEmail", TEST_FROM_EMAIL);
         ReflectionTestUtils.setField(emailService, "fromName", TEST_FROM_NAME);
         ReflectionTestUtils.setField(emailService, "frontendUrl", TEST_FRONTEND_URL);
+        ReflectionTestUtils.setField(emailService, "emailFrontendUrl", TEST_FRONTEND_URL);
+
+        CreateSmtpEmail response = new CreateSmtpEmail();
+        response.setMessageId("test-message-id");
+
+        try {
+            lenient().when(transactionalEmailClientFactory.create(TEST_API_KEY))
+                    .thenReturn(transactionalEmailsApi);
+            lenient().when(transactionalEmailsApi.sendTransacEmail(org.mockito.ArgumentMatchers.any()))
+                    .thenReturn(response);
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -144,6 +166,7 @@ class EmailServiceTest {
         // Given
         String customFrontendUrl = "https://foodflow.com";
         ReflectionTestUtils.setField(emailService, "frontendUrl", customFrontendUrl);
+        ReflectionTestUtils.setField(emailService, "emailFrontendUrl", customFrontendUrl);
         
         String toEmail = "test@example.com";
         String token = "token-789";
@@ -170,23 +193,23 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendVerificationEmail_WithNullEmail_ThrowsException() {
+    void sendVerificationEmail_WithNullEmail_AttemptsToSend() {
         // Given
         String token = "test-token";
 
         // When & Then
-        assertThrows(Exception.class, () -> {
+        assertDoesNotThrow(() -> {
             emailService.sendVerificationEmail(null, token);
         });
     }
 
     @Test
-    void sendPasswordResetEmail_WithNullEmail_ThrowsException() {
+    void sendPasswordResetEmail_WithNullEmail_AttemptsToSend() {
         // Given
         String resetCode = "123456";
 
         // When & Then
-        assertThrows(Exception.class, () -> {
+        assertDoesNotThrow(() -> {
             emailService.sendPasswordResetEmail(null, resetCode);
         });
     }
@@ -421,12 +444,12 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendAccountApprovalEmail_WithNullEmail_ThrowsException() {
+    void sendAccountApprovalEmail_WithNullEmail_AttemptsToSend() {
         // Given
         String userName = "Organization";
 
         // When & Then
-        assertThrows(Exception.class, () -> {
+        assertDoesNotThrow(() -> {
             emailService.sendAccountApprovalEmail(null, userName);
         });
     }
@@ -593,14 +616,14 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendAccountRejectionEmail_WithNullEmail_ThrowsException() {
+    void sendAccountRejectionEmail_WithNullEmail_AttemptsToSend() {
         // Given
         String userName = "User";
         String reason = "incomplete_info";
         String customMessage = "Test";
 
         // When & Then
-        assertThrows(Exception.class, () -> {
+        assertDoesNotThrow(() -> {
             emailService.sendAccountRejectionEmail(null, userName, reason, customMessage);
         });
     }
@@ -776,6 +799,7 @@ class EmailServiceTest {
         ReflectionTestUtils.setField(emailService, "fromEmail", newFromEmail);
         ReflectionTestUtils.setField(emailService, "fromName", newFromName);
         ReflectionTestUtils.setField(emailService, "frontendUrl", newFrontendUrl);
+        ReflectionTestUtils.setField(emailService, "emailFrontendUrl", newFrontendUrl);
 
         // Then
         assertEquals(newApiKey, ReflectionTestUtils.getField(emailService, "brevoApiKey"));

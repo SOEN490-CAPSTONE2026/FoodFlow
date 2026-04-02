@@ -47,7 +47,7 @@ class FeedbackServiceTest {
     private NotificationPreferenceService notificationPreferenceService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @InjectMocks
     private FeedbackService feedbackService;

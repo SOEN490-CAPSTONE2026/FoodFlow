@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "home": "الرئيسية",
     "howItWorks": "كيف يعمل",
@@ -255,7 +255,94 @@
     "time": "الوقت",
     "retry": "إعادة المحاولة",
     "less": "أقل",
-    "more": "المزيد"
+    "more": "المزيد",
+    "approvalRequired": {
+      "badge": "الموافقة قيد الانتظار",
+      "title": "موافقة الحساب مطلوبة",
+      "message": "لا يزال حسابك بانتظار موافقة مشرف FoodFlow. يرجى الانتظار حتى تتم الموافقة قبل المتابعة.",
+      "action": "فهمت",
+      "createTitle": "موافقة الحساب مطلوبة",
+      "createMessage": "يمكنك تجهيز تفاصيل التبرع، لكن النشر سيبقى مقفلاً حتى يوافق مشرف FoodFlow على حسابك.",
+      "claimTitle": "الموافقة مطلوبة لطلب التبرعات",
+      "claimMessage": "سيصبح هذا الإجراء متاحًا عندما يوافق مشرف FoodFlow على حسابك. يرجى الانتظار قبل طلب التبرعات."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "الحساب بانتظار موافقة المشرف",
+    "message": "تم التحقق من بريدك الإلكتروني! حسابك بانتظار موافقة فريق الإدارة لدينا. تستغرق هذه العملية عادةً ما يصل إلى 48 ساعة. ستتلقى إشعارًا عبر البريد الإلكتروني بمجرد الموافقة على حسابك.",
+    "thankYou": "شكرًا لصبرك!"
+  },
+  "paymentPage": {
+    "workspace": {
+      "title": "مساحة الدفع",
+      "ariaLabel": "أقسام الدفع",
+      "descriptions": {
+        "donate": "ساعدنا في مكافحة هدر الطعام ودعم المجتمعات من خلال تبرع آمن.",
+        "methods": "أدر بطاقاتك وحساباتك البنكية المحفوظة لإتمام المدفوعات المستقبلية بسرعة أكبر.",
+        "history": "راجع معاملاتك الأخيرة وتابع نشاط الدفع في مكان واحد.",
+        "invoices": "اعرض ونزّل الفواتير الخاصة بمدفوعات FoodFlow المكتملة.",
+        "refunds": "تحقق من نشاط الاسترداد وقدّم طلبات الاسترداد عند الحاجة.",
+        "fallback": "تنقّل بين أقسام الفوترة كأنها صفحات متتابعة ضمن تدفق واحد."
+      }
+    },
+    "tabs": {
+      "donate": "تبرع",
+      "methods": "الوسائل",
+      "history": "السجل",
+      "invoices": "الفواتير",
+      "refunds": "الاسترداد"
+    },
+    "steps": {
+      "amount": "المبلغ",
+      "payment": "الدفع"
+    },
+    "amount": {
+      "title": "اختر مبلغ التبرع",
+      "currency": "العملة",
+      "customLabel": "أو أدخل مبلغاً مخصصاً:",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "طريقة الدفع",
+      "savedOrNew": "اختر بطاقتك الافتراضية المحفوظة أو أدخل بطاقة جديدة.",
+      "noSavedDefault": "لا توجد بطاقة افتراضية محفوظة. أدخل طريقة دفع جديدة.",
+      "loading": "جارٍ تحميل طرق الدفع المحفوظة...",
+      "useSaved": "استخدام الطريقة الافتراضية المحفوظة",
+      "defaultBadge": "بطاقة افتراضية محفوظة",
+      "useNew": "استخدام بطاقة جديدة",
+      "newCardHint": "افتح نموذج بطاقة Stripe في الخطوة التالية.",
+      "addSavedHint": "أضف بطاقة محفوظة في تبويب الوسائل لإعادة استخدامها هنا."
+    },
+    "savedMethod": {
+      "bankAccount": "حساب بنكي",
+      "card": "بطاقة",
+      "bankEnding": "{{bankName}} ينتهي بـ {{last4}}",
+      "cardEnding": "{{brand}} تنتهي بـ {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "مؤشرات الأثر",
+      "title": "الأثر التقديري",
+      "poweredByData": "تقديرات مبنية على بيانات التبرعات الحقيقية في المنصة.",
+      "liveEstimate": "تقدير مباشر بناءً على مبلغ التبرع المحدد.",
+      "meals": "وجبات مدعومة",
+      "co2": "انخفاض CO2",
+      "water": "بصمة مائية تم تجنبها",
+      "communityPacks": "حزم غذائية مجتمعية"
+    },
+    "actions": {
+      "processing": "جارٍ المعالجة...",
+      "continueToPayment": "المتابعة إلى الدفع {{amount}}"
+    },
+    "security": {
+      "lock": "قفل",
+      "notice": "مؤمّن بواسطة Stripe - معلومات الدفع الخاصة بك مشفرة وآمنة"
+    },
+    "errors": {
+      "minimumAmount": "يرجى إدخال مبلغ صالح (الحد الأدنى 1$)",
+      "unableToContinue": "لا يمكن المتابعة باستخدام طريقة الدفع هذه حالياً.",
+      "initializationFailed": "فشل تهيئة عملية الدفع. يرجى المحاولة مرة أخرى."
+    },
+    "donationDescription": "تبرع FoodFlow"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -914,7 +1001,89 @@
     "verificationQueueDesc": "مراجعة واعتماد تسجيلات المستخدمين المعلقة",
     "usersDesc": "إدارة ومراقبة جميع مستخدمي المنصة",
     "impactDesc": "مقاييس الأثر البيئي والاجتماعي على مستوى المنصة",
-    "disputesDesc": "تتبع ومراجعة وحل المشكلات المبلغ عنها"
+    "disputesDesc": "تتبع ومراجعة وحل المشكلات المبلغ عنها",
+    "images": "الصور",
+    "imagesDesc": "مراجعة وإدارة الصور المرفوعة والمكتبة الداخلية الاحتياطية",
+    "referrals": "الإحالات",
+    "referralsDesc": "عرض طلبات إحالة المجتمع واقتراحات الأعمال من المستخدمين",
+    "moneyDonations": "التبرعات المالية",
+    "moneyDonationsDesc": "متابعة التبرعات المالية وطلبات الاسترداد وحالة الفواتير"
+  },
+  "adminPayments": {
+    "eyebrow": "المالية الإدارية",
+    "title": "معاملات التبرعات المالية",
+    "description": "راقب كل تبرع مالي، وراجع طلبات الاسترداد المعلقة، وتحقق من مبالغ الفواتير بعد قرار المشرف.",
+    "loading": "جارٍ تحميل المعاملات...",
+    "empty": "لا توجد معاملات تبرعات مالية مطابقة للفلاتر الحالية.",
+    "transactionId": "المعاملة #{{id}}",
+    "refundLabel": "استرداد",
+    "noDescription": "لا توجد تفاصيل",
+    "invoiceMissing": "لا توجد فاتورة",
+    "pagination": "الصفحة {{current}} من {{total}}",
+    "errors": {
+      "loadFailed": "تعذر تحميل معاملات التبرعات المالية.",
+      "decisionFailed": "تعذر تحديث طلب الاسترداد هذا."
+    },
+    "kpis": {
+      "totalVolume": "إجمالي الحجم",
+      "successfulTransactions": "المعاملات الناجحة",
+      "pendingRefundRequests": "طلبات الاسترداد المعلقة",
+      "netVolume": "صافي المبالغ المحصلة"
+    },
+    "filters": {
+      "search": "بحث",
+      "searchPlaceholder": "ابحث بالمعرّف أو المؤسسة أو Stripe intent...",
+      "paymentStatus": "حالة الدفع",
+      "refundStatus": "حالة الاسترداد",
+      "currency": "العملة",
+      "fromDate": "من تاريخ",
+      "toDate": "إلى تاريخ",
+      "all": "الكل",
+      "allCurrencies": "كل العملات"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل معاملات التبرعات المالية.",
+      "decisionFailed": "تعذر تحديث طلب الاسترداد هذا.",
+      "createFailed": "تعذر إنشاء طلب الاسترداد هذا.",
+      "amountRequired": "أدخل مبلغ استرداد صالحًا."
+    },
+    "columns": {
+      "transaction": "المعاملة",
+      "organization": "المؤسسة",
+      "gross": "المبلغ الإجمالي",
+      "refunded": "المبلغ المسترد",
+      "net": "المبلغ الصافي",
+      "invoice": "الفاتورة",
+      "paymentStatus": "حالة الدفع",
+      "createdAt": "تاريخ الإنشاء",
+      "currency": "العملة",
+      "invoiceStatus": "حالة الفاتورة"
+    },
+    "details": {
+      "transaction": "تفاصيل المعاملة"
+    },
+    "refunds": {
+      "title": "طلبات الاسترداد",
+      "empty": "لا توجد عمليات استرداد لهذه المعاملة.",
+      "pendingCount": "{{count}} بانتظار المراجعة",
+      "createTitle": "إنشاء طلب استرداد",
+      "amount": "مبلغ الاسترداد",
+      "reason": "سبب الاسترداد",
+      "requestedBy": "تم الطلب بواسطة",
+      "adminNotes": "ملاحظات المشرف",
+      "notesPlaceholder": "أضف ملاحظات داخلية قبل الموافقة أو الرفض.",
+      "noReason": "لا يوجد سبب"
+    },
+    "actions": {
+      "refresh": "تحديث",
+      "reset": "إعادة ضبط الفلاتر",
+      "createRefundRequest": "إنشاء الطلب",
+      "saving": "جارٍ الحفظ...",
+      "approveRefund": "موافقة على الاسترداد",
+      "rejectRefund": "رفض الاسترداد",
+      "previous": "السابق",
+      "next": "التالي"
+    }
   },
   "claimedView": {
     "claimed": "تم المطالبة به",
@@ -1864,6 +2033,7 @@
     },
     "faq": {
       "title": "الأسئلة الشائعة",
+      "subtitle": "كل ما تحتاج معرفته حول المطالبة بالتبرعات وتنسيق الاستلام.",
       "items": {
         "q1": {
           "question": "كيف أطالب بتبرع؟",
@@ -1907,6 +2077,10 @@
         }
       }
     },
+    "contact": {
+      "title": "ما زلت بحاجة للمساعدة؟",
+      "subtitle": "فريق الدعم هنا لمساعدتك. تواصل معنا من خلال القناة المفضلة لديك."
+    },
     "support": {
       "title": "هل تحتاج إلى مساعدة إضافية؟",
       "intro": "لم تجد ما تبحث عنه؟ فريق الدعم هنا لمساعدتك.",
@@ -1932,6 +2106,10 @@
       "extractingData": "استخراج البيانات",
       "preparingResults": "تجهيز النتائج",
       "loadingMaps": "جارٍ تحميل الخرائط"
+    },
+    "submitting": {
+      "title": "جارٍ إرسال التبرع",
+      "hint": "يرجى الانتظار بينما يقوم FoodFlow بحفظ تبرعك المدعوم بالذكاء الاصطناعي."
     },
     "toast": {
       "extractionComplete": "اكتمل الاستخراج. راجع التفاصيل قبل الإرسال.",
@@ -2241,7 +2419,8 @@
     },
     "status": {
       "active": "نشط",
-      "deactivated": "معطل"
+      "deactivated": "معطل",
+      "deleted": "محذوف"
     },
     "actions": {
       "viewDetails": "عرض التفاصيل",
@@ -2263,6 +2442,7 @@
         "CLAIM": "طالب بـ {{item}}",
         "VERIFICATION": "اكتمل التحقق",
         "DEACTIVATE_USER": "تم تعطيل الحساب",
+        "DELETE_USER": "تم حذف الحساب: {{item}}",
         "quantityOf": "{{quantity}} من {{title}}",
         "noActivity": "لا يوجد نشاط حديث",
         "on": "في"
@@ -2280,6 +2460,8 @@
       "alert": {
         "title": "إرسال تنبيه إلى:",
         "alertType": "نوع التنبيه",
+        "userLanguage": "لغة المستخدم",
+        "languageWarning": "يجب كتابة الرسالة باللغة المفضلة للمستخدم. سيرسلها النظام تماماً كما تكتبها.",
         "customPlaceholder": "أدخل رسالتك المخصصة...",
         "editPlaceholder": "تعديل الرسالة"
       }
@@ -2313,6 +2495,32 @@
     },
     "errors": {
       "loadFailed": "تعذر تحميل المستخدمين. يرجى المحاولة مرة أخرى لاحقًا."
+    },
+    "userDetails": {
+      "title": "تفاصيل المستخدم",
+      "basicInformation": "المعلومات الأساسية",
+      "id": "المعرف",
+      "name": "الاسم",
+      "organization": "المؤسسة",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "preferredLanguage": "اللغة المفضلة",
+      "licenseDocument": "مستند الترخيص",
+      "viewDocument": "عرض المستند",
+      "noDocumentUploaded": "لم يتم رفع أي مستند",
+      "modify": "تعديل",
+      "modifyDocumentTitle": "تعديل المستند أو استبداله",
+      "registrationNumber": "رقم التسجيل",
+      "activityStatistics": "إحصاءات النشاط",
+      "registrationDate": "تاريخ التسجيل",
+      "lastActive": "آخر نشاط",
+      "totalDonations": "إجمالي التبرعات",
+      "totalClaims": "إجمالي المطالبات",
+      "rating": "التقييم",
+      "noRatingsYet": "لا توجد تقييمات بعد",
+      "reviewsCount": "{{count}} تقييمًا",
+      "addressInformation": "معلومات العنوان",
+      "address": "العنوان"
     }
   },
   "adminDonations": {
@@ -2363,6 +2571,51 @@
     },
     "errors": {
       "loadFailed": "تعذر تحميل التبرعات. يرجى المحاولة مرة أخرى."
+    },
+    "detailsModal": {
+      "title": "تفاصيل التبرع",
+      "pageTitles": {
+        "basicInfoParticipants": "المعلومات الأساسية والمشاركون",
+        "timeline": "الخط الزمني",
+        "overrideStatus": "تجاوز الحالة"
+      },
+      "basicInformation": "المعلومات الأساسية",
+      "participants": "المشاركون",
+      "roles": {
+        "donor": "المتبرع",
+        "receiver": "المستلم"
+      },
+      "fields": {
+        "id": "المعرف",
+        "title": "العنوان",
+        "status": "الحالة",
+        "flagged": "تم الإبلاغ",
+        "created": "تاريخ الإنشاء",
+        "updated": "تاريخ التحديث",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "organization": "المؤسسة",
+        "claimedAt": "تاريخ المطالبة"
+      },
+      "values": {
+        "yes": "نعم",
+        "no": "لا"
+      },
+      "timeline": "الخط الزمني",
+      "actor": "المنفذ: {{actor}}",
+      "adminOnly": "للمشرف فقط",
+      "statusChange": "الحالة",
+      "noTimeline": "لا توجد أحداث في الخط الزمني.",
+      "overrideStatus": "تجاوز الحالة",
+      "currentStatus": "الحالة الحالية",
+      "newStatus": "الحالة الجديدة",
+      "selectNewStatus": "اختر الحالة الجديدة",
+      "reason": "السبب",
+      "reasonPlaceholder": "أدخل سبب تجاوز الحالة...",
+      "updating": "جارٍ التحديث...",
+      "back": "رجوع",
+      "next": "التالي",
+      "pageOf": "الصفحة {{page}} من {{total}}"
     }
   },
   "adminSettings": {
@@ -2817,6 +3070,90 @@
           "text": "هذا كل شيء — أنت الآن جاهز لبدء استخدام FoodFlow كمستفيد."
         }
       }
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} عنصر",
+    "itemsCount_other": "{{count}} عناصر",
+    "reasonPrompt": "السبب (اختياري):",
+    "statusOptions": {
+      "pending": "قيد المراجعة",
+      "approved": "تمت الموافقة",
+      "rejected": "مرفوض",
+      "disabled": "معطل"
+    },
+    "fields": {
+      "id": "المعرف",
+      "foodType": "نوع الطعام",
+      "donor": "المتبرع",
+      "status": "الحالة",
+      "reason": "السبب",
+      "active": "نشط",
+      "yes": "نعم",
+      "no": "لا",
+      "none": "-",
+      "generic": "عام"
+    },
+    "actions": {
+      "approve": "اعتماد",
+      "reject": "رفض",
+      "disable": "تعطيل",
+      "delete": "حذف",
+      "add": "إضافة",
+      "deactivate": "إلغاء التفعيل",
+      "activate": "تفعيل",
+      "remove": "إزالة"
+    },
+    "uploaded": {
+      "title": "الصور المرفوعة",
+      "empty": "لا توجد صور مطابقة للحالة المحددة.",
+      "alt": "رفع {{id}}"
+    },
+    "library": {
+      "title": "مكتبة الصور الداخلية",
+      "uploadImage": "رفع صورة",
+      "orImageUrl": "أو رابط صورة",
+      "selectCategory": "اختر فئة",
+      "empty": "مكتبة الصور الداخلية فارغة. أضف أول صورة احتياطية.",
+      "alt": "المكتبة {{id}}"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل بيانات مراجعة الصور.",
+      "selectFoodType": "يرجى اختيار فئة نوع الطعام.",
+      "addFailed": "تعذر إضافة صورة إلى المكتبة."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "الكل",
+      "inviteCommunity": "دعوة جهة مجتمعية",
+      "suggestBusiness": "اقتراح نشاط تجاري"
+    },
+    "types": {
+      "community": "مجتمعي",
+      "business": "نشاط تجاري"
+    },
+    "table": {
+      "type": "النوع",
+      "organization": "الجهة / المؤسسة",
+      "contactEmail": "البريد الإلكتروني للتواصل",
+      "contactPhone": "هاتف التواصل",
+      "message": "الرسالة",
+      "submittedBy": "مُرسلة من",
+      "date": "التاريخ"
+    },
+    "refresh": "تحديث",
+    "loading": "جارٍ تحميل طلبات الإحالة...",
+    "empty": "لا توجد طلبات إحالة بعد.",
+    "viewMessage": "عرض الرسالة",
+    "viewMessageFrom": "عرض رسالة من {{name}}",
+    "closeMessage": "إغلاق الرسالة",
+    "messageTitle": "رسالة الإحالة",
+    "showingCount_one": "عرض {{shown}} من أصل {{total}} طلب",
+    "showingCount_other": "عرض {{shown}} من أصل {{total}} طلبات",
+    "notAvailable": "—",
+    "errors": {
+      "loadFailed": "تعذر تحميل طلبات الإحالة. يرجى المحاولة مرة أخرى."
     }
   }
 }

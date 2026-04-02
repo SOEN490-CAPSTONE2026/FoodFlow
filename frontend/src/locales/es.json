@@ -255,7 +255,94 @@
     "time": "Hora",
     "retry": "Reintentar",
     "less": "Menos",
-    "more": "Más"
+    "more": "Más",
+    "approvalRequired": {
+      "badge": "Aprobación pendiente",
+      "title": "Se requiere aprobación de la cuenta",
+      "message": "Tu cuenta todavía está esperando la aprobación del administrador de FoodFlow. Espera hasta que se apruebe antes de continuar.",
+      "action": "Entendido",
+      "createTitle": "Se requiere aprobación de la cuenta",
+      "createMessage": "Puedes preparar los detalles de la donación, pero la publicación seguirá bloqueada hasta que un administrador de FoodFlow apruebe tu cuenta.",
+      "claimTitle": "Se requiere aprobación para reclamar donaciones",
+      "claimMessage": "Esta acción estará disponible cuando un administrador de FoodFlow apruebe tu cuenta. Espera la aprobación antes de reclamar donaciones."
+    }
+  },
+  "adminApprovalBanner": {
+    "title": "Cuenta pendiente de aprobación del administrador",
+    "message": "¡Tu correo electrónico ha sido verificado! Tu cuenta está actualmente pendiente de aprobación por parte de nuestro equipo administrativo. Este proceso suele tardar hasta 48 horas. Recibirás una notificación por correo electrónico una vez que tu cuenta sea aprobada.",
+    "thankYou": "¡Gracias por tu paciencia!"
+  },
+  "paymentPage": {
+    "workspace": {
+      "title": "Espacio de Pagos",
+      "ariaLabel": "Secciones de pago",
+      "descriptions": {
+        "donate": "Ayúdanos a combatir el desperdicio de alimentos y apoyar a las comunidades con una donación segura.",
+        "methods": "Administra tus tarjetas y cuentas bancarias guardadas para pagos futuros más rápidos.",
+        "history": "Revisa tus transacciones recientes y sigue tu actividad de pagos en un solo lugar.",
+        "invoices": "Consulta y descarga las facturas de tus pagos completados en FoodFlow.",
+        "refunds": "Consulta la actividad de reembolsos y envía solicitudes cuando sea necesario.",
+        "fallback": "Recorre las secciones de facturación como páginas separadas dentro de un mismo flujo."
+      }
+    },
+    "tabs": {
+      "donate": "Donar",
+      "methods": "Métodos",
+      "history": "Historial",
+      "invoices": "Facturas",
+      "refunds": "Reembolsos"
+    },
+    "steps": {
+      "amount": "Monto",
+      "payment": "Pago"
+    },
+    "amount": {
+      "title": "Seleccionar monto de donación",
+      "currency": "Moneda",
+      "customLabel": "O ingresa un monto personalizado:",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "Método de pago",
+      "savedOrNew": "Elige tu tarjeta predeterminada guardada o ingresa una nueva.",
+      "noSavedDefault": "No se encontró una tarjeta predeterminada guardada. Ingresa un nuevo método de pago.",
+      "loading": "Cargando métodos de pago guardados...",
+      "useSaved": "Usar método guardado por defecto",
+      "defaultBadge": "Tarjeta predeterminada guardada",
+      "useNew": "Usar una tarjeta nueva",
+      "newCardHint": "Abre el formulario de tarjeta de Stripe en el siguiente paso.",
+      "addSavedHint": "Agrega una tarjeta guardada en la pestaña Métodos para reutilizarla aquí."
+    },
+    "savedMethod": {
+      "bankAccount": "Cuenta bancaria",
+      "card": "Tarjeta",
+      "bankEnding": "{{bankName}} terminada en {{last4}}",
+      "cardEnding": "{{brand}} terminada en {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "Métricas de impacto",
+      "title": "Impacto estimado",
+      "poweredByData": "Estimaciones basadas en datos reales de donaciones de la plataforma.",
+      "liveEstimate": "Estimación en vivo basada en el monto de donación seleccionado.",
+      "meals": "Comidas apoyadas",
+      "co2": "CO2 reducido",
+      "water": "Huella hídrica evitada",
+      "communityPacks": "Paquetes comunitarios de alimentos"
+    },
+    "actions": {
+      "processing": "Procesando...",
+      "continueToPayment": "Continuar al pago {{amount}}"
+    },
+    "security": {
+      "lock": "Candado",
+      "notice": "Protegido por Stripe - Tu información de pago está cifrada y segura"
+    },
+    "errors": {
+      "minimumAmount": "Ingresa un monto válido (mínimo $1)",
+      "unableToContinue": "No es posible continuar con este método de pago en este momento.",
+      "initializationFailed": "No se pudo iniciar el pago. Inténtalo de nuevo."
+    },
+    "donationDescription": "Donación FoodFlow"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -926,7 +1013,85 @@
     "verificationQueueDesc": "Revisar y aprobar registros de usuarios pendientes",
     "usersDesc": "Gestionar y supervisar todos los usuarios de la plataforma",
     "impactDesc": "Métricas de impacto ambiental y social de toda la plataforma",
-    "disputesDesc": "Rastrear, revisar y resolver problemas reportados"
+    "disputesDesc": "Rastrear, revisar y resolver problemas reportados",
+    "images": "Im?genes",
+    "imagesDesc": "Modera cargas y administra la biblioteca de im?genes predeterminadas",
+    "referrals": "Referencias",
+    "referralsDesc": "Ver invitaciones comunitarias y sugerencias de negocios enviadas por usuarios",
+    "moneyDonations": "Donaciones monetarias",
+    "moneyDonationsDesc": "Supervisa donaciones monetarias, solicitudes de reembolso y el estado de las facturas"
+  },
+  "adminPayments": {
+    "eyebrow": "Finanzas Admin",
+    "title": "Transacciones de donaciones monetarias",
+    "description": "Supervisa cada donación monetaria, revisa reembolsos pendientes y verifica los importes de factura después de la decisión del admin.",
+    "loading": "Cargando transacciones...",
+    "empty": "No hay transacciones de donaciones monetarias con estos filtros.",
+    "transactionId": "Transacción #{{id}}",
+    "refundLabel": "Reembolso",
+    "noDescription": "Sin descripción",
+    "invoiceMissing": "Sin factura",
+    "pagination": "Página {{current}} de {{total}}",
+    "errors": {
+      "loadFailed": "No se pudieron cargar las transacciones monetarias.",
+      "decisionFailed": "No se pudo actualizar esta solicitud de reembolso.",
+      "createFailed": "No se pudo crear esta solicitud de reembolso.",
+      "amountRequired": "Introduce un importe de reembolso válido."
+    },
+    "kpis": {
+      "totalVolume": "Volumen total",
+      "successfulTransactions": "Transacciones exitosas",
+      "pendingRefundRequests": "Reembolsos pendientes",
+      "netVolume": "Volumen neto recaudado"
+    },
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar por ID, organización, intento de Stripe...",
+      "paymentStatus": "Estado del pago",
+      "refundStatus": "Estado del reembolso",
+      "currency": "Moneda",
+      "fromDate": "Desde",
+      "toDate": "Hasta",
+      "all": "Todos",
+      "allCurrencies": "Todas las monedas"
+    },
+    "columns": {
+      "transaction": "Transacción",
+      "organization": "Organización",
+      "gross": "Importe bruto",
+      "refunded": "Importe reembolsado",
+      "net": "Importe neto",
+      "invoice": "Factura",
+      "paymentStatus": "Estado del pago",
+      "createdAt": "Creado",
+      "currency": "Moneda",
+      "invoiceStatus": "Estado de la factura"
+    },
+    "details": {
+      "transaction": "Detalles de la transacción"
+    },
+    "refunds": {
+      "title": "Solicitudes de reembolso",
+      "empty": "No hay actividad de reembolso en esta transacción.",
+      "pendingCount": "{{count}} pendientes",
+      "createTitle": "Crear solicitud de reembolso",
+      "amount": "Importe del reembolso",
+      "reason": "Motivo del reembolso",
+      "requestedBy": "Solicitado por",
+      "adminNotes": "Notas del admin",
+      "notesPlaceholder": "Añade notas internas antes de aprobar o rechazar este reembolso.",
+      "noReason": "Sin motivo"
+    },
+    "actions": {
+      "refresh": "Actualizar",
+      "reset": "Restablecer filtros",
+      "createRefundRequest": "Crear solicitud",
+      "saving": "Guardando...",
+      "approveRefund": "Aprobar reembolso",
+      "rejectRefund": "Rechazar reembolso",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    }
   },
   "claimedView": {
     "claimed": "Reclamado",
@@ -2135,7 +2300,8 @@
     },
     "status": {
       "active": "Activo",
-      "deactivated": "Desactivado"
+      "deactivated": "Desactivado",
+      "deleted": "Eliminado"
     },
     "actions": {
       "viewDetails": "Ver detalles",
@@ -2157,6 +2323,7 @@
         "CLAIM": "Solicitó {{item}}",
         "VERIFICATION": "Verificación completada",
         "DEACTIVATE_USER": "Cuenta desactivada",
+        "DELETE_USER": "Cuenta eliminada: {{item}}",
         "quantityOf": "{{quantity}} de {{title}}",
         "noActivity": "Sin actividad reciente",
         "on": "el"
@@ -2174,6 +2341,8 @@
       "alert": {
         "title": "Enviar alerta a:",
         "alertType": "Tipo de alerta",
+        "userLanguage": "Idioma del usuario",
+        "languageWarning": "El mensaje debe escribirse en el idioma preferido del usuario. El sistema lo enviará exactamente como lo escribas.",
         "customPlaceholder": "Escribe tu mensaje personalizado...",
         "editPlaceholder": "Editar mensaje"
       }
@@ -2207,6 +2376,32 @@
     },
     "errors": {
       "loadFailed": "No se pudieron cargar los usuarios. Inténtalo más tarde."
+    },
+    "userDetails": {
+      "title": "Detalles del usuario",
+      "basicInformation": "Informaci?n b?sica",
+      "id": "ID",
+      "name": "Nombre",
+      "organization": "Organizaci?n",
+      "email": "Correo electr?nico",
+      "phone": "Tel?fono",
+      "preferredLanguage": "Idioma preferido",
+      "licenseDocument": "Documento de licencia",
+      "viewDocument": "Ver documento",
+      "noDocumentUploaded": "No se subi? ning?n documento",
+      "modify": "Modificar",
+      "modifyDocumentTitle": "Subir o reemplazar documento",
+      "registrationNumber": "N?mero de registro",
+      "activityStatistics": "Actividad y estad?sticas",
+      "registrationDate": "Fecha de registro",
+      "lastActive": "?ltima actividad",
+      "totalDonations": "Total de donaciones",
+      "totalClaims": "Total de reclamaciones",
+      "rating": "Calificaci?n",
+      "noRatingsYet": "A?n no hay calificaciones",
+      "reviewsCount": "{{count}} rese?as",
+      "addressInformation": "Informaci?n de direcci?n",
+      "address": "Direcci?n"
     }
   },
   "adminDonations": {
@@ -2257,6 +2452,51 @@
     },
     "errors": {
       "loadFailed": "No se pudieron cargar las donaciones. Inténtalo de nuevo."
+    },
+    "detailsModal": {
+      "title": "Detalles de la donaci?n",
+      "pageTitles": {
+        "basicInfoParticipants": "Informaci?n b?sica y participantes",
+        "timeline": "Cronolog?a",
+        "overrideStatus": "Cambiar estado"
+      },
+      "basicInformation": "Informaci?n b?sica",
+      "participants": "Participantes",
+      "roles": {
+        "donor": "Donante",
+        "receiver": "Receptor"
+      },
+      "fields": {
+        "id": "ID",
+        "title": "T?tulo",
+        "status": "Estado",
+        "flagged": "Marcada",
+        "created": "Creada",
+        "updated": "Actualizada",
+        "name": "Nombre",
+        "email": "Correo electr?nico",
+        "organization": "Organizaci?n",
+        "claimedAt": "Reclamada el"
+      },
+      "values": {
+        "yes": "S?",
+        "no": "No"
+      },
+      "timeline": "Cronolog?a",
+      "actor": "Actor: {{actor}}",
+      "adminOnly": "SOLO ADMIN",
+      "statusChange": "Estado",
+      "noTimeline": "No hay eventos en la cronolog?a.",
+      "overrideStatus": "Cambiar estado",
+      "currentStatus": "Estado actual",
+      "newStatus": "Nuevo estado",
+      "selectNewStatus": "Selecciona un nuevo estado",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Proporciona un motivo para el cambio de estado...",
+      "updating": "Actualizando...",
+      "back": "Atr?s",
+      "next": "Siguiente",
+      "pageOf": "P?gina {{page}} de {{total}}"
     }
   },
   "adminSettings": {
@@ -2514,7 +2754,9 @@
       "body": "Gracias. El equipo de FoodFlow contactará a {{email}} para presentarle la plataforma.",
       "submitAnother": "Enviar otra recomendación"
     },
-    "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+    "errors": {
+      "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
+    }
   },
   "suggestBusiness": {
     "title": "Sugerir un negocio",
@@ -2543,7 +2785,9 @@
       "body": "Gracias por ayudar a hacer crecer la red FoodFlow. Nuestro equipo contactará a {{email}} con más información.",
       "submitAnother": "Enviar otra sugerencia"
     },
-    "errors": { "generic": "Algo salió mal. Por favor, inténtalo de nuevo." }
+    "errors": {
+      "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
+    }
   },
   "donorHelp": {
     "hero": {
@@ -2626,6 +2870,88 @@
     "contact": {
       "title": "¿Aún necesitas ayuda?",
       "subtitle": "Nuestro equipo de soporte está aquí para ayudarte. Comunícate a través de tu canal preferido."
+    },
+    "support": {
+      "title": "¿Necesitas más ayuda?",
+      "intro": "Nuestro equipo de soporte está aquí para ayudarte con cualquier pregunta o problema.",
+      "emailLabel": "Soporte por correo electrónico",
+      "emailResponseTime": "Respuesta en 24 horas",
+      "phoneLabel": "Soporte telefónico",
+      "phoneAvailability": "Lun-Vie, 9AM-5PM EST"
+    }
+  },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Primeros pasos",
+      "intro": "¡Bienvenido a FoodFlow! Como receptor, puedes reclamar donaciones de alimentos excedentes de empresas y organizaciones locales.",
+      "steps": {
+        "step1": {
+          "title": "Explora donaciones disponibles",
+          "description": "Revisa la página de donaciones para encontrar alimentos cerca de ti y usa filtros según las necesidades de tu organización."
+        },
+        "step2": {
+          "title": "Reclama y agenda la recogida",
+          "description": "Haz clic en \"Reclamar\" y selecciona un horario de recogida entre las opciones del donante."
+        },
+        "step3": {
+          "title": "Recoge con OTP",
+          "description": "Llega en el horario elegido y proporciona tu código OTP para que el donante confirme la entrega."
+        },
+        "step4": {
+          "title": "Configura tus preferencias",
+          "description": "Actualiza tus preferencias de alimentos en el perfil para obtener mejores coincidencias."
+        }
+      }
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "subtitle": "Todo lo que necesitas saber sobre cómo reclamar donaciones y coordinar recogidas.",
+      "items": {
+        "q1": {
+          "question": "¿Cómo reclamo una donación?",
+          "answer": "Explora las donaciones disponibles, pulsa \"Reclamar\" en la que te interese y selecciona un horario de recogida."
+        },
+        "q2": {
+          "question": "¿Cómo confirmo la recogida?",
+          "answer": "Cuando llegues al donante, comparte tu código OTP. El donante lo ingresará para confirmar la entrega."
+        },
+        "q3": {
+          "question": "¿Qué es el código OTP?",
+          "answer": "Es un código único de verificación de 6 dígitos asignado a cada donación reclamada."
+        },
+        "q4": {
+          "question": "¿Qué son las preferencias de alimentos?",
+          "answer": "Las preferencias te permiten definir categorías de alimentos, tamaño de donaciones y restricciones dietéticas."
+        },
+        "q5": {
+          "question": "¿Cómo configuro mis preferencias de alimentos?",
+          "answer": "Haz clic en tu avatar arriba a la derecha y entra en \"Preferencias\" para ajustar tipos y restricciones."
+        },
+        "q6": {
+          "question": "¿Cómo envío un mensaje a un donante?",
+          "answer": "Abre \"Mensajes\" en la navegación para conversar con donantes y coordinar detalles de recogida."
+        },
+        "q7": {
+          "question": "¿Qué significan los estados de donación?",
+          "answer": "Los estados incluyen Disponible, Reclamado, Listo para recoger, Completado y Cancelado."
+        },
+        "q8": {
+          "question": "¿Puedo cancelar una reclamación?",
+          "answer": "Sí. Ve a \"Mis reclamaciones\", encuentra la donación y cancela antes de completar la recogida."
+        },
+        "q9": {
+          "question": "¿Cómo encuentro donaciones cerca de mí?",
+          "answer": "Usa filtros por tipo de alimento, distancia y horario de recogida para encontrar opciones cercanas."
+        },
+        "q10": {
+          "question": "¿Cómo se verifica mi organización?",
+          "answer": "Durante el registro, el equipo administrador revisa los datos y documentos de tu organización."
+        }
+      }
+    },
+    "contact": {
+      "title": "¿Aún necesitas ayuda?",
+      "subtitle": "Nuestro equipo de soporte está aquí para ayudarte. Contáctanos por tu canal preferido."
     },
     "support": {
       "title": "¿Necesitas más ayuda?",
@@ -2720,6 +3046,90 @@
           "text": "Eso es todo: ya estás listo para empezar a usar FoodFlow como receptor."
         }
       }
+    }
+  },
+  "adminImages": {
+    "itemsCount_one": "{{count}} elemento",
+    "itemsCount_other": "{{count}} elementos",
+    "reasonPrompt": "Motivo (opcional):",
+    "statusOptions": {
+      "pending": "Pendiente",
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "disabled": "Deshabilitada"
+    },
+    "fields": {
+      "id": "ID",
+      "foodType": "Tipo de alimento",
+      "donor": "Donante",
+      "status": "Estado",
+      "reason": "Motivo",
+      "active": "Activo",
+      "yes": "S?",
+      "no": "No",
+      "none": "-",
+      "generic": "Gen?rico"
+    },
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "disable": "Deshabilitar",
+      "delete": "Eliminar",
+      "add": "Agregar",
+      "deactivate": "Desactivar",
+      "activate": "Activar",
+      "remove": "Quitar"
+    },
+    "uploaded": {
+      "title": "Im?genes subidas",
+      "empty": "No se encontraron cargas para el estado seleccionado.",
+      "alt": "Carga {{id}}"
+    },
+    "library": {
+      "title": "Biblioteca interna de im?genes",
+      "uploadImage": "Subir imagen",
+      "orImageUrl": "O URL de imagen",
+      "selectCategory": "Selecciona una categor?a",
+      "empty": "La biblioteca interna est? vac?a. Agrega tu primera imagen de respaldo.",
+      "alt": "Biblioteca {{id}}"
+    },
+    "errors": {
+      "loadFailed": "No se pudieron cargar los datos de moderaci?n de im?genes.",
+      "selectFoodType": "Selecciona una categor?a de alimento.",
+      "addFailed": "No se pudo agregar la imagen a la biblioteca."
+    }
+  },
+  "adminReferrals": {
+    "filters": {
+      "all": "Todas",
+      "inviteCommunity": "Invitar comunidad",
+      "suggestBusiness": "Sugerir negocio"
+    },
+    "types": {
+      "community": "Comunidad",
+      "business": "Negocio"
+    },
+    "table": {
+      "type": "Tipo",
+      "organization": "Negocio / Organizaci?n",
+      "contactEmail": "Correo de contacto",
+      "contactPhone": "Tel?fono de contacto",
+      "message": "Mensaje",
+      "submittedBy": "Enviado por",
+      "date": "Fecha"
+    },
+    "refresh": "Actualizar",
+    "loading": "Cargando referencias...",
+    "empty": "A?n no hay referencias.",
+    "viewMessage": "Ver mensaje",
+    "viewMessageFrom": "Ver mensaje de {{name}}",
+    "closeMessage": "Cerrar mensaje",
+    "messageTitle": "Mensaje de referencia",
+    "showingCount_one": "Mostrando {{shown}} de {{total}} env?o",
+    "showingCount_other": "Mostrando {{shown}} de {{total}} env?os",
+    "notAvailable": "?",
+    "errors": {
+      "loadFailed": "No se pudieron cargar las referencias. Int?ntalo de nuevo."
     }
   }
 }

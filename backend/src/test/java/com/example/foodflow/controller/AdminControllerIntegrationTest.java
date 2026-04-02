@@ -12,6 +12,7 @@ import com.example.foodflow.service.DisputeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@ResourceLock("spring-context-mockmvc")
 class AdminControllerIntegrationTest {
     
     @Autowired
@@ -162,13 +166,14 @@ class AdminControllerIntegrationTest {
         // Given
         DeactivateUserRequest request = new DeactivateUserRequest();
         request.setAdminNotes("Policy violation");
+        request.setDeleteRequested(false);
         
         testUserResponse.setAccountStatus("DEACTIVATED");
         testUserResponse.setDeactivatedAt(LocalDateTime.now());
         
         when(jwtTokenProvider.getEmailFromToken(anyString())).thenReturn("admin@test.com");
         when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(adminUserService.deactivateUser(eq(2L), eq("Policy violation"), eq(1L)))
+        when(adminUserService.deactivateUser(eq(2L), anyString(), eq(1L), anyBoolean()))
             .thenReturn(testUserResponse);
         
         // When & Then
@@ -186,10 +191,11 @@ class AdminControllerIntegrationTest {
         // Given
         DeactivateUserRequest request = new DeactivateUserRequest();
         request.setAdminNotes("Test");
+        request.setDeleteRequested(false);
         
         when(jwtTokenProvider.getEmailFromToken(anyString())).thenReturn("admin@test.com");
         when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminUser));
-        when(adminUserService.deactivateUser(anyLong(), anyString(), anyLong()))
+        when(adminUserService.deactivateUser(eq(2L), anyString(), eq(1L), anyBoolean()))
             .thenThrow(new RuntimeException("Already deactivated"));
         
         // When & Then

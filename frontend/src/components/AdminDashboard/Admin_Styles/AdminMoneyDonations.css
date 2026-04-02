@@ -1,0 +1,281 @@
+.admin-money-container {
+  padding: 32px 24px;
+}
+
+.money-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.money-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.money-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.money-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.money-section-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e3a5f;
+  margin: 0;
+}
+
+.money-search-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.money-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.money-filters select,
+.money-filters input,
+.detail-field input,
+.detail-field textarea,
+.refund-decision-row textarea {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: white;
+}
+
+.money-table-container {
+  overflow-x: auto;
+}
+
+.money-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.money-table th,
+.money-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  vertical-align: top;
+}
+
+.money-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.money-table tbody tr {
+  cursor: pointer;
+}
+
+.money-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.expand-cell {
+  width: 40px;
+  color: #6b7280;
+}
+
+.money-row-details td {
+  background: #f9fbfc;
+  cursor: default;
+}
+
+.money-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.detail-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.detail-card h4,
+.refund-history-block h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #1e3a5f;
+}
+
+.detail-card p {
+  margin: 0 0 8px;
+  color: #4b5563;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.primary-action-btn,
+.approve-btn,
+.reject-btn,
+.invoice-link-btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.primary-action-btn {
+  background: #1b4965;
+  color: white;
+  padding: 10px 14px;
+}
+
+.invoice-link-btn {
+  background: transparent;
+  color: #2563eb;
+  padding: 0;
+}
+
+.invoice-link-btn:hover {
+  text-decoration: underline;
+}
+
+.invoice-preview {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f3f7fa;
+}
+
+.refund-history-block {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.refund-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.refund-item {
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.refund-item__summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.refund-item__summary p {
+  margin: 4px 0 0;
+  color: #4b5563;
+}
+
+.refund-decision-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+
+.refund-decision-row textarea {
+  flex: 1;
+}
+
+.refund-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px 14px;
+}
+
+.reject-btn {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px 14px;
+}
+
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 10px;
+}
+
+.empty-state.nested {
+  padding: 12px;
+}
+
+.money-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .money-stats-grid,
+  .money-detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-money-container {
+    padding: 24px 16px;
+  }
+
+  .money-stats-grid,
+  .money-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .money-section-header,
+  .refund-item__summary,
+  .refund-decision-row,
+  .refund-buttons {
+    flex-direction: column;
+  }
+
+  .money-table {
+    min-width: 860px;
+  }
+}

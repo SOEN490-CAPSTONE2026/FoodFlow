@@ -5,16 +5,23 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 
-function StripePaymentForm({ amount, currency = 'USD', onBack }) {
+function StripePaymentForm({
+  amount,
+  currency = 'USD',
+  onBack,
+  clientSecret = '',
+  savedMethodLabel = '',
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const usingSavedMethod = Boolean(savedMethodLabel);
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    if (!stripe || !elements) {
+    if (!stripe || (!usingSavedMethod && !elements)) {
       return;
     }
 
@@ -22,12 +29,18 @@ function StripePaymentForm({ amount, currency = 'USD', onBack }) {
     setErrorMessage('');
 
     try {
-      const { error } = await stripe.confirmPayment({
-        elements,
+      const confirmationPayload = {
         confirmParams: {
           return_url: `${window.location.origin}/payment/success`,
         },
-      });
+      };
+      if (usingSavedMethod) {
+        confirmationPayload.clientSecret = clientSecret;
+      } else {
+        confirmationPayload.elements = elements;
+      }
+
+      const { error } = await stripe.confirmPayment(confirmationPayload);
 
       if (error) {
         setErrorMessage(error.message || 'An error occurred during payment');
@@ -58,7 +71,14 @@ function StripePaymentForm({ amount, currency = 'USD', onBack }) {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <PaymentElement />
+        {usingSavedMethod ? (
+          <div className="payment-tools-placeholder">
+            Confirm your donation with the saved default method:{' '}
+            <strong>{savedMethodLabel}</strong>
+          </div>
+        ) : (
+          <PaymentElement />
+        )}
 
         {errorMessage && (
           <div className="error-message" role="alert">
@@ -82,18 +102,22 @@ function StripePaymentForm({ amount, currency = 'USD', onBack }) {
           >
             {isProcessing
               ? 'Processing...'
-              : `Donate ${currency} ${amount.toFixed(2)}`}
+              : usingSavedMethod
+                ? `Confirm ${currency} ${amount.toFixed(2)}`
+                : `Donate ${currency} ${amount.toFixed(2)}`}
           </button>
         </div>
       </form>
 
-      <div className="test-mode-notice">
-        <p>
-          <strong>Test Mode:</strong> Use card number{' '}
-          <code>4242 4242 4242 4242</code>
-        </p>
-        <p>Any future date, any 3-digit CVC, any zip code</p>
-      </div>
+      {!usingSavedMethod && (
+        <div className="test-mode-notice">
+          <p>
+            <strong>Test Mode:</strong> Use card number{' '}
+            <code>4242 4242 4242 4242</code>
+          </p>
+          <p>Any future date, any 3-digit CVC, any zip code</p>
+        </div>
+      )}
     </div>
   );
 }

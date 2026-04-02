@@ -8,14 +8,13 @@ import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
-import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.test.context.ActiveProfiles;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -26,32 +25,34 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class MessageServiceTest {
 
-    @Autowired
+    @InjectMocks
     private MessageService messageService;
 
-    @MockBean
+    @Mock
     private MessageRepository messageRepository;
 
-    @MockBean
+    @Mock
     private ConversationRepository conversationRepository;
 
-    @MockBean
+    @Mock
     private ConversationService conversationService;
 
-    @MockBean
+    @Mock
     private SimpMessagingTemplate messagingTemplate;
 
-    @MockBean
+    @Mock
     private BusinessMetricsService businessMetricsService;
 
-    @MockBean
+    @Mock
     private NotificationPreferenceService notificationPreferenceService;
 
-    @MockBean
+    @Mock
+    private EmailNotificationService emailService;
+
+    @Mock
     private GamificationService gamificationService;
 
     private User sender;
@@ -75,10 +76,6 @@ class MessageServiceTest {
         // Setup test conversation
         conversation = new Conversation(sender, recipient);
         conversation.setId(1L);
-
-        // Mock timer
-        Timer.Sample mockSample = mock(Timer.Sample.class);
-        when(businessMetricsService.startTimer()).thenReturn(mockSample);
     }
 
     @Test
@@ -497,4 +494,3 @@ class MessageServiceTest {
         verify(notificationPreferenceService, times(2)).shouldSendNotification(eq(recipient), eq("newMessageFromDonor"), anyString());
     }
 }
-

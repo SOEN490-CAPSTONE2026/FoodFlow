@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, Package, ArrowUpDown } from 'lucide-react';
 import { savedDonationAPI, surplusAPI } from '../../services/api';
@@ -10,12 +10,19 @@ import {
   parseLocalDateTimeParts,
 } from '../../utils/timezoneUtils';
 import { normalizeStatus } from '../../utils/statusUtils';
+import {
+  isApprovedAccount,
+  isApprovalRequiredError,
+} from '../../utils/approvalUtils';
+import { AuthContext } from '../../contexts/AuthContext';
+import ApprovalRequiredModal from '../ApprovalRequiredModal';
 import ReceiverDonationCard from './ReceiverDonationCard';
 import './ReceiverBrowseModal.css';
 import './ReceiverBrowse.css';
 
 export default function ReceiverSavedDonations() {
   const { t } = useTranslation();
+  const { accountStatus } = useContext(AuthContext) || {};
   const { userTimezone } = useTimezone();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +35,8 @@ export default function ReceiverSavedDonations() {
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0);
   const [claiming, setClaiming] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
+  const [showApprovalRequiredModal, setShowApprovalRequiredModal] =
+    useState(false);
 
   const fetchSavedDonations = useCallback(async () => {
     setLoading(true);
@@ -114,6 +123,12 @@ export default function ReceiverSavedDonations() {
         setClaimTargetItem(null);
       } catch (claimError) {
         console.error('Error claiming post:', claimError);
+        if (isApprovalRequiredError(claimError)) {
+          setClaimModalOpen(false);
+          setClaimTargetItem(null);
+          setShowApprovalRequiredModal(true);
+          return;
+        }
         alert(
           claimError.response?.data?.message ||
             t('receiverBrowse.failedToClaim')
@@ -127,6 +142,11 @@ export default function ReceiverSavedDonations() {
 
   const handleClaimDonation = useCallback(
     item => {
+      if (!isApprovedAccount(accountStatus)) {
+        setShowApprovalRequiredModal(true);
+        return;
+      }
+
       if (
         item.pickupSlots &&
         Array.isArray(item.pickupSlots) &&
@@ -153,7 +173,7 @@ export default function ReceiverSavedDonations() {
 
       confirmClaim(item, legacySlot);
     },
-    [confirmClaim, t]
+    [accountStatus, confirmClaim, t]
   );
 
   const formatBestBeforeDate = useCallback(
@@ -405,6 +425,18 @@ export default function ReceiverSavedDonations() {
         }}
         loading={claiming}
         formatFn={formatPickupTime}
+      />
+      <ApprovalRequiredModal
+        isOpen={showApprovalRequiredModal}
+        onClose={() => setShowApprovalRequiredModal(false)}
+        title={t(
+          'common.approvalRequired.claimTitle',
+          'Approval required to claim donations'
+        )}
+        message={t(
+          'common.approvalRequired.claimMessage',
+          'This action is available once a FoodFlow admin approves your account. Please wait for approval before claiming donations.'
+        )}
       />
     </div>
   );

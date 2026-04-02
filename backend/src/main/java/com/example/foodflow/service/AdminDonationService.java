@@ -41,7 +41,7 @@ public class AdminDonationService {
     private final ClaimRepository claimRepository;
     private final DonationTimelineRepository timelineRepository;
     private final NotificationPreferenceService notificationPreferenceService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final SimpMessagingTemplate messagingTemplate;
     
     public AdminDonationService(
@@ -51,7 +51,7 @@ public class AdminDonationService {
             UserRepository userRepository,
             TimelineService timelineService,
             NotificationPreferenceService notificationPreferenceService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             SimpMessagingTemplate messagingTemplate) {
         this.surplusPostRepository = surplusPostRepository;
         this.claimRepository = claimRepository;
@@ -289,8 +289,14 @@ public class AdminDonationService {
             response.setDonorOrganization(donor.getOrganization().getName());
         }
         
-        // Get claim information if exists (get ACTIVE claim)
+        // Get claim information if exists (prefer ACTIVE, fall back to COMPLETED/NOT_COMPLETED)
         Optional<Claim> claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.ACTIVE);
+        if (!claimOpt.isPresent()) {
+            claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.COMPLETED);
+        }
+        if (!claimOpt.isPresent()) {
+            claimOpt = claimRepository.findBySurplusPostIdAndStatus(post.getId(), ClaimStatus.NOT_COMPLETED);
+        }
         if (claimOpt.isPresent()) {
             Claim claim = claimOpt.get();
             User receiver = claim.getReceiver();

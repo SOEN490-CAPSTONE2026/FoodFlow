@@ -9,6 +9,10 @@ import * as socketModule from '../../../services/socket';
 // --- Mocks ---
 
 jest.mock('../../../services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(() => Promise.resolve({ data: [] })),
+  },
   profileAPI: {
     get: jest.fn(() => Promise.resolve({ data: {} })),
   },

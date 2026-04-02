@@ -1,5 +1,6 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.CompleteSurplusRequest;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
@@ -168,6 +169,18 @@ class SurplusControllerTest {
     @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
     void testCreateSurplusPost_InvalidRequest_InvalidQuantity() throws Exception {
         request.setQuantity(new Quantity(-5.0, Quantity.Unit.KILOGRAM));  // ✅ Negative Double
+
+        mockMvc.perform(post("/api/surplus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "donor@test.com", authorities = {"DONOR"})
+    void testCreateSurplusPost_UnapprovedAccount_ReturnsBadRequest() throws Exception {
+        when(surplusService.createSurplusPost(any(CreateSurplusRequest.class), any()))
+            .thenThrow(new BusinessException("error.account.not_approved"));
 
         mockMvc.perform(post("/api/surplus")
                 .contentType(MediaType.APPLICATION_JSON)

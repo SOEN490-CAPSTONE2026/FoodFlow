@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Footer from '../Footer';
 import Home from './Home';
@@ -10,26 +10,44 @@ import SEOHead from '../SEOHead';
 const LandingPage = () => {
   const location = useLocation();
 
+  const scrollWithOffset = useCallback(element => {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const scrollToSection = useCallback(
+    (sectionId, attempts = 8) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        scrollWithOffset(element);
+        return;
+      }
+
+      if (attempts > 0) {
+        setTimeout(() => scrollToSection(sectionId, attempts - 1), 80);
+      }
+    },
+    [scrollWithOffset]
+  );
+
   useEffect(() => {
     // Handle scroll to section when navigating with state
-    if (location.state?.scrollTo) {
-      const sectionId = location.state.scrollTo;
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const navbarHeight = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.pageYOffset - navbarHeight;
+    const stateTarget = location.state?.scrollTo;
+    const sessionTarget = sessionStorage.getItem('landingScrollTarget');
+    const hashTarget = window.location.hash
+      ? window.location.hash.slice(1)
+      : null;
+    const target = stateTarget || sessionTarget || hashTarget;
 
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth',
-          });
-        }
-      }, 300);
+    if (!target) {
+      return;
     }
-  }, [location]);
+
+    scrollToSection(target);
+
+    if (sessionTarget) {
+      sessionStorage.removeItem('landingScrollTarget');
+    }
+  }, [location, scrollToSection]);
 
   return (
     <div className="landing-page">

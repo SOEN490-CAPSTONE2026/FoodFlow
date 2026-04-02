@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminImageAPI } from '../../services/api';
 import { foodTypeOptions } from '../../constants/foodConstants';
 import './Admin_Styles/AdminImages.css';
@@ -6,6 +7,7 @@ import './Admin_Styles/AdminImages.css';
 const moderationOptions = ['PENDING', 'APPROVED', 'REJECTED', 'DISABLED'];
 
 export default function AdminImages() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState('PENDING');
   const [uploads, setUploads] = useState([]);
   const [library, setLibrary] = useState([]);
@@ -15,27 +17,37 @@ export default function AdminImages() {
   const [foodType, setFoodType] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const getImageUrl = imageUrl => {
-    if (!imageUrl) {
+  const getImageUrl = value => {
+    if (!value) {
       return null;
     }
     if (
-      imageUrl.startsWith('http://') ||
-      imageUrl.startsWith('https://') ||
-      imageUrl.startsWith('data:')
+      value.startsWith('http://') ||
+      value.startsWith('https://') ||
+      value.startsWith('data:')
     ) {
-      return imageUrl;
+      return value;
     }
     const apiBaseUrl =
       process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
     const backendBaseUrl = apiBaseUrl.endsWith('/api')
       ? apiBaseUrl.slice(0, -4)
       : apiBaseUrl.replace(/\/api$/, '');
-    if (imageUrl.startsWith('/api/files/')) {
-      return `${backendBaseUrl}${imageUrl}`;
+    if (value.startsWith('/api/files/')) {
+      return `${backendBaseUrl}${value}`;
     }
-    return `${backendBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+    return `${backendBaseUrl}${value.startsWith('/') ? '' : '/'}${value}`;
   };
+
+  const getFoodTypeLabel = value => {
+    if (!value) {
+      return t('adminImages.fields.generic');
+    }
+    return t(`foodTypeLabels.${value}`, value);
+  };
+
+  const getStatusLabel = value =>
+    t(`adminImages.statusOptions.${String(value || '').toLowerCase()}`, value);
 
   useEffect(() => {
     const load = async () => {
@@ -48,11 +60,11 @@ export default function AdminImages() {
         setUploads(uploadsResp.data || []);
         setLibrary(libraryResp.data || []);
       } catch (err) {
-        setError('Failed to load image moderation data.');
+        setError(t('adminImages.errors.loadFailed'));
       }
     };
     load();
-  }, [status, refreshKey]);
+  }, [status, refreshKey, t]);
 
   const moderate = async (id, nextStatus) => {
     if (nextStatus === 'APPROVED') {
@@ -61,14 +73,14 @@ export default function AdminImages() {
       return;
     }
 
-    const reason = window.prompt('Reason (optional):') || '';
+    const reason = window.prompt(t('adminImages.reasonPrompt')) || '';
     await adminImageAPI.moderateUpload(id, { status: nextStatus, reason });
     setRefreshKey(k => k + 1);
   };
 
   const addLibrary = async () => {
     if (!foodType) {
-      setError('Please select a food type category.');
+      setError(t('adminImages.errors.selectFoodType'));
       return;
     }
 
@@ -84,7 +96,9 @@ export default function AdminImages() {
       setFoodType('');
       setRefreshKey(k => k + 1);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add library image.');
+      setError(
+        err.response?.data?.message || t('adminImages.errors.addFailed')
+      );
     }
   };
 
@@ -92,7 +106,9 @@ export default function AdminImages() {
     <div className="admin-images-page">
       <div className="admin-images-header">
         <div className="admin-images-filter">
-          <label htmlFor="image-status-filter">Status</label>
+          <label htmlFor="image-status-filter">
+            {t('adminImages.fields.status')}
+          </label>
           <select
             id="image-status-filter"
             value={status}
@@ -100,7 +116,7 @@ export default function AdminImages() {
           >
             {moderationOptions.map(option => (
               <option key={option} value={option}>
-                {option}
+                {getStatusLabel(option)}
               </option>
             ))}
           </select>
@@ -111,14 +127,14 @@ export default function AdminImages() {
 
       <section className="admin-images-section">
         <div className="admin-images-section-title">
-          <h3>Uploaded Images</h3>
+          <h3>{t('adminImages.uploaded.title')}</h3>
           <span className="admin-images-count-pill">
-            {uploads.length} items
+            {t('adminImages.itemsCount', { count: uploads.length })}
           </span>
         </div>
         {uploads.length === 0 ? (
           <div className="admin-images-empty-state">
-            No uploads found for the selected status.
+            {t('adminImages.uploaded.empty')}
           </div>
         ) : (
           <div className="admin-images-grid">
@@ -126,23 +142,29 @@ export default function AdminImages() {
               <article key={item.id} className="admin-image-card">
                 <img
                   src={getImageUrl(item.url)}
-                  alt={`Upload ${item.id}`}
+                  alt={t('adminImages.uploaded.alt', { id: item.id })}
                   className="admin-image-card-preview"
                 />
                 <div className="admin-image-card-body">
                   <div className="admin-image-card-meta">
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">ID</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.id')}
+                      </span>
                       <span className="admin-image-meta-value">#{item.id}</span>
                     </div>
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">Food Type</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.foodType')}
+                      </span>
                       <span className="admin-image-meta-value">
-                        {item.foodType || 'GENERIC'}
+                        {getFoodTypeLabel(item.foodType)}
                       </span>
                     </div>
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">Donor</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.donor')}
+                      </span>
                       <span className="admin-image-meta-value">
                         {item.donorName ||
                           item.donorEmail ||
@@ -150,17 +172,21 @@ export default function AdminImages() {
                       </span>
                     </div>
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">Status</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.status')}
+                      </span>
                       <span
                         className={`admin-image-status admin-image-status-${(item.status || '').toLowerCase()}`}
                       >
-                        {item.status}
+                        {getStatusLabel(item.status)}
                       </span>
                     </div>
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">Reason</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.reason')}
+                      </span>
                       <span className="admin-image-meta-value">
-                        {item.reason || '-'}
+                        {item.reason || t('adminImages.fields.none')}
                       </span>
                     </div>
                   </div>
@@ -170,21 +196,21 @@ export default function AdminImages() {
                       className="btn-action approve"
                       onClick={() => moderate(item.id, 'APPROVED')}
                     >
-                      Approve
+                      {t('adminImages.actions.approve')}
                     </button>
                     <button
                       type="button"
                       className="btn-action reject"
                       onClick={() => moderate(item.id, 'REJECTED')}
                     >
-                      Reject
+                      {t('adminImages.actions.reject')}
                     </button>
                     <button
                       type="button"
                       className="btn-action disable"
                       onClick={() => moderate(item.id, 'DISABLED')}
                     >
-                      Disable
+                      {t('adminImages.actions.disable')}
                     </button>
                     <button
                       type="button"
@@ -194,7 +220,7 @@ export default function AdminImages() {
                         setRefreshKey(k => k + 1);
                       }}
                     >
-                      Delete
+                      {t('adminImages.actions.delete')}
                     </button>
                   </div>
                 </div>
@@ -206,14 +232,16 @@ export default function AdminImages() {
 
       <section className="admin-images-section">
         <div className="admin-images-section-title">
-          <h3>Internal Image Library</h3>
+          <h3>{t('adminImages.library.title')}</h3>
           <span className="admin-images-count-pill">
-            {library.length} items
+            {t('adminImages.itemsCount', { count: library.length })}
           </span>
         </div>
         <div className="admin-library-toolbar">
           <div className="toolbar-file">
-            <label htmlFor="library-file">Upload image</label>
+            <label htmlFor="library-file">
+              {t('adminImages.library.uploadImage')}
+            </label>
             <input
               id="library-file"
               type="file"
@@ -221,7 +249,9 @@ export default function AdminImages() {
             />
           </div>
           <div className="toolbar-field">
-            <label htmlFor="library-image-url">Or image URL</label>
+            <label htmlFor="library-image-url">
+              {t('adminImages.library.orImageUrl')}
+            </label>
             <input
               id="library-image-url"
               type="text"
@@ -231,28 +261,32 @@ export default function AdminImages() {
             />
           </div>
           <div className="toolbar-field">
-            <label htmlFor="library-food-type">Food type</label>
+            <label htmlFor="library-food-type">
+              {t('adminImages.fields.foodType')}
+            </label>
             <select
               id="library-food-type"
               value={foodType}
               onChange={e => setFoodType(e.target.value)}
             >
-              <option value="">Select a category</option>
+              <option value="">
+                {t('adminImages.library.selectCategory')}
+              </option>
               {foodTypeOptions.map(option => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(`foodTypeLabels.${option.value}`, option.label)}
                 </option>
               ))}
             </select>
           </div>
           <button type="button" className="btn-action add" onClick={addLibrary}>
-            Add
+            {t('adminImages.actions.add')}
           </button>
         </div>
 
         {library.length === 0 ? (
           <div className="admin-images-empty-state">
-            Internal library is empty. Add your first fallback image.
+            {t('adminImages.library.empty')}
           </div>
         ) : (
           <div className="admin-images-grid">
@@ -260,25 +294,33 @@ export default function AdminImages() {
               <article key={item.id} className="admin-image-card">
                 <img
                   src={getImageUrl(item.url)}
-                  alt={`Library ${item.id}`}
+                  alt={t('adminImages.library.alt', { id: item.id })}
                   className="admin-image-card-preview"
                 />
                 <div className="admin-image-card-body">
                   <div className="admin-image-card-meta">
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">ID</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.id')}
+                      </span>
                       <span className="admin-image-meta-value">#{item.id}</span>
                     </div>
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">Food Type</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.foodType')}
+                      </span>
                       <span className="admin-image-meta-value">
-                        {item.foodType || 'GENERIC'}
+                        {getFoodTypeLabel(item.foodType)}
                       </span>
                     </div>
                     <div className="admin-image-meta-row">
-                      <span className="admin-image-meta-label">Active</span>
+                      <span className="admin-image-meta-label">
+                        {t('adminImages.fields.active')}
+                      </span>
                       <span className="admin-image-meta-value">
-                        {item.active ? 'Yes' : 'No'}
+                        {item.active
+                          ? t('adminImages.fields.yes')
+                          : t('adminImages.fields.no')}
                       </span>
                     </div>
                   </div>
@@ -294,7 +336,9 @@ export default function AdminImages() {
                         setRefreshKey(k => k + 1);
                       }}
                     >
-                      {item.active ? 'Deactivate' : 'Activate'}
+                      {item.active
+                        ? t('adminImages.actions.deactivate')
+                        : t('adminImages.actions.activate')}
                     </button>
                     <button
                       type="button"
@@ -304,7 +348,7 @@ export default function AdminImages() {
                         setRefreshKey(k => k + 1);
                       }}
                     >
-                      Remove
+                      {t('adminImages.actions.remove')}
                     </button>
                   </div>
                 </div>

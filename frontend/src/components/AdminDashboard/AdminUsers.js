@@ -7,7 +7,6 @@ import {
   ChevronDown,
   Power,
   Bell,
-  Edit3,
   Search,
   Users,
   Gift,
@@ -17,13 +16,7 @@ import {
   Info,
   User,
   Building2,
-  Phone as PhoneIcon,
-  Mail,
-  FileText,
   Calendar,
-  Clock,
-  Download,
-  Globe,
 } from 'lucide-react';
 import { feedbackAPI } from '../../services/api';
 import './Admin_Styles/AdminUsers.css';
@@ -51,7 +44,7 @@ const AdminUsers = () => {
 
   // Filters
   const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ACTIVE');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
@@ -317,12 +310,62 @@ const AdminUsers = () => {
     }
   };
 
+  const handleDeleteFromAlert = async () => {
+    if (!selectedUser || !alertMessage.trim()) {
+      setNotificationMessage(
+        t('adminUsers.notifications.deleteMessageRequired')
+      );
+      setNotificationType('error');
+      setShowNotification(true);
+      return;
+    }
+
+    try {
+      const token =
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+      await axios.put(
+        `${process.env.REACT_APP_API_BASE_URL}/admin/users/${selectedUser.id}/deactivate`,
+        { adminNotes: alertMessage.trim(), deleteRequested: true },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotificationMessage(t('adminUsers.notifications.deleted'));
+      setNotificationType('success');
+      setShowNotification(true);
+      closeAlertModal();
+      fetchUsers();
+    } catch (err) {
+      console.error('Error deleting user from alert modal:', err);
+      setNotificationMessage(
+        err.response?.data || t('adminUsers.notifications.deleteFailed')
+      );
+      setNotificationType('error');
+      setShowNotification(true);
+    }
+  };
+
   // Close alert modal and reset states
   const closeAlertModal = () => {
     setShowAlertModal(false);
     setAlertMessage('');
     setAlertType('');
     setSelectedUser(null);
+  };
+
+  const selectAlertType = type => {
+    if (alertType === type) {
+      setAlertType('');
+      setAlertMessage('');
+      return;
+    }
+
+    setAlertType(type);
+    if (type === 'custom') {
+      setAlertMessage('');
+      return;
+    }
+
+    setAlertMessage(t(`adminUsers.alertTemplates.${type}`));
   };
 
   // File upload handlers
@@ -464,14 +507,6 @@ const AdminUsers = () => {
         }
       );
 
-      console.log('Backend user data:', response.data);
-      console.log('Address:', response.data.address);
-      console.log('BusinessLicense:', response.data.businessLicense);
-      console.log(
-        'CharityRegistrationNumber:',
-        response.data.charityRegistrationNumber
-      );
-
       // Set the detailed user data
       setSelectedUserForView(response.data);
       setShowUserDetailModal(true);
@@ -506,7 +541,7 @@ const AdminUsers = () => {
   // Reset filters
   const handleResetFilters = () => {
     setRoleFilter('');
-    setStatusFilter('');
+    setStatusFilter('ACTIVE');
     setSearchTerm('');
     setCurrentPage(0);
   };
@@ -557,19 +592,6 @@ const AdminUsers = () => {
     return colors[charCode % colors.length];
   };
 
-  // Map language code to display name
-  const getLanguageLabel = code => {
-    const languageMap = {
-      en: 'English',
-      fr: 'Français',
-      es: 'Español',
-      zh: '中文',
-      ar: 'العربية',
-      pt: 'Português',
-    };
-    return languageMap[code] || code || 'N/A';
-  };
-
   // React Select options
   const roleOptions = [
     { value: '', label: t('adminUsers.filters.allRoles') },
@@ -589,11 +611,37 @@ const AdminUsers = () => {
     control: base => ({
       ...base,
       minHeight: '42px',
+      backgroundColor: '#ffffff',
       border: '1px solid #e5e7eb',
       borderRadius: '6px',
       boxShadow: 'none',
       '&:hover': {
         borderColor: '#d1d5db',
+      },
+    }),
+    valueContainer: base => ({
+      ...base,
+      backgroundColor: '#ffffff',
+      borderRadius: '6px',
+      padding: '2px 10px',
+    }),
+    singleValue: base => ({
+      ...base,
+      color: '#374151',
+    }),
+    placeholder: base => ({
+      ...base,
+      color: '#6b7280',
+    }),
+    indicatorSeparator: base => ({
+      ...base,
+      backgroundColor: '#e5e7eb',
+    }),
+    dropdownIndicator: (base, state) => ({
+      ...base,
+      color: state.isFocused ? '#374151' : '#6b7280',
+      '&:hover': {
+        color: '#374151',
       },
     }),
     option: (base, state) => ({
@@ -608,8 +656,22 @@ const AdminUsers = () => {
     }),
     menu: base => ({
       ...base,
+      overflow: 'hidden',
       borderRadius: '6px',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e5e7eb',
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      zIndex: 30,
+    }),
+    menuList: base => ({
+      ...base,
+      padding: '6px',
+      backgroundColor: '#ffffff',
+      borderRadius: '6px',
+    }),
+    menuPortal: base => ({
+      ...base,
+      zIndex: 9999,
     }),
   };
 
@@ -692,6 +754,7 @@ const AdminUsers = () => {
               options={roleOptions}
               styles={selectStyles}
               className="filter-select-react"
+              menuPortalTarget={document.body}
               placeholder={t('adminUsers.filters.allRoles')}
               isSearchable={false}
             />
@@ -702,6 +765,7 @@ const AdminUsers = () => {
               options={statusOptions}
               styles={selectStyles}
               className="filter-select-react"
+              menuPortalTarget={document.body}
               placeholder={t('adminUsers.filters.allStatus')}
               isSearchable={false}
             />
@@ -794,11 +858,17 @@ const AdminUsers = () => {
                     </TableCell>
                     <TableCell data-label="Status">
                       <span
-                        className={`pill pill-status-${user.accountStatus.toLowerCase()}`}
+                        className={`pill pill-status-${
+                          user.accountStatus === 'DELETED'
+                            ? 'deactivated'
+                            : user.accountStatus.toLowerCase()
+                        }`}
                       >
                         {user.accountStatus === 'ACTIVE'
                           ? t('adminUsers.status.active')
-                          : t('adminUsers.status.deactivated')}
+                          : user.accountStatus === 'DELETED'
+                            ? t('adminUsers.status.deleted')
+                            : t('adminUsers.status.deactivated')}
                       </span>
                     </TableCell>
                     <TableCell data-label="Email" className="email-cell">
@@ -942,7 +1012,7 @@ const AdminUsers = () => {
                                       });
                                       return (
                                         <li key={index}>
-                                          • {actionText}{' '}
+                                          &bull; {actionText}{' '}
                                           {t(
                                             'adminUsers.details.activityLog.on'
                                           )}{' '}
@@ -988,7 +1058,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowDeactivateModal(false)}
             >
-              ×
+              x
             </button>
             <h2>{t('adminUsers.modals.deactivate.title')}</h2>
             <p className="alert-user-name">{selectedUser?.email}</p>
@@ -1063,7 +1133,7 @@ const AdminUsers = () => {
             onClick={e => e.stopPropagation()}
           >
             <button className="modal-close" onClick={closeAlertModal}>
-              ×
+              x
             </button>
             <h2>{t('adminUsers.modals.alert.title')}</h2>
             <p className="alert-user-name">
@@ -1080,13 +1150,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'warning' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'warning') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('warning');
-                      setAlertMessage(t('adminUsers.alertTemplates.warning'));
-                    }
+                    selectAlertType('warning');
                   }}
                 >
                   <input
@@ -1111,13 +1175,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'safety' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'safety') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('safety');
-                      setAlertMessage(t('adminUsers.alertTemplates.safety'));
-                    }
+                    selectAlertType('safety');
                   }}
                 >
                   <input
@@ -1142,15 +1200,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'compliance' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'compliance') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('compliance');
-                      setAlertMessage(
-                        t('adminUsers.alertTemplates.compliance')
-                      );
-                    }
+                    selectAlertType('compliance');
                   }}
                 >
                   <input
@@ -1175,13 +1225,7 @@ const AdminUsers = () => {
                   className={`alert-option ${alertType === 'custom' ? 'selected' : ''}`}
                   onClick={e => {
                     e.preventDefault();
-                    if (alertType === 'custom') {
-                      setAlertType('');
-                      setAlertMessage('');
-                    } else {
-                      setAlertType('custom');
-                      setAlertMessage('');
-                    }
+                    selectAlertType('custom');
                   }}
                 >
                   <input
@@ -1201,30 +1245,76 @@ const AdminUsers = () => {
                     </div>
                   </div>
                 </label>
+
+                <label
+                  className={`alert-option alert-option-delete ${alertType === 'delete' ? 'selected' : ''}`}
+                  onClick={e => {
+                    e.preventDefault();
+                    selectAlertType('delete');
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="alertType"
+                    value="delete"
+                    checked={alertType === 'delete'}
+                    onChange={() => {}}
+                    readOnly
+                  />
+                  <div className="alert-option-content">
+                    <div className="alert-option-title">
+                      {t('adminUsers.alertTypes.delete')}
+                    </div>
+                    <div className="alert-option-desc">
+                      {t('adminUsers.alertDescriptions.delete')}
+                    </div>
+                  </div>
+                </label>
               </div>
             </div>
 
             {alertType && (
-              <div
-                className="custom-message-section"
-                onClick={e => e.stopPropagation()}
-                onMouseDown={e => e.stopPropagation()}
-              >
-                <textarea
-                  placeholder={
-                    alertType === 'custom'
-                      ? t('adminUsers.modals.alert.customPlaceholder')
-                      : t('adminUsers.modals.alert.editPlaceholder')
-                  }
-                  value={alertMessage}
-                  onChange={e => setAlertMessage(e.target.value)}
-                  className="modal-textarea"
-                  rows="4"
+              <>
+                <div className="language-notice-section">
+                  <div className="language-notice-content">
+                    <div className="language-notice-icon">ℹ️</div>
+                    <div className="language-notice-text">
+                      <p className="language-notice-label">
+                        {t('adminUsers.modals.alert.userLanguage')}:{' '}
+                        <strong>
+                          {selectedUser?.languagePreference || 'en'}
+                        </strong>
+                      </p>
+                      <p className="language-notice-warning">
+                        {t('adminUsers.modals.alert.languageWarning')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className="custom-message-section"
                   onClick={e => e.stopPropagation()}
                   onMouseDown={e => e.stopPropagation()}
-                  onFocus={e => e.stopPropagation()}
-                />
-              </div>
+                >
+                  <textarea
+                    placeholder={
+                      alertType === 'custom'
+                        ? t('adminUsers.modals.alert.customPlaceholder')
+                        : alertType === 'delete'
+                          ? t('adminUsers.modals.alert.deletePlaceholder')
+                          : t('adminUsers.modals.alert.editPlaceholder')
+                    }
+                    value={alertMessage}
+                    onChange={e => setAlertMessage(e.target.value)}
+                    className="modal-textarea"
+                    rows="4"
+                    onClick={e => e.stopPropagation()}
+                    onMouseDown={e => e.stopPropagation()}
+                    onFocus={e => e.stopPropagation()}
+                  />
+                </div>
+              </>
             )}
 
             <div className="modal-actions">
@@ -1232,10 +1322,18 @@ const AdminUsers = () => {
                 {t('common.cancel')}
               </button>
               <button
-                onClick={handleSendAlert}
-                className="btn-confirm btn-send-alert"
+                onClick={
+                  alertType === 'delete'
+                    ? handleDeleteFromAlert
+                    : handleSendAlert
+                }
+                className={`btn-confirm ${
+                  alertType === 'delete' ? 'btn-delete-user' : 'btn-send-alert'
+                }`}
               >
-                {t('adminUsers.actions.sendAlert')}
+                {alertType === 'delete'
+                  ? t('adminUsers.actions.deleteUser')
+                  : t('adminUsers.actions.sendAlert')}
               </button>
             </div>
           </div>
@@ -1257,10 +1355,10 @@ const AdminUsers = () => {
             >
               <h3>
                 {notificationType === 'success'
-                  ? '✓ Success'
+                  ? '\u2705 Success'
                   : notificationType === 'error'
-                    ? 'Error'
-                    : 'ℹ Notice'}
+                    ? '\u274C Error'
+                    : '\u2139\uFE0F Notice'}
               </h3>
             </div>
             <div className="notification-body">
@@ -1292,11 +1390,11 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => setShowUserDetailModal(false)}
             >
-              ×
+              x
             </button>
 
             <div className="modal-header">
-              <h2>User Details</h2>
+              <h2>{t('adminUsers.userDetails.title')}</h2>
             </div>
 
             <div className="modal-body">
@@ -1304,112 +1402,14 @@ const AdminUsers = () => {
               <div className="info-card">
                 <div className="info-card-header">
                   <Info size={20} />
-                  <h3>Basic Information</h3>
+                  <h3>{t('adminUsers.userDetails.basicInformation')}</h3>
                 </div>
                 <div className="info-grid">
                   <div className="info-item">
                     <span className="info-label">
-                      <User size={16} /> ID
+                      <User size={16} /> {t('adminUsers.userDetails.id')}
                     </span>
                     <span className="info-value">{selectedUserForView.id}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <User size={16} /> Name
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.contactPerson ||
-                        selectedUserForView.fullName ||
-                        'N/A'}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Building2 size={16} /> Organization
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.organizationName || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Mail size={16} /> Email
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.email}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <PhoneIcon size={16} /> Phone
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.phone || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Globe size={16} /> Preferred Language
-                    </span>
-                    <span className="info-value">
-                      {getLanguageLabel(selectedUserForView.languagePreference)}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <FileText size={16} /> License Document
-                    </span>
-                    <span className="info-value">
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '10px',
-                          alignItems: 'center',
-                        }}
-                      >
-                        {selectedUserForView.supportingDocumentUrl ||
-                        selectedUserForView.licenseDocument ||
-                        selectedUserForView.businessLicense ||
-                        selectedUserForView.charityRegistrationNumber ? (
-                          <a
-                            href={
-                              selectedUserForView.supportingDocumentUrl ||
-                              selectedUserForView.licenseDocument ||
-                              `${process.env.REACT_APP_API_BASE_URL}/api/files/licenses/${selectedUserForView.businessLicense || selectedUserForView.charityRegistrationNumber}`
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="license-document-link"
-                          >
-                            <Download size={16} />
-                            View Document
-                          </a>
-                        ) : (
-                          'No document uploaded'
-                        )}
-                        <button
-                          className="btn-modify-document"
-                          onClick={() => setShowUploadDocumentModal(true)}
-                          title="Upload or replace document"
-                        >
-                          {Edit3 && (
-                            <Edit3 size={16} style={{ marginRight: '4px' }} />
-                          )}
-                          Modify
-                        </button>
-                      </div>
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <FileText size={16} /> Registration Number
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.businessLicense ||
-                        selectedUserForView.charityRegistrationNumber ||
-                        selectedUserForView.licenseNumber ||
-                        'N/A'}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -1418,84 +1418,24 @@ const AdminUsers = () => {
               <div className="info-card">
                 <div className="info-card-header">
                   <Sparkles size={20} />
-                  <h3>Activity & Statistics</h3>
+                  <h3>{t('adminUsers.userDetails.activityStatistics')}</h3>
                 </div>
                 <div className="info-grid">
                   <div className="info-item">
                     <span className="info-label">
-                      <Calendar size={16} /> Registration Date
+                      <Calendar size={16} />{' '}
+                      {t('adminUsers.userDetails.registrationDate')}
                     </span>
                     <span className="info-value">
                       {selectedUserForView.createdAt
                         ? new Date(
                             selectedUserForView.createdAt
                           ).toLocaleDateString()
-                        : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">
-                      <Clock size={16} /> Last Active
-                    </span>
-                    <span className="info-value">
-                      {selectedUserForView.lastActive
-                        ? new Date(
-                            selectedUserForView.lastActive
-                          ).toLocaleDateString()
-                        : 'N/A'}
-                    </span>
-                  </div>
-                  {selectedUserForView.role === 'DONOR' && (
-                    <div className="info-item">
-                      <span className="info-label">
-                        <Gift size={16} /> Total Donations
-                      </span>
-                      <span className="info-value">
-                        {selectedUserForView.donationCount || 0}
-                      </span>
-                    </div>
-                  )}
-                  {selectedUserForView.role === 'RECEIVER' && (
-                    <div className="info-item">
-                      <span className="info-label">
-                        <Handshake size={16} /> Total Claims
-                      </span>
-                      <span className="info-value">
-                        {selectedUserForView.claimCount || 0}
-                      </span>
-                    </div>
-                  )}
-                  <div className="info-item">
-                    <span className="info-label">Rating</span>
-                    <span className="info-value">
-                      {userRatings[selectedUserForView.id] !== undefined &&
-                      userRatings[selectedUserForView.id].averageRating
-                        ? `${userRatings[selectedUserForView.id].averageRating.toFixed(1)} ⭐ (${userRatings[selectedUserForView.id].totalReviews} reviews)`
-                        : 'No ratings yet'}
+                        : t('adminUsers.notAvailable')}
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Address Information Card */}
-              {selectedUserForView.address && (
-                <div className="info-card">
-                  <div className="info-card-header">
-                    <Building2 size={20} />
-                    <h3>Address Information</h3>
-                  </div>
-                  <div className="info-grid">
-                    <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-                      <span className="info-label">Address</span>
-                      <span className="info-value">
-                        {typeof selectedUserForView.address === 'string'
-                          ? selectedUserForView.address
-                          : `${selectedUserForView.address.street || ''}, ${selectedUserForView.address.city || ''}, ${selectedUserForView.address.province || ''} ${selectedUserForView.address.postalCode || ''}, ${selectedUserForView.address.country || ''}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1516,7 +1456,7 @@ const AdminUsers = () => {
               className="modal-close"
               onClick={() => closeUploadDocumentModal()}
             >
-              ✕
+              x
             </button>
             <div className="modal-header">
               <h3>Upload Supporting Document</h3>
@@ -1548,7 +1488,9 @@ const AdminUsers = () => {
               >
                 {!selectedFile ? (
                   <>
-                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>📎</p>
+                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>
+                      {'\u{1F4CE}'}
+                    </p>
                     <label
                       htmlFor="fileUploadAdmin"
                       style={{
@@ -1578,7 +1520,9 @@ const AdminUsers = () => {
                   </>
                 ) : (
                   <div style={{ color: '#0077b6' }}>
-                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>✓</p>
+                    <p style={{ fontSize: '2em', marginBottom: '10px' }}>
+                      {'\u{1F4CE}'}
+                    </p>
                     <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>
                       {selectedFile.name}
                     </p>

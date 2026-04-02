@@ -32,7 +32,7 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final NotificationPreferenceService notificationPreferenceService;
     private final BusinessMetricsService businessMetricsService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final SmsService smsService;
     
     public NotificationService(
@@ -42,7 +42,7 @@ public class NotificationService {
             UserRepository userRepository,
             NotificationPreferenceService notificationPreferenceService,
             BusinessMetricsService businessMetricsService,
-            EmailService emailService,
+            EmailNotificationService emailService,
             SmsService smsService) {
         this.messagingTemplate = messagingTemplate;
         this.receiverPreferencesRepository = receiverPreferencesRepository;

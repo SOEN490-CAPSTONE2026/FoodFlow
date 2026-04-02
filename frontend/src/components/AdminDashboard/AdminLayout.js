@@ -11,6 +11,7 @@ import {
   Users,
   UserCheck,
   Heart,
+  CircleDollarSign,
   Mail,
   ChevronRight,
   ChevronLeft,
@@ -152,11 +153,13 @@ export default function AdminLayout() {
       case '/admin/disputes':
         return t('admin.disputes');
       case '/admin/referrals':
-        return 'Referral Submissions';
+        return t('admin.referrals');
       case '/admin/help':
         return t('admin.help');
       case '/admin/images':
-        return 'Images';
+        return t('admin.images');
+      case '/admin/money-donations':
+        return t('admin.moneyDonations');
       default:
         return t('admin.dashboard');
     }
@@ -182,11 +185,13 @@ export default function AdminLayout() {
       case '/admin/disputes':
         return t('admin.disputesDesc');
       case '/admin/referrals':
-        return 'View community invitations and business suggestions from users';
+        return t('admin.referralsDesc');
       case '/admin/help':
         return t('admin.guides');
       case '/admin/images':
-        return 'Moderate uploads and manage default library images';
+        return t('admin.imagesDesc');
+      case '/admin/money-donations':
+        return t('admin.moneyDonationsDesc');
       default:
         return t('admin.administration');
     }
@@ -306,14 +311,25 @@ export default function AdminLayout() {
           </Link>
 
           <Link
+            to="/admin/money-donations"
+            className={`admin-nav-link ${isActive('/admin/money-donations') ? 'active' : ''}`}
+            data-tooltip={t('admin.moneyDonations')}
+          >
+            <span className="nav-icon" aria-hidden>
+              <CircleDollarSign size={18} className="lucide" />
+            </span>
+            {t('admin.moneyDonations')}
+          </Link>
+
+          <Link
             to="/admin/images"
             className={`admin-nav-link ${isActive('/admin/images') ? 'active' : ''}`}
-            data-tooltip="Images"
+            data-tooltip={t('admin.images')}
           >
             <span className="nav-icon" aria-hidden>
               <Image size={18} className="lucide" />
             </span>
-            Images
+            {t('admin.images')}
           </Link>
 
           <Link
@@ -341,12 +357,12 @@ export default function AdminLayout() {
           <Link
             to="/admin/referrals"
             className={`admin-nav-link ${isActive('/admin/referrals') ? 'active' : ''}`}
-            data-tooltip="Referrals"
+            data-tooltip={t('admin.referrals')}
           >
             <span className="nav-icon" aria-hidden>
               <UserPlus size={18} className="lucide" />
             </span>
-            Referrals
+            {t('admin.referrals')}
           </Link>
 
           <Link
@@ -389,15 +405,12 @@ export default function AdminLayout() {
             <button className="user-profile-pic" type="button">
               <div
                 className="account-avatar"
-                style={
-                  profilePhotoUrl
-                    ? {
-                        backgroundImage: `url(${profilePhotoUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }
-                    : undefined
-                }
+                style={{
+                  backgroundImage: `url(${profilePhotoUrl || Logo})`,
+                  backgroundSize: profilePhotoUrl ? 'cover' : '70%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
               ></div>
               <div className="account-text">
                 <span className="account-name">

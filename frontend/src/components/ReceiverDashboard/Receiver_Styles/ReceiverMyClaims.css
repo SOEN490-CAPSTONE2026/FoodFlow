@@ -18,9 +18,37 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  flex-wrap: nowrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.claimed-page .claims-header-left {
+  display: none;
+}
+
+.claimed-page .claims-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 250px;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.claimed-page .claims-header-center h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1b4965;
+}
+
+.claimed-page .claims-header-center .claimed-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #64748b;
 }
 
 .claimed-page .claims-header-text {
@@ -28,7 +56,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .receiver-stats-box {
@@ -36,10 +64,11 @@
   border-radius: 8px;
   padding: 10px 16px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   margin-bottom: 0;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .receiver-stats-box .stat-item {
@@ -252,10 +281,8 @@
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  position: static;
-  width: fit-content;
-  max-width: min(100%, 520px);
-  margin: 0.9rem auto 1rem;
+  flex: 0 0 auto;
+  min-width: 280px;
   padding: 10px 12px;
   min-height: 72px;
   border: 1px solid #dbe5ef;
@@ -345,7 +372,7 @@
 .claimed-page .donations-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.5rem;
+  gap: 1.25rem;
   padding: 1rem 0;
   max-width: 100%;
   margin: 0 auto;
@@ -385,7 +412,7 @@
 .claimed-page .card-image {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: clamp(138px, 10.5vw, 174px);
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -435,10 +462,10 @@
 
 /* Card Content */
 .claimed-page .card-content {
-  padding: 0.9rem 0.95rem 0.95rem;
+  padding: 0.8rem 0.88rem 0.88rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.42rem;
   flex: 1;
   text-align: left;
   align-items: stretch;
@@ -450,7 +477,7 @@
   color: #1b4965;
   text-align: left;
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.96rem;
   line-height: 1.25;
   min-height: 2.5em;
   display: -webkit-box;
@@ -499,7 +526,7 @@
 .claimed-page .card-details {
   display: flex;
   flex-direction: column;
-  gap: 0.34rem;
+  gap: 0.28rem;
   width: 100%;
 }
 
@@ -523,6 +550,14 @@
 
 .claimed-page .detail-item-quantity .detail-icon {
   color: #a16207;
+}
+
+.claimed-page .detail-item-quantity {
+  margin-top: 4px;
+}
+
+.claimed-page .detail-item-expiry .detail-icon {
+  color: #9f2d00;
 }
 
 .claimed-page .detail-item-pickup .detail-icon {
@@ -696,16 +731,34 @@
     flex-direction: column;
     align-items: stretch;
     margin-bottom: 1rem;
+    gap: 1rem;
+  }
+
+  .claimed-page .claims-header-left {
+    align-items: flex-start;
+  }
+
+  .claimed-page .claims-header-center {
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .claimed-page .claims-header-center h1 {
+    font-size: 1.25rem;
+  }
+
+  .claimed-page .claims-header-center .claimed-subtitle {
+    font-size: 0.85rem;
   }
 
   .claimed-page .claims-header-text h1,
   .claimed-page .claims-header-text .claimed-subtitle {
-    text-align: center;
+    text-align: left;
   }
 
   .receiver-stats-box {
     width: fit-content;
-    align-self: center;
+    align-self: flex-start;
   }
 
   .claimed-page .donation-filters-container {
@@ -740,14 +793,21 @@
   .claimed-page .donation-support-banner {
     display: flex;
     position: static;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 12px;
-    margin: 0 0 16px;
+    margin: 0;
     padding: 12px;
     min-height: auto;
     width: 100%;
     max-width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .receiver-stats-box {
+    width: 100%;
+    justify-content: flex-start;
+    flex: 0 0 auto;
   }
 
   .claimed-page .donation-support-banner-button {

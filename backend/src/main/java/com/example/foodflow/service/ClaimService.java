@@ -47,7 +47,7 @@ public class ClaimService {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationPreferenceService notificationPreferenceService;
     private final TimelineService timelineService;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final GamificationService gamificationService;
     private final SmsService smsService;
     private final CalendarEventService calendarEventService;
@@ -66,7 +66,7 @@ public class ClaimService {
                        SimpMessagingTemplate messagingTemplate,
                        NotificationPreferenceService notificationPreferenceService,
                        TimelineService timelineService,
-                       EmailService emailService,
+                       EmailNotificationService emailService,
                        GamificationService gamificationService,
                        SmsService smsService,
                        CalendarEventService calendarEventService,
@@ -93,6 +93,7 @@ public class ClaimService {
     @Transactional
     @Timed(value = "claim.service.create", description = "Time taken to create a claim")
     public ClaimResponse claimSurplusPost(ClaimRequest request, User receiver) {
+        ensureAccountApprovedForClaims(receiver);
         Timer.Sample sample = businessMetricsService.startTimer();
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
@@ -388,6 +389,12 @@ public class ClaimService {
         }
 
         return response;
+    }
+
+    private void ensureAccountApprovedForClaims(User receiver) {
+        if (receiver == null || receiver.getAccountStatus() != AccountStatus.ACTIVE) {
+            throw new BusinessException("error.account.not_approved");
+        }
     }
 
 

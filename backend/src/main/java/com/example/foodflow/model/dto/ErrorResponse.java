@@ -13,6 +13,7 @@ public class ErrorResponse {
     private LocalDateTime timestamp;
     private int status;
     private String error;
+    private String code;
     private String message;
     private String path;
     private List<FieldError> fieldErrors;
@@ -57,6 +58,14 @@ public class ErrorResponse {
 
     public void setError(String error) {
         this.error = error;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getMessage() {
@@ -130,4 +139,3 @@ public class ErrorResponse {
         }
     }
 }
-

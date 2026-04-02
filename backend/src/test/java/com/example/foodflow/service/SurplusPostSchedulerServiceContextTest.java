@@ -56,8 +56,8 @@ class SurplusPostSchedulerServiceContextTest {
         }
 
         @Bean
-        EmailService emailService() {
-            return mock(EmailService.class);
+        EmailNotificationService emailService() {
+            return mock(EmailNotificationService.class);
         }
 
         @Bean

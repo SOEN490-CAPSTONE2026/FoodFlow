@@ -10,6 +10,7 @@ import {
   Calendar,
   MapPin,
   Heart,
+  Star,
 } from 'lucide-react';
 import Select from 'react-select';
 import { claimsAPI, feedbackAPI } from '../../services/api';
@@ -205,7 +206,10 @@ export default function ReceiverMyClaims() {
       setError(null);
     } catch (error) {
       console.error('Error fetching claims:', error);
-      setError(t('receiverMyClaims.failedToLoad'));
+      setError(
+        t('receiverMyClaims.failedToLoad') ||
+          'Failed to load your claimed donations'
+      );
       setClaims([]);
     } finally {
       setLoading(false);
@@ -282,7 +286,7 @@ export default function ReceiverMyClaims() {
   // Format pickup time consistently with ReceiverBrowse
   const formatPickupTime = (pickupDate, pickupFrom, pickupTo) => {
     if (!pickupDate || !pickupFrom || !pickupTo) {
-      return '—';
+      return '--';
     }
     try {
       return (
@@ -291,11 +295,11 @@ export default function ReceiverMyClaims() {
           String(pickupFrom),
           String(pickupTo),
           'en-US'
-        ) || '—'
+        ) || '--'
       );
     } catch (error) {
       console.error('Error formatting pickup time:', error);
-      return '—';
+      return '--';
     }
   };
 
@@ -528,14 +532,40 @@ export default function ReceiverMyClaims() {
         className="claimed-page claims-header"
         data-tour="receiver-my-claims"
       >
-        <div className="claimed-page claims-header-text">
+        {/* Donation Banner - Left Side */}
+        <section
+          className="claimed-page donation-support-banner"
+          aria-label={t('donation.bannerAriaLabel')}
+        >
+          <div className="claimed-page donation-support-banner-content">
+            <div
+              className="claimed-page donation-support-banner-icon"
+              aria-hidden="true"
+            >
+              <Heart strokeWidth={2} />
+            </div>
+            <div className="claimed-page donation-support-banner-text">
+              <h3>{t('donation.title')}</h3>
+              <p>{t('donation.claimsSubtitle')}</p>
+            </div>
+          </div>
+          <button
+            className="claimed-page donation-support-banner-button"
+            onClick={() => navigate('/payment')}
+          >
+            {t('donation.modalAriaLabel')}
+          </button>
+        </section>
+
+        {/* Title and Subtitle - Center */}
+        <div className="claimed-page claims-header-center">
           <h1>{t('receiverMyClaims.title')}</h1>
           <p className="claimed-page claimed-subtitle">
             {t('receiverMyClaims.subtitle')}
           </p>
         </div>
 
-        {/* Rating Stats Box */}
+        {/* Rating Stats Box - Right Side */}
         <div className="receiver-stats-box">
           <div className="stat-item">
             <div className="stat-info">
@@ -543,7 +573,13 @@ export default function ReceiverMyClaims() {
                 {rating.totalReviews > 0 ? (
                   <span className="rating-vertical-wrap">
                     <span className="rating-main">
-                      <span className="rating-star">★</span> Your Rating :
+                      <Star
+                        size={18}
+                        className="rating-star"
+                        fill="#f59e0b"
+                        color="#f59e0b"
+                      />{' '}
+                      Your Rating :
                       <span className="rating-number">
                         {rating.averageRating.toFixed(1)}
                       </span>
@@ -556,39 +592,13 @@ export default function ReceiverMyClaims() {
                     </span>
                   </span>
                 ) : (
-                  <span className="no-rating">—</span>
+                  <span className="no-rating">--</span>
                 )}
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {error && <div className="claimed-page error-message">{error}</div>}
-
-      <section
-        className="claimed-page donation-support-banner"
-        aria-label={t('donation.bannerAriaLabel')}
-      >
-        <div className="claimed-page donation-support-banner-content">
-          <div
-            className="claimed-page donation-support-banner-icon"
-            aria-hidden="true"
-          >
-            <Heart strokeWidth={2} />
-          </div>
-          <div className="claimed-page donation-support-banner-text">
-            <h3>{t('donation.title')}</h3>
-            <p>{t('donation.claimsSubtitle')}</p>
-          </div>
-        </div>
-        <button
-          className="claimed-page donation-support-banner-button"
-          onClick={() => navigate('/payment')}
-        >
-          {t('donation.modalAriaLabel')}
-        </button>
-      </section>
 
       {/* Filters and Sort */}
       <div className="claimed-page donation-filters-container">
@@ -625,12 +635,20 @@ export default function ReceiverMyClaims() {
           const displayStatus = getDisplayStatus(claim);
 
           // Get the primary food category from foodCategories array
+          const normalizedFoodCategories = Array.isArray(post?.foodCategories)
+            ? post.foodCategories.map(category => category?.name || category)
+            : [];
           const primaryFoodCategory = getPrimaryFoodCategory(
-            post?.foodCategories
+            normalizedFoodCategories
           );
           const resolvedDonationImage = getImageUrl(
-            post?.resolvedDonationImageUrl
+            post?.resolvedDonationImageUrl ||
+              post?.donationImageUrl ||
+              post?.imageUrl
           );
+          const fallbackDonationImage =
+            foodTypeImages[primaryFoodCategory] ||
+            foodTypeImages['Prepared Meals'];
           const pickupWindow = formatPickupTime(
             claim.confirmedPickupSlot?.pickupDate ||
               claim.confirmedPickupSlot?.date,
@@ -639,7 +657,9 @@ export default function ReceiverMyClaims() {
             claim.confirmedPickupSlot?.endTime ||
               claim.confirmedPickupSlot?.pickupTo
           );
-          const categoryBadge = getPrimaryFoodCategory(post?.foodCategories);
+          const categoryBadge = getPrimaryFoodCategory(
+            normalizedFoodCategories
+          );
           const dietaryBadges = (
             Array.isArray(post?.dietaryTags) ? post.dietaryTags : []
           )
@@ -660,10 +680,18 @@ export default function ReceiverMyClaims() {
 
           const infoRows = [
             {
-              key: 'quantity-expiry',
+              key: 'quantity',
               icon: <Package size={16} className="claimed-page detail-icon" />,
-              value: `${quantityValue} \u00b7 Expires ${expiryValue}`,
+              value: quantityValue,
               tone: 'quantity',
+            },
+            {
+              key: 'expiry',
+              icon: <Calendar size={16} className="claimed-page detail-icon" />,
+              prefix: 'Expiry Date',
+              value: expiryValue,
+              emphasizeValue: true,
+              tone: 'expiry',
             },
             {
               key: 'pickup',
@@ -713,12 +741,11 @@ export default function ReceiverMyClaims() {
               {/* Image */}
               <div className="claimed-page card-image">
                 <img
-                  src={
-                    resolvedDonationImage ||
-                    foodTypeImages[primaryFoodCategory] ||
-                    foodTypeImages['Prepared Meals']
-                  }
+                  src={resolvedDonationImage || fallbackDonationImage}
                   alt={post?.title || 'Donation'}
+                  onError={event => {
+                    event.currentTarget.src = fallbackDonationImage;
+                  }}
                 />
                 <span
                   className={`claimed-page status-badge status-${displayStatus.toLowerCase().replace(' ', '-')}`}
@@ -823,7 +850,17 @@ export default function ReceiverMyClaims() {
         })}
       </div>
 
-      {sortedClaims.length === 0 && !loading && (
+      {error && !loading && (
+        <div
+          className="claimed-page empty-state claimed-page error-state"
+          role="alert"
+        >
+          <Package size={48} className="claimed-page empty-icon" />
+          <p>{error}</p>
+        </div>
+      )}
+
+      {sortedClaims.length === 0 && !loading && !error && (
         <div className="claimed-page empty-state">
           <Package size={48} className="claimed-page empty-icon" />
           <p>

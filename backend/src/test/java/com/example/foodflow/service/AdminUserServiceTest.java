@@ -64,7 +64,7 @@ class AdminUserServiceTest {
     private NotificationPreferenceService notificationPreferenceService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private AuditLogger auditLogger;
@@ -814,6 +814,41 @@ class AdminUserServiceTest {
         ));
     }
 
+    @Test
+    void deleteUser_AnonymizesStoredPersonalInformation() {
+        testOrganization.setAddress("123 Test St");
+        testOrganization.setBusinessLicense("BL-001");
+        testOrganization.setCharityRegistrationNumber("CRN-999");
+        testOrganization.setSupportingDocumentUrl("https://example.com/doc.pdf");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(testAdmin));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(surplusPostRepository.countByDonorId(1L)).thenReturn(0L);
+        when(notificationPreferenceService.shouldSendNotification(any(), anyString(), anyString())).thenReturn(false);
+        when(conversationRepository.findByUsers(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(conversationRepository.save(any(Conversation.class))).thenReturn(new Conversation());
+
+        AdminUserResponse result = adminUserService.deactivateUser(1L, "User requested deletion", 3L, true);
+
+        assertEquals("DELETED", result.getAccountStatus());
+        assertEquals("deleted-user-1@deleted.foodflow.local", testDonor.getEmail());
+        assertNull(testDonor.getPhone());
+        assertEquals("en", testDonor.getLanguagePreference());
+        assertEquals("Deleted Organization", testOrganization.getName());
+        assertEquals("Deleted User", testOrganization.getContactPerson());
+        assertEquals("Deleted", testOrganization.getPhone());
+        assertEquals("Deleted", testOrganization.getAddress());
+        assertNull(testOrganization.getBusinessLicense());
+        assertNull(testOrganization.getCharityRegistrationNumber());
+        assertNull(testOrganization.getSupportingDocumentUrl());
+        verify(auditLogger).logAction(argThat(log ->
+                "DELETE_USER".equals(log.getAction())
+                        && "donor@test.com".equals(log.getOldValue())
+                        && "User requested deletion".equals(log.getNewValue())
+        ));
+    }
+
     // -----------------------------------------------------------------------
     // getRecentActivity
     // -----------------------------------------------------------------------
@@ -959,6 +994,29 @@ class AdminUserServiceTest {
         assertEquals(1, result.size());
         assertEquals("DEACTIVATE_USER", result.get(0).getAction());
         assertEquals(1L, result.get(0).getEntityId());
+    }
+
+    @Test
+    void getRecentActivity_IncludesDeletionFromAuditLog() {
+        testOrganization.setVerificationStatus(null);
+        AuditLog deletionEntry = new AuditLog(
+                "admin@test.com", "DELETE_USER", "User", "1",
+                null, "donor@test.com", "User requested deletion");
+        deletionEntry.setTimestamp(LocalDateTime.now().minusHours(1));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testDonor));
+        when(surplusPostRepository.findByDonorOrderByCreatedAtDesc(testDonor))
+                .thenReturn(Collections.emptyList());
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DEACTIVATE_USER"))
+                .thenReturn(Collections.emptyList());
+        when(auditLogRepository.findByEntityIdAndActionOrderByTimestampDesc("1", "DELETE_USER"))
+                .thenReturn(Collections.singletonList(deletionEntry));
+
+        List<UserActivityDTO> result = adminUserService.getRecentActivity(1L, 3);
+
+        assertEquals(1, result.size());
+        assertEquals("DELETE_USER", result.get(0).getAction());
+        assertEquals("User requested deletion", result.get(0).getTitle());
     }
 
     @Test

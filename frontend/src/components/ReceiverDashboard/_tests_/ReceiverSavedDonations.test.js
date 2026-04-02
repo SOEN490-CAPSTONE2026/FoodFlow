@@ -9,6 +9,7 @@ import {
 import '@testing-library/jest-dom';
 import ReceiverSavedDonations from '../ReceiverSavedDonations';
 import { savedDonationAPI, surplusAPI } from '../../../services/api';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 jest.mock('../../../contexts/TimezoneContext', () => ({
   useTimezone: () => ({ userTimezone: 'UTC' }),
@@ -42,6 +43,13 @@ const mockDonation = {
 };
 
 describe('ReceiverSavedDonations', () => {
+  const renderWithProviders = (ui, authValue = {}) =>
+    render(
+      <AuthContext.Provider value={{ accountStatus: 'ACTIVE', ...authValue }}>
+        {ui}
+      </AuthContext.Provider>
+    );
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
@@ -51,7 +59,7 @@ describe('ReceiverSavedDonations', () => {
   test('renders loading state', () => {
     savedDonationAPI.getSavedDonations.mockReturnValue(new Promise(() => {}));
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(screen.getByText('Loading donations...')).toBeInTheDocument();
   });
@@ -59,7 +67,7 @@ describe('ReceiverSavedDonations', () => {
   test('renders error state when fetch fails', async () => {
     savedDonationAPI.getSavedDonations.mockRejectedValue(new Error('boom'));
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(
       await screen.findByText('Failed to load saved donations')
@@ -69,7 +77,7 @@ describe('ReceiverSavedDonations', () => {
   test('renders empty state when no saved donations', async () => {
     savedDonationAPI.getSavedDonations.mockResolvedValue({ data: [] });
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(
       await screen.findByText('No saved donations yet.')
@@ -82,7 +90,7 @@ describe('ReceiverSavedDonations', () => {
     });
     savedDonationAPI.unsave.mockResolvedValue({});
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
 
@@ -104,7 +112,7 @@ describe('ReceiverSavedDonations', () => {
     });
     savedDonationAPI.unsave.mockRejectedValue(new Error('cannot unsave'));
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
 
@@ -125,7 +133,7 @@ describe('ReceiverSavedDonations', () => {
     surplusAPI.claim.mockResolvedValue({});
     global.confirm = jest.fn(() => true);
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
 
@@ -146,7 +154,7 @@ describe('ReceiverSavedDonations', () => {
     });
     global.confirm = jest.fn(() => false);
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
 
@@ -179,7 +187,7 @@ describe('ReceiverSavedDonations', () => {
     surplusAPI.claim.mockResolvedValue({});
     savedDonationAPI.unsave.mockResolvedValue({});
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(await screen.findByText('Prepared Meals')).toBeInTheDocument();
 
@@ -226,7 +234,7 @@ describe('ReceiverSavedDonations', () => {
       data: [olderAvailable, nonAvailable, newerAvailable],
     });
 
-    const { container } = render(<ReceiverSavedDonations />);
+    const { container } = renderWithProviders(<ReceiverSavedDonations />);
 
     expect(await screen.findByText('Newest Available')).toBeInTheDocument();
     expect(screen.getByText('Older Available')).toBeInTheDocument();
@@ -244,7 +252,7 @@ describe('ReceiverSavedDonations', () => {
       data: [mockDonation],
     });
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
     expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /more/i }));
@@ -257,7 +265,7 @@ describe('ReceiverSavedDonations', () => {
   test('handles malformed saved donations response as empty list', async () => {
     savedDonationAPI.getSavedDonations.mockResolvedValue({ data: null });
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
 
     expect(
       await screen.findByText('No saved donations yet.')
@@ -273,7 +281,7 @@ describe('ReceiverSavedDonations', () => {
     });
     global.confirm = jest.fn(() => true);
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
     expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Claim Donation'));
@@ -283,6 +291,44 @@ describe('ReceiverSavedDonations', () => {
         'Unable to claim this donation'
       );
     });
+  });
+
+  test('shows approval modal and skips claim when account is not approved', async () => {
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [mockDonation],
+    });
+
+    renderWithProviders(<ReceiverSavedDonations />, {
+      accountStatus: 'PENDING_ADMIN_APPROVAL',
+    });
+    expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Claim Donation'));
+
+    expect(surplusAPI.claim).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText('Approval required to claim donations')
+    ).toBeInTheDocument();
+  });
+
+  test('shows approval modal when backend rejects unapproved claim', async () => {
+    savedDonationAPI.getSavedDonations.mockResolvedValue({
+      data: [mockDonation],
+    });
+    surplusAPI.claim.mockRejectedValue({
+      response: { data: { message: 'Account not approved yet' } },
+    });
+    global.confirm = jest.fn(() => true);
+
+    renderWithProviders(<ReceiverSavedDonations />);
+    expect(await screen.findByText('Fresh Bread')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Claim Donation'));
+
+    expect(
+      await screen.findByText('Approval required to claim donations')
+    ).toBeInTheDocument();
+    expect(global.alert).not.toHaveBeenCalled();
   });
 
   test('allows choosing another pickup slot and closing modal', async () => {
@@ -314,7 +360,7 @@ describe('ReceiverSavedDonations', () => {
     surplusAPI.claim.mockResolvedValue({});
     savedDonationAPI.unsave.mockResolvedValue({});
 
-    render(<ReceiverSavedDonations />);
+    renderWithProviders(<ReceiverSavedDonations />);
     expect(await screen.findByText('Two Slots')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Claim Donation'));

@@ -50,7 +50,7 @@ class AdminDonationServiceTest {
     private NotificationPreferenceService notificationPreferenceService;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
@@ -319,6 +319,10 @@ class AdminDonationServiceTest {
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED))
+            .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED))
+            .thenReturn(Optional.empty());
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
 
@@ -331,6 +335,90 @@ class AdminDonationServiceTest {
         assertNull(result.getReceiverEmail());
         assertNull(result.getReceiverName());
         verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE);
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
+    }
+
+    @Test
+    void getDonationById_WithCompletedClaimAndNoActiveClaim_ReturnsReceiverInfo() {
+        // Arrange: no ACTIVE claim, but a COMPLETED claim exists
+        Claim completedClaim = new Claim();
+        completedClaim.setId(2L);
+        completedClaim.setSurplusPost(testPost);
+        completedClaim.setReceiver(testReceiver);
+        completedClaim.setStatus(ClaimStatus.COMPLETED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED))
+            .thenReturn(Optional.of(completedClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2L, result.getReceiverId());
+        assertEquals("receiver@test.com", result.getReceiverEmail());
+        assertEquals("Jane Receiver", result.getReceiverName());
+        // NOT_COMPLETED should not be queried once COMPLETED is found
+        verify(claimRepository, never()).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
+    }
+
+    @Test
+    void getDonationById_WithNotCompletedClaimAndNoActiveOrCompletedClaim_ReturnsReceiverInfo() {
+        // Arrange: no ACTIVE or COMPLETED claim, but a NOT_COMPLETED claim exists
+        Claim notCompletedClaim = new Claim();
+        notCompletedClaim.setId(3L);
+        notCompletedClaim.setSurplusPost(testPost);
+        notCompletedClaim.setReceiver(testReceiver);
+        notCompletedClaim.setStatus(ClaimStatus.NOT_COMPLETED);
+
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED))
+            .thenReturn(Optional.empty());
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED))
+            .thenReturn(Optional.of(notCompletedClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2L, result.getReceiverId()); // testReceiver.getId() == 2L
+        assertEquals("receiver@test.com", result.getReceiverEmail());
+        assertEquals("Jane Receiver", result.getReceiverName());
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE);
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
+        verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
+    }
+
+    @Test
+    void getDonationById_ActiveClaimTakesPriorityOverCompletedClaim_ReturnsActiveClaim() {
+        // Arrange: both ACTIVE and COMPLETED claims exist; ACTIVE should be used
+        when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
+        when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
+            .thenReturn(Optional.of(testClaim));
+        when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
+            .thenReturn(Arrays.asList(testTimeline));
+
+        // Act
+        AdminDonationResponse result = adminDonationService.getDonationById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1L, result.getClaimId());
+        assertEquals("receiver@test.com", result.getReceiverEmail());
+        // COMPLETED and NOT_COMPLETED should never be queried when ACTIVE is found
+        verify(claimRepository, never()).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
+        verify(claimRepository, never()).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
     }
 
     @Test

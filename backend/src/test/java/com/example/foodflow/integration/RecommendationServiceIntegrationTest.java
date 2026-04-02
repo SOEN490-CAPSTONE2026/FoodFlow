@@ -259,7 +259,7 @@ class RecommendationServiceIntegrationTest {
         SurplusPost mediumPost = new SurplusPost();
         mediumPost.setId(4L);
         mediumPost.setFoodCategories(Set.of(FoodCategory.BAKERY_PASTRY)); // Matches preference
-        mediumPost.setQuantity(new Quantity(60.0, Quantity.Unit.KILOGRAM)); // Slightly over preference
+        mediumPost.setQuantity(new Quantity(20.0, Quantity.Unit.KILOGRAM)); // Adjacent size, not exact BULK match
         mediumPost.setExpiryDate(LocalDate.now().plusDays(1)); // OK expiry
         mediumPost.setStatus(PostStatus.AVAILABLE);
 

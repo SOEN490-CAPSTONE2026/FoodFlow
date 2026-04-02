@@ -27,7 +27,7 @@ describe('ReceiverHelp', () => {
       screen.getByText('receiverHelp.gettingStarted.title')
     ).toBeInTheDocument();
     expect(screen.getByText('receiverHelp.faq.title')).toBeInTheDocument();
-    expect(screen.getByText('receiverHelp.support.title')).toBeInTheDocument();
+    expect(screen.getByText('receiverHelp.contact.title')).toBeInTheDocument();
   });
 
   test('expands FAQ item by key', () => {

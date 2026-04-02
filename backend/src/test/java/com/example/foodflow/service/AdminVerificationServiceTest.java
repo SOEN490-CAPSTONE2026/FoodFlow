@@ -34,7 +34,7 @@ class AdminVerificationServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private EmailService emailService;
+    private EmailNotificationService emailService;
 
     @Mock
     private EmailVerificationTokenRepository verificationTokenRepository;

@@ -12,7 +12,30 @@ import AdminDonations from '../AdminDonations';
 import { adminDonationAPI, feedbackAPI } from '../../../services/api';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: key => key }),
+  useTranslation: () => ({
+    t: (key, options = {}) => {
+      const translations = {
+        'adminDonations.detailsModal.title': 'Donation Details',
+        'adminDonations.detailsModal.pageTitles.basicInfoParticipants':
+          'Basic Info & Participants',
+        'adminDonations.detailsModal.pageTitles.timeline': 'Timeline',
+        'adminDonations.detailsModal.pageTitles.overrideStatus':
+          'Override Status',
+        'adminDonations.detailsModal.basicInformation': 'Basic Information',
+        'adminDonations.detailsModal.participants': 'Participants',
+        'adminDonations.detailsModal.timeline': 'Timeline',
+        'adminDonations.detailsModal.overrideStatus': 'Override Status',
+        'adminDonations.detailsModal.reasonPlaceholder':
+          'Provide a reason for the status override...',
+      };
+
+      if (key === 'adminDonations.detailsModal.pageOf') {
+        return `Page ${options.page} of ${options.total}`;
+      }
+
+      return translations[key] || key;
+    },
+  }),
 }));
 
 jest.mock('../../../services/api', () => ({

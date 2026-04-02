@@ -612,11 +612,11 @@
   right: 20px;
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 36px;
   color: #6b7280;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -692,6 +692,16 @@
   background: #f0f9ff;
 }
 
+.alert-option-delete:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.alert-option-delete.selected {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
 .alert-option input[type='radio'] {
   margin-top: 2px;
   width: 18px;
@@ -729,6 +739,18 @@
   background: #62b6cb;
 }
 
+.alert-option-delete input[type='radio']:hover {
+  border-color: #dc2626;
+}
+
+.alert-option-delete input[type='radio']:checked {
+  border-color: #dc2626;
+}
+
+.alert-option-delete input[type='radio']:checked::after {
+  background: #dc2626;
+}
+
 .alert-option-content {
   flex: 1;
 }
@@ -739,6 +761,10 @@
   color: #1b4965;
   margin-bottom: 4px;
   text-align: left;
+}
+
+.alert-option-delete .alert-option-title {
+  color: #b91c1c;
 }
 
 .alert-option-desc {
@@ -767,6 +793,55 @@
 
 .custom-message-section .modal-textarea {
   margin-bottom: 0;
+}
+
+/* Language Notice Section */
+.language-notice-section {
+  margin-bottom: 18px;
+  animation: slideDown 0.2s ease;
+}
+
+.language-notice-content {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+  border-left: 4px solid #a855f7;
+  border-radius: 8px;
+  border: 1px solid #e9d5ff;
+}
+
+.language-notice-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.language-notice-text {
+  flex: 1;
+}
+
+.language-notice-label {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #581c87;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.language-notice-label strong {
+  color: #7c2d12;
+  font-weight: 700;
+  background: rgba(124, 45, 18, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.language-notice-warning {
+  margin: 0;
+  font-size: 13px;
+  color: #6b21a8;
+  line-height: 1.5;
 }
 
 .modal-large {
@@ -836,6 +911,14 @@
 
 .btn-send-alert:hover {
   background: #4a9fb5;
+}
+
+.btn-delete-user {
+  background: #dc2626;
+}
+
+.btn-delete-user:hover {
+  background: #b91c1c;
 }
 
 .btn-cancel {

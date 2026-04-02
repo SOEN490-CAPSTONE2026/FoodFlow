@@ -1,5 +1,6 @@
 package com.example.foodflow.controller;
 
+import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
 import com.example.foodflow.model.entity.User;
@@ -100,6 +101,18 @@ class ClaimControllerTest {
             .andExpect(status().isUnauthorized());
 
         verify(claimService, never()).claimSurplusPost(any(), any());
+    }
+
+    @Test
+    @WithMockUser(authorities = "RECEIVER")
+    void claimSurplusPost_UnapprovedAccount_BadRequest() throws Exception {
+        when(claimService.claimSurplusPost(any(ClaimRequest.class), any()))
+            .thenThrow(new BusinessException("error.account.not_approved"));
+
+        mockMvc.perform(post("/api/claims")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(claimRequest)))
+            .andExpect(status().isBadRequest());
     }
 
 

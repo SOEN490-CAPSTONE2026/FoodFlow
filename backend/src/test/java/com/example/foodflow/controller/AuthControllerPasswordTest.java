@@ -9,6 +9,7 @@ import com.example.foodflow.model.entity.UserRole;
 import com.example.foodflow.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -30,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@ResourceLock("spring-context-mockmvc")
 public class AuthControllerPasswordTest {
 
         @Autowired
@@ -92,14 +96,14 @@ public class AuthControllerPasswordTest {
 
                 when(authService.changePassword(any(User.class), eq("WrongTestSecure123!"),
                                 eq("NewPassword456!"), eq("NewPassword456!")))
-                                .thenThrow(new RuntimeException("Current password is incorrect"));
+                                .thenThrow(new com.example.foodflow.exception.domain.UnauthorizedAccessException("Incorrect current password"));
 
                 mockMvc.perform(post("/api/auth/change-password")
                                 .with(authenticatedUser(mockUser))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.message").value("Current password is incorrect"));
+                                .andExpect(status().isForbidden())
+                                .andExpect(jsonPath("$.message").value("Incorrect current password"));
         }
 
         @Test

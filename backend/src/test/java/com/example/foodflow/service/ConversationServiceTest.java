@@ -8,6 +8,8 @@ import com.example.foodflow.model.entity.Message;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
+import com.example.foodflow.model.types.FoodType;
+import com.example.foodflow.model.types.PostStatus;
 import com.example.foodflow.repository.ConversationRepository;
 import com.example.foodflow.repository.MessageRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
@@ -337,6 +339,32 @@ class ConversationServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getLastMessagePreview()).isEqualTo("No messages yet");
         assertThat(response.getUnreadCount()).isEqualTo(0L);
+    }
+
+    @Test
+    void testGetConversationResponse_PrefersLiveDonationDetailsOverSnapshot() {
+        surplusPost.setTitle("Fresh produce bundle");
+        surplusPost.setDescription("Live donation description");
+        surplusPost.setFoodType(FoodType.PRODUCE);
+        surplusPost.setStatus(PostStatus.CLAIMED);
+
+        conversation.setSurplusPost(surplusPost);
+        conversation.setDonationTitle("Old snapshot title");
+        conversation.setDonationDescription("Old snapshot description");
+        conversation.setDonationPhoto("BAKERY");
+        conversation.setDonor(user1);
+        conversation.setReceiver(user2);
+
+        when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversation));
+        when(messageRepository.findByConversationId(1L)).thenReturn(Arrays.asList(message));
+        when(messageRepository.countUnreadInConversation(1L, 1L)).thenReturn(0L);
+
+        ConversationResponse response = conversationService.getConversationResponse(1L, user1);
+
+        assertThat(response.getDonationTitle()).isEqualTo("Fresh produce bundle");
+        assertThat(response.getDonationDescription()).isEqualTo("Live donation description");
+        assertThat(response.getDonationPhoto()).isEqualTo("PRODUCE");
+        assertThat(response.getStatus()).isEqualTo("CLAIMED");
     }
 
     @Test

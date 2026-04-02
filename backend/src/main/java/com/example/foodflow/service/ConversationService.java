@@ -32,7 +32,7 @@ public class ConversationService {
     private final UserRepository userRepository;
     private final SurplusPostRepository surplusPostRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    private final EmailService emailService;
+    private final EmailNotificationService emailService;
     private final SmsService smsService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final DonationImageResolverService donationImageResolverService;
@@ -42,7 +42,7 @@ public class ConversationService {
                               UserRepository userRepository,
                               SurplusPostRepository surplusPostRepository,
                               SimpMessagingTemplate messagingTemplate,
-                              EmailService emailService,
+                              EmailNotificationService emailService,
                               SmsService smsService,
                               NotificationPreferenceService notificationPreferenceService,
                               @Autowired(required = false) DonationImageResolverService donationImageResolverService) {

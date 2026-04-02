@@ -25,6 +25,7 @@ const ChatPanel = ({
   showOnMobile = true,
 }) => {
   const [messages, setMessages] = useState([]);
+  const [liveDonationImageUrl, setLiveDonationImageUrl] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -72,6 +73,45 @@ const ChatPanel = ({
     } else {
       setMessages([]);
     }
+  }, [conversation]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadConversationDonationImage = async () => {
+      if (
+        !conversation?.donationId ||
+        conversation?.resolvedDonationImageUrl ||
+        isAdminSupportParticipant()
+      ) {
+        setLiveDonationImageUrl(null);
+        return;
+      }
+
+      try {
+        const response = await api.get(`/surplus/${conversation.donationId}`);
+        if (!isMounted) {
+          return;
+        }
+        const post = response?.data || {};
+        setLiveDonationImageUrl(
+          post.resolvedDonationImageUrl ||
+            post.donationImageUrl ||
+            post.imageUrl ||
+            null
+        );
+      } catch (err) {
+        if (isMounted) {
+          setLiveDonationImageUrl(null);
+        }
+      }
+    };
+
+    loadConversationDonationImage();
+
+    return () => {
+      isMounted = false;
+    };
   }, [conversation]);
 
   // Auto-scroll to bottom when new messages arrive
@@ -299,6 +339,10 @@ const ChatPanel = ({
       return getProfilePhotoUrl(conversation.resolvedDonationImageUrl);
     }
 
+    if (liveDonationImageUrl) {
+      return getProfilePhotoUrl(liveDonationImageUrl);
+    }
+
     if (conversation?.donationPhoto) {
       const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
       return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
@@ -306,6 +350,19 @@ const ChatPanel = ({
     if (conversation?.otherUserProfilePhoto) {
       return getProfilePhotoUrl(conversation.otherUserProfilePhoto);
     }
+    return null;
+  };
+
+  const getConversationFallbackAvatar = () => {
+    if (isAdminSupportParticipant()) {
+      return FoodFlowLogo;
+    }
+
+    if (conversation?.donationPhoto) {
+      const categoryLabel = getFoodTypeLabel(conversation.donationPhoto);
+      return foodTypeImages[categoryLabel] || foodTypeImages['Prepared Meals'];
+    }
+
     return null;
   };
 
@@ -324,6 +381,7 @@ const ChatPanel = ({
 
   const statusInfo = getStatusInfo();
   const conversationAvatarUrl = getConversationAvatarUrl();
+  const conversationFallbackAvatar = getConversationFallbackAvatar();
   const otherParticipantDisplayName = getOtherParticipantDisplayName();
   const isAdminSupport = isAdminSupportParticipant();
 
@@ -416,6 +474,12 @@ const ChatPanel = ({
                               otherParticipantDisplayName
                             }
                             className={`message-avatar-image ${isAdminSupport ? 'admin-support' : ''}`}
+                            onError={event => {
+                              if (conversationFallbackAvatar) {
+                                event.currentTarget.src =
+                                  conversationFallbackAvatar;
+                              }
+                            }}
                           />
                         ) : (
                           otherParticipantDisplayName.charAt(0).toUpperCase()
