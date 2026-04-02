@@ -2170,6 +2170,10 @@
       "preparingResults": "Préparation des résultats",
       "loadingMaps": "Chargement des cartes"
     },
+    "submitting": {
+      "title": "Soumission du don",
+      "hint": "Veuillez patienter pendant que FoodFlow enregistre votre don IA."
+    },
     "toast": {
       "extractionComplete": "Extraction terminée. Vérifiez les détails avant de soumettre.",
       "aiFailed": "Échec de l'extraction IA",

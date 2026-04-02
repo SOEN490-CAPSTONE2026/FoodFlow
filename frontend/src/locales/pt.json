@@ -2109,6 +2109,10 @@
       "preparingResults": "Preparando resultados",
       "loadingMaps": "Carregando mapas"
     },
+    "submitting": {
+      "title": "Enviando doação",
+      "hint": "Aguarde enquanto o FoodFlow salva sua doação com IA."
+    },
     "toast": {
       "extractionComplete": "Extração concluída. Revise os detalhes antes de enviar.",
       "aiFailed": "Falha na extração por IA",

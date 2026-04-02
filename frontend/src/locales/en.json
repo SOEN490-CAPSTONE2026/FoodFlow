@@ -3137,6 +3137,10 @@
       "preparingResults": "Preparing results",
       "loadingMaps": "Loading maps"
     },
+    "submitting": {
+      "title": "Submitting donation",
+      "hint": "Please wait while FoodFlow saves your AI donation."
+    },
     "toast": {
       "extractionComplete": "Extraction complete. Review the details before submitting.",
       "aiFailed": "AI extraction failed",

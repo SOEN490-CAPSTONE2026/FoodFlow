@@ -2109,6 +2109,10 @@
       "preparingResults": "准备结果",
       "loadingMaps": "加载地图中"
     },
+    "submitting": {
+      "title": "正在提交捐赠",
+      "hint": "FoodFlow 正在保存您的 AI 捐赠，请稍候。"
+    },
     "toast": {
       "extractionComplete": "提取完成。请在提交前检查详情。",
       "aiFailed": "AI 提取失败",
