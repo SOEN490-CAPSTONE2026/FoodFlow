@@ -97,6 +97,15 @@ const CompletedView = ({
     return null;
   }
 
+  const normalizedFoodCategories = Array.isArray(post?.foodCategories)
+    ? post.foodCategories.map(category => category?.name || category)
+    : post?.foodType
+      ? [post.foodType]
+      : [];
+  const fallbackDonationImage =
+    foodTypeImages[getPrimaryFoodCategory(normalizedFoodCategories)] ||
+    foodTypeImages['Prepared Meals'];
+
   const handleReportSubmit = async reportData => {
     try {
       await reportAPI.createReport(reportData);
@@ -147,12 +156,17 @@ const CompletedView = ({
         <div className="claimed-modal-header">
           <img
             src={
-              getImageUrl(post?.resolvedDonationImageUrl) ||
-              foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] ||
-              foodTypeImages['Prepared Meals']
+              getImageUrl(
+                post?.resolvedDonationImageUrl ||
+                  post?.donationImageUrl ||
+                  post?.imageUrl
+              ) || fallbackDonationImage
             }
             alt={post?.title || 'Donation'}
             className="claimed-modal-header-image"
+            onError={event => {
+              event.currentTarget.src = fallbackDonationImage;
+            }}
           />
           <span className="claimed-modal-status-badge claimed-status-claimed">
             Claimed

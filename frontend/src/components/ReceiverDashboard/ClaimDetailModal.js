@@ -52,6 +52,14 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
     }
     return normalizedPostStatus || '';
   })();
+  const normalizedFoodCategories = Array.isArray(post?.foodCategories)
+    ? post.foodCategories.map(category => category?.name || category)
+    : post?.foodType
+      ? [post.foodType]
+      : [];
+  const fallbackDonationImage =
+    foodTypeImages[getPrimaryFoodCategory(normalizedFoodCategories)] ||
+    foodTypeImages['Prepared Meals'];
   const [showPickupSteps, setShowPickupSteps] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -234,12 +242,17 @@ const ClaimDetailModal = ({ claim, isOpen, onClose }) => {
           <div className="claimed-modal-header">
             <img
               src={
-                getImageUrl(post?.resolvedDonationImageUrl) ||
-                foodTypeImages[getPrimaryFoodCategory(post?.foodCategories)] ||
-                foodTypeImages['Prepared Meals']
+                getImageUrl(
+                  post?.resolvedDonationImageUrl ||
+                    post?.donationImageUrl ||
+                    post?.imageUrl
+                ) || fallbackDonationImage
               }
               alt={post?.title || t('claimDetail.defaultTitle')}
               className="claimed-modal-header-image"
+              onError={event => {
+                event.currentTarget.src = fallbackDonationImage;
+              }}
             />
             <span className={`claimed-modal-status-badge ${statusClassName}`}>
               {getDisplayStatus()}

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import StripePaymentForm from './StripePaymentForm';
 import PaymentWorkspaceBar from './PaymentWorkspaceBar';
 import PaymentMethodManager from './PaymentMethodManager';
 import PaymentHistory from './PaymentHistory';
 import PaymentInvoices from './PaymentInvoices';
 import PaymentRefunds from './PaymentRefunds';
-import api, { donationStatsAPI } from '../../services/api';
+import { donationStatsAPI, paymentAPI } from '../../services/api';
 import './PaymentPage.css';
 
 const stripePromise = loadStripe(
@@ -15,6 +17,8 @@ const stripePromise = loadStripe(
 );
 
 function PaymentPage() {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeView, setActiveView] = useState('donate');
   const [step, setStep] = useState(1);
   const [selectedAmount, setSelectedAmount] = useState(null);
@@ -24,6 +28,32 @@ function PaymentPage() {
   const [error, setError] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [platformStats, setPlatformStats] = useState(null);
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
+  const [paymentMethodChoice, setPaymentMethodChoice] = useState('new');
+  const [savedMethodRequiresAction, setSavedMethodRequiresAction] =
+    useState(false);
+
+  const formatSavedMethodLabel = method => {
+    if (!method) {
+      return '';
+    }
+
+    if (method.paymentMethodType === 'ACH_DEBIT') {
+      return t('paymentPage.savedMethod.bankEnding', {
+        bankName: method.bankName || t('paymentPage.savedMethod.bankAccount'),
+        last4: method.bankLast4 || '----',
+      });
+    }
+
+    const brand = method.cardBrand
+      ? method.cardBrand.charAt(0).toUpperCase() + method.cardBrand.slice(1)
+      : t('paymentPage.savedMethod.card');
+    return t('paymentPage.savedMethod.cardEnding', {
+      brand,
+      last4: method.cardLast4 || '----',
+    });
+  };
 
   // Fetch platform-wide donation stats from the backend on mount
   const fetchPlatformStats = useCallback(async () => {
@@ -41,14 +71,37 @@ function PaymentPage() {
     fetchPlatformStats();
   }, [fetchPlatformStats]);
 
+  const loadDefaultPaymentMethod = useCallback(async () => {
+    setLoadingPaymentMethods(true);
+    try {
+      const response = await paymentAPI.listMethods();
+      const methods = Array.isArray(response.data) ? response.data : [];
+      const defaultMethod =
+        methods.find(method => method.isDefault) || methods[0] || null;
+      setDefaultPaymentMethod(defaultMethod);
+      setPaymentMethodChoice(defaultMethod ? 'saved' : 'new');
+    } catch (requestError) {
+      setDefaultPaymentMethod(null);
+      setPaymentMethodChoice('new');
+    } finally {
+      setLoadingPaymentMethods(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeView === 'donate') {
+      loadDefaultPaymentMethod();
+    }
+  }, [activeView, loadDefaultPaymentMethod]);
+
   const predefinedAmounts = [5, 10, 25, 50, 100];
   const supportedCurrencies = ['USD', 'CAD', 'EUR', 'GBP'];
   const paymentViews = [
-    { id: 'donate', label: 'Donate' },
-    { id: 'methods', label: 'Methods' },
-    { id: 'history', label: 'History' },
-    { id: 'invoices', label: 'Invoices' },
-    { id: 'refunds', label: 'Refunds' },
+    { id: 'donate', label: t('paymentPage.tabs.donate') },
+    { id: 'methods', label: t('paymentPage.tabs.methods') },
+    { id: 'history', label: t('paymentPage.tabs.history') },
+    { id: 'invoices', label: t('paymentPage.tabs.invoices') },
+    { id: 'refunds', label: t('paymentPage.tabs.refunds') },
   ];
 
   const handleAmountSelect = amount => {
@@ -70,28 +123,57 @@ function PaymentPage() {
     const amount = selectedAmount || parseFloat(customAmount);
 
     if (!amount || amount < 1) {
-      setError('Please enter a valid amount (minimum $1)');
+      setError(t('paymentPage.errors.minimumAmount'));
       return;
     }
 
     setLoading(true);
     setError('');
+    setSavedMethodRequiresAction(false);
 
     try {
-      const response = await api.post('/payments/create-intent', {
+      const response = await paymentAPI.createIntent({
         amount,
         currency: selectedCurrency,
         paymentType: 'ONE_TIME',
-        description: 'FoodFlow Donation',
+        description: t('paymentPage.donationDescription'),
+        paymentMethodId:
+          paymentMethodChoice === 'saved'
+            ? defaultPaymentMethod?.stripePaymentMethodId
+            : undefined,
       });
 
-      setClientSecret(response.data.clientSecret);
+      const intent = response.data || {};
+      if (
+        paymentMethodChoice === 'saved' &&
+        (intent.status === 'succeeded' || intent.status === 'processing')
+      ) {
+        const query = new URLSearchParams();
+        if (intent.status === 'succeeded') {
+          query.set('redirect_status', 'succeeded');
+        }
+        if (intent.paymentIntentId) {
+          query.set('payment_intent', intent.paymentIntentId);
+        }
+        navigate(
+          `/payment/success${query.toString() ? `?${query.toString()}` : ''}`
+        );
+        return;
+      }
+
+      if (!intent.clientSecret) {
+        setError(t('paymentPage.errors.unableToContinue'));
+        return;
+      }
+
+      setClientSecret(intent.clientSecret || '');
+      setSavedMethodRequiresAction(paymentMethodChoice === 'saved');
       setStep(2);
     } catch (err) {
       console.error('Error creating payment intent:', err);
       setError(
         err.response?.data?.message ||
-          'Failed to initialize payment. Please try again.'
+          t('paymentPage.errors.initializationFailed')
       );
     } finally {
       setLoading(false);
@@ -141,6 +223,7 @@ function PaymentPage() {
   );
 
   const impactMetrics = getImpactMetrics(getFinalAmount());
+  const savedMethodLabel = formatSavedMethodLabel(defaultPaymentMethod);
 
   return (
     <div className="payment-page">
@@ -154,50 +237,32 @@ function PaymentPage() {
         <div className="payment-view-shell">
           {activeView === 'donate' && (
             <div className="payment-donate-panel">
-              <div className="payment-highlights" aria-label="Donation impact">
-                <div className="payment-highlight">
-                  <span className="payment-highlight__icon" aria-hidden="true">
-                    +
-                  </span>
-                  <span>Support local food recovery</span>
-                </div>
-                <div className="payment-highlight">
-                  <span className="payment-highlight__icon" aria-hidden="true">
-                    +
-                  </span>
-                  <span>Fund community hunger relief</span>
-                </div>
-                <div className="payment-highlight">
-                  <span className="payment-highlight__icon" aria-hidden="true">
-                    +
-                  </span>
-                  <span>Secure checkout with Stripe</span>
-                </div>
-              </div>
-
               <div className="payment-steps">
                 <div className={`step ${step >= 1 ? 'active' : ''}`}>
                   <span className="step-number">1</span>
-                  <span className="step-label">Amount</span>
+                  <span className="step-label">
+                    {t('paymentPage.steps.amount')}
+                  </span>
                 </div>
                 <div className="step-divider"></div>
                 <div className={`step ${step >= 2 ? 'active' : ''}`}>
                   <span className="step-number">2</span>
-                  <span className="step-label">Payment</span>
+                  <span className="step-label">
+                    {t('paymentPage.steps.payment')}
+                  </span>
                 </div>
               </div>
 
               {step === 1 && (
                 <div className="amount-selection">
                   <div className="payment-section-heading">
-                    <h2>Select Donation Amount</h2>
-                    <p>
-                      Choose a quick amount, currency, or enter a custom gift.
-                    </p>
+                    <h2>{t('paymentPage.amount.title')}</h2>
                   </div>
 
                   <div className="payment-currency-picker">
-                    <label htmlFor="payment-currency">Currency</label>
+                    <label htmlFor="payment-currency">
+                      {t('paymentPage.amount.currency')}
+                    </label>
                     <select
                       id="payment-currency"
                       value={selectedCurrency}
@@ -227,32 +292,103 @@ function PaymentPage() {
 
                   <div className="custom-amount">
                     <label htmlFor="payment-custom-amount">
-                      Or enter custom amount:
+                      {t('paymentPage.amount.customLabel')}
                     </label>
                     <div className="custom-amount-input">
                       <span className="currency-symbol">$</span>
                       <input
                         id="payment-custom-amount"
                         type="text"
-                        placeholder="0.00"
+                        placeholder={t('paymentPage.amount.customPlaceholder')}
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                       />
                     </div>
                   </div>
 
+                  <div className="payment-method-choice">
+                    <div className="payment-section-heading">
+                      <h3>{t('paymentPage.paymentMethod.title')}</h3>
+                      <p>
+                        {defaultPaymentMethod
+                          ? t('paymentPage.paymentMethod.savedOrNew')
+                          : t('paymentPage.paymentMethod.noSavedDefault')}
+                      </p>
+                    </div>
+
+                    {loadingPaymentMethods ? (
+                      <div className="payment-tools-placeholder">
+                        {t('paymentPage.paymentMethod.loading')}
+                      </div>
+                    ) : defaultPaymentMethod ? (
+                      <div className="payment-method-choice__options">
+                        <label
+                          className={`payment-method-choice__option-card ${
+                            paymentMethodChoice === 'saved'
+                              ? 'payment-method-choice__option-card--selected'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="payment-method-choice"
+                            checked={paymentMethodChoice === 'saved'}
+                            onChange={() => setPaymentMethodChoice('saved')}
+                          />
+                          <span className="payment-method-choice__option-copy">
+                            <span className="payment-method-choice__option-title">
+                              {t('paymentPage.paymentMethod.useSaved')}
+                            </span>
+                            <span className="payment-method-choice__option-subtitle">
+                              {savedMethodLabel}
+                            </span>
+                            <span className="payment-method-choice__option-badge">
+                              {t('paymentPage.paymentMethod.defaultBadge')}
+                            </span>
+                          </span>
+                        </label>
+                        <label
+                          className={`payment-method-choice__option-card ${
+                            paymentMethodChoice === 'new'
+                              ? 'payment-method-choice__option-card--selected'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="payment-method-choice"
+                            checked={paymentMethodChoice === 'new'}
+                            onChange={() => setPaymentMethodChoice('new')}
+                          />
+                          <span className="payment-method-choice__option-copy">
+                            <span className="payment-method-choice__option-title">
+                              {t('paymentPage.paymentMethod.useNew')}
+                            </span>
+                            <span className="payment-method-choice__option-subtitle">
+                              {t('paymentPage.paymentMethod.newCardHint')}
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="payment-tools-placeholder">
+                        {t('paymentPage.paymentMethod.addSavedHint')}
+                      </div>
+                    )}
+                  </div>
+
                   {error && <div className="error-message">{error}</div>}
 
                   <section
                     className="impact-metrics"
-                    aria-label="Impact metrics"
+                    aria-label={t('paymentPage.impact.ariaLabel')}
                   >
                     <div className="impact-metrics__header">
-                      <h3>Estimated Impact</h3>
+                      <h3>{t('paymentPage.impact.title')}</h3>
                       <p>
                         {platformStats
-                          ? 'Estimates powered by real platform donation data.'
-                          : 'Live estimate based on your selected donation amount.'}
+                          ? t('paymentPage.impact.poweredByData')
+                          : t('paymentPage.impact.liveEstimate')}
                       </p>
                     </div>
                     <div className="impact-metrics__grid">
@@ -261,7 +397,7 @@ function PaymentPage() {
                           {impactMetrics.meals}
                         </span>
                         <span className="impact-metric-card__label">
-                          Meals supported
+                          {t('paymentPage.impact.meals')}
                         </span>
                       </article>
                       <article className="impact-metric-card">
@@ -269,7 +405,7 @@ function PaymentPage() {
                           {impactMetrics.co2Kg} kg
                         </span>
                         <span className="impact-metric-card__label">
-                          CO<sub>2</sub> reduced
+                          {t('paymentPage.impact.co2')}
                         </span>
                       </article>
                       <article className="impact-metric-card">
@@ -277,7 +413,7 @@ function PaymentPage() {
                           {impactMetrics.waterLiters} L
                         </span>
                         <span className="impact-metric-card__label">
-                          Water footprint avoided
+                          {t('paymentPage.impact.water')}
                         </span>
                       </article>
                       <article className="impact-metric-card">
@@ -285,7 +421,7 @@ function PaymentPage() {
                           {impactMetrics.communityPacks}
                         </span>
                         <span className="impact-metric-card__label">
-                          Community food packs
+                          {t('paymentPage.impact.communityPacks')}
                         </span>
                       </article>
                     </div>
@@ -297,16 +433,19 @@ function PaymentPage() {
                     disabled={loading || (!selectedAmount && !customAmount)}
                   >
                     {loading
-                      ? 'Processing...'
-                      : `Continue to Payment ${getFinalAmount() ? `($${getFinalAmount()})` : ''}`}
+                      ? t('paymentPage.actions.processing')
+                      : t('paymentPage.actions.continueToPayment', {
+                          amount: getFinalAmount()
+                            ? `($${getFinalAmount()})`
+                            : '',
+                        })}
                   </button>
 
                   <div className="security-notice">
-                    <span aria-hidden="true">Lock</span>
-                    <span>
-                      Secured by Stripe - Your payment information is encrypted
-                      and secure
+                    <span aria-hidden="true">
+                      {t('paymentPage.security.lock')}
                     </span>
+                    <span>{t('paymentPage.security.notice')}</span>
                   </div>
                 </div>
               )}
@@ -318,6 +457,10 @@ function PaymentPage() {
                       amount={getFinalAmount()}
                       currency={selectedCurrency}
                       onBack={() => setStep(1)}
+                      clientSecret={clientSecret}
+                      savedMethodLabel={
+                        savedMethodRequiresAction ? savedMethodLabel : ''
+                      }
                     />
                   </Elements>
                 </div>

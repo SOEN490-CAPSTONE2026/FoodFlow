@@ -61,6 +61,12 @@ jest.mock('../AdminWelcome', () => {
   };
 });
 
+jest.mock('../AdminMoneyDonations', () => {
+  return function MockAdminMoneyDonations() {
+    return <div data-testid="admin-money-donations">Admin Money Donations</div>;
+  };
+});
+
 describe('AdminDashboard', () => {
   const renderWithRouter = (initialRoute = '/admin') => {
     return render(
@@ -113,6 +119,11 @@ describe('AdminDashboard', () => {
       renderWithRouter('/admin/messages');
       expect(screen.getByTestId('admin-messages')).toBeInTheDocument();
       expect(screen.getByText('Admin Messages')).toBeInTheDocument();
+    });
+
+    test('renders AdminMoneyDonations at /money-donations route', () => {
+      renderWithRouter('/admin/money-donations');
+      expect(screen.getByTestId('admin-money-donations')).toBeInTheDocument();
     });
 
     test('renders AdminHelp at /help route', () => {

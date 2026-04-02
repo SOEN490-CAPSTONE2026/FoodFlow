@@ -1274,28 +1274,47 @@ const AdminUsers = () => {
             </div>
 
             {alertType && (
-              <div
-                className="custom-message-section"
-                onClick={e => e.stopPropagation()}
-                onMouseDown={e => e.stopPropagation()}
-              >
-                <textarea
-                  placeholder={
-                    alertType === 'custom'
-                      ? t('adminUsers.modals.alert.customPlaceholder')
-                      : alertType === 'delete'
-                        ? t('adminUsers.modals.alert.deletePlaceholder')
-                        : t('adminUsers.modals.alert.editPlaceholder')
-                  }
-                  value={alertMessage}
-                  onChange={e => setAlertMessage(e.target.value)}
-                  className="modal-textarea"
-                  rows="4"
+              <>
+                <div className="language-notice-section">
+                  <div className="language-notice-content">
+                    <div className="language-notice-icon">ℹ️</div>
+                    <div className="language-notice-text">
+                      <p className="language-notice-label">
+                        {t('adminUsers.modals.alert.userLanguage')}:{' '}
+                        <strong>
+                          {selectedUser?.languagePreference || 'en'}
+                        </strong>
+                      </p>
+                      <p className="language-notice-warning">
+                        {t('adminUsers.modals.alert.languageWarning')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className="custom-message-section"
                   onClick={e => e.stopPropagation()}
                   onMouseDown={e => e.stopPropagation()}
-                  onFocus={e => e.stopPropagation()}
-                />
-              </div>
+                >
+                  <textarea
+                    placeholder={
+                      alertType === 'custom'
+                        ? t('adminUsers.modals.alert.customPlaceholder')
+                        : alertType === 'delete'
+                          ? t('adminUsers.modals.alert.deletePlaceholder')
+                          : t('adminUsers.modals.alert.editPlaceholder')
+                    }
+                    value={alertMessage}
+                    onChange={e => setAlertMessage(e.target.value)}
+                    className="modal-textarea"
+                    rows="4"
+                    onClick={e => e.stopPropagation()}
+                    onMouseDown={e => e.stopPropagation()}
+                    onFocus={e => e.stopPropagation()}
+                  />
+                </div>
+              </>
             )}
 
             <div className="modal-actions">

@@ -272,6 +272,78 @@
     "message": "您的电子邮件已验证成功。您的账户目前正在等待我们的管理员团队批准。该流程通常最多需要 48 小时。账户获批后，您将收到电子邮件通知。",
     "thankYou": "感谢您的耐心等待！"
   },
+  "paymentPage": {
+    "workspace": {
+      "title": "支付中心",
+      "ariaLabel": "支付分区",
+      "descriptions": {
+        "donate": "通过安全捐赠帮助我们减少食物浪费并支持社区。",
+        "methods": "管理您已保存的银行卡和银行账户，以便今后更快付款。",
+        "history": "在一个地方查看最近交易并跟踪支付活动。",
+        "invoices": "查看并下载您已完成的 FoodFlow 付款发票。",
+        "refunds": "查看退款活动，并在需要时提交退款申请。",
+        "fallback": "像浏览连续页面一样在一个流程中切换计费分区。"
+      }
+    },
+    "tabs": {
+      "donate": "捐赠",
+      "methods": "支付方式",
+      "history": "历史记录",
+      "invoices": "发票",
+      "refunds": "退款"
+    },
+    "steps": {
+      "amount": "金额",
+      "payment": "支付"
+    },
+    "amount": {
+      "title": "选择捐赠金额",
+      "currency": "货币",
+      "customLabel": "或输入自定义金额：",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "支付方式",
+      "savedOrNew": "选择您已保存的默认卡，或输入一张新卡。",
+      "noSavedDefault": "未找到已保存的默认卡。请输入新的支付方式。",
+      "loading": "正在加载已保存的支付方式...",
+      "useSaved": "使用已保存的默认方式",
+      "defaultBadge": "默认卡已保存",
+      "useNew": "使用新卡",
+      "newCardHint": "下一步打开 Stripe 卡片表单。",
+      "addSavedHint": "在“支付方式”标签中添加已保存的卡，以便在此复用。"
+    },
+    "savedMethod": {
+      "bankAccount": "银行账户",
+      "card": "卡",
+      "bankEnding": "{{bankName}} 尾号 {{last4}}",
+      "cardEnding": "{{brand}} 尾号 {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "影响指标",
+      "title": "预计影响",
+      "poweredByData": "估算基于平台真实捐赠数据。",
+      "liveEstimate": "基于所选捐赠金额的实时估算。",
+      "meals": "支持的餐食",
+      "co2": "减少的 CO2",
+      "water": "减少的水足迹",
+      "communityPacks": "社区食品包"
+    },
+    "actions": {
+      "processing": "处理中...",
+      "continueToPayment": "继续支付 {{amount}}"
+    },
+    "security": {
+      "lock": "锁定",
+      "notice": "由 Stripe 提供安全保障 - 您的支付信息已加密并受到保护"
+    },
+    "errors": {
+      "minimumAmount": "请输入有效金额（最低 $1）",
+      "unableToContinue": "目前无法使用此支付方式继续。",
+      "initializationFailed": "初始化支付失败。请重试。"
+    },
+    "donationDescription": "FoodFlow 捐赠"
+  },
   "validation": {
     "required": "此字段为必填项",
     "email": "请输入有效的电子邮箱",
@@ -933,7 +1005,85 @@
     "images": "图片",
     "imagesDesc": "审核上传内容并管理默认图片库",
     "referrals": "推荐提交",
-    "referralsDesc": "查看用户提交的社区邀请和商家建议"
+    "referralsDesc": "查看用户提交的社区邀请和商家建议",
+    "moneyDonations": "金钱捐赠",
+    "moneyDonationsDesc": "跟踪金钱捐赠、退款申请和发票状态"
+  },
+  "adminPayments": {
+    "eyebrow": "管理财务",
+    "title": "金钱捐赠交易",
+    "description": "查看每一笔金钱捐赠，审核待处理退款，并在管理员决定后核对发票金额。",
+    "loading": "正在加载交易...",
+    "empty": "当前筛选条件下没有金钱捐赠交易。",
+    "transactionId": "交易 #{{id}}",
+    "refundLabel": "退款",
+    "noDescription": "暂无说明",
+    "invoiceMissing": "暂无发票",
+    "pagination": "第 {{current}} / {{total}} 页",
+    "errors": {
+      "loadFailed": "无法加载金钱捐赠交易。",
+      "decisionFailed": "无法更新这条退款申请。"
+    },
+    "kpis": {
+      "totalVolume": "总金额",
+      "successfulTransactions": "成功交易",
+      "pendingRefundRequests": "待审核退款",
+      "netVolume": "净入账金额"
+    },
+    "filters": {
+      "search": "搜索",
+      "searchPlaceholder": "按交易编号、机构、Stripe intent 搜索...",
+      "paymentStatus": "支付状态",
+      "refundStatus": "退款状态",
+      "currency": "币种",
+      "fromDate": "开始日期",
+      "toDate": "结束日期",
+      "all": "全部",
+      "allCurrencies": "全部币种"
+    },
+    "errors": {
+      "loadFailed": "无法加载资金捐赠交易。",
+      "decisionFailed": "无法更新这条退款申请。",
+      "createFailed": "无法创建这条退款申请。",
+      "amountRequired": "请输入有效的退款金额。"
+    },
+    "columns": {
+      "transaction": "交易",
+      "organization": "机构",
+      "gross": "原始金额",
+      "refunded": "已退款金额",
+      "net": "净金额",
+      "invoice": "发票",
+      "paymentStatus": "支付状态",
+      "createdAt": "创建时间",
+      "currency": "币种",
+      "invoiceStatus": "发票状态"
+    },
+    "details": {
+      "transaction": "交易详情"
+    },
+    "refunds": {
+      "title": "退款申请",
+      "empty": "这笔交易暂无退款记录。",
+      "pendingCount": "{{count}} 条待审核",
+      "createTitle": "创建退款申请",
+      "amount": "退款金额",
+      "reason": "退款原因",
+      "requestedBy": "申请人",
+      "adminNotes": "管理员备注",
+      "notesPlaceholder": "在批准或拒绝前添加内部备注。",
+      "noReason": "未提供原因"
+    },
+    "actions": {
+      "refresh": "刷新",
+      "reset": "重置筛选",
+      "createRefundRequest": "创建申请",
+      "saving": "保存中...",
+      "approveRefund": "批准退款",
+      "rejectRefund": "拒绝退款",
+      "previous": "上一页",
+      "next": "下一页"
+    }
   },
   "claimedView": {
     "claimed": "已认领",
@@ -1959,6 +2109,10 @@
       "preparingResults": "准备结果",
       "loadingMaps": "加载地图中"
     },
+    "submitting": {
+      "title": "正在提交捐赠",
+      "hint": "FoodFlow 正在保存您的 AI 捐赠，请稍候。"
+    },
     "toast": {
       "extractionComplete": "提取完成。请在提交前检查详情。",
       "aiFailed": "AI 提取失败",
@@ -2334,6 +2488,8 @@
       "alert": {
         "title": "发送提醒给：",
         "alertType": "提醒类型",
+        "userLanguage": "用户语言",
+        "languageWarning": "消息必须用用户偏好的语言编写。系统将按您输入的方式发送。",
         "customPlaceholder": "输入你的自定义消息...",
         "editPlaceholder": "编辑消息"
       }

@@ -6,11 +6,13 @@ function RefundRequestModal({ payment, onClose, onSubmitted }) {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async event => {
     event.preventDefault();
     setSubmitting(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       await refundAPI.create({
@@ -18,8 +20,10 @@ function RefundRequestModal({ payment, onClose, onSubmitted }) {
         amount: Number(amount),
         reason,
       });
-      onSubmitted();
-      onClose();
+      setSuccessMessage(
+        'Refund request submitted. A FoodFlow admin must approve it before any money is returned and the invoice is updated.'
+      );
+      await onSubmitted();
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
@@ -40,7 +44,10 @@ function RefundRequestModal({ payment, onClose, onSubmitted }) {
         <div className="payment-tools-card__header">
           <div>
             <h3>Refund Request</h3>
-            <p>Submit a refund request for payment #{payment.id}.</p>
+            <p>
+              Submit a refund request for payment #{payment.id}. An admin must
+              review it before it is processed.
+            </p>
           </div>
           <button
             type="button"
@@ -73,6 +80,9 @@ function RefundRequestModal({ payment, onClose, onSubmitted }) {
           </label>
 
           {error && <div className="error-message">{error}</div>}
+          {successMessage && (
+            <div className="payment-tools-placeholder">{successMessage}</div>
+          )}
 
           <div className="payment-tools-actions">
             <button
@@ -80,14 +90,14 @@ function RefundRequestModal({ payment, onClose, onSubmitted }) {
               className="secondary-btn payment-tools-btn"
               onClick={onClose}
             >
-              Cancel
+              {successMessage ? 'Close' : 'Cancel'}
             </button>
             <button
               type="submit"
               className="primary-btn payment-tools-btn"
-              disabled={submitting}
+              disabled={submitting || Boolean(successMessage)}
             >
-              {submitting ? 'Submitting...' : 'Submit Refund'}
+              {submitting ? 'Submitting...' : 'Submit for Approval'}
             </button>
           </div>
         </form>

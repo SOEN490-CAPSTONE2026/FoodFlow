@@ -120,7 +120,7 @@ describe('Payment tools coverage', () => {
     expect(await screen.findByText('Prepare failed')).toBeInTheDocument();
   });
 
-  it('renders refunds, loads refund history, and opens refund modal', async () => {
+  it('renders refunds and shows admin-managed refund history', async () => {
     paymentAPI.getHistory.mockResolvedValueOnce({
       data: {
         content: [{ id: 3, amount: 40, currency: 'USD', status: 'SUCCEEDED' }],
@@ -136,12 +136,15 @@ describe('Payment tools coverage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'View Refunds' }));
 
     expect(await screen.findByText(/Refund History/i)).toBeInTheDocument();
-    expect(screen.getByText(/Requested/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Request Refund' }));
     expect(
-      screen.getByText(/Submit a refund request for payment #3/i)
+      screen.getByText(
+        /Refund review decisions are handled by FoodFlow admins./i
+      )
     ).toBeInTheDocument();
+    expect(screen.getByText(/Requested/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Request Review' })
+    ).not.toBeInTheDocument();
   });
 
   it('shows refund loading errors', async () => {
@@ -189,7 +192,8 @@ describe('InvoiceViewer', () => {
         totalAmount: '20.00',
       },
     });
-    invoiceAPI.download.mockResolvedValueOnce({ data: 'pdf-data' });
+    const pdfBlob = new Blob(['pdf-data'], { type: 'application/pdf' });
+    invoiceAPI.download.mockResolvedValueOnce({ data: pdfBlob });
 
     const originalCreateObjectURL = window.URL.createObjectURL;
     const originalRevokeObjectURL = window.URL.revokeObjectURL;
@@ -214,6 +218,7 @@ describe('InvoiceViewer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Download PDF' }));
     await waitFor(() => {
       expect(invoiceAPI.download).toHaveBeenCalledWith(2);
+      expect(window.URL.createObjectURL).toHaveBeenCalledWith(pdfBlob);
     });
 
     createElementSpy.mockRestore();
@@ -230,6 +235,28 @@ describe('InvoiceViewer', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Load Invoice' }));
     expect(await screen.findByText('Load invoice failed')).toBeInTheDocument();
+  });
+
+  it('shows invoice download errors', async () => {
+    invoiceAPI.getForPayment.mockResolvedValueOnce({
+      data: {
+        id: 2,
+        invoiceNumber: 'INV-1',
+        issuedDate: '2026-01-01',
+        totalAmount: '20.00',
+      },
+    });
+    invoiceAPI.download.mockRejectedValueOnce({
+      response: { data: { message: 'Download failed' } },
+    });
+
+    render(<InvoiceViewer paymentId={2} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load Invoice' }));
+    expect(await screen.findByText('INV-1')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Download PDF' }));
+    expect(await screen.findByText('Download failed')).toBeInTheDocument();
   });
 });
 
@@ -341,7 +368,9 @@ describe('RefundRequestModal', () => {
     fireEvent.change(screen.getByRole('textbox'), {
       target: { value: 'Duplicate charge' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Submit Refund' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Submit for Approval' })
+    );
 
     await waitFor(() => {
       expect(refundAPI.create).toHaveBeenCalledWith({
@@ -351,7 +380,12 @@ describe('RefundRequestModal', () => {
       });
     });
     expect(onSubmitted).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText(
+        /Refund request submitted. A FoodFlow admin must approve it before any money is returned and the invoice is updated./i
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows refund submission errors', async () => {
@@ -367,7 +401,9 @@ describe('RefundRequestModal', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Submit Refund' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Submit for Approval' })
+    );
     expect(await screen.findByText('Refund submit failed')).toBeInTheDocument();
   });
 });

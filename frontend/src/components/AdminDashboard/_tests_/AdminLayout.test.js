@@ -18,6 +18,8 @@ jest.mock('react-i18next', () => ({
         'admin.impact': 'Impact Dashboard',
         'admin.disputes': 'Disputes & Reports',
         'admin.donations': 'Donations',
+        'admin.moneyDonations': 'Money Donations',
+        'admin.moneyDonationsDesc': 'Track monetary donations',
         'admin.messages': 'Messages',
         'admin.help': 'Help',
         'admin.settings': 'Settings',
@@ -84,6 +86,10 @@ describe('AdminLayout', () => {
               <Route
                 path="donations"
                 element={<Stub label="Analytics Content" />}
+              />
+              <Route
+                path="money-donations"
+                element={<Stub label="Money Content" />}
               />
               <Route path="users" element={<Stub label="Calendar Content" />} />
               <Route
@@ -155,6 +161,12 @@ describe('AdminLayout', () => {
     const { container } = renderWithRoutes('/admin');
     const messagesLink = screen.getAllByText('Messages')[0].closest('a');
     expect(messagesLink).toHaveAttribute('href', '/admin/messages');
+  });
+
+  it('Money Donations link navigates to /admin/money-donations', () => {
+    renderWithRoutes('/admin');
+    const moneyLink = screen.getAllByText('Money Donations')[0].closest('a');
+    expect(moneyLink).toHaveAttribute('href', '/admin/money-donations');
   });
 
   it('shows correct title/desc when rendered at /admin/messages', () => {

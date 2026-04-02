@@ -3,10 +3,13 @@ package com.example.foodflow.service;
 import com.example.foodflow.model.dto.InvoiceResponse;
 import com.example.foodflow.model.entity.Invoice;
 import com.example.foodflow.model.entity.Payment;
+import com.example.foodflow.model.entity.Refund;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.InvoiceStatus;
+import com.example.foodflow.model.types.RefundStatus;
 import com.example.foodflow.repository.InvoiceRepository;
 import com.example.foodflow.repository.PaymentRepository;
+import com.example.foodflow.repository.RefundRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class InvoiceServiceTest {
@@ -35,6 +39,9 @@ class InvoiceServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private RefundRepository refundRepository;
 
     @InjectMocks
     private InvoiceService invoiceService;
@@ -71,6 +78,8 @@ class InvoiceServiceTest {
         testInvoice.setTaxAmount(BigDecimal.ZERO);
         testInvoice.setTotalAmount(new BigDecimal("100.00"));
         testInvoice.setCreatedAt(LocalDateTime.now());
+
+        lenient().when(refundRepository.findByPaymentId(1L)).thenReturn(List.of());
     }
 
     @Test
@@ -90,6 +99,8 @@ class InvoiceServiceTest {
         assertThat(response.getInvoiceNumber()).isEqualTo("INV-1234567890");
         assertThat(response.getStatus()).isEqualTo(InvoiceStatus.DRAFT);
         assertThat(response.getTotalAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(response.getRefundedAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(response.getNetAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
         assertThat(response.getSubtotalAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
         assertThat(response.getTaxAmount()).isEqualByComparingTo(BigDecimal.ZERO);
 
@@ -114,6 +125,7 @@ class InvoiceServiceTest {
         // Given
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
         when(invoiceRepository.findByPaymentId(1L)).thenReturn(Optional.of(testInvoice));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(testInvoice);
 
         // When
         InvoiceResponse response = invoiceService.generateInvoice(1L);
@@ -123,8 +135,7 @@ class InvoiceServiceTest {
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getInvoiceNumber()).isEqualTo("INV-1234567890");
 
-        // Verify that save was not called since invoice already exists
-        verify(invoiceRepository, never()).save(any());
+        verify(invoiceRepository).save(any());
     }
 
     @Test
@@ -258,6 +269,8 @@ class InvoiceServiceTest {
         assertThat(response.getDueDate()).isEqualTo(LocalDate.now().plusDays(30));
         assertThat(response.getIssuedDate()).isEqualTo(LocalDate.now());
         assertThat(response.getTotalAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(response.getRefundedAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(response.getNetAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
         assertThat(response.getTaxAmount()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(response.getSubtotalAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
         assertThat(response.getCreatedAt()).isEqualTo(LocalDateTime.of(2026, 3, 13, 14, 30));
@@ -366,6 +379,7 @@ class InvoiceServiceTest {
     void testGenerateInvoiceForUser_Success() {
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
         when(invoiceRepository.findByPaymentId(1L)).thenReturn(Optional.of(testInvoice));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(testInvoice);
 
         InvoiceResponse response = invoiceService.generateInvoiceForUser(1L, testUser);
 
@@ -424,7 +438,29 @@ class InvoiceServiceTest {
 
         byte[] bytes = invoiceService.downloadInvoice(1L, testUser);
 
-        assertThat(new String(bytes)).contains("FoodFlow Invoice");
-        assertThat(new String(bytes)).contains("INV-1234567890");
+        assertThat(bytes).isNotEmpty();
+        assertThat(new String(bytes, 0, 4)).isEqualTo("%PDF");
+    }
+
+    @Test
+    void testSyncInvoiceForPayment_AppliesApprovedRefundAmounts() {
+        Refund refund = new Refund();
+        refund.setPayment(testPayment);
+        refund.setAmount(new BigDecimal("25.00"));
+        refund.setStatus(RefundStatus.SUCCEEDED);
+        testPayment.setStatus(com.example.foodflow.model.types.PaymentStatus.SUCCEEDED);
+
+        when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+        when(invoiceRepository.findByPaymentId(1L)).thenReturn(Optional.of(testInvoice));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(refund));
+        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InvoiceResponse response = invoiceService.syncInvoiceForPayment(1L);
+
+        assertThat(response.getSubtotalAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(response.getRefundedAmount()).isEqualByComparingTo(new BigDecimal("25.00"));
+        assertThat(response.getNetAmount()).isEqualByComparingTo(new BigDecimal("75.00"));
+        assertThat(response.getTotalAmount()).isEqualByComparingTo(new BigDecimal("75.00"));
+        assertThat(response.getStatus()).isEqualTo(InvoiceStatus.PAID);
     }
 }

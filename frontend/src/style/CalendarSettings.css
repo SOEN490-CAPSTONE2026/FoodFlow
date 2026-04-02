@@ -4,6 +4,7 @@
   margin: 0 auto;
   padding: 1.25rem;
   animation: fadeIn 0.3s ease-in;
+  text-align: left;
 }
 
 @keyframes fadeIn {
@@ -24,6 +25,7 @@
   padding: 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease;
+  text-align: left;
 }
 
 .settings-panel:hover {
@@ -57,6 +59,7 @@
   flex: 1;
   min-width: 0;
   padding-right: 0;
+  text-align: left;
 }
 
 .section-title-group h2 {
@@ -762,6 +765,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  text-align: left;
 }
 
 .modal-warning-icon {
@@ -776,6 +780,7 @@
   color: #374151;
   line-height: 1.6;
   margin: 0;
+  text-align: left;
 }
 
 .disconnect-modal .modal-footer,

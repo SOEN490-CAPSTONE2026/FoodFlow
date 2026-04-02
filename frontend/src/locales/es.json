@@ -272,6 +272,78 @@
     "message": "¡Tu correo electrónico ha sido verificado! Tu cuenta está actualmente pendiente de aprobación por parte de nuestro equipo administrativo. Este proceso suele tardar hasta 48 horas. Recibirás una notificación por correo electrónico una vez que tu cuenta sea aprobada.",
     "thankYou": "¡Gracias por tu paciencia!"
   },
+  "paymentPage": {
+    "workspace": {
+      "title": "Espacio de Pagos",
+      "ariaLabel": "Secciones de pago",
+      "descriptions": {
+        "donate": "Ayúdanos a combatir el desperdicio de alimentos y apoyar a las comunidades con una donación segura.",
+        "methods": "Administra tus tarjetas y cuentas bancarias guardadas para pagos futuros más rápidos.",
+        "history": "Revisa tus transacciones recientes y sigue tu actividad de pagos en un solo lugar.",
+        "invoices": "Consulta y descarga las facturas de tus pagos completados en FoodFlow.",
+        "refunds": "Consulta la actividad de reembolsos y envía solicitudes cuando sea necesario.",
+        "fallback": "Recorre las secciones de facturación como páginas separadas dentro de un mismo flujo."
+      }
+    },
+    "tabs": {
+      "donate": "Donar",
+      "methods": "Métodos",
+      "history": "Historial",
+      "invoices": "Facturas",
+      "refunds": "Reembolsos"
+    },
+    "steps": {
+      "amount": "Monto",
+      "payment": "Pago"
+    },
+    "amount": {
+      "title": "Seleccionar monto de donación",
+      "currency": "Moneda",
+      "customLabel": "O ingresa un monto personalizado:",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "Método de pago",
+      "savedOrNew": "Elige tu tarjeta predeterminada guardada o ingresa una nueva.",
+      "noSavedDefault": "No se encontró una tarjeta predeterminada guardada. Ingresa un nuevo método de pago.",
+      "loading": "Cargando métodos de pago guardados...",
+      "useSaved": "Usar método guardado por defecto",
+      "defaultBadge": "Tarjeta predeterminada guardada",
+      "useNew": "Usar una tarjeta nueva",
+      "newCardHint": "Abre el formulario de tarjeta de Stripe en el siguiente paso.",
+      "addSavedHint": "Agrega una tarjeta guardada en la pestaña Métodos para reutilizarla aquí."
+    },
+    "savedMethod": {
+      "bankAccount": "Cuenta bancaria",
+      "card": "Tarjeta",
+      "bankEnding": "{{bankName}} terminada en {{last4}}",
+      "cardEnding": "{{brand}} terminada en {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "Métricas de impacto",
+      "title": "Impacto estimado",
+      "poweredByData": "Estimaciones basadas en datos reales de donaciones de la plataforma.",
+      "liveEstimate": "Estimación en vivo basada en el monto de donación seleccionado.",
+      "meals": "Comidas apoyadas",
+      "co2": "CO2 reducido",
+      "water": "Huella hídrica evitada",
+      "communityPacks": "Paquetes comunitarios de alimentos"
+    },
+    "actions": {
+      "processing": "Procesando...",
+      "continueToPayment": "Continuar al pago {{amount}}"
+    },
+    "security": {
+      "lock": "Candado",
+      "notice": "Protegido por Stripe - Tu información de pago está cifrada y segura"
+    },
+    "errors": {
+      "minimumAmount": "Ingresa un monto válido (mínimo $1)",
+      "unableToContinue": "No es posible continuar con este método de pago en este momento.",
+      "initializationFailed": "No se pudo iniciar el pago. Inténtalo de nuevo."
+    },
+    "donationDescription": "Donación FoodFlow"
+  },
   "validation": {
     "required": "Este campo es obligatorio",
     "email": "Por favor ingresa un correo electrónico válido",
@@ -945,7 +1017,81 @@
     "images": "Im?genes",
     "imagesDesc": "Modera cargas y administra la biblioteca de im?genes predeterminadas",
     "referrals": "Referencias",
-    "referralsDesc": "Ver invitaciones comunitarias y sugerencias de negocios enviadas por usuarios"
+    "referralsDesc": "Ver invitaciones comunitarias y sugerencias de negocios enviadas por usuarios",
+    "moneyDonations": "Donaciones monetarias",
+    "moneyDonationsDesc": "Supervisa donaciones monetarias, solicitudes de reembolso y el estado de las facturas"
+  },
+  "adminPayments": {
+    "eyebrow": "Finanzas Admin",
+    "title": "Transacciones de donaciones monetarias",
+    "description": "Supervisa cada donación monetaria, revisa reembolsos pendientes y verifica los importes de factura después de la decisión del admin.",
+    "loading": "Cargando transacciones...",
+    "empty": "No hay transacciones de donaciones monetarias con estos filtros.",
+    "transactionId": "Transacción #{{id}}",
+    "refundLabel": "Reembolso",
+    "noDescription": "Sin descripción",
+    "invoiceMissing": "Sin factura",
+    "pagination": "Página {{current}} de {{total}}",
+    "errors": {
+      "loadFailed": "No se pudieron cargar las transacciones monetarias.",
+      "decisionFailed": "No se pudo actualizar esta solicitud de reembolso.",
+      "createFailed": "No se pudo crear esta solicitud de reembolso.",
+      "amountRequired": "Introduce un importe de reembolso válido."
+    },
+    "kpis": {
+      "totalVolume": "Volumen total",
+      "successfulTransactions": "Transacciones exitosas",
+      "pendingRefundRequests": "Reembolsos pendientes",
+      "netVolume": "Volumen neto recaudado"
+    },
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar por ID, organización, intento de Stripe...",
+      "paymentStatus": "Estado del pago",
+      "refundStatus": "Estado del reembolso",
+      "currency": "Moneda",
+      "fromDate": "Desde",
+      "toDate": "Hasta",
+      "all": "Todos",
+      "allCurrencies": "Todas las monedas"
+    },
+    "columns": {
+      "transaction": "Transacción",
+      "organization": "Organización",
+      "gross": "Importe bruto",
+      "refunded": "Importe reembolsado",
+      "net": "Importe neto",
+      "invoice": "Factura",
+      "paymentStatus": "Estado del pago",
+      "createdAt": "Creado",
+      "currency": "Moneda",
+      "invoiceStatus": "Estado de la factura"
+    },
+    "details": {
+      "transaction": "Detalles de la transacción"
+    },
+    "refunds": {
+      "title": "Solicitudes de reembolso",
+      "empty": "No hay actividad de reembolso en esta transacción.",
+      "pendingCount": "{{count}} pendientes",
+      "createTitle": "Crear solicitud de reembolso",
+      "amount": "Importe del reembolso",
+      "reason": "Motivo del reembolso",
+      "requestedBy": "Solicitado por",
+      "adminNotes": "Notas del admin",
+      "notesPlaceholder": "Añade notas internas antes de aprobar o rechazar este reembolso.",
+      "noReason": "Sin motivo"
+    },
+    "actions": {
+      "refresh": "Actualizar",
+      "reset": "Restablecer filtros",
+      "createRefundRequest": "Crear solicitud",
+      "saving": "Guardando...",
+      "approveRefund": "Aprobar reembolso",
+      "rejectRefund": "Rechazar reembolso",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    }
   },
   "claimedView": {
     "claimed": "Reclamado",
@@ -2195,6 +2341,8 @@
       "alert": {
         "title": "Enviar alerta a:",
         "alertType": "Tipo de alerta",
+        "userLanguage": "Idioma del usuario",
+        "languageWarning": "El mensaje debe escribirse en el idioma preferido del usuario. El sistema lo enviará exactamente como lo escribas.",
         "customPlaceholder": "Escribe tu mensaje personalizado...",
         "editPlaceholder": "Editar mensaje"
       }

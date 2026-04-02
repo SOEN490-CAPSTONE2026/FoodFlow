@@ -9,8 +9,6 @@ import com.example.foodflow.model.types.PaymentStatus;
 import com.example.foodflow.model.types.RefundStatus;
 import com.example.foodflow.repository.PaymentRepository;
 import com.example.foodflow.repository.RefundRepository;
-import com.stripe.exception.StripeException;
-import com.stripe.param.RefundCreateParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import com.stripe.exception.StripeException;
+import com.stripe.param.RefundCreateParams;
 
 @ExtendWith(MockitoExtension.class)
 class RefundServiceTest {
@@ -45,6 +45,9 @@ class RefundServiceTest {
 
     @Mock
     private BusinessMetricsService metricsService;
+
+    @Mock
+    private InvoiceService invoiceService;
 
     @InjectMocks
     private RefundService refundService;
@@ -83,50 +86,37 @@ class RefundServiceTest {
     }
 
     @Test
-    void testProcessRefund_Success() throws StripeException {
-        // Given
+    void testProcessRefund_Success() {
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of());
 
         com.stripe.model.Refund stripeRefund = mock(com.stripe.model.Refund.class);
-        when(stripeRefund.getId()).thenReturn("re_123");
-
         com.example.foodflow.model.entity.Refund savedRefund = new com.example.foodflow.model.entity.Refund();
         savedRefund.setId(1L);
         savedRefund.setPayment(testPayment);
-        savedRefund.setStripeRefundId("re_123");
         savedRefund.setAmount(new BigDecimal("50.00"));
         savedRefund.setReason("Customer request");
-        savedRefund.setStatus(RefundStatus.PROCESSING);
+        savedRefund.setStatus(RefundStatus.PENDING);
         savedRefund.setRequestedBy(testUser);
         savedRefund.setCreatedAt(LocalDateTime.now());
 
         when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class))).thenReturn(savedRefund);
 
-        try (MockedStatic<com.stripe.model.Refund> refundMock = mockStatic(com.stripe.model.Refund.class)) {
-            refundMock.when(() -> com.stripe.model.Refund.create(any(RefundCreateParams.class)))
-                    .thenReturn(stripeRefund);
+        RefundResponse response = refundService.processRefund(refundRequest, testUser);
 
-            // When
-            RefundResponse response = refundService.processRefund(refundRequest, testUser);
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getPaymentId()).isEqualTo(1L);
+        assertThat(response.getStripeRefundId()).isNull();
+        assertThat(response.getAmount()).isEqualByComparingTo(new BigDecimal("50.00"));
+        assertThat(response.getReason()).isEqualTo("Customer request");
+        assertThat(response.getStatus()).isEqualTo(RefundStatus.PENDING);
 
-            // Then
-            assertThat(response).isNotNull();
-            assertThat(response.getId()).isEqualTo(1L);
-            assertThat(response.getPaymentId()).isEqualTo(1L);
-            assertThat(response.getStripeRefundId()).isEqualTo("re_123");
-            assertThat(response.getAmount()).isEqualByComparingTo(new BigDecimal("50.00"));
-            assertThat(response.getReason()).isEqualTo("Customer request");
-            assertThat(response.getStatus()).isEqualTo(RefundStatus.PROCESSING);
-
-            // Verify interactions
-            verify(refundRepository).save(any(com.example.foodflow.model.entity.Refund.class));
-            verify(paymentRepository).save(argThat(payment ->
-                    payment.getStatus() == PaymentStatus.REFUNDED
-            ));
-            verify(auditService).logRefundEvent(eq(1L), eq("REFUND_CREATED"),
-                    contains("50.00"), eq(1L), isNull());
-            verify(metricsService).incrementRefundProcessed();
-        }
+        verify(refundRepository).save(any(com.example.foodflow.model.entity.Refund.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(auditService).logRefundEvent(eq(1L), eq("REFUND_REQUESTED"),
+                contains("50.00"), eq(1L), isNull());
+        verify(metricsService, never()).incrementRefundProcessed();
     }
 
     @Test
@@ -166,11 +156,10 @@ class RefundServiceTest {
 
     @Test
     void testProcessRefund_AmountExceedsPaymentAmount() {
-        // Given
-        refundRequest.setAmount(new BigDecimal("150.00")); // Exceeds payment amount of 100
+        refundRequest.setAmount(new BigDecimal("150.00"));
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of());
 
-        // When/Then
         assertThatThrownBy(() -> refundService.processRefund(refundRequest, testUser))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Refund amount cannot exceed payment amount");
@@ -179,59 +168,24 @@ class RefundServiceTest {
     }
 
     @Test
-    void testProcessRefund_StripeException() throws StripeException {
-        // Given
+    void testProcessRefund_FullRefundRequestIsPending() {
+        refundRequest.setAmount(new BigDecimal("100.00"));
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
-
-        try (MockedStatic<com.stripe.model.Refund> refundMock = mockStatic(com.stripe.model.Refund.class)) {
-            StripeException stripeException = mock(StripeException.class);
-            when(stripeException.getUserMessage()).thenReturn("Insufficient funds");
-            when(stripeException.getMessage()).thenReturn("Stripe error");
-
-            refundMock.when(() -> com.stripe.model.Refund.create(any(RefundCreateParams.class)))
-                    .thenThrow(stripeException);
-
-            // When/Then
-            assertThatThrownBy(() -> refundService.processRefund(refundRequest, testUser))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Failed to process refund")
-                    .hasMessageContaining("Insufficient funds");
-
-            verify(refundRepository, never()).save(any());
-            verify(metricsService, never()).incrementRefundProcessed();
-        }
-    }
-
-    @Test
-    void testProcessRefund_FullRefund() throws StripeException {
-        // Given
-        refundRequest.setAmount(new BigDecimal("100.00")); // Full refund
-        when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
-
-        com.stripe.model.Refund stripeRefund = mock(com.stripe.model.Refund.class);
-        when(stripeRefund.getId()).thenReturn("re_full");
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of());
 
         com.example.foodflow.model.entity.Refund savedRefund = new com.example.foodflow.model.entity.Refund();
         savedRefund.setId(2L);
         savedRefund.setPayment(testPayment);
-        savedRefund.setStripeRefundId("re_full");
         savedRefund.setAmount(new BigDecimal("100.00"));
-        savedRefund.setStatus(RefundStatus.PROCESSING);
+        savedRefund.setStatus(RefundStatus.PENDING);
         savedRefund.setRequestedBy(testUser);
 
         when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class))).thenReturn(savedRefund);
 
-        try (MockedStatic<com.stripe.model.Refund> refundMock = mockStatic(com.stripe.model.Refund.class)) {
-            refundMock.when(() -> com.stripe.model.Refund.create(any(RefundCreateParams.class)))
-                    .thenReturn(stripeRefund);
+        RefundResponse response = refundService.processRefund(refundRequest, testUser);
 
-            // When
-            RefundResponse response = refundService.processRefund(refundRequest, testUser);
-
-            // Then
-            assertThat(response.getAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
-            verify(metricsService).incrementRefundProcessed();
-        }
+        assertThat(response.getAmount()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(response.getStatus()).isEqualTo(RefundStatus.PENDING);
     }
 
     @Test
@@ -325,22 +279,22 @@ class RefundServiceTest {
 
     @Test
     void testUpdateRefundStatus_ToSucceeded() {
-        // Given
         com.example.foodflow.model.entity.Refund refund = new com.example.foodflow.model.entity.Refund();
         refund.setId(1L);
         refund.setStripeRefundId("re_123");
+        refund.setAmount(new BigDecimal("20.00"));
         refund.setStatus(RefundStatus.PROCESSING);
         refund.setProcessedAt(null);
+        refund.setPayment(testPayment);
 
         when(refundRepository.findByStripeRefundId("re_123")).thenReturn(Optional.of(refund));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(refund));
         when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // When
         refundService.updateRefundStatus("re_123", RefundStatus.SUCCEEDED);
-
-        // Then
         ArgumentCaptor<com.example.foodflow.model.entity.Refund> refundCaptor = ArgumentCaptor.forClass(com.example.foodflow.model.entity.Refund.class);
         verify(refundRepository).save(refundCaptor.capture());
+        verify(paymentRepository).save(any(Payment.class));
+        verify(invoiceService).syncInvoiceForPayment(1L);
 
         com.example.foodflow.model.entity.Refund savedRefund = refundCaptor.getValue();
         assertThat(savedRefund.getStatus()).isEqualTo(RefundStatus.SUCCEEDED);
@@ -349,22 +303,22 @@ class RefundServiceTest {
 
     @Test
     void testUpdateRefundStatus_ToFailed() {
-        // Given
         com.example.foodflow.model.entity.Refund refund = new com.example.foodflow.model.entity.Refund();
         refund.setId(1L);
         refund.setStripeRefundId("re_123");
+        refund.setAmount(new BigDecimal("20.00"));
         refund.setStatus(RefundStatus.PROCESSING);
         refund.setProcessedAt(null);
+        refund.setPayment(testPayment);
 
         when(refundRepository.findByStripeRefundId("re_123")).thenReturn(Optional.of(refund));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(refund));
         when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // When
         refundService.updateRefundStatus("re_123", RefundStatus.FAILED);
-
-        // Then
         ArgumentCaptor<com.example.foodflow.model.entity.Refund> refundCaptor = ArgumentCaptor.forClass(com.example.foodflow.model.entity.Refund.class);
         verify(refundRepository).save(refundCaptor.capture());
+        verify(paymentRepository).save(any(Payment.class));
+        verify(invoiceService).syncInvoiceForPayment(1L);
 
         com.example.foodflow.model.entity.Refund savedRefund = refundCaptor.getValue();
         assertThat(savedRefund.getStatus()).isEqualTo(RefundStatus.FAILED);
@@ -386,21 +340,21 @@ class RefundServiceTest {
 
     @Test
     void testUpdateRefundStatus_ToCanceled() {
-        // Given
         com.example.foodflow.model.entity.Refund refund = new com.example.foodflow.model.entity.Refund();
         refund.setId(1L);
         refund.setStripeRefundId("re_123");
+        refund.setAmount(new BigDecimal("20.00"));
         refund.setStatus(RefundStatus.PROCESSING);
+        refund.setPayment(testPayment);
 
         when(refundRepository.findByStripeRefundId("re_123")).thenReturn(Optional.of(refund));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(refund));
         when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // When
         refundService.updateRefundStatus("re_123", RefundStatus.CANCELED);
-
-        // Then
         ArgumentCaptor<com.example.foodflow.model.entity.Refund> refundCaptor = ArgumentCaptor.forClass(com.example.foodflow.model.entity.Refund.class);
         verify(refundRepository).save(refundCaptor.capture());
+        verify(paymentRepository).save(any(Payment.class));
+        verify(invoiceService).syncInvoiceForPayment(1L);
 
         com.example.foodflow.model.entity.Refund savedRefund = refundCaptor.getValue();
         assertThat(savedRefund.getStatus()).isEqualTo(RefundStatus.CANCELED);
@@ -408,33 +362,66 @@ class RefundServiceTest {
     }
 
     @Test
-    void testProcessRefund_VerifiesStripeParametersCorrectly() throws StripeException {
-        // Given
-        when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
+    void testApproveRefund_Success() throws StripeException {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setEmail("admin@example.com");
+
+        com.example.foodflow.model.entity.Refund pendingRefund = new com.example.foodflow.model.entity.Refund();
+        pendingRefund.setId(1L);
+        pendingRefund.setPayment(testPayment);
+        pendingRefund.setAmount(new BigDecimal("50.00"));
+        pendingRefund.setStatus(RefundStatus.PENDING);
+        pendingRefund.setRequestedBy(testUser);
+
+        when(refundRepository.findById(1L)).thenReturn(Optional.of(pendingRefund));
+        when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(pendingRefund));
+        when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         com.stripe.model.Refund stripeRefund = mock(com.stripe.model.Refund.class);
-        when(stripeRefund.getId()).thenReturn("re_123");
-
-        com.example.foodflow.model.entity.Refund savedRefund = new com.example.foodflow.model.entity.Refund();
-        savedRefund.setId(1L);
-        savedRefund.setPayment(testPayment);
-        savedRefund.setStripeRefundId("re_123");
-        savedRefund.setAmount(new BigDecimal("50.00"));
-        savedRefund.setStatus(RefundStatus.PROCESSING);
-        savedRefund.setRequestedBy(testUser);
-
-        when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class))).thenReturn(savedRefund);
+        when(stripeRefund.getId()).thenReturn("re_approved");
+        when(stripeRefund.getStatus()).thenReturn("succeeded");
 
         try (MockedStatic<com.stripe.model.Refund> refundMock = mockStatic(com.stripe.model.Refund.class)) {
             refundMock.when(() -> com.stripe.model.Refund.create(any(RefundCreateParams.class)))
-                    .thenReturn(stripeRefund);
+                .thenReturn(stripeRefund);
 
-            // When
-            refundService.processRefund(refundRequest, testUser);
+            RefundResponse response = refundService.approveRefund(1L, adminUser, "Approved after review");
 
-            // Then - verify Stripe was called with correct parameters (amount in cents: 50.00 * 100 = 5000)
-            refundMock.verify(() -> com.stripe.model.Refund.create(any(RefundCreateParams.class)), times(1));
+            assertThat(response.getStatus()).isEqualTo(RefundStatus.SUCCEEDED);
+            assertThat(response.getStripeRefundId()).isEqualTo("re_approved");
+            assertThat(response.getReviewedByName()).isEqualTo("admin@example.com");
+            assertThat(response.getAdminNotes()).isEqualTo("Approved after review");
+
+            verify(paymentRepository).save(argThat(payment -> payment.getStatus() == PaymentStatus.SUCCEEDED));
+            verify(invoiceService).syncInvoiceForPayment(1L);
+            verify(metricsService).incrementRefundProcessed();
         }
+    }
+
+    @Test
+    void testRejectRefund_Success() {
+        User adminUser = new User();
+        adminUser.setId(99L);
+        adminUser.setEmail("admin@example.com");
+
+        com.example.foodflow.model.entity.Refund pendingRefund = new com.example.foodflow.model.entity.Refund();
+        pendingRefund.setId(1L);
+        pendingRefund.setPayment(testPayment);
+        pendingRefund.setAmount(new BigDecimal("25.00"));
+        pendingRefund.setStatus(RefundStatus.PENDING);
+
+        when(refundRepository.findById(1L)).thenReturn(Optional.of(pendingRefund));
+        when(refundRepository.save(any(com.example.foodflow.model.entity.Refund.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        RefundResponse response = refundService.rejectRefund(1L, adminUser, "Missing evidence");
+
+        assertThat(response.getStatus()).isEqualTo(RefundStatus.CANCELED);
+        assertThat(response.getReviewedByName()).isEqualTo("admin@example.com");
+        assertThat(response.getAdminNotes()).isEqualTo("Missing evidence");
+        verify(metricsService, never()).incrementRefundProcessed();
     }
 
     @Test
@@ -451,6 +438,9 @@ class RefundServiceTest {
         refund.setReason("Detailed reason");
         refund.setStatus(RefundStatus.SUCCEEDED);
         refund.setRequestedBy(testUser);
+        refund.setReviewedBy(testUser);
+        refund.setReviewedAt(now.plusMinutes(1));
+        refund.setAdminNotes("Approved");
         refund.setCreatedAt(now);
         refund.setProcessedAt(now.plusMinutes(5));
 
@@ -469,6 +459,9 @@ class RefundServiceTest {
         assertThat(response.getReason()).isEqualTo("Detailed reason");
         assertThat(response.getStatus()).isEqualTo(RefundStatus.SUCCEEDED);
         assertThat(response.getRequestedByName()).isEqualTo("test@example.com");
+        assertThat(response.getReviewedByName()).isEqualTo("test@example.com");
+        assertThat(response.getReviewedAt()).isEqualTo(now.plusMinutes(1));
+        assertThat(response.getAdminNotes()).isEqualTo("Approved");
         assertThat(response.getCreatedAt()).isEqualTo(now);
         assertThat(response.getProcessedAt()).isEqualTo(now.plusMinutes(5));
     }

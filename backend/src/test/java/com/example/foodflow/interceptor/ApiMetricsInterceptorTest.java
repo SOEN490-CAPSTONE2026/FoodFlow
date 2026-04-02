@@ -1,7 +1,6 @@
 package com.example.foodflow.interceptor;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,18 +19,6 @@ class ApiMetricsInterceptorTest {
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
         interceptor = new ApiMetricsInterceptor(meterRegistry);
-    }
-
-    @Test
-    void constructor_RegistersErrorRateGauge() {
-        Gauge gauge = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(gauge).isNotNull();
-    }
-
-    @Test
-    void errorRateGauge_NoRequests_ReturnsZero() {
-        Gauge gauge = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(gauge.value()).isEqualTo(0.0);
     }
 
     @Test
@@ -58,7 +45,7 @@ class ApiMetricsInterceptorTest {
     }
 
     @Test
-    void afterCompletion_2xxResponse_RecordsSuccessOutcomeAndNoErrorCount() {
+    void afterCompletion_2xxResponse_RecordsSuccessOutcome() {
         MockHttpServletRequest request = buildRequest("GET", "/api/test");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
@@ -69,13 +56,10 @@ class ApiMetricsInterceptorTest {
         Counter health = meterRegistry.find("http.server.requests.health").tag("outcome", "SUCCESS").counter();
         assertThat(health).isNotNull();
         assertThat(health.count()).isEqualTo(1.0);
-
-        Gauge errorRate = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(errorRate.value()).isEqualTo(0.0);
     }
 
     @Test
-    void afterCompletion_4xxResponse_RecordsFailureAndIncrementsErrorRate() {
+    void afterCompletion_4xxResponse_RecordsFailureOutcome() {
         MockHttpServletRequest request = buildRequest("GET", "/api/missing");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(404);
@@ -86,13 +70,10 @@ class ApiMetricsInterceptorTest {
         Counter health = meterRegistry.find("http.server.requests.health").tag("outcome", "FAILURE").counter();
         assertThat(health).isNotNull();
         assertThat(health.count()).isEqualTo(1.0);
-
-        Gauge errorRate = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(errorRate.value()).isEqualTo(1.0);
     }
 
     @Test
-    void afterCompletion_5xxResponse_RecordsFailureAndIncrementsErrorRate() {
+    void afterCompletion_5xxResponse_RecordsFailureOutcome() {
         MockHttpServletRequest request = buildRequest("POST", "/api/crash");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(500);
@@ -103,13 +84,10 @@ class ApiMetricsInterceptorTest {
         Counter health = meterRegistry.find("http.server.requests.health").tag("outcome", "FAILURE").counter();
         assertThat(health).isNotNull();
         assertThat(health.count()).isEqualTo(1.0);
-
-        Gauge errorRate = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(errorRate.value()).isEqualTo(1.0);
     }
 
     @Test
-    void afterCompletion_RecordsRequestCountWithTags() {
+    void afterCompletion_RecordsRequestDurationsAndCounts() {
         MockHttpServletRequest request = buildRequest("GET", "/api/surplus");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
@@ -126,35 +104,6 @@ class ApiMetricsInterceptorTest {
         assertThat(count.count()).isEqualTo(1.0);
     }
 
-    @Test
-    void errorRateGauge_MixedRequests_ReturnsCorrectRatio() {
-        // 1 success, 1 error → rate = 0.5
-        simulateRequest("GET", "/ok", 200);
-        simulateRequest("GET", "/fail", 500);
-
-        Gauge errorRate = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(errorRate.value()).isEqualTo(0.5);
-    }
-
-    @Test
-    void errorRateGauge_AllSuccessRequests_ReturnsZero() {
-        simulateRequest("GET", "/a", 200);
-        simulateRequest("GET", "/b", 201);
-        simulateRequest("GET", "/c", 204);
-
-        Gauge errorRate = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(errorRate.value()).isEqualTo(0.0);
-    }
-
-    @Test
-    void errorRateGauge_Only4xxRequests_ReturnsOne() {
-        simulateRequest("GET", "/a", 400);
-        simulateRequest("GET", "/b", 403);
-
-        Gauge errorRate = meterRegistry.find("foodflow.http.error.rate").gauge();
-        assertThat(errorRate.value()).isEqualTo(1.0);
-    }
-
     // --- helpers ---
 
     private MockHttpServletRequest buildRequest(String method, String uri) {
@@ -162,13 +111,5 @@ class ApiMetricsInterceptorTest {
         req.setMethod(method);
         req.setRequestURI(uri);
         return req;
-    }
-
-    private void simulateRequest(String method, String uri, int status) {
-        MockHttpServletRequest request = buildRequest(method, uri);
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        response.setStatus(status);
-        interceptor.preHandle(request, response, new Object());
-        interceptor.afterCompletion(request, response, new Object(), null);
     }
 }

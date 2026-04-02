@@ -284,6 +284,29 @@ describe('ReceiverMyClaims Component', () => {
       });
     });
 
+    test('uses normalized object food categories for fallback image mapping', async () => {
+      const claim = createMockClaim({
+        surplusPost: {
+          ...createMockClaim().surplusPost,
+          foodCategories: [{ name: 'FRUITS_VEGETABLES' }],
+        },
+      });
+      claimsAPI.myClaims.mockResolvedValue({ data: [claim] });
+
+      await act(async () => {
+        render(
+          <Wrapper>
+            <ReceiverMyClaims />
+          </Wrapper>
+        );
+      });
+
+      await waitFor(() => {
+        const img = screen.getByAltText('Fresh Vegetables');
+        expect(img).toHaveAttribute('src', 'fruits.jpg');
+      });
+    });
+
     test('displays default image for unknown category', async () => {
       const claim = createMockClaim({
         surplusPost: {

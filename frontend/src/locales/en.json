@@ -293,6 +293,78 @@
     "message": "Your email has been verified! Your account is currently awaiting approval from our admin team. This process typically takes up to 48 hours. You'll receive an email notification once your account is approved.",
     "thankYou": "Thank you for your patience!"
   },
+  "paymentPage": {
+    "workspace": {
+      "title": "Payment Workspace",
+      "ariaLabel": "Payment sections",
+      "descriptions": {
+        "donate": "Help us fight food waste and support communities with a secure donation.",
+        "methods": "Manage your saved cards and bank accounts for faster future payments.",
+        "history": "Review your recent transactions and track payment activity in one place.",
+        "invoices": "View and download invoices for your completed FoodFlow payments.",
+        "refunds": "Check refund activity and submit refund requests when needed.",
+        "fallback": "Move through billing sections like separate pages in one flow."
+      }
+    },
+    "tabs": {
+      "donate": "Donate",
+      "methods": "Methods",
+      "history": "History",
+      "invoices": "Invoices",
+      "refunds": "Refunds"
+    },
+    "steps": {
+      "amount": "Amount",
+      "payment": "Payment"
+    },
+    "amount": {
+      "title": "Select Donation Amount",
+      "currency": "Currency",
+      "customLabel": "Or enter custom amount:",
+      "customPlaceholder": "0.00"
+    },
+    "paymentMethod": {
+      "title": "Payment Method",
+      "savedOrNew": "Choose your saved default card or enter a new one.",
+      "noSavedDefault": "No saved default card found. Enter a new payment method.",
+      "loading": "Loading saved payment methods...",
+      "useSaved": "Use saved default method",
+      "defaultBadge": "Default card on file",
+      "useNew": "Use a new card",
+      "newCardHint": "Open the Stripe card form on the next step.",
+      "addSavedHint": "Add a saved card in the Methods tab to reuse it here."
+    },
+    "savedMethod": {
+      "bankAccount": "Bank account",
+      "card": "Card",
+      "bankEnding": "{{bankName}} ending in {{last4}}",
+      "cardEnding": "{{brand}} ending in {{last4}}"
+    },
+    "impact": {
+      "ariaLabel": "Impact metrics",
+      "title": "Estimated Impact",
+      "poweredByData": "Estimates powered by real platform donation data.",
+      "liveEstimate": "Live estimate based on your selected donation amount.",
+      "meals": "Meals supported",
+      "co2": "CO2 reduced",
+      "water": "Water footprint avoided",
+      "communityPacks": "Community food packs"
+    },
+    "actions": {
+      "processing": "Processing...",
+      "continueToPayment": "Continue to Payment {{amount}}"
+    },
+    "security": {
+      "lock": "Lock",
+      "notice": "Secured by Stripe - Your payment information is encrypted and secure"
+    },
+    "errors": {
+      "minimumAmount": "Please enter a valid amount (minimum $1)",
+      "unableToContinue": "Unable to continue with this payment method right now.",
+      "initializationFailed": "Failed to initialize payment. Please try again."
+    },
+    "donationDescription": "FoodFlow Donation"
+  },
   "validation": {
     "required": "This field is required",
     "email": "Please enter a valid email",
@@ -973,7 +1045,81 @@
     "images": "Images",
     "imagesDesc": "Moderate uploads and manage default library images",
     "referrals": "Referral Submissions",
-    "referralsDesc": "View community invitations and business suggestions from users"
+    "referralsDesc": "View community invitations and business suggestions from users",
+    "moneyDonations": "Money Donations",
+    "moneyDonationsDesc": "Track monetary donations, refund requests, and invoice health"
+  },
+  "adminPayments": {
+    "eyebrow": "Admin Finance",
+    "title": "Money Donation Transactions",
+    "description": "Monitor every monetary donation, review pending refunds, and verify invoice totals after admin decisions.",
+    "loading": "Loading payment transactions...",
+    "empty": "No monetary donation transactions match the current filters.",
+    "transactionId": "Transaction #{{id}}",
+    "refundLabel": "Refund",
+    "noDescription": "No description provided",
+    "invoiceMissing": "No invoice yet",
+    "pagination": "Page {{current}} of {{total}}",
+    "errors": {
+      "loadFailed": "Unable to load money donation transactions.",
+      "decisionFailed": "Unable to update this refund request.",
+      "createFailed": "Unable to create this refund request.",
+      "amountRequired": "Enter a valid refund amount."
+    },
+    "kpis": {
+      "totalVolume": "Total volume",
+      "successfulTransactions": "Successful transactions",
+      "pendingRefundRequests": "Pending refund requests",
+      "netVolume": "Net collected volume"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search by transaction ID, organization, Stripe intent...",
+      "paymentStatus": "Payment status",
+      "refundStatus": "Refund status",
+      "currency": "Currency",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "all": "All",
+      "allCurrencies": "All currencies"
+    },
+    "columns": {
+      "transaction": "Transaction",
+      "organization": "Organization",
+      "gross": "Gross amount",
+      "refunded": "Refunded amount",
+      "net": "Net amount",
+      "invoice": "Invoice",
+      "paymentStatus": "Payment status",
+      "createdAt": "Created",
+      "currency": "Currency",
+      "invoiceStatus": "Invoice status"
+    },
+    "details": {
+      "transaction": "Transaction details"
+    },
+    "refunds": {
+      "title": "Refund requests",
+      "empty": "No refund activity on this transaction.",
+      "pendingCount": "{{count}} pending review",
+      "createTitle": "Create refund request",
+      "amount": "Refund amount",
+      "reason": "Refund reason",
+      "requestedBy": "Requested by",
+      "adminNotes": "Admin notes",
+      "notesPlaceholder": "Add internal notes before approving or rejecting this refund.",
+      "noReason": "No reason provided"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "reset": "Reset filters",
+      "createRefundRequest": "Create refund request",
+      "saving": "Saving...",
+      "approveRefund": "Approve refund",
+      "rejectRefund": "Reject refund",
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "claimedView": {
     "claimed": "Claimed",
@@ -2287,6 +2433,8 @@
       "alert": {
         "title": "Send Alert to:",
         "alertType": "Alert Type",
+        "userLanguage": "User Language",
+        "languageWarning": "The message must be written in the user's preferred language. The system will send it exactly as you type it.",
         "customPlaceholder": "Enter your custom message...",
         "editPlaceholder": "Edit message",
         "deletePlaceholder": "Write the reason and any final note for deleting this user..."
@@ -2988,6 +3136,10 @@
       "extractingData": "Extracting data",
       "preparingResults": "Preparing results",
       "loadingMaps": "Loading maps"
+    },
+    "submitting": {
+      "title": "Submitting donation",
+      "hint": "Please wait while FoodFlow saves your AI donation."
     },
     "toast": {
       "extractionComplete": "Extraction complete. Review the details before submitting.",

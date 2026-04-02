@@ -8,9 +8,12 @@ import com.example.foodflow.model.entity.PaymentMethod;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PaymentMethodType;
 import com.example.foodflow.repository.PaymentMethodRepository;
+import com.stripe.model.Customer;
 import com.stripe.exception.StripeException;
 import com.stripe.model.SetupIntent;
 import com.stripe.param.SetupIntentCreateParams;
+import com.stripe.param.CustomerUpdateParams;
+import com.stripe.param.PaymentMethodAttachParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +44,9 @@ class PaymentMethodServiceTest {
     @Mock
     private PaymentAuditService paymentAuditService;
 
+    @Mock
+    private PaymentService paymentService;
+
     @InjectMocks
     private PaymentMethodService paymentMethodService;
 
@@ -70,24 +76,32 @@ class PaymentMethodServiceTest {
     }
 
     @Test
-    void setDefaultPaymentMethod_Success() {
+    void setDefaultPaymentMethod_Success() throws StripeException {
         // Given
+        Customer customer = mock(Customer.class);
         when(paymentMethodRepository.findById(1L)).thenReturn(Optional.of(paymentMethod));
+        when(paymentService.getOrCreateStripeCustomerId(user)).thenReturn("cus_test123");
         when(paymentMethodRepository.save(any(PaymentMethod.class)))
                 .thenAnswer(invocation -> {
                     PaymentMethod pm = invocation.getArgument(0);
                     pm.setIsDefault(true);
                     return pm;
                 });
+        when(customer.update(any(CustomerUpdateParams.class))).thenReturn(customer);
 
-        // When
-        PaymentMethodResponse response = paymentMethodService.setDefaultPaymentMethod(1L, user);
+        try (MockedStatic<Customer> customerMock = mockStatic(Customer.class)) {
+            customerMock.when(() -> Customer.retrieve("cus_test123")).thenReturn(customer);
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getIsDefault()).isTrue();
-        verify(paymentMethodRepository).clearDefaultForOrganization(organization.getId());
-        verify(paymentAuditService).logPaymentMethodEvent(eq(1L), eq("DEFAULT_PAYMENT_METHOD_SET"), anyString(), eq(1L), isNull());
+            // When
+            PaymentMethodResponse response = paymentMethodService.setDefaultPaymentMethod(1L, user);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getIsDefault()).isTrue();
+            verify(paymentMethodRepository).clearDefaultForOrganization(organization.getId());
+            verify(paymentAuditService).logPaymentMethodEvent(eq(1L), eq("DEFAULT_PAYMENT_METHOD_SET"), anyString(), eq(1L), isNull());
+            verify(customer).update(any(CustomerUpdateParams.class));
+        }
     }
 
     @Test
@@ -206,18 +220,26 @@ class PaymentMethodServiceTest {
     }
 
     @Test
-    void setDefaultPaymentMethod_UpdatesIsDefaultFlag() {
+    void setDefaultPaymentMethod_UpdatesIsDefaultFlag() throws StripeException {
         // Given
+        Customer customer = mock(Customer.class);
         paymentMethod.setIsDefault(false);
         when(paymentMethodRepository.findById(1L)).thenReturn(Optional.of(paymentMethod));
+        when(paymentService.getOrCreateStripeCustomerId(user)).thenReturn("cus_test123");
         when(paymentMethodRepository.save(any(PaymentMethod.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        when(customer.update(any(CustomerUpdateParams.class))).thenReturn(customer);
 
-        // When
-        PaymentMethodResponse response = paymentMethodService.setDefaultPaymentMethod(1L, user);
+        try (MockedStatic<Customer> customerMock = mockStatic(Customer.class)) {
+            customerMock.when(() -> Customer.retrieve("cus_test123")).thenReturn(customer);
 
-        // Then
-        verify(paymentMethodRepository).save(argThat(pm -> pm.getIsDefault() == true));
+            // When
+            paymentMethodService.setDefaultPaymentMethod(1L, user);
+
+            // Then
+            verify(paymentMethodRepository).save(argThat(pm -> pm.getIsDefault() == true));
+            verify(customer).update(any(CustomerUpdateParams.class));
+        }
     }
 
     @Test
@@ -252,6 +274,7 @@ class PaymentMethodServiceTest {
         when(stripeSetupIntent.getClientSecret()).thenReturn("seti_secret");
         when(stripeSetupIntent.getId()).thenReturn("seti_123");
         when(stripeSetupIntent.getStatus()).thenReturn("requires_payment_method");
+        when(paymentService.getOrCreateStripeCustomerId(user)).thenReturn("cus_test123");
 
         try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
             setupIntentMock
@@ -262,11 +285,16 @@ class PaymentMethodServiceTest {
 
             assertThat(response.getClientSecret()).isEqualTo("seti_secret");
             assertThat(response.getSetupIntentId()).isEqualTo("seti_123");
+            setupIntentMock.verify(() -> SetupIntent.create(argThat((SetupIntentCreateParams params) ->
+                "cus_test123".equals(params.getCustomer())
+                    && SetupIntentCreateParams.Usage.OFF_SESSION.equals(params.getUsage())
+            )));
         }
     }
 
     @Test
     void createSetupIntent_StripeError() throws StripeException {
+        when(paymentService.getOrCreateStripeCustomerId(user)).thenReturn("cus_test123");
         try (MockedStatic<SetupIntent> setupIntentMock = mockStatic(SetupIntent.class)) {
             StripeException stripeException = mock(StripeException.class);
             when(stripeException.getUserMessage()).thenReturn("Setup error");
@@ -277,6 +305,62 @@ class PaymentMethodServiceTest {
             assertThatThrownBy(() -> paymentMethodService.createSetupIntent(user))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Setup error");
+        }
+    }
+
+    @Test
+    void attachPaymentMethod_AttachesToCustomerAndSetsDefault() throws StripeException {
+        AttachPaymentMethodRequest request = new AttachPaymentMethodRequest("pm_test123", true);
+
+        com.stripe.model.PaymentMethod stripePaymentMethod = mock(com.stripe.model.PaymentMethod.class);
+        com.stripe.model.PaymentMethod.Card stripeCard = mock(com.stripe.model.PaymentMethod.Card.class);
+        Customer customer = mock(Customer.class);
+
+        when(paymentService.getOrCreateStripeCustomerId(user)).thenReturn("cus_test123");
+        when(stripePaymentMethod.getCustomer()).thenReturn(null);
+        when(stripePaymentMethod.attach(any(PaymentMethodAttachParams.class)))
+            .thenReturn(stripePaymentMethod);
+        when(stripePaymentMethod.getType()).thenReturn("card");
+        when(stripePaymentMethod.getCard()).thenReturn(stripeCard);
+        when(stripeCard.getBrand()).thenReturn("visa");
+        when(stripeCard.getLast4()).thenReturn("4242");
+        when(stripeCard.getExpMonth()).thenReturn(12L);
+        when(stripeCard.getExpYear()).thenReturn(2030L);
+        when(paymentMethodRepository.existsByOrganizationIdAndStripePaymentMethodId(1L, "pm_test123"))
+            .thenReturn(false);
+        when(paymentMethodRepository.findByOrganizationIdOrderByIsDefaultDescCreatedAtDesc(1L))
+            .thenReturn(Collections.emptyList());
+        when(paymentMethodRepository.save(any(PaymentMethod.class)))
+            .thenAnswer(invocation -> {
+                PaymentMethod saved = invocation.getArgument(0);
+                saved.setId(99L);
+                return saved;
+            });
+        when(customer.update(any(CustomerUpdateParams.class))).thenReturn(customer);
+
+        try (
+            MockedStatic<com.stripe.model.PaymentMethod> paymentMethodMock =
+                mockStatic(com.stripe.model.PaymentMethod.class);
+            MockedStatic<Customer> customerMock = mockStatic(Customer.class)
+        ) {
+            paymentMethodMock
+                .when(() -> com.stripe.model.PaymentMethod.retrieve("pm_test123"))
+                .thenReturn(stripePaymentMethod);
+            customerMock.when(() -> Customer.retrieve("cus_test123")).thenReturn(customer);
+
+            PaymentMethodResponse response = paymentMethodService.attachPaymentMethod(request, user);
+
+            assertThat(response.getId()).isEqualTo(99L);
+            assertThat(response.getIsDefault()).isTrue();
+            assertThat(response.getCardBrand()).isEqualTo("visa");
+            verify(stripePaymentMethod).attach(argThat((PaymentMethodAttachParams params) ->
+                "cus_test123".equals(params.getCustomer())
+            ));
+            verify(customer).update(argThat((CustomerUpdateParams params) ->
+                params.getInvoiceSettings() != null
+                    && "pm_test123".equals(params.getInvoiceSettings().getDefaultPaymentMethod())
+            ));
+            verify(paymentMethodRepository).clearDefaultForOrganization(1L);
         }
     }
 }
