@@ -37,8 +37,8 @@ class AIExtractionServiceTest {
     @DisplayName("Should reject null image file")
     void analyzeFoodLabelWithNullImage() {
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(null))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("required");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("required");
     }
 
     @Test
@@ -48,8 +48,8 @@ class AIExtractionServiceTest {
         when(emptyImage.isEmpty()).thenReturn(true);
 
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(emptyImage))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("required");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("required");
     }
 
     @Test
@@ -61,8 +61,8 @@ class AIExtractionServiceTest {
         when(oversizedImage.getContentType()).thenReturn("image/jpeg");
 
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(oversizedImage))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("size exceeds");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("size exceeds");
     }
 
     @Test
@@ -74,8 +74,8 @@ class AIExtractionServiceTest {
         when(invalidImage.getContentType()).thenReturn("image/bmp");
 
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(invalidImage))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("Invalid image format");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("Invalid image format");
     }
 
     @Test
@@ -123,8 +123,8 @@ class AIExtractionServiceTest {
         when(errorImage.getBytes()).thenThrow(new java.io.IOException("Read error"));
 
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(errorImage))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("Failed to read image");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("Failed to read image");
     }
 
     @Test
@@ -136,8 +136,8 @@ class AIExtractionServiceTest {
         when(invalidImage.getContentType()).thenReturn("IMAGE/BMP");
 
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(invalidImage))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("Invalid image format");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("Invalid image format");
     }
 
     @Test
@@ -165,8 +165,8 @@ class AIExtractionServiceTest {
         when(noTypeImage.getContentType()).thenReturn(null);
 
         assertThatThrownBy(() -> aiExtractionService.analyzeFoodLabel(noTypeImage))
-            .isInstanceOf(InvalidImageException.class)
-            .hasMessageContaining("Invalid image format");
+                .isInstanceOf(InvalidImageException.class)
+                .hasMessageContaining("Invalid image format");
     }
 
     @Test
@@ -199,7 +199,7 @@ class AIExtractionServiceTest {
         } catch (AIServiceException | InvalidImageException e) {
             // Expected - API call will fail in test environment
             assertThat(e).isNotInstanceOf(InvalidImageException.class)
-                .withFailMessage("Size validation failed for maximum allowed size");
+                    .withFailMessage("Size validation failed for maximum allowed size");
         }
     }
 

@@ -99,8 +99,7 @@ class AdminPaymentServiceTest {
         when(invoiceService.getInvoiceByPaymentId(1L)).thenReturn(null);
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, null, null, null, null, null, 0, 10
-        );
+                null, null, null, null, null, null, 0, 10);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
@@ -116,8 +115,7 @@ class AdminPaymentServiceTest {
         when(invoiceService.getInvoiceByPaymentId(1L)).thenReturn(null);
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            "SUCCEEDED", null, null, null, null, null, 0, 10
-        );
+                "SUCCEEDED", null, null, null, null, null, 0, 10);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -131,8 +129,7 @@ class AdminPaymentServiceTest {
         when(invoiceService.getInvoiceByPaymentId(1L)).thenReturn(null);
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, null, "USD", null, null, null, 0, 10
-        );
+                null, null, "USD", null, null, null, 0, 10);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -147,8 +144,7 @@ class AdminPaymentServiceTest {
 
         LocalDate today = LocalDate.now();
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, null, null, null, today.minusDays(10), today.plusDays(10), 0, 10
-        );
+                null, null, null, null, today.minusDays(10), today.plusDays(10), 0, 10);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -162,8 +158,7 @@ class AdminPaymentServiceTest {
         when(invoiceService.getInvoiceByPaymentId(1L)).thenReturn(null);
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, null, null, "1", null, null, 0, 10
-        );
+                null, null, null, "1", null, null, 0, 10);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -177,8 +172,7 @@ class AdminPaymentServiceTest {
         when(invoiceService.getInvoiceByPaymentId(1L)).thenReturn(null);
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, null, null, "Test Organization", null, null, 0, 10
-        );
+                null, null, null, "Test Organization", null, null, 0, 10);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -191,8 +185,7 @@ class AdminPaymentServiceTest {
         when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(refund));
 
         AdminPaymentSummaryResponse result = adminPaymentService.getSummary(
-            null, null, null, null, null, null
-        );
+                null, null, null, null, null, null);
 
         assertThat(result).isNotNull();
         assertThat(result.getTotalTransactions()).isEqualTo(1);
@@ -213,8 +206,7 @@ class AdminPaymentServiceTest {
         when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(refund, processingRefund));
 
         AdminPaymentSummaryResponse result = adminPaymentService.getSummary(
-            null, null, null, null, null, null
-        );
+                null, null, null, null, null, null);
 
         assertThat(result.getRefundedVolume()).isEqualTo(BigDecimal.valueOf(75.00));
         assertThat(result.getNetVolume()).isEqualTo(BigDecimal.valueOf(25.00));
@@ -224,12 +216,12 @@ class AdminPaymentServiceTest {
     @DisplayName("Should approve refund")
     void approveRefund() {
         RefundResponse refundResponse = RefundResponse.builder()
-            .id(1L)
-            .status(RefundStatus.SUCCEEDED)
-            .build();
+                .id(1L)
+                .status(RefundStatus.SUCCEEDED)
+                .build();
 
         when(refundService.approveRefund(1L, adminUser, "Approved"))
-            .thenReturn(refundResponse);
+                .thenReturn(refundResponse);
 
         RefundResponse result = adminPaymentService.approveRefund(1L, adminUser, "Approved");
 
@@ -242,12 +234,12 @@ class AdminPaymentServiceTest {
     @DisplayName("Should reject refund")
     void rejectRefund() {
         RefundResponse refundResponse = RefundResponse.builder()
-            .id(1L)
-            .status(RefundStatus.REJECTED)
-            .build();
+                .id(1L)
+                .status(RefundStatus.REJECTED)
+                .build();
 
         when(refundService.rejectRefund(1L, adminUser, "Rejected"))
-            .thenReturn(refundResponse);
+                .thenReturn(refundResponse);
 
         RefundResponse result = adminPaymentService.rejectRefund(1L, adminUser, "Rejected");
 
@@ -264,13 +256,13 @@ class AdminPaymentServiceTest {
         request.setAmount(BigDecimal.valueOf(50.00));
 
         RefundResponse refundResponse = RefundResponse.builder()
-            .id(1L)
-            .amount(BigDecimal.valueOf(50.00))
-            .status(RefundStatus.PENDING)
-            .build();
+                .id(1L)
+                .amount(BigDecimal.valueOf(50.00))
+                .status(RefundStatus.PENDING)
+                .build();
 
         when(refundService.createRefundRequestAsAdmin(request, adminUser))
-            .thenReturn(refundResponse);
+                .thenReturn(refundResponse);
 
         RefundResponse result = adminPaymentService.createRefundRequest(request, adminUser);
 
@@ -288,8 +280,7 @@ class AdminPaymentServiceTest {
         when(invoiceService.getInvoiceByPaymentId(1L)).thenReturn(null);
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, "SUCCEEDED", null, null, null, null, 0, 10
-        );
+                null, "SUCCEEDED", null, null, null, null, 0, 10);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -300,8 +291,7 @@ class AdminPaymentServiceTest {
         when(paymentRepository.findAll(any(Sort.class))).thenReturn(new ArrayList<>());
 
         Page<AdminPaymentTransactionResponse> result = adminPaymentService.getTransactions(
-            null, null, null, null, null, null, 0, 10
-        );
+                null, null, null, null, null, null, 0, 10);
 
         assertThat(result.getContent()).isEmpty();
     }
@@ -320,8 +310,7 @@ class AdminPaymentServiceTest {
         when(refundRepository.findByPaymentId(1L)).thenReturn(List.of(pendingRefund));
 
         AdminPaymentSummaryResponse result = adminPaymentService.getSummary(
-            null, null, null, null, null, null
-        );
+                null, null, null, null, null, null);
 
         // Pending refunds should not be included in refundedVolume
         assertThat(result.getRefundedVolume()).isEqualTo(BigDecimal.ZERO);
