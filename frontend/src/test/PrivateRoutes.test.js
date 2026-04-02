@@ -69,4 +69,29 @@ describe('PrivateRoutes', () => {
 
     expect(screen.getByText('Login Page')).toBeInTheDocument();
   });
+
+  test('does not redirect while auth is still loading', () => {
+    render(
+      <AuthContext.Provider
+        value={{ isAuthLoading: true, isLoggedIn: false, role: null }}
+      >
+        <MemoryRouter initialEntries={['/donor/*']}>
+          <Routes>
+            <Route
+              path="/donor/*"
+              element={
+                <PrivateRoutes>
+                  <div>Donor Dashboard</div>
+                </PrivateRoutes>
+              }
+            />
+            <Route path="/login" element={<div>Login Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    );
+
+    expect(screen.queryByText('Login Page')).not.toBeInTheDocument();
+    expect(screen.queryByText('Donor Dashboard')).not.toBeInTheDocument();
+  });
 });

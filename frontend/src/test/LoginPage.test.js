@@ -32,6 +32,7 @@ afterAll(() => {
 });
 
 const mockNavigate = jest.fn();
+const mockUseNavigationType = jest.fn(() => 'PUSH');
 
 // Mock react-router-dom's useNavigate
 jest.mock('react-router-dom', () => {
@@ -39,6 +40,7 @@ jest.mock('react-router-dom', () => {
   return {
     ...actual,
     useNavigate: () => mockNavigate,
+    useNavigationType: () => mockUseNavigationType(),
   };
 });
 
@@ -85,6 +87,7 @@ describe('LoginPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockUseNavigationType.mockReturnValue('PUSH');
     localStorage.clear();
     global.fetch = jest.fn().mockResolvedValue({ ok: true });
     // Reset analytics mock to default behavior
@@ -659,6 +662,16 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+  });
+
+  test('direct browser entry to login redirects to landing page', async () => {
+    mockUseNavigationType.mockReturnValue('POP');
+
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
   });
 });

@@ -3,8 +3,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 const PrivateRoutes = ({ children }) => {
-  const { isLoggedIn, role } = useContext(AuthContext);
+  const { isAuthLoading, isLoggedIn, role } = useContext(AuthContext);
   const location = useLocation();
+
+  if (isAuthLoading) {
+    return null;
+  }
 
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;

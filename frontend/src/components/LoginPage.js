@@ -1,4 +1,9 @@
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import {
+  useNavigate,
+  Link,
+  useLocation,
+  useNavigationType,
+} from 'react-router-dom';
 import '../style/LoginPage.css';
 import React, { useState, useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +18,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +27,16 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { trackButtonClick, trackLogin } = useAnalytics();
+
+  useEffect(() => {
+    const hasRedirectContext = Boolean(
+      location.state?.from || location.state?.message
+    );
+
+    if (navigationType === 'POP' && !hasRedirectContext) {
+      navigate('/', { replace: true });
+    }
+  }, [location.state, navigate, navigationType]);
 
   // Check for success message from email verification
   useEffect(() => {

@@ -273,7 +273,9 @@ function PaymentPage() {
                     <select
                       id="payment-currency"
                       value={selectedCurrency}
-                      onChange={event => setSelectedCurrency(event.target.value)}
+                      onChange={event =>
+                        setSelectedCurrency(event.target.value)
+                      }
                     >
                       {supportedCurrencies.map(currency => (
                         <option key={currency} value={currency}>

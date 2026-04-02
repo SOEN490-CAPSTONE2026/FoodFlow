@@ -43,6 +43,7 @@ const AuthStorage = {
 };
 
 export const AuthProvider = ({ children }) => {
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return Boolean(AuthStorage.getItem('jwtToken'));
   });
@@ -72,6 +73,39 @@ export const AuthProvider = ({ children }) => {
     );
   });
 
+  const syncAuthStateFromStorage = useCallback(() => {
+    setIsLoggedIn(
+      Boolean(
+        localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken')
+      )
+    );
+    setRole(
+      localStorage.getItem('userRole') ||
+        sessionStorage.getItem('userRole') ||
+        null
+    );
+    setUserId(
+      localStorage.getItem('userId') ||
+        sessionStorage.getItem('userId') ||
+        null
+    );
+    setOrganizationName(
+      localStorage.getItem('organizationName') ||
+        sessionStorage.getItem('organizationName') ||
+        null
+    );
+    setOrganizationVerificationStatus(
+      localStorage.getItem('organizationVerificationStatus') ||
+        sessionStorage.getItem('organizationVerificationStatus') ||
+        null
+    );
+    setAccountStatus(
+      localStorage.getItem('accountStatus') ||
+        sessionStorage.getItem('accountStatus') ||
+        null
+    );
+  }, []);
+
   // User object combining all user-related data
   const user = isLoggedIn
     ? {
@@ -85,41 +119,13 @@ export const AuthProvider = ({ children }) => {
     : null;
 
   useEffect(() => {
-    const handleStorage = () => {
-      setIsLoggedIn(
-        Boolean(
-          localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken')
-        )
-      );
-      setRole(
-        localStorage.getItem('userRole') ||
-          sessionStorage.getItem('userRole') ||
-          null
-      );
-      setUserId(
-        localStorage.getItem('userId') ||
-          sessionStorage.getItem('userId') ||
-          null
-      );
-      setOrganizationName(
-        localStorage.getItem('organizationName') ||
-          sessionStorage.getItem('organizationName') ||
-          null
-      );
-      setOrganizationVerificationStatus(
-        localStorage.getItem('organizationVerificationStatus') ||
-          sessionStorage.getItem('organizationVerificationStatus') ||
-          null
-      );
-      setAccountStatus(
-        localStorage.getItem('accountStatus') ||
-          sessionStorage.getItem('accountStatus') ||
-          null
-      );
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+    syncAuthStateFromStorage();
+    setIsAuthLoading(false);
+
+    window.addEventListener('storage', syncAuthStateFromStorage);
+    return () =>
+      window.removeEventListener('storage', syncAuthStateFromStorage);
+  }, [syncAuthStateFromStorage]);
 
   const login = (
     token,
@@ -193,6 +199,7 @@ export const AuthProvider = ({ children }) => {
     setOrganizationName(orgName);
     setOrganizationVerificationStatus(orgVerificationStatus);
     setAccountStatus(accStatus);
+    setIsAuthLoading(false);
   };
 
   const logout = useCallback(() => {
@@ -214,6 +221,7 @@ export const AuthProvider = ({ children }) => {
     setOrganizationName(null);
     setOrganizationVerificationStatus(null);
     setAccountStatus(null);
+    setIsAuthLoading(false);
   }, []);
 
   useEffect(() => {
@@ -226,6 +234,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
+        isAuthLoading,
         isLoggedIn,
         role,
         userId,
