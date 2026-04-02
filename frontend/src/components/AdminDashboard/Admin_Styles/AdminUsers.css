@@ -512,6 +512,7 @@
   justify-content: center;
   flex-wrap: nowrap;
   min-width: fit-content;
+  overflow: visible;
 }
 
 .action-btn {
@@ -556,9 +557,6 @@
 
 .action-btn-bell {
   color: #f59e0b;
-  position: relative;
-  top: -5px;
-  left: -6px;
 }
 
 .action-btn-bell:hover {
@@ -598,12 +596,29 @@
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+  -ms-overflow-style: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-content::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .modal-close {
@@ -641,6 +656,15 @@
   max-width: 520px;
 }
 
+/* Ensure modal-alert header has minimal spacing */
+.modal-alert h2 {
+  margin-bottom: 6px;
+}
+
+.modal-alert > p:first-of-type {
+  margin-bottom: 12px;
+}
+
 .alert-user-name {
   font-size: 18px !important;
   font-weight: 400 !important;
@@ -652,7 +676,7 @@
 }
 
 .alert-type-section {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .alert-section-label {
@@ -674,7 +698,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
   cursor: pointer;
@@ -776,7 +800,7 @@
 }
 
 .custom-message-section {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   animation: slideDown 0.2s ease;
 }
 
@@ -795,16 +819,15 @@
   margin-bottom: 0;
 }
 
-/* Language Notice Section */
 .language-notice-section {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   animation: slideDown 0.2s ease;
 }
 
 .language-notice-content {
   display: flex;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 10px 12px;
   background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
   border-left: 4px solid #a855f7;
   border-radius: 8px;
@@ -865,14 +888,14 @@
 
 .modal-textarea {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
-  margin-bottom: 24px;
-  min-height: 100px;
+  margin-bottom: 16px;
+  min-height: 80px;
   overflow-y: auto;
 }
 
@@ -886,6 +909,7 @@
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+  margin-top: 4px;
 }
 
 .btn-confirm {
@@ -1756,12 +1780,6 @@
 
   .action-btn-bell {
     color: #f59e0b !important;
-  }
-
-  .action-btn-bell {
-    position: static;
-    top: auto;
-    left: auto;
   }
 
   .stat-value {
