@@ -17,6 +17,11 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+.landing-page section[id] {
+  scroll-margin-top: 96px;
+}
+
 .background-video {
   position: absolute;
   top: 0;

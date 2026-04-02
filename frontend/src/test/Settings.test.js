@@ -1429,10 +1429,17 @@ describe('Settings', () => {
         expect(screen.getByText('Slot 1')).toBeInTheDocument();
       });
 
-      // The availability window has 2 time inputs (From, To); the new slot adds 2 more
-      const allTimeInputs = container.querySelectorAll('input[type="time"]');
-      fireEvent.change(allTimeInputs[2], { target: { value: '09:00' } });
-      fireEvent.change(allTimeInputs[3], { target: { value: '12:00' } });
+      // Slot times are rendered by react-datepicker as text inputs, not native time inputs.
+      const slotCard = container.querySelector('.pickup-slot-card');
+      expect(slotCard).toBeInTheDocument();
+
+      const slotTimeInputs = slotCard.querySelectorAll(
+        'input[placeholder="--:--"]'
+      );
+      expect(slotTimeInputs).toHaveLength(2);
+
+      fireEvent.change(slotTimeInputs[0], { target: { value: '09:00' } });
+      fireEvent.change(slotTimeInputs[1], { target: { value: '12:00' } });
 
       const saveButton = screen.getByRole('button', {
         name: 'Save Pickup Preferences',

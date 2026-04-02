@@ -312,6 +312,27 @@ body {
   position: relative;
 }
 
+.donor-nav-link--with-badge {
+  padding-right: 44px;
+}
+
+.donor-nav-count-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
 .donor-nav-link::before {
   content: '';
   position: absolute;
@@ -332,6 +353,21 @@ body {
 .donor-sidebar.collapsed .donor-nav-link {
   justify-content: center;
   padding: 12px 8px;
+}
+
+.donor-sidebar.collapsed .donor-nav-link--with-badge {
+  padding-right: 8px;
+}
+
+.donor-sidebar.collapsed .donor-nav-count-badge {
+  top: 8px;
+  right: 6px;
+  transform: none;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 10px;
+  padding: 0 4px;
 }
 
 .donor-nav-link:hover {

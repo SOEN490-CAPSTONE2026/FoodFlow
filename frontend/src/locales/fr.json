@@ -1950,6 +1950,7 @@
     },
     "faq": {
       "title": "Foire aux questions",
+      "subtitle": "Tout ce que vous devez savoir sur la réclamation des dons et la coordination des collectes.",
       "items": {
         "q1": {
           "question": "Comment réclamer un don ?",
@@ -1992,6 +1993,10 @@
           "answer": "Lors de l'inscription, les informations de votre organisation sont soumises à vérification. Notre équipe admin vérifie vos documents et coordonnées."
         }
       }
+    },
+    "contact": {
+      "title": "Toujours besoin d'aide ?",
+      "subtitle": "Notre équipe de support est là pour vous aider. Contactez-nous via votre canal préféré."
     },
     "support": {
       "title": "Besoin de plus d'aide ?",

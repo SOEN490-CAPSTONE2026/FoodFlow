@@ -1885,6 +1885,7 @@
     },
     "faq": {
       "title": "Perguntas frequentes",
+      "subtitle": "Tudo o que você precisa saber sobre como reivindicar doações e coordenar retiradas.",
       "items": {
         "q1": {
           "question": "Como reivindico uma doação?",
@@ -1927,6 +1928,10 @@
           "answer": "No cadastro, os dados da organização são enviados para verificação da equipe administrativa."
         }
       }
+    },
+    "contact": {
+      "title": "Ainda precisa de ajuda?",
+      "subtitle": "Nossa equipe de suporte está aqui para ajudar você. Entre em contato pelo canal de sua preferência."
     },
     "support": {
       "title": "Precisa de mais ajuda?",

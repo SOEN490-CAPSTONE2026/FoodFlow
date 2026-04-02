@@ -598,10 +598,26 @@ export default function DonorListFood() {
     setSelectedItem(null);
   };
 
-  const handlePickupSuccess = () => {
+  const handlePickupSuccess = async confirmedDonationId => {
+    const donationId = confirmedDonationId || selectedItem?.id;
+
     setIsSuccessModalOpen(true);
-    // Refresh the posts list to show updated status
-    fetchMyPosts();
+    // Refresh the posts list to show updated status.
+    await fetchMyPosts();
+
+    if (donationId != null) {
+      // Invalidate cached timeline so next open fetches fresh events.
+      setTimelines(prev => {
+        const next = { ...prev };
+        delete next[donationId];
+        return next;
+      });
+
+      // If timeline is currently visible, fetch immediately so user sees COMPLETED state.
+      if (expandedTimeline[donationId]) {
+        await fetchTimeline(donationId);
+      }
+    }
   };
 
   const handleCloseSuccessModal = () => {
