@@ -2732,6 +2732,88 @@
       "phoneAvailability": "Lun-Vie, 9AM-5PM EST"
     }
   },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Primeros pasos",
+      "intro": "¡Bienvenido a FoodFlow! Como receptor, puedes reclamar donaciones de alimentos excedentes de empresas y organizaciones locales.",
+      "steps": {
+        "step1": {
+          "title": "Explora donaciones disponibles",
+          "description": "Revisa la página de donaciones para encontrar alimentos cerca de ti y usa filtros según las necesidades de tu organización."
+        },
+        "step2": {
+          "title": "Reclama y agenda la recogida",
+          "description": "Haz clic en \"Reclamar\" y selecciona un horario de recogida entre las opciones del donante."
+        },
+        "step3": {
+          "title": "Recoge con OTP",
+          "description": "Llega en el horario elegido y proporciona tu código OTP para que el donante confirme la entrega."
+        },
+        "step4": {
+          "title": "Configura tus preferencias",
+          "description": "Actualiza tus preferencias de alimentos en el perfil para obtener mejores coincidencias."
+        }
+      }
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "subtitle": "Todo lo que necesitas saber sobre cómo reclamar donaciones y coordinar recogidas.",
+      "items": {
+        "q1": {
+          "question": "¿Cómo reclamo una donación?",
+          "answer": "Explora las donaciones disponibles, pulsa \"Reclamar\" en la que te interese y selecciona un horario de recogida."
+        },
+        "q2": {
+          "question": "¿Cómo confirmo la recogida?",
+          "answer": "Cuando llegues al donante, comparte tu código OTP. El donante lo ingresará para confirmar la entrega."
+        },
+        "q3": {
+          "question": "¿Qué es el código OTP?",
+          "answer": "Es un código único de verificación de 6 dígitos asignado a cada donación reclamada."
+        },
+        "q4": {
+          "question": "¿Qué son las preferencias de alimentos?",
+          "answer": "Las preferencias te permiten definir categorías de alimentos, tamaño de donaciones y restricciones dietéticas."
+        },
+        "q5": {
+          "question": "¿Cómo configuro mis preferencias de alimentos?",
+          "answer": "Haz clic en tu avatar arriba a la derecha y entra en \"Preferencias\" para ajustar tipos y restricciones."
+        },
+        "q6": {
+          "question": "¿Cómo envío un mensaje a un donante?",
+          "answer": "Abre \"Mensajes\" en la navegación para conversar con donantes y coordinar detalles de recogida."
+        },
+        "q7": {
+          "question": "¿Qué significan los estados de donación?",
+          "answer": "Los estados incluyen Disponible, Reclamado, Listo para recoger, Completado y Cancelado."
+        },
+        "q8": {
+          "question": "¿Puedo cancelar una reclamación?",
+          "answer": "Sí. Ve a \"Mis reclamaciones\", encuentra la donación y cancela antes de completar la recogida."
+        },
+        "q9": {
+          "question": "¿Cómo encuentro donaciones cerca de mí?",
+          "answer": "Usa filtros por tipo de alimento, distancia y horario de recogida para encontrar opciones cercanas."
+        },
+        "q10": {
+          "question": "¿Cómo se verifica mi organización?",
+          "answer": "Durante el registro, el equipo administrador revisa los datos y documentos de tu organización."
+        }
+      }
+    },
+    "contact": {
+      "title": "¿Aún necesitas ayuda?",
+      "subtitle": "Nuestro equipo de soporte está aquí para ayudarte. Contáctanos por tu canal preferido."
+    },
+    "support": {
+      "title": "¿Necesitas más ayuda?",
+      "intro": "Nuestro equipo de soporte está aquí para ayudarte con cualquier pregunta o problema.",
+      "emailLabel": "Soporte por correo electrónico",
+      "emailResponseTime": "Respuesta en 24 horas",
+      "phoneLabel": "Soporte telefónico",
+      "phoneAvailability": "Lun-Vie, 9AM-5PM EST"
+    }
+  },
   "onboarding": {
     "labels": {
       "donor": "Tutorial para donantes",

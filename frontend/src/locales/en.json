@@ -2889,6 +2889,88 @@
       "phoneAvailability": "Mon-Fri, 9AM-5PM EST"
     }
   },
+  "receiverHelp": {
+    "gettingStarted": {
+      "title": "Getting Started",
+      "intro": "Welcome to FoodFlow! As a receiver, you can claim surplus food donations from local businesses and organizations.",
+      "steps": {
+        "step1": {
+          "title": "Browse Available Donations",
+          "description": "Explore available listings near you and use filters to find donations that match your organization's needs."
+        },
+        "step2": {
+          "title": "Claim and Schedule Pickup",
+          "description": "Click claim on a donation and choose a pickup slot from the times provided by the donor."
+        },
+        "step3": {
+          "title": "Pickup with OTP",
+          "description": "Arrive during the selected slot and provide your OTP code so the donor can confirm handoff."
+        },
+        "step4": {
+          "title": "Set Your Preferences",
+          "description": "Update your food preferences in profile settings to improve matching quality."
+        }
+      }
+    },
+    "faq": {
+      "title": "FAQ's",
+      "subtitle": "Everything you need to know about claiming donations and coordinating pickups.",
+      "items": {
+        "q1": {
+          "question": "How do I claim a donation?",
+          "answer": "Browse available donations, click claim on the one you want, then choose a pickup slot that works for your organization."
+        },
+        "q2": {
+          "question": "How do I confirm pickup?",
+          "answer": "When you arrive at pickup time, provide your OTP code to the donor. They enter it to mark the donation as completed."
+        },
+        "q3": {
+          "question": "What is the OTP code?",
+          "answer": "The OTP is a unique 6-digit verification code assigned to each claimed donation when it is ready for pickup."
+        },
+        "q4": {
+          "question": "What are food preferences?",
+          "answer": "Food preferences let you specify desired food categories, donation size, and dietary requirements for better matches."
+        },
+        "q5": {
+          "question": "How do I set food preferences?",
+          "answer": "Click your profile avatar in the top right, open Preferences, and choose food types and dietary constraints."
+        },
+        "q6": {
+          "question": "How do I message a donor?",
+          "answer": "Open Messages from navigation to chat with donors and coordinate pickup details in real time."
+        },
+        "q7": {
+          "question": "What do donation statuses mean?",
+          "answer": "Statuses include Available, Claimed, Ready for Pickup, Completed, and Cancelled. OTP appears at Ready for Pickup."
+        },
+        "q8": {
+          "question": "Can I cancel a claim?",
+          "answer": "Yes. Open My Claims, find the donation, and cancel before pickup is completed."
+        },
+        "q9": {
+          "question": "How do I find donations near me?",
+          "answer": "Use donation list filters such as food type, distance, and pickup time to find nearby options quickly."
+        },
+        "q10": {
+          "question": "How is my organization verified?",
+          "answer": "During registration, your organization details are reviewed by admins to confirm legitimacy and eligibility."
+        }
+      }
+    },
+    "contact": {
+      "title": "Still need help?",
+      "subtitle": "Our support team is here to assist you. Reach out through your preferred channel."
+    },
+    "support": {
+      "title": "Need More Help?",
+      "intro": "Our support team is here to assist you with any questions or issues.",
+      "emailLabel": "Email Support",
+      "emailResponseTime": "Response within 24 hours",
+      "phoneLabel": "Phone Support",
+      "phoneAvailability": "Mon-Fri, 9AM-5PM EST"
+    }
+  },
   "aiDonation": {
     "backToDashboard": "Back to Dashboard",
     "title": "Create Donation with AI",
