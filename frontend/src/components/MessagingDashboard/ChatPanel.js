@@ -188,6 +188,7 @@ const ChatPanel = ({
       alert(t('chat.failedToSend'));
     } finally {
       setSending(false);
+      textareaRef.current?.focus();
     }
   };
 
