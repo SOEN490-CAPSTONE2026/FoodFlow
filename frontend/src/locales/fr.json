@@ -1922,7 +1922,7 @@
     "days7": "7 jours",
     "days30": "30 jours",
     "allTime": "Depuis le début",
-    "export": "Exporter CSV",
+    "export": "Exporter",
     "errorLoading": "Échec du chargement des indicateurs",
     "loadError": "Impossible de charger les indicateurs d'impact",
     "exportError": "Impossible d'exporter les indicateurs",

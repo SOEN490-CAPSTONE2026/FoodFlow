@@ -1881,7 +1881,7 @@
     "days7": "7 días",
     "days30": "30 días",
     "allTime": "Todo el tiempo",
-    "export": "Exportar CSV",
+    "export": "Exportar",
     "errorLoading": "No se pudieron cargar las métricas",
     "loadError": "No se pudieron cargar las métricas de impacto",
     "exportError": "No se pudieron exportar las métricas",

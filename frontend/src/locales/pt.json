@@ -1861,7 +1861,7 @@
     "days7": "7 dias",
     "days30": "30 dias",
     "allTime": "Todo o período",
-    "export": "Exportar CSV",
+    "export": "Exportar",
     "errorLoading": "Falha ao carregar métricas",
     "loadError": "Falha ao carregar métricas de impacto",
     "exportError": "Falha ao exportar métricas",

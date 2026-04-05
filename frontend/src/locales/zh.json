@@ -1861,7 +1861,7 @@
     "days7": "7 天",
     "days30": "30 天",
     "allTime": "全部时间",
-    "export": "导出 CSV",
+    "export": "导出",
     "errorLoading": "加载指标失败",
     "loadError": "加载影响力指标失败",
     "exportError": "导出指标失败",

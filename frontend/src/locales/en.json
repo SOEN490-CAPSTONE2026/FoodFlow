@@ -1949,7 +1949,7 @@
     "days7": "7 Days",
     "days30": "30 Days",
     "allTime": "All Time",
-    "export": "Export CSV",
+    "export": "Export",
     "errorLoading": "Failed to load metrics",
     "loadError": "Failed to load impact metrics",
     "exportError": "Failed to export metrics",
