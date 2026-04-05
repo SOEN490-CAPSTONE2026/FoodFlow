@@ -159,7 +159,10 @@ export default function AIDonationForm() {
   };
 
   return (
-    <div className="ai-donation-form-container">
+    <div
+      className="ai-donation-form-container"
+      data-tour="donor-ai-donation-main"
+    >
       <div className="ai-donation-header">
         <button
           className="ai-back-button"

@@ -3056,11 +3056,17 @@
     },
     "actions": {
       "skip": "Passer",
+      "cancelSkip": "Continuer le tutoriel",
+      "confirmSkip": "Oui, passer le tutoriel",
       "back": "Retour",
       "next": "Suivant",
       "finish": "Terminer"
     },
     "stepProgress": "Étape {{current}} sur {{total}}",
+    "skipConfirmation": {
+      "title": "Passer ce tutoriel ?",
+      "text": "Vous pourrez le relancer plus tard depuis l’aide, mais le passer maintenant fermera ce guide."
+    },
     "errors": {
       "saveFailed": "Nous n’avons pas pu enregistrer votre progression dans le tutoriel. Veuillez réessayer."
     },
@@ -3072,65 +3078,53 @@
     },
     "donor": {
       "steps": {
-        "dashboard": {
+        "welcome": {
           "title": "Bienvenue sur FoodFlow",
-          "text": "Voici votre tableau de bord donateur. Depuis ici, vous pouvez gérer vos dons et suivre ce qui se passe ensuite."
+          "text": "FoodFlow vous aide à partager rapidement vos surplus alimentaires. Ce court tutoriel vous montre où gérer votre compte, créer des dons et suivre votre progression."
         },
-        "impact": {
-          "title": "Voyez votre impact",
-          "text": "Votre tableau de bord d’impact montre la quantité de nourriture que vous avez sauvée et l’effet de vos dons au fil du temps."
+        "dashboard": {
+          "title": "Aperçu du tableau de bord",
+          "text": "Votre tableau de bord vous donne un résumé rapide de l’activité des dons, des demandes et de votre impact afin de voir immédiatement ce qui demande votre attention."
         },
-        "postDonation": {
-          "title": "Publier un don",
-          "text": "Utilisez cette action pour créer un nouveau don alimentaire et le rendre disponible aux receveurs."
+        "settings": {
+          "title": "Commencez par les paramètres",
+          "text": "Vérifiez vos paramètres dès le début pour choisir la langue, la région, le fuseau horaire, les options de calendrier et les préférences d’affichage avant de publier un don."
         },
-        "chat": {
-          "title": "Discuter avec les receveurs",
-          "text": "Une fois qu’un don est réservé, vous pouvez utiliser le chat pour coordonner la collecte et répondre aux questions."
+        "createDonation": {
+          "title": "Créer un don",
+          "text": "Utilisez cette section pour ajouter un nouveau don alimentaire, remplir les détails et le rendre disponible aux receveurs."
         },
-        "pickup": {
-          "title": "Suivre la collecte",
-          "text": "Chaque don suit un parcours de collecte avec des statuts pour que vous sachiez toujours à quelle étape il se trouve."
+        "aiDonation": {
+          "title": "Créer un don avec l’IA",
+          "text": "Si vous avez une photo des aliments, le flux IA peut extraire les détails pour vous. Vérifiez le résultat avant l’envoi pour garder une annonce précise."
         },
-        "setup": {
-          "title": "Configurez votre compte",
-          "text": "Utilisez Langue et région pour choisir votre langue, votre emplacement et votre fuseau horaire. L’intégration de calendrier permet de synchroniser les collectes FoodFlow, et les préférences d’affichage contrôlent l’apparence de vos cartes de dons."
+        "achievements": {
+          "title": "Succès et progression",
+          "text": "Les succès sont des badges que vous débloquez en utilisant FoodFlow. Ils vous aident à suivre vos étapes clés, votre activité et l’impact positif de vos dons au fil du temps."
         }
       }
     },
     "receiver": {
       "steps": {
-        "browse": {
-          "title": "Parcourir les dons",
-          "text": "C’est ici que vous pouvez explorer les dons alimentaires disponibles et trouver ceux qui correspondent à vos besoins."
+        "welcome": {
+          "title": "Bienvenue sur FoodFlow",
+          "text": "FoodFlow vous aide à trouver et réclamer rapidement des aliments disponibles. Ce court tutoriel met en avant les sections que vous utiliserez le plus souvent."
         },
-        "saved": {
-          "title": "Dons enregistrés",
-          "text": "Vous pouvez retrouver ici rapidement les dons que vous avez enregistrés pour les consulter plus tard."
+        "browse": {
+          "title": "Parcourir les dons disponibles",
+          "text": "Commencez ici pour explorer les aliments disponibles, changer de vue et trouver des dons adaptés à vos besoins."
         },
         "claims": {
-          "title": "Vos réservations",
-          "text": "Cette section montre les dons que vous avez réservés et vous permet de suivre leur progression."
-        },
-        "chat": {
-          "title": "Discuter avec les donateurs",
-          "text": "Utilisez le chat pour coordonner les détails de collecte, poser des questions et rester informé avec les donateurs."
-        },
-        "impact": {
-          "title": "Votre tableau de bord d’impact",
-          "text": "Ce tableau de bord vous aide à suivre votre activité, vos collectes et votre impact global sur la plateforme."
-        },
-        "preferences": {
-          "title": "Préférences et correspondances",
-          "text": "Définissez ici vos préférences alimentaires afin que FoodFlow puisse recommander des dons mieux adaptés à vos besoins."
+          "title": "Suivre vos réservations",
+          "text": "La page de vos réservations affiche les dons demandés ou réclamés afin que vous puissiez suivre chaque collecte du début à la fin."
         },
         "settings": {
-          "title": "Paramètres",
-          "text": "Vous pouvez gérer votre compte, relancer le tutoriel et ajuster les options de la plateforme depuis ici."
+          "title": "Vérifiez tôt vos paramètres",
+          "text": "Utilisez le menu du compte pour ouvrir les paramètres, gérer votre profil et ajuster vos préférences avant de commencer à réclamer des dons."
         },
-        "done": {
-          "title": "Vous êtes prêt",
-          "text": "C’est tout, vous êtes prêt à commencer à utiliser FoodFlow en tant que receveur."
+        "achievements": {
+          "title": "Comprendre les succès",
+          "text": "Les succès sont des badges liés à vos étapes importantes, comme les réclamations, les collectes et votre activité sur FoodFlow. Ils montrent votre progression au fil du temps."
         }
       }
     }
