@@ -354,7 +354,9 @@ describe('AdminImpactDashboard', () => {
         result => result.value instanceof HTMLAnchorElement
       )?.value;
       expect(link).toBeTruthy();
-      expect(link.download).toMatch(/^FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.csv$/);
+      expect(link.download).toMatch(
+        /^FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.csv$/
+      );
       expect(global.URL.createObjectURL).toHaveBeenCalled();
       expect(global.URL.revokeObjectURL).toHaveBeenCalled();
       expect(clickSpy).toHaveBeenCalled();
