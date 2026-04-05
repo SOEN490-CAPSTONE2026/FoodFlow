@@ -3007,6 +3007,10 @@
           "title": "Crear una donación",
           "text": "Usa esta sección para añadir una nueva donación de alimentos, completar los detalles y dejarla disponible para que los receptores la reclamen."
         },
+        "openAiDonation": {
+          "title": "Abre la opción de donación con IA",
+          "text": "Desde la página de donaciones, haz clic en este botón de IA cuando quieras que FoodFlow te ayude a extraer los detalles de una foto de comida."
+        },
         "aiDonation": {
           "title": "Crear una donación con IA",
           "text": "Si tienes una foto de la comida, el flujo con IA puede extraer los detalles por ti. Revisa el resultado antes de enviarlo para mantener la publicación precisa."

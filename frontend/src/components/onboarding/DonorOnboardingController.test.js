@@ -77,6 +77,9 @@ function TutorialHarness() {
       <button type="button" data-tour="donor-nav-donate">
         Donor donate
       </button>
+      <button type="button" data-tour="donor-ai-donation-entry">
+        Donor AI donate entry
+      </button>
       <button type="button" data-tour="donor-nav-achievements">
         Donor achievements
       </button>
@@ -215,7 +218,7 @@ describe('DonorOnboardingController', () => {
     });
     expect(screen.getByTestId('step-flag')).toHaveTextContent('dashboard');
     expect(mockNavigate).toHaveBeenLastCalledWith('/donor');
-    expect(screen.getByText('step 2 of 8')).toBeInTheDocument();
+    expect(screen.getByText('step 2 of 9')).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.back' })
@@ -297,7 +300,7 @@ describe('DonorOnboardingController', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
-    for (let index = 0; index < 7; index += 1) {
+    for (let index = 0; index < 8; index += 1) {
       fireEvent.click(
         screen.getByRole('button', { name: 'onboarding.actions.next' })
       );

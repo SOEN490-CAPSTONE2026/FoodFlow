@@ -3234,6 +3234,10 @@
           "title": "Create a donation",
           "text": "Use this section to add a new food donation, fill in the details, and make it available for receivers to claim."
         },
+        "openAiDonation": {
+          "title": "Open the AI donation option",
+          "text": "From the donate page, click this AI button when you want FoodFlow to help extract donation details from a food photo."
+        },
         "aiDonation": {
           "title": "Create a donation with AI",
           "text": "If you have a food photo, the AI donation flow can extract details for you. Review the result before submitting so the final listing stays accurate."

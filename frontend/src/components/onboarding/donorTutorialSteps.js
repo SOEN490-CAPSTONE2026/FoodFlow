@@ -32,6 +32,14 @@ export const getDonorTutorialSteps = t => [
     text: t('onboarding.donor.steps.createDonation.text'),
   },
   {
+    key: 'open-ai-donation',
+    route: '/donor/list',
+    selector: '[data-tour="donor-ai-donation-entry"]',
+    placement: 'bottom',
+    title: t('onboarding.donor.steps.openAiDonation.title'),
+    text: t('onboarding.donor.steps.openAiDonation.text'),
+  },
+  {
     key: 'ai-donation',
     route: '/donor/ai-donation',
     selector: '[data-tour="donor-ai-donation-main"]',

@@ -3033,6 +3033,10 @@
           "title": "Criar uma doação",
           "text": "Use esta seção para adicionar uma nova doação de alimentos, preencher os detalhes e deixá-la disponível para os receptores."
         },
+        "openAiDonation": {
+          "title": "Abra a opção de doação com IA",
+          "text": "Na página de doação, clique neste botão de IA quando quiser que o FoodFlow ajude a extrair os detalhes de uma foto de alimento."
+        },
         "aiDonation": {
           "title": "Criar uma doação com IA",
           "text": "Se você tiver uma foto do alimento, o fluxo com IA pode extrair os detalhes para você. Revise o resultado antes de enviar para manter o anúncio preciso."

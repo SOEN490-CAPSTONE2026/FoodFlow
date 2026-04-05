@@ -3094,6 +3094,10 @@
           "title": "Créer un don",
           "text": "Utilisez cette section pour ajouter un nouveau don alimentaire, remplir les détails et le rendre disponible aux receveurs."
         },
+        "openAiDonation": {
+          "title": "Ouvrez l’option de don par IA",
+          "text": "Depuis la page de don, cliquez sur ce bouton IA lorsque vous souhaitez que FoodFlow vous aide à extraire les détails d’un don à partir d’une photo."
+        },
         "aiDonation": {
           "title": "Créer un don avec l’IA",
           "text": "Si vous avez une photo des aliments, le flux IA peut extraire les détails pour vous. Vérifiez le résultat avant l’envoi pour garder une annonce précise."
