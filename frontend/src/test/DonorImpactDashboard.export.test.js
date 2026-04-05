@@ -8,7 +8,6 @@ jest.mock('../services/api', () => ({
     getMetrics: jest.fn(),
     exportMetricsCSV: jest.fn(),
     exportMetricsPDF: jest.fn(),
-    exportMetrics: jest.fn(),
   },
 }));
 
@@ -49,13 +48,26 @@ describe('DonorImpactDashboard Export Functionality', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
+    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({
+      data: 'Metric,Value\nFood Saved,100.00 kg',
+    });
+    impactDashboardAPI.exportMetricsPDF.mockResolvedValue({
+      data: '%PDF-1.4 mock content',
+    });
+    global.URL.createObjectURL = jest.fn(() => 'mock-url');
+    global.URL.revokeObjectURL = jest.fn();
+    jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   const renderDashboard = async () => {
     render(<DonorImpactDashboard />);
-    await waitFor(() => {
-      expect(impactDashboardAPI.getMetrics).toHaveBeenCalled();
-    });
+    await screen.findByText('Customize Metrics');
   };
 
   test('renders Export button with dropdown', async () => {
@@ -66,11 +78,6 @@ describe('DonorImpactDashboard Export Functionality', () => {
   });
 
   test('exports CSV data with correct format', async () => {
-    const csvData = 'Metric,Value\nFood Saved,100.00 kg';
-    const blob = new Blob([csvData], { type: 'text/csv' });
-
-    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({ data: blob });
-
     await renderDashboard();
 
     const exportButton = screen.getByRole('button', { name: /export/i });
@@ -87,11 +94,6 @@ describe('DonorImpactDashboard Export Functionality', () => {
   });
 
   test('exports PDF data with correct format', async () => {
-    const pdfData = '%PDF-1.4 ... PDF content';
-    const blob = new Blob([pdfData], { type: 'application/pdf' });
-
-    impactDashboardAPI.exportMetricsPDF.mockResolvedValue({ data: blob });
-
     await renderDashboard();
 
     const exportButton = screen.getByRole('button', { name: /export/i });
@@ -108,18 +110,10 @@ describe('DonorImpactDashboard Export Functionality', () => {
   });
 
   test('CSV export filename includes current date', async () => {
-    const csvData = 'Metric,Value\nFood Saved,100.00 kg';
-    const blob = new Blob([csvData], { type: 'text/csv' });
-
-    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({ data: blob });
-
-    // Mock URL.createObjectURL and element methods
-    const createObjectURLMock = jest.fn(() => 'blob:mock-url');
     const createElementSpy = jest.spyOn(document, 'createElement');
-    const appendChildSpy = jest.spyOn(document, 'appendChild');
-    const removeChildSpy = jest.spyOn(document, 'removeChild');
-
-    window.URL.createObjectURL = createObjectURLMock;
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
 
     await renderDashboard();
 
@@ -131,29 +125,23 @@ describe('DonorImpactDashboard Export Functionality', () => {
 
     await waitFor(() => {
       const linkElement = createElementSpy.mock.results.find(
-        result => result.value.tagName === 'A'
+        result => result.value instanceof HTMLAnchorElement
       )?.value;
 
-      if (linkElement) {
-        expect(linkElement.download).toMatch(
-          /FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.csv/
-        );
-      }
+      expect(linkElement).toBeTruthy();
+      expect(linkElement.download).toMatch(
+        /FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.csv/
+      );
     });
-
-    createObjectURLMock.mockRestore();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
   });
 
   test('PDF export filename includes current date', async () => {
-    const pdfData = '%PDF-1.4 ... PDF content';
-    const blob = new Blob([pdfData], { type: 'application/pdf' });
-
-    impactDashboardAPI.exportMetricsPDF.mockResolvedValue({ data: blob });
-
-    const createObjectURLMock = jest.fn(() => 'blob:mock-url');
     const createElementSpy = jest.spyOn(document, 'createElement');
-
-    window.URL.createObjectURL = createObjectURLMock;
+    const clickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
 
     await renderDashboard();
 
@@ -165,17 +153,16 @@ describe('DonorImpactDashboard Export Functionality', () => {
 
     await waitFor(() => {
       const linkElement = createElementSpy.mock.results.find(
-        result => result.value.tagName === 'A'
+        result => result.value instanceof HTMLAnchorElement
       )?.value;
 
-      if (linkElement) {
-        expect(linkElement.download).toMatch(
-          /FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.pdf/
-        );
-      }
+      expect(linkElement).toBeTruthy();
+      expect(linkElement.download).toMatch(
+        /FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.pdf/
+      );
     });
-
-    createObjectURLMock.mockRestore();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
   });
 
   test('handles CSV export error gracefully', async () => {
@@ -217,11 +204,6 @@ describe('DonorImpactDashboard Export Functionality', () => {
   });
 
   test('exports with correct date range from selector', async () => {
-    const csvData = 'Metric,Value\nFood Saved,100.00 kg';
-    const blob = new Blob([csvData], { type: 'text/csv' });
-
-    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({ data: blob });
-
     await renderDashboard();
 
     // Change date range
@@ -231,6 +213,7 @@ describe('DonorImpactDashboard Export Functionality', () => {
     await waitFor(() => {
       expect(impactDashboardAPI.getMetrics).toHaveBeenCalledWith('ALL_TIME');
     });
+    await screen.findByText('Customize Metrics');
 
     // Export should use new date range
     const exportButton = screen.getByRole('button', { name: /export/i });
