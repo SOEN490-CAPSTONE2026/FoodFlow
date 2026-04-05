@@ -4,6 +4,7 @@ import com.example.foodflow.model.dto.ImpactMetricsDTO;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.ImpactDashboardService;
 import com.example.foodflow.util.CsvExportUtils;
+import com.example.foodflow.util.PdfExportUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -64,16 +65,17 @@ public class ImpactDashboardController {
     }
 
     /**
-     * Export impact metrics as CSV
+     * Export impact metrics as CSV or PDF
      */
     @GetMapping("/export")
     @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER', 'ADMIN')")
     public ResponseEntity<byte[]> exportMetrics(
             @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "ALL_TIME") String dateRange) {
+            @RequestParam(defaultValue = "ALL_TIME") String dateRange,
+            @RequestParam(defaultValue = "csv") String format) {
 
-        logger.info("GET /api/impact-dashboard/export - userId={}, role={}, dateRange={}",
-                currentUser.getId(), currentUser.getRole(), dateRange);
+        logger.info("GET /api/impact-dashboard/export - userId={}, role={}, dateRange={}, format={}",
+                currentUser.getId(), currentUser.getRole(), dateRange, format);
 
         ImpactMetricsDTO metrics;
 
@@ -92,21 +94,47 @@ public class ImpactDashboardController {
         }
 
         try {
-            byte[] csvData = generateCsv(metrics);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentDispositionFormData("attachment",
-                    "impact-metrics-" + dateRange.toLowerCase() + ".csv");
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(csvData);
-
+            if ("pdf".equalsIgnoreCase(format)) {
+                return exportAsPdf(metrics, dateRange);
+            } else {
+                return exportAsCsv(metrics, dateRange);
+            }
         } catch (Exception e) {
-            logger.error("Error generating CSV export", e);
+            logger.error("Error generating export", e);
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    /**
+     * Export metrics as CSV format
+     */
+    private ResponseEntity<byte[]> exportAsCsv(ImpactMetricsDTO metrics, String dateRange) throws Exception {
+        byte[] csvData = generateCsv(metrics);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment",
+                "FoodFlow_Impact_Report_" + java.time.LocalDate.now() + ".csv");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
+    }
+
+    /**
+     * Export metrics as PDF format
+     */
+    private ResponseEntity<byte[]> exportAsPdf(ImpactMetricsDTO metrics, String dateRange) throws Exception {
+        byte[] pdfData = PdfExportUtils.generatePdf(metrics);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/pdf"));
+        headers.setContentDispositionFormData("attachment",
+                "FoodFlow_Impact_Report_" + java.time.LocalDate.now() + ".pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfData);
     }
 
     /**
