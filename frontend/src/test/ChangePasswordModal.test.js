@@ -174,7 +174,9 @@ describe('ChangePasswordModal', () => {
       response: { data: { message: 'Passwords do not match' } },
     });
     fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-    expect(await screen.findByText('Passwords do not match')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Passwords do not match')
+    ).toBeInTheDocument();
 
     authAPI.changePassword.mockRejectedValueOnce({
       response: { data: { message: 'New password same as current password' } },
