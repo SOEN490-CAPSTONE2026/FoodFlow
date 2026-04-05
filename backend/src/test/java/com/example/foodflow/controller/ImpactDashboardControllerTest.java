@@ -93,7 +93,7 @@ class ImpactDashboardControllerTest {
         void shouldReturnDonorMetrics() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<ImpactMetricsDTO> response = controller.getMetrics(donorUser, "ALL_TIME");
@@ -121,7 +121,7 @@ class ImpactDashboardControllerTest {
             receiverMetrics.setTotalDonationsCompleted(5);
 
             when(impactDashboardService.getReceiverMetrics(eq(2L), eq("MONTHLY")))
-                .thenReturn(receiverMetrics);
+                    .thenReturn(receiverMetrics);
 
             // When
             ResponseEntity<ImpactMetricsDTO> response = controller.getMetrics(receiverUser, "MONTHLY");
@@ -149,7 +149,7 @@ class ImpactDashboardControllerTest {
             adminMetrics.setRepeatReceivers(15);
 
             when(impactDashboardService.getAdminMetrics(eq("WEEKLY")))
-                .thenReturn(adminMetrics);
+                    .thenReturn(adminMetrics);
 
             // When
             ResponseEntity<ImpactMetricsDTO> response = controller.getMetrics(adminUser, "WEEKLY");
@@ -169,7 +169,7 @@ class ImpactDashboardControllerTest {
         void shouldHandleDefaultDateRange() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<ImpactMetricsDTO> response = controller.getMetrics(donorUser, "ALL_TIME");
@@ -184,13 +184,13 @@ class ImpactDashboardControllerTest {
         void shouldHandleDifferentDateRanges() {
             // Test WEEKLY
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("WEEKLY")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
             ResponseEntity<ImpactMetricsDTO> weeklyResponse = controller.getMetrics(donorUser, "WEEKLY");
             assertEquals(HttpStatus.OK, weeklyResponse.getStatusCode());
 
             // Test MONTHLY
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("MONTHLY")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
             ResponseEntity<ImpactMetricsDTO> monthlyResponse = controller.getMetrics(donorUser, "MONTHLY");
             assertEquals(HttpStatus.OK, monthlyResponse.getStatusCode());
 
@@ -208,7 +208,7 @@ class ImpactDashboardControllerTest {
         void shouldExportDonorMetricsAsCsv() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
@@ -219,7 +219,7 @@ class ImpactDashboardControllerTest {
             assertTrue(response.getBody().length > 0);
             assertEquals(MediaType.parseMediaType("text/csv"), response.getHeaders().getContentType());
             assertTrue(response.getHeaders().getContentDisposition().toString()
-                .contains("impact-metrics-all_time.csv"));
+                    .contains("impact-metrics-all_time.csv"));
             verify(impactDashboardService, times(1)).getDonorMetrics(1L, "ALL_TIME");
         }
 
@@ -233,7 +233,7 @@ class ImpactDashboardControllerTest {
             receiverMetrics.setTotalFoodWeightKg(50.0);
 
             when(impactDashboardService.getReceiverMetrics(eq(2L), eq("MONTHLY")))
-                .thenReturn(receiverMetrics);
+                    .thenReturn(receiverMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(receiverUser, "MONTHLY");
@@ -243,7 +243,7 @@ class ImpactDashboardControllerTest {
             assertNotNull(response.getBody());
             assertTrue(response.getBody().length > 0);
             assertTrue(response.getHeaders().getContentDisposition().toString()
-                .contains("impact-metrics-monthly.csv"));
+                    .contains("impact-metrics-monthly.csv"));
         }
 
         @Test
@@ -259,7 +259,7 @@ class ImpactDashboardControllerTest {
             adminMetrics.setRepeatReceivers(15);
 
             when(impactDashboardService.getAdminMetrics(eq("WEEKLY")))
-                .thenReturn(adminMetrics);
+                    .thenReturn(adminMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(adminUser, "WEEKLY");
@@ -279,7 +279,7 @@ class ImpactDashboardControllerTest {
         void shouldIncludeAllKeyMetricsInCsv() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
@@ -288,14 +288,24 @@ class ImpactDashboardControllerTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             String csvContent = new String(response.getBody());
 
-            // Verify key metrics are present
-            assertTrue(csvContent.contains("Total Food Weight (kg)"));
-            assertTrue(csvContent.contains("CO2 Emissions Avoided (kg)"));
-            assertTrue(csvContent.contains("Water Saved (liters)"));
+            // Verify branding and structure
+            assertTrue(csvContent.contains("FoodFlow - Impact Report"));
+            assertTrue(csvContent.contains("Donor Impact Report"));
+
+            // Verify key metrics are present (with new format)
+            assertTrue(csvContent.contains("Total Food Saved"));
+            assertTrue(csvContent.contains("CO2 Emissions Avoided"));
+            assertTrue(csvContent.contains("Water Conserved"));
             assertTrue(csvContent.contains("Estimated Meals Provided"));
             assertTrue(csvContent.contains("Donation Completion Rate"));
             assertTrue(csvContent.contains("Waste Diversion Efficiency"));
             assertTrue(csvContent.contains("Factor Version"));
+
+            // Verify units are integrated
+            assertTrue(csvContent.contains("kg"));
+            assertTrue(csvContent.contains("meals"));
+            assertTrue(csvContent.contains("liters"));
+            assertTrue(csvContent.contains("%"));
         }
 
         @Test
@@ -303,7 +313,7 @@ class ImpactDashboardControllerTest {
         void shouldHandleBoundedMealEstimatesInCsv() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
@@ -311,8 +321,80 @@ class ImpactDashboardControllerTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             String csvContent = new String(response.getBody());
-            assertTrue(csvContent.contains("150-250")); // Min-Max range
+            assertTrue(csvContent.contains("150 - 250")); // Min-Max range with spaces
             assertTrue(csvContent.contains("Estimated Meals Provided (Range)"));
+        }
+
+        @Test
+        @DisplayName("Should include FoodFlow branding and metadata in CSV export")
+        void shouldIncludeBrandingAndMetadata() {
+            // Given
+            when(impactDashboardService.getDonorMetrics(eq(1L), eq("DAYS_30")))
+                    .thenReturn(testMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "DAYS_30");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            String csvContent = new String(response.getBody());
+
+            // Verify branding
+            assertTrue(csvContent.contains("FoodFlow - Impact Report"));
+            assertTrue(csvContent.contains("Donor Impact Report"));
+
+            // Verify metadata section
+            assertTrue(csvContent.contains("Report Generated"));
+            assertTrue(csvContent.contains("Report Type"));
+            assertTrue(csvContent.contains("Viewer Role"));
+            assertTrue(csvContent.contains("Reporting Period"));
+
+            // Verify role-aware content
+            assertTrue(csvContent.contains("Food Donor"));
+
+            // Verify sections exist
+            assertTrue(csvContent.contains("Environmental Impact"));
+            assertTrue(csvContent.contains("Operational Efficiency"));
+            assertTrue(csvContent.contains("Time & Logistics"));
+            assertTrue(csvContent.contains("Engagement"));
+            assertTrue(csvContent.contains("Calculation Methodology"));
+        }
+
+        @Test
+        @DisplayName("Should include admin-specific metrics in CSV for admin role")
+        void shouldIncludeAdminMetricsInCsvForAdminRole() {
+            // Given
+            ImpactMetricsDTO adminMetrics = new ImpactMetricsDTO();
+            adminMetrics.setRole("ADMIN");
+            adminMetrics.setDateRange("DAYS_30");
+            adminMetrics.setStartDate(LocalDateTime.of(2026, 3, 6, 0, 0));
+            adminMetrics.setEndDate(LocalDateTime.of(2026, 4, 5, 23, 59));
+            adminMetrics.setTotalFoodWeightKg(1000.0);
+            adminMetrics.setActiveDonors(50);
+            adminMetrics.setActiveReceivers(40);
+            adminMetrics.setRepeatDonors(20);
+            adminMetrics.setRepeatReceivers(15);
+            adminMetrics.setFactorVersion("1.2.0");
+            adminMetrics.setFactorDisclosure("Sample disclosure");
+
+            when(impactDashboardService.getAdminMetrics(eq("DAYS_30")))
+                    .thenReturn(adminMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(adminUser, "DAYS_30");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            String csvContent = new String(response.getBody());
+
+            // Verify admin-specific content
+            assertTrue(csvContent.contains("Platform-wide Impact Report"));
+            assertTrue(csvContent.contains("Administrator"));
+            assertTrue(csvContent.contains("User Engagement (Platform-wide)"));
+            assertTrue(csvContent.contains("Active Donors"));
+            assertTrue(csvContent.contains("Active Receivers"));
+            assertTrue(csvContent.contains("Repeat Donors"));
+            assertTrue(csvContent.contains("Repeat Receivers"));
         }
     }
 
@@ -325,7 +407,7 @@ class ImpactDashboardControllerTest {
         void shouldHandleServiceExceptionForMetrics() {
             // Given
             when(impactDashboardService.getDonorMetrics(anyLong(), anyString()))
-                .thenThrow(new RuntimeException("Service error"));
+                    .thenThrow(new RuntimeException("Service error"));
 
             // When/Then
             assertThrows(RuntimeException.class, () -> {
@@ -338,7 +420,7 @@ class ImpactDashboardControllerTest {
         void shouldReturn500OnCsvGenerationError() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenThrow(new RuntimeException("Database error"));
+                    .thenThrow(new RuntimeException("Database error"));
 
             // When/Then
             assertThrows(RuntimeException.class, () -> {
@@ -360,7 +442,7 @@ class ImpactDashboardControllerTest {
             testMetrics.setWaterSavedLiters(12345.67);
 
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
@@ -381,7 +463,7 @@ class ImpactDashboardControllerTest {
             // Most fields are null
 
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(sparseMetrics);
+                    .thenReturn(sparseMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
@@ -397,7 +479,7 @@ class ImpactDashboardControllerTest {
         void shouldIncludeCsvHeaders() {
             // Given
             when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
-                .thenReturn(testMetrics);
+                    .thenReturn(testMetrics);
 
             // When
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
@@ -408,4 +490,3 @@ class ImpactDashboardControllerTest {
         }
     }
 }
-
