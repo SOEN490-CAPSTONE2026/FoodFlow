@@ -3238,6 +3238,14 @@
           "title": "Create a donation with AI",
           "text": "If you have a food photo, the AI donation flow can extract details for you. Review the result before submitting so the final listing stays accurate."
         },
+        "messages": {
+          "title": "Coordinate in messages",
+          "text": "Use messages to answer questions, confirm pickup details, and stay aligned with receivers after a donation is shared or claimed."
+        },
+        "impact": {
+          "title": "Review your impact dashboard",
+          "text": "Your impact dashboard helps you track donation results over time, including activity trends and the difference your donations are making."
+        },
         "achievements": {
           "title": "Achievements and progress",
           "text": "Achievements are badges you unlock as you use FoodFlow. They help you track milestones, activity, and the positive impact of your donations over time."
@@ -3257,6 +3265,14 @@
         "claims": {
           "title": "Track your claims",
           "text": "Your claims page shows the donations you have requested or claimed so you can follow each pickup from start to finish."
+        },
+        "messages": {
+          "title": "Stay in touch through messages",
+          "text": "Use messages to coordinate pickup details, ask follow-up questions, and keep communication with donors in one place."
+        },
+        "impact": {
+          "title": "Check your impact dashboard",
+          "text": "The impact dashboard summarizes your activity on FoodFlow so you can track how many pickups and actions you have completed over time."
         },
         "settings": {
           "title": "Check your settings early",

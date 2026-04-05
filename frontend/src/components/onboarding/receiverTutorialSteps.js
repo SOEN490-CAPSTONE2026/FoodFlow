@@ -32,6 +32,22 @@ export const getReceiverTutorialSteps = t => [
     text: t('onboarding.receiver.steps.claims.text'),
   },
   {
+    key: 'messages',
+    route: '/receiver/messages',
+    selector: '[data-tour="receiver-nav-messages"]',
+    placement: 'left',
+    title: t('onboarding.receiver.steps.messages.title'),
+    text: t('onboarding.receiver.steps.messages.text'),
+  },
+  {
+    key: 'impact',
+    route: '/receiver/impact',
+    selector: '[data-tour="receiver-nav-impact"]',
+    placement: 'right',
+    title: t('onboarding.receiver.steps.impact.title'),
+    text: t('onboarding.receiver.steps.impact.text'),
+  },
+  {
     key: 'achievements',
     route: '/receiver/achievements',
     selector: '[data-tour="receiver-nav-achievements"]',

@@ -40,6 +40,22 @@ export const getDonorTutorialSteps = t => [
     text: t('onboarding.donor.steps.aiDonation.text'),
   },
   {
+    key: 'messages',
+    route: '/donor/messages',
+    selector: '[data-tour="donor-nav-messages"]',
+    placement: 'right',
+    title: t('onboarding.donor.steps.messages.title'),
+    text: t('onboarding.donor.steps.messages.text'),
+  },
+  {
+    key: 'impact',
+    route: '/donor/impact',
+    selector: '[data-tour="donor-nav-impact"]',
+    placement: 'right',
+    title: t('onboarding.donor.steps.impact.title'),
+    text: t('onboarding.donor.steps.impact.text'),
+  },
+  {
     key: 'achievements',
     route: '/donor/achievements',
     selector: '[data-tour="donor-nav-achievements"]',

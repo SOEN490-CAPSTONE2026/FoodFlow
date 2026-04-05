@@ -215,7 +215,7 @@ describe('DonorOnboardingController', () => {
     });
     expect(screen.getByTestId('step-flag')).toHaveTextContent('dashboard');
     expect(mockNavigate).toHaveBeenLastCalledWith('/donor');
-    expect(screen.getByText('step 2 of 6')).toBeInTheDocument();
+    expect(screen.getByText('step 2 of 8')).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.back' })
@@ -297,7 +297,7 @@ describe('DonorOnboardingController', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
-    for (let index = 0; index < 5; index += 1) {
+    for (let index = 0; index < 7; index += 1) {
       fireEvent.click(
         screen.getByRole('button', { name: 'onboarding.actions.next' })
       );
@@ -462,7 +462,7 @@ describe('DonorOnboardingController', () => {
 
     fireEvent.click(screen.getByText('replay receiver'));
 
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < 6; index += 1) {
       fireEvent.click(
         screen.getByRole('button', { name: 'onboarding.actions.next' })
       );

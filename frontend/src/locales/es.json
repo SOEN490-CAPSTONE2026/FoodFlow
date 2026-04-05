@@ -3011,6 +3011,14 @@
           "title": "Crear una donación con IA",
           "text": "Si tienes una foto de la comida, el flujo con IA puede extraer los detalles por ti. Revisa el resultado antes de enviarlo para mantener la publicación precisa."
         },
+        "messages": {
+          "title": "Coordina desde Mensajes",
+          "text": "Usa Mensajes para responder preguntas, confirmar detalles de recogida y mantener la coordinación con los receptores después de compartir o reclamar una donación."
+        },
+        "impact": {
+          "title": "Revisa tu panel de impacto",
+          "text": "Tu panel de impacto te ayuda a seguir los resultados de tus donaciones con el tiempo, incluidas las tendencias de actividad y la diferencia que estás generando."
+        },
         "achievements": {
           "title": "Logros y progreso",
           "text": "Los logros son insignias que desbloqueas al usar FoodFlow. Te ayudan a seguir hitos, actividad y el impacto positivo de tus donaciones con el tiempo."
@@ -3030,6 +3038,14 @@
         "claims": {
           "title": "Sigue tus reclamaciones",
           "text": "La página de reclamaciones muestra las donaciones que has solicitado o reclamado para que puedas seguir cada recogida de principio a fin."
+        },
+        "messages": {
+          "title": "Mantente en contacto con Mensajes",
+          "text": "Usa Mensajes para coordinar la recogida, hacer preguntas de seguimiento y mantener la comunicación con los donantes en un solo lugar."
+        },
+        "impact": {
+          "title": "Consulta tu panel de impacto",
+          "text": "El panel de impacto resume tu actividad en FoodFlow para que puedas seguir cuántas recogidas y acciones has completado con el tiempo."
         },
         "settings": {
           "title": "Revisa la configuración pronto",

@@ -3037,6 +3037,14 @@
           "title": "Criar uma doação com IA",
           "text": "Se você tiver uma foto do alimento, o fluxo com IA pode extrair os detalhes para você. Revise o resultado antes de enviar para manter o anúncio preciso."
         },
+        "messages": {
+          "title": "Coordene pelas mensagens",
+          "text": "Use as mensagens para responder perguntas, confirmar detalhes da retirada e manter o alinhamento com os receptores depois que uma doação for compartilhada ou reivindicada."
+        },
+        "impact": {
+          "title": "Revise seu painel de impacto",
+          "text": "Seu painel de impacto ajuda a acompanhar os resultados das doações ao longo do tempo, incluindo tendências de atividade e a diferença que você está gerando."
+        },
         "achievements": {
           "title": "Conquistas e progresso",
           "text": "As conquistas são badges que você desbloqueia ao usar o FoodFlow. Elas ajudam a acompanhar marcos, atividade e o impacto positivo das suas doações ao longo do tempo."
@@ -3056,6 +3064,14 @@
         "claims": {
           "title": "Acompanhe suas solicitações",
           "text": "A página de solicitações mostra as doações pedidas ou reivindicadas para que você acompanhe cada retirada do início ao fim."
+        },
+        "messages": {
+          "title": "Fique em contato pelas mensagens",
+          "text": "Use as mensagens para coordenar a retirada, fazer perguntas de acompanhamento e manter a comunicação com os doadores em um só lugar."
+        },
+        "impact": {
+          "title": "Confira seu painel de impacto",
+          "text": "O painel de impacto resume sua atividade no FoodFlow para que você acompanhe quantas retiradas e ações concluiu ao longo do tempo."
         },
         "settings": {
           "title": "Revise as configurações cedo",

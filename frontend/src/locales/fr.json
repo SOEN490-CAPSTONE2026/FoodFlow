@@ -3098,6 +3098,14 @@
           "title": "Créer un don avec l’IA",
           "text": "Si vous avez une photo des aliments, le flux IA peut extraire les détails pour vous. Vérifiez le résultat avant l’envoi pour garder une annonce précise."
         },
+        "messages": {
+          "title": "Coordonner dans les messages",
+          "text": "Utilisez les messages pour répondre aux questions, confirmer les détails de collecte et rester synchronisé avec les receveurs après le partage ou la réservation d’un don."
+        },
+        "impact": {
+          "title": "Consultez votre tableau d’impact",
+          "text": "Votre tableau d’impact vous aide à suivre les résultats de vos dons dans le temps, y compris les tendances d’activité et la différence créée."
+        },
         "achievements": {
           "title": "Succès et progression",
           "text": "Les succès sont des badges que vous débloquez en utilisant FoodFlow. Ils vous aident à suivre vos étapes clés, votre activité et l’impact positif de vos dons au fil du temps."
@@ -3117,6 +3125,14 @@
         "claims": {
           "title": "Suivre vos réservations",
           "text": "La page de vos réservations affiche les dons demandés ou réclamés afin que vous puissiez suivre chaque collecte du début à la fin."
+        },
+        "messages": {
+          "title": "Restez en contact via les messages",
+          "text": "Utilisez les messages pour coordonner les détails de collecte, poser des questions complémentaires et garder vos échanges avec les donateurs au même endroit."
+        },
+        "impact": {
+          "title": "Consultez votre tableau d’impact",
+          "text": "Le tableau d’impact résume votre activité sur FoodFlow afin de suivre le nombre de collectes et d’actions réalisées au fil du temps."
         },
         "settings": {
           "title": "Vérifiez tôt vos paramètres",
