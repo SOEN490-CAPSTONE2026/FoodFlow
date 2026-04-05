@@ -25,6 +25,8 @@ jest.mock('lucide-react', () => ({
   Package: () => <div>Package Icon</div>,
   Award: () => <div>Award Icon</div>,
   Download: () => <div>Download Icon</div>,
+  File: () => <div>File Icon</div>,
+  FileText: () => <div>FileText Icon</div>,
   Calendar: () => <div>Calendar Icon</div>,
   UserCheck: () => <div>UserCheck Icon</div>,
   Repeat: () => <div>Repeat Icon</div>,
@@ -52,13 +54,14 @@ jest.mock('recharts', () => ({
 jest.mock('../services/api', () => ({
   impactDashboardAPI: {
     getMetrics: jest.fn(),
-    exportMetrics: jest.fn(),
+    exportMetricsCSV: jest.fn(),
+    exportMetricsPDF: jest.fn(),
   },
 }));
 
 describe('AdminImpactDashboard', () => {
   const openExportMenu = () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+    fireEvent.click(screen.getByRole('button', { name: /Export/i }));
   };
 
   const mockMetrics = {
@@ -86,8 +89,15 @@ describe('AdminImpactDashboard', () => {
     // Reset mocks
     jest.clearAllMocks();
     impactDashboardAPI.getMetrics.mockReset();
-    impactDashboardAPI.exportMetrics.mockReset();
+    impactDashboardAPI.exportMetricsCSV.mockReset();
+    impactDashboardAPI.exportMetricsPDF.mockReset();
     impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
+    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({
+      data: 'Metric,Value\nFood Saved,1500 kg',
+    });
+    impactDashboardAPI.exportMetricsPDF.mockResolvedValue({
+      data: 'mock-pdf',
+    });
 
     // Mock window.URL methods for export functionality
     global.URL.createObjectURL = jest.fn(() => 'mock-url');
@@ -97,6 +107,7 @@ describe('AdminImpactDashboard', () => {
 
   afterEach(() => {
     cleanup();
+    jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
@@ -130,10 +141,15 @@ describe('AdminImpactDashboard', () => {
       expect(screen.getByText('Retry')).toBeInTheDocument();
     });
 
-    test('retry button refetches data', async () => {
+    test('retry button reloads the page', async () => {
       impactDashboardAPI.getMetrics.mockRejectedValueOnce(
         new Error('API Error')
       );
+      const reloadMock = jest.fn();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...window.location, reload: reloadMock },
+      });
 
       render(<AdminImpactDashboard />);
 
@@ -143,16 +159,10 @@ describe('AdminImpactDashboard', () => {
         ).toBeInTheDocument();
       });
 
-      impactDashboardAPI.getMetrics.mockResolvedValueOnce({
-        data: mockMetrics,
-      });
-
       const retryButton = screen.getByText('Retry').closest('button');
       fireEvent.click(retryButton);
 
-      await waitFor(() => {
-        expect(impactDashboardAPI.getMetrics).toHaveBeenCalledTimes(2);
-      });
+      expect(reloadMock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -169,7 +179,7 @@ describe('AdminImpactDashboard', () => {
       });
 
       expect(
-        screen.getByRole('button', { name: 'Export' })
+        screen.getByRole('button', { name: /Export/i })
       ).toBeInTheDocument();
     });
 
@@ -266,7 +276,7 @@ describe('AdminImpactDashboard', () => {
   describe('Export Functionality', () => {
     beforeEach(() => {
       impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
-      impactDashboardAPI.exportMetrics.mockResolvedValue({
+      impactDashboardAPI.exportMetricsCSV.mockResolvedValue({
         data: 'Metric,Value\nFood Saved,1500 kg',
       });
     });
@@ -278,67 +288,28 @@ describe('AdminImpactDashboard', () => {
         expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      // Store original Blob
-      const OriginalBlob = global.Blob;
-      global.Blob = jest.fn(function (parts, options) {
-        return new OriginalBlob(parts, options);
-      });
-
-      const mockLink = {
-        href: '',
-        download: '',
-        click: jest.fn(),
-      };
-      const originalCreateElement = document.createElement.bind(document);
-      const originalAppendChild = document.body.appendChild.bind(document.body);
-      const originalRemoveChild = document.body.removeChild.bind(document.body);
-
-      const createElementSpy = jest
-        .spyOn(document, 'createElement')
-        .mockImplementation(tag => {
-          if (tag === 'a') {
-            return mockLink;
-          }
-          return originalCreateElement(tag);
-        });
-      const appendChildSpy = jest
-        .spyOn(document.body, 'appendChild')
-        .mockImplementation(node => {
-          if (node === mockLink) {
-            return node;
-          }
-          return originalAppendChild(node);
-        });
-      const removeChildSpy = jest
-        .spyOn(document.body, 'removeChild')
-        .mockImplementation(node => {
-          if (node === mockLink) {
-            return node;
-          }
-          return originalRemoveChild(node);
-        });
+      const clickSpy = jest
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => {});
 
       openExportMenu();
       fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
       await waitFor(() => {
-        expect(impactDashboardAPI.exportMetrics).toHaveBeenCalledWith(
+        expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith(
           'ALL_TIME'
         );
       });
 
       expect(global.URL.createObjectURL).toHaveBeenCalled();
-      expect(mockLink.click).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
+      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
 
-      // Restore mocks
-      createElementSpy.mockRestore();
-      appendChildSpy.mockRestore();
-      removeChildSpy.mockRestore();
-      global.Blob = OriginalBlob;
+      clickSpy.mockRestore();
     });
 
     test('shows error message when export fails', async () => {
-      impactDashboardAPI.exportMetrics.mockRejectedValueOnce(
+      impactDashboardAPI.exportMetricsCSV.mockRejectedValueOnce(
         new Error('Export failed')
       );
 
@@ -353,7 +324,7 @@ describe('AdminImpactDashboard', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText('Unable to export metrics right now.')
+          screen.getByText('Unable to export CSV right now.')
         ).toBeInTheDocument();
       });
     });
@@ -365,61 +336,31 @@ describe('AdminImpactDashboard', () => {
         expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      // Store original Blob
-      const OriginalBlob = global.Blob;
-      global.Blob = jest.fn(function (parts, options) {
-        return new OriginalBlob(parts, options);
-      });
-
-      const mockLink = {
-        href: '',
-        download: '',
-        click: jest.fn(),
-      };
-      const originalCreateElement = document.createElement.bind(document);
-      const originalAppendChild = document.body.appendChild.bind(document.body);
-      const originalRemoveChild = document.body.removeChild.bind(document.body);
-
-      const createElementSpy = jest
-        .spyOn(document, 'createElement')
-        .mockImplementation(tag => {
-          if (tag === 'a') {
-            return mockLink;
-          }
-          return originalCreateElement(tag);
-        });
-      const appendChildSpy = jest
-        .spyOn(document.body, 'appendChild')
-        .mockImplementation(node => {
-          if (node === mockLink) {
-            return node;
-          }
-          return originalAppendChild(node);
-        });
-      const removeChildSpy = jest
-        .spyOn(document.body, 'removeChild')
-        .mockImplementation(node => {
-          if (node === mockLink) {
-            return node;
-          }
-          return originalRemoveChild(node);
-        });
+      const createElementSpy = jest.spyOn(document, 'createElement');
+      const clickSpy = jest
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => {});
 
       openExportMenu();
       fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
       await waitFor(() => {
-        expect(mockLink.click).toHaveBeenCalled();
+        expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith(
+          'ALL_TIME'
+        );
       });
 
+      const link = createElementSpy.mock.results.find(
+        result => result.value instanceof HTMLAnchorElement
+      )?.value;
+      expect(link).toBeTruthy();
+      expect(link.download).toMatch(/^FoodFlow_Impact_Report_\d{4}-\d{2}-\d{2}\.csv$/);
       expect(global.URL.createObjectURL).toHaveBeenCalled();
       expect(global.URL.revokeObjectURL).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
 
-      // Restore mocks
       createElementSpy.mockRestore();
-      appendChildSpy.mockRestore();
-      removeChildSpy.mockRestore();
-      global.Blob = OriginalBlob;
+      clickSpy.mockRestore();
     });
   });
 
