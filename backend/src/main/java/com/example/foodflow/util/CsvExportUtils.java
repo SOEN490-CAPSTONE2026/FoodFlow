@@ -30,11 +30,11 @@ public class CsvExportUtils {
     }
 
     /**
-     * Write section header with column titles
+     * Write section header - just a blank line then section name
      */
     public static void writeSectionHeader(PrintWriter writer, String sectionName) {
-        writer.println(sectionName);
-        writer.println("Metric,Value");
+        writer.println();
+        writer.println(sectionName + ",");
     }
 
     /**
@@ -79,8 +79,7 @@ public class CsvExportUtils {
      */
     public static void writeMetadataDisclosure(PrintWriter writer, String factorVersion, String factorDisclosure) {
         writer.println();
-        writer.println("Calculation Methodology");
-        writer.println("Item,Details");
+        writer.println("Calculation Methodology,");
         if (factorVersion != null) {
             writer.println("Factor Version," + factorVersion);
         }
