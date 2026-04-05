@@ -1252,7 +1252,7 @@
     "loading": "Chargement de vos dons...",
     "sortByDate": "Trier par date",
     "sortByStatus": "Trier par statut",
-    "createWithAI": "Créer avec l'IA",
+    "createWithAI": "Faire un don avec l'IA",
     "donateMore": "Donner plus",
     "emptyStateTitle": "Vous n'avez encore rien publié",
     "emptyStateDescription": "Créez votre première annonce de don pour commencer à aider votre communauté à réduire le gaspillage alimentaire.",
@@ -3099,7 +3099,7 @@
           "text": "Depuis la page de don, cliquez sur ce bouton IA lorsque vous souhaitez que FoodFlow vous aide à extraire les détails d’un don à partir d’une photo."
         },
         "aiDonation": {
-          "title": "Créer un don avec l’IA",
+          "title": "Faire un don avec l’IA",
           "text": "Si vous avez une photo des aliments, le flux IA peut extraire les détails pour vous. Vérifiez le résultat avant l’envoi pour garder une annonce précise."
         },
         "messages": {

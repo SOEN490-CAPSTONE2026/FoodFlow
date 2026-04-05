@@ -1208,7 +1208,7 @@
     "loading": "Carregando suas doações...",
     "sortByDate": "Ordenar por data",
     "sortByStatus": "Ordenar por status",
-    "createWithAI": "Criar com IA",
+    "createWithAI": "Doar com IA",
     "donateMore": "Doar mais",
     "emptyStateTitle": "Você ainda não publicou nada",
     "emptyStateDescription": "Crie sua primeira publicação de doação para começar a ajudar sua comunidade a reduzir o desperdício de alimentos.",
@@ -3038,7 +3038,7 @@
           "text": "Na página de doação, clique neste botão de IA quando quiser que o FoodFlow ajude a extrair os detalhes de uma foto de alimento."
         },
         "aiDonation": {
-          "title": "Criar uma doação com IA",
+          "title": "Doar com IA",
           "text": "Se você tiver uma foto do alimento, o fluxo com IA pode extrair os detalhes para você. Revise o resultado antes de enviar para manter o anúncio preciso."
         },
         "messages": {

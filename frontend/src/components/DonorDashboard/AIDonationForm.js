@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -22,6 +22,10 @@ export default function AIDonationForm() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [extractedData, setExtractedData] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [reviewDraft, setReviewDraft] = useState(null);
+  const [extractionError, setExtractionError] = useState('');
+  const [reviewError, setReviewError] = useState('');
+  const [processingSeconds, setProcessingSeconds] = useState(0);
 
   const isUploadActive = step === 'upload' || step === 'processing';
   const isUploadCompleted = step === 'review' || step === 'submit';
@@ -29,8 +33,50 @@ export default function AIDonationForm() {
   const isReviewCompleted = step === 'submit';
   const isSubmitActive = step === 'submit';
 
+  useEffect(() => {
+    if (step !== 'processing') {
+      setProcessingSeconds(0);
+      return undefined;
+    }
+
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setProcessingSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [step]);
+
+  const getExtractionErrorMessage = error => {
+    const errorCode = error?.response?.data?.errorCode;
+    const serverMessage = error?.response?.data?.errorMessage;
+
+    if (errorCode === 'INVALID_IMAGE') {
+      return (
+        serverMessage ||
+        'The image could not be used. Please upload a clearer photo of the food label.'
+      );
+    }
+
+    if (errorCode === 'AI_UNAVAILABLE') {
+      return 'FoodFlow could not reach the AI service right now. Your current work is safe. Please try again in a moment.';
+    }
+
+    if (error?.code === 'ECONNABORTED') {
+      return 'Image analysis is taking longer than expected. Your image is still selected, so you can retry without starting over.';
+    }
+
+    if (serverMessage) {
+      return serverMessage;
+    }
+
+    return 'We could not analyze this image. Your current work is still available, so please try again or continue manually.';
+  };
+
   const handleImageUpload = async imageFile => {
     setSelectedImage(imageFile);
+    setExtractionError('');
+    setReviewError('');
     setStep('processing');
     setIsProcessing(true);
 
@@ -47,29 +93,23 @@ export default function AIDonationForm() {
 
       if (response.data.success) {
         setExtractedData(response.data);
+        setReviewDraft(null);
+        setExtractionError('');
         setStep('review');
         toast.success(t('aiDonation.toast.extractionComplete'));
       } else {
-        toast.error(
-          response.data.errorMessage || t('aiDonation.toast.aiFailed')
-        );
-        setStep('upload');
+        const errorMessage =
+          response.data.errorMessage || getExtractionErrorMessage();
+        setExtractionError(errorMessage);
+        toast.error(errorMessage);
+        setStep(extractedData ? 'review' : 'upload');
       }
     } catch (error) {
       console.error('AI extraction error:', error);
-
-      if (error.response) {
-        const errorMsg =
-          error.response.data?.errorMessage ||
-          t('aiDonation.toast.analysisFailed');
-        toast.error(errorMsg);
-      } else if (error.code === 'ECONNABORTED') {
-        toast.error(t('aiDonation.toast.requestTimedOut'));
-      } else {
-        toast.error(t('aiDonation.toast.networkError'));
-      }
-
-      setStep('upload');
+      const errorMessage = getExtractionErrorMessage(error);
+      setExtractionError(errorMessage);
+      toast.error(errorMessage);
+      setStep(extractedData ? 'review' : 'upload');
     } finally {
       setIsProcessing(false);
     }
@@ -77,13 +117,22 @@ export default function AIDonationForm() {
 
   const handleReUpload = () => {
     setSelectedImage(null);
-    setExtractedData(null);
+    setExtractionError('');
     setStep('upload');
   };
 
   const handleManualEntry = () => {
     navigate('/donor/list');
   };
+
+  const processingStage =
+    processingSeconds < 7
+      ? 'Reading the image'
+      : processingSeconds < 15
+        ? 'Analyzing food details'
+        : processingSeconds < 24
+          ? 'Building your donation draft'
+          : 'Still working on the AI draft';
 
   const renderStep = () => {
     switch (step) {
@@ -92,6 +141,8 @@ export default function AIDonationForm() {
           <AIImageUpload
             onImageSelect={handleImageUpload}
             onManualEntry={handleManualEntry}
+            initialFile={selectedImage}
+            externalError={extractionError}
           />
         );
 
@@ -100,7 +151,10 @@ export default function AIDonationForm() {
           <div className="ai-processing-container">
             <div className="ai-spinner"></div>
             <h3>{t('aiDonation.processing.title')}</h3>
-            <p className="processing-hint">{t('aiDonation.processing.hint')}</p>
+            <p className="processing-hint">{processingStage}</p>
+            <p className="processing-hint">
+              {t('aiDonation.processing.hint')} Elapsed: {processingSeconds}s
+            </p>
             <div className="processing-steps">
               <div className="processing-step active">
                 <div className="step-icon">
@@ -139,8 +193,22 @@ export default function AIDonationForm() {
             imageFile={selectedImage}
             onReUpload={handleReUpload}
             onCancel={() => navigate('/donor/list')}
-            onSubmitStart={() => setStep('submit')}
-            onSubmitError={() => setStep('review')}
+            draft={reviewDraft}
+            submitError={reviewError}
+            onDraftChange={nextDraft => {
+              setReviewDraft(nextDraft);
+              if (reviewError) {
+                setReviewError('');
+              }
+            }}
+            onSubmitStart={() => {
+              setReviewError('');
+              setStep('submit');
+            }}
+            onSubmitError={message => {
+              setReviewError(message || '');
+              setStep('review');
+            }}
           />
         );
 
@@ -150,6 +218,9 @@ export default function AIDonationForm() {
             <div className="ai-spinner"></div>
             <h3>{t('aiDonation.submitting.title')}</h3>
             <p className="processing-hint">{t('aiDonation.submitting.hint')}</p>
+            <p className="processing-hint">
+              We are saving your donation. If something fails, your edits will stay in place.
+            </p>
           </div>
         );
 

@@ -1208,7 +1208,7 @@
     "loading": "正在加载您的捐赠...",
     "sortByDate": "按日期排序",
     "sortByStatus": "按状态排序",
-    "createWithAI": "使用 AI 创建",
+    "createWithAI": "使用 AI 捐赠",
     "donateMore": "捐赠更多",
     "emptyStateTitle": "您还没有发布任何内容",
     "emptyStateDescription": "创建您的第一个捐赠帖子，开始帮助您的社区减少食物浪费。",
@@ -2094,7 +2094,7 @@
   },
   "aiDonation": {
     "backToDashboard": "返回仪表板",
-    "title": "使用 AI 创建捐赠",
+    "title": "使用 AI 捐赠",
     "subtitle": "上传标签照片以提取产品详情。提交前可先进行审核。",
     "steps": {
       "upload": "上传",
@@ -3118,7 +3118,7 @@
           "text": "在捐赠页面上，当您希望 FoodFlow 根据食物照片帮助提取捐赠信息时，请点击这个 AI 按钮。"
         },
         "aiDonation": {
-          "title": "使用 AI 创建捐赠",
+          "title": "使用 AI 捐赠",
           "text": "如果您有食物照片，AI 捐赠流程可以帮您提取信息。提交前请先检查结果，确保发布内容准确。"
         },
         "messages": {

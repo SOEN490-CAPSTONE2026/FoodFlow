@@ -1264,7 +1264,7 @@
     "loading": "Loading your donations...",
     "sortByDate": "Sort by Date",
     "sortByStatus": "Sort by Status",
-    "createWithAI": "Create with AI",
+    "createWithAI": "Donate with AI",
     "donateMore": "Donate More",
     "emptyStateTitle": "You haven't posted anything yet",
     "emptyStateDescription": "Create your first donation post to start helping your community reduce food waste.",
@@ -3121,8 +3121,8 @@
   },
   "aiDonation": {
     "backToDashboard": "Back to Dashboard",
-    "title": "Create Donation with AI",
-    "subtitle": "Upload a label photo to automatically extract product details",
+    "title": "Donate with AI",
+    "subtitle": "Upload a label photo to generate donation details faster",
     "steps": {
       "upload": "Upload",
       "review": "Review",
