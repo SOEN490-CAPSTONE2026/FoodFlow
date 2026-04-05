@@ -116,6 +116,9 @@ public class ImpactDashboardController {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
 
+        // Write CSV column header
+        writer.println("Metric,Value");
+
         // Generate report title based on role
         String reportTitle = generateReportTitle(metrics.getRole());
         String dateRangeLabel = CsvExportUtils.formatDateRangeLabel(
@@ -214,16 +217,16 @@ public class ImpactDashboardController {
      */
     private String generateReportTitle(String role) {
         if (role == null) {
-            return "FoodFlow Impact Report";
+            return "FoodFlow - Impact Report";
         }
 
         switch (role) {
             case "DONOR":
-                return "Donor Impact Report";
+                return "FoodFlow - Impact Report: Donor Impact Report";
             case "RECEIVER":
-                return "Receiver Impact Report";
+                return "FoodFlow - Impact Report: Receiver Impact Report";
             case "ADMIN":
-                return "Platform-wide Impact Report";
+                return "FoodFlow - Impact Report: Platform-wide Impact Report";
             default:
                 return "FoodFlow Impact Report";
         }
