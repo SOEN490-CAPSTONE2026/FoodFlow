@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ExportDropdown from '../../components/Common/ExportDropdown';
+import ExportDropdown from '../ExportDropdown';
 
 describe('ExportDropdown Component', () => {
   const mockOnExportCSV = jest.fn();

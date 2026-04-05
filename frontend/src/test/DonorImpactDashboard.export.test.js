@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import DonorImpactDashboard from '../../components/DonorDashboard/DonorImpactDashboard';
-import { impactDashboardAPI } from '../../services/api';
+import DonorImpactDashboard from '../components/DonorDashboard/DonorImpactDashboard';
+import { impactDashboardAPI } from '../services/api';
 
-jest.mock('../../services/api', () => ({
+jest.mock('../services/api', () => ({
   impactDashboardAPI: {
     getMetrics: jest.fn(),
     exportMetricsCSV: jest.fn(),

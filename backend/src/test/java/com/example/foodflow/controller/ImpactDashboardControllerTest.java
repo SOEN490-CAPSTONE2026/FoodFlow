@@ -219,7 +219,7 @@ class ImpactDashboardControllerTest {
             assertTrue(response.getBody().length > 0);
             assertEquals(MediaType.parseMediaType("text/csv"), response.getHeaders().getContentType());
             assertTrue(response.getHeaders().getContentDisposition().toString()
-                    .contains("impact-metrics-all_time.csv"));
+                    .matches(".*FoodFlow_Impact_Report_\\d{4}-\\d{2}-\\d{2}\\.csv.*"));
             verify(impactDashboardService, times(1)).getDonorMetrics(1L, "ALL_TIME");
         }
 
@@ -243,7 +243,7 @@ class ImpactDashboardControllerTest {
             assertNotNull(response.getBody());
             assertTrue(response.getBody().length > 0);
             assertTrue(response.getHeaders().getContentDisposition().toString()
-                    .contains("impact-metrics-monthly.csv"));
+                    .matches(".*FoodFlow_Impact_Report_\\d{4}-\\d{2}-\\d{2}\\.csv.*"));
         }
 
         @Test
@@ -486,6 +486,107 @@ class ImpactDashboardControllerTest {
             // Then
             String csvContent = new String(response.getBody());
             assertTrue(csvContent.startsWith("Metric,Value"));
+        }
+
+        @Test
+        @DisplayName("Should export metrics as PDF when format=pdf parameter is provided")
+        void shouldExportMetricsAsPdf() {
+            // Given
+            when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
+                    .thenReturn(testMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME", "pdf");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertTrue(response.getBody().length > 0);
+            assertEquals(MediaType.parseMediaType("application/pdf"), response.getHeaders().getContentType());
+            assertTrue(response.getHeaders().getContentDisposition().toString()
+                    .matches(".*FoodFlow_Impact_Report_\\d{4}-\\d{2}-\\d{2}\\.pdf.*"));
+            // PDF files should start with %PDF
+            assertTrue(new String(response.getBody(), 0, Math.min(4, response.getBody().length)).startsWith("%PDF"));
+        }
+
+        @Test
+        @DisplayName("Should export receiver metrics as PDF successfully")
+        void shouldExportReceiverMetricsAsPdf() {
+            // Given
+            ImpactMetricsDTO receiverMetrics = new ImpactMetricsDTO();
+            receiverMetrics.setRole("RECEIVER");
+            receiverMetrics.setUserId(2L);
+            receiverMetrics.setTotalFoodWeightKg(50.0);
+
+            when(impactDashboardService.getReceiverMetrics(eq(2L), eq("MONTHLY")))
+                    .thenReturn(receiverMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(receiverUser, "MONTHLY", "pdf");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertTrue(response.getBody().length > 0);
+            assertEquals(MediaType.parseMediaType("application/pdf"), response.getHeaders().getContentType());
+        }
+
+        @Test
+        @DisplayName("Should default to CSV format when no format parameter provided")
+        void shouldDefaultToCsvFormat() {
+            // Given
+            when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
+                    .thenReturn(testMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(MediaType.parseMediaType("text/csv"), response.getHeaders().getContentType());
+            String csvContent = new String(response.getBody());
+            assertTrue(csvContent.startsWith("Metric,Value"));
+        }
+
+        @Test
+        @DisplayName("Should handle invalid format parameter gracefully (defaults to CSV)")
+        void shouldHandleInvalidFormatParameter() {
+            // Given
+            when(impactDashboardService.getDonorMetrics(eq(1L), eq("ALL_TIME")))
+                    .thenReturn(testMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME", "xlsx");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            // Should default to CSV when invalid format
+            assertEquals(MediaType.parseMediaType("text/csv"), response.getHeaders().getContentType());
+        }
+
+        @Test
+        @DisplayName("Should export admin metrics as PDF with user engagement data")
+        void shouldExportAdminMetricsAsPdfWithEngagement() {
+            // Given
+            ImpactMetricsDTO adminMetrics = new ImpactMetricsDTO();
+            adminMetrics.setRole("ADMIN");
+            adminMetrics.setTotalFoodWeightKg(1000.0);
+            adminMetrics.setActiveDonors(50);
+            adminMetrics.setActiveReceivers(40);
+            adminMetrics.setRepeatDonors(20);
+            adminMetrics.setRepeatReceivers(15);
+
+            when(impactDashboardService.getAdminMetrics(eq("WEEKLY")))
+                    .thenReturn(adminMetrics);
+
+            // When
+            ResponseEntity<byte[]> response = controller.exportMetrics(adminUser, "WEEKLY", "pdf");
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertTrue(response.getBody().length > 0);
+            assertEquals(MediaType.parseMediaType("application/pdf"), response.getHeaders().getContentType());
         }
     }
 }
