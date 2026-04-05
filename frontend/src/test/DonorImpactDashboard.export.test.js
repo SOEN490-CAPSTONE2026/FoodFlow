@@ -80,7 +80,9 @@ describe('DonorImpactDashboard Export Functionality', () => {
     fireEvent.click(csvOption);
 
     await waitFor(() => {
-      expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith('DAYS_30');
+      expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith(
+        'DAYS_30'
+      );
     });
   });
 
@@ -99,7 +101,9 @@ describe('DonorImpactDashboard Export Functionality', () => {
     fireEvent.click(pdfOption);
 
     await waitFor(() => {
-      expect(impactDashboardAPI.exportMetricsPDF).toHaveBeenCalledWith('DAYS_30');
+      expect(impactDashboardAPI.exportMetricsPDF).toHaveBeenCalledWith(
+        'DAYS_30'
+      );
     });
   });
 
@@ -236,7 +240,9 @@ describe('DonorImpactDashboard Export Functionality', () => {
     fireEvent.click(csvOption);
 
     await waitFor(() => {
-      expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith('ALL_TIME');
+      expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith(
+        'ALL_TIME'
+      );
     });
   });
 
@@ -246,8 +252,12 @@ describe('DonorImpactDashboard Export Functionality', () => {
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
 
-    const csvOption = await screen.findByRole('button', { name: /export csv/i });
-    const pdfOption = await screen.findByRole('button', { name: /export pdf/i });
+    const csvOption = await screen.findByRole('button', {
+      name: /export csv/i,
+    });
+    const pdfOption = await screen.findByRole('button', {
+      name: /export pdf/i,
+    });
 
     expect(csvOption).toBeInTheDocument();
     expect(pdfOption).toBeInTheDocument();

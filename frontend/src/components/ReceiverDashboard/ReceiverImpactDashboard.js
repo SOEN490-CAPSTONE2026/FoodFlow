@@ -93,10 +93,7 @@ export default function ReceiverImpactDashboard() {
       })
       .catch(() => {
         setError(
-          t(
-            'impactDashboard.exportError',
-            'Unable to export CSV right now.'
-          )
+          t('impactDashboard.exportError', 'Unable to export CSV right now.')
         );
       });
   };
@@ -117,10 +114,7 @@ export default function ReceiverImpactDashboard() {
       })
       .catch(() => {
         setError(
-          t(
-            'impactDashboard.exportError',
-            'Unable to export PDF right now.'
-          )
+          t('impactDashboard.exportError', 'Unable to export PDF right now.')
         );
       });
   };

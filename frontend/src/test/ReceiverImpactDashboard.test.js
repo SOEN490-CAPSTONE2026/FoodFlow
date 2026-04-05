@@ -56,6 +56,10 @@ const renderLoadedDashboard = async () => {
   await screen.findByText('Customize Metrics');
 };
 
+const openExportMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+};
+
 describe('ReceiverImpactDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -91,7 +95,7 @@ describe('ReceiverImpactDashboard', () => {
     await renderLoadedDashboard();
 
     expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
-    expect(screen.getByText('Export CSV')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument();
     expect(screen.getByText('Food Claimed')).toBeInTheDocument();
 
     const co2Elements = screen.getAllByText('CO₂ Avoided');
@@ -143,7 +147,8 @@ describe('ReceiverImpactDashboard', () => {
       .mockImplementation(() => {});
 
     await renderLoadedDashboard();
-    fireEvent.click(screen.getByText('Export CSV'));
+    openExportMenu();
+    fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
     await waitFor(() => {
       expect(impactDashboardAPI.exportMetrics).toHaveBeenCalledWith('DAYS_30');
@@ -161,7 +166,8 @@ describe('ReceiverImpactDashboard', () => {
     );
 
     await renderLoadedDashboard();
-    fireEvent.click(screen.getByText('Export CSV'));
+    openExportMenu();
+    fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
     await waitFor(() => {
       expect(

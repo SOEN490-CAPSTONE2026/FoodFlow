@@ -57,6 +57,10 @@ jest.mock('../services/api', () => ({
 }));
 
 describe('AdminImpactDashboard', () => {
+  const openExportMenu = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+  };
+
   const mockMetrics = {
     totalFoodWeightKg: 1500.5,
     co2EmissionsAvoidedKg: 1200.75,
@@ -164,7 +168,9 @@ describe('AdminImpactDashboard', () => {
         expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Export CSV')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Export' })
+      ).toBeInTheDocument();
     });
 
     test('displays correct metric values in cards', async () => {
@@ -312,8 +318,8 @@ describe('AdminImpactDashboard', () => {
           return originalRemoveChild(node);
         });
 
-      const exportButton = screen.getByText('Export CSV').closest('button');
-      fireEvent.click(exportButton);
+      openExportMenu();
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
       await waitFor(() => {
         expect(impactDashboardAPI.exportMetrics).toHaveBeenCalledWith(
@@ -342,8 +348,8 @@ describe('AdminImpactDashboard', () => {
         expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
       });
 
-      const exportButton = screen.getByText('Export CSV').closest('button');
-      fireEvent.click(exportButton);
+      openExportMenu();
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
       await waitFor(() => {
         expect(
@@ -399,8 +405,8 @@ describe('AdminImpactDashboard', () => {
           return originalRemoveChild(node);
         });
 
-      const exportButton = screen.getByText('Export CSV').closest('button');
-      fireEvent.click(exportButton);
+      openExportMenu();
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
       await waitFor(() => {
         expect(mockLink.click).toHaveBeenCalled();
