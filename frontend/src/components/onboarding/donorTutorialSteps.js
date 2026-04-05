@@ -9,7 +9,7 @@ export const getDonorTutorialSteps = t => [
   },
   {
     key: 'dashboard',
-    route: '/donor/dashboard',
+    route: '/donor',
     selector: '[data-tour="donor-dashboard-main"]',
     placement: 'bottom',
     title: t('onboarding.donor.steps.dashboard.title'),

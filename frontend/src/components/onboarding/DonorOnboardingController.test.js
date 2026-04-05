@@ -214,7 +214,7 @@ describe('DonorOnboardingController', () => {
       ).toBeInTheDocument();
     });
     expect(screen.getByTestId('step-flag')).toHaveTextContent('dashboard');
-    expect(mockNavigate).toHaveBeenCalledWith('/donor/dashboard');
+    expect(mockNavigate).toHaveBeenLastCalledWith('/donor');
     expect(screen.getByText('step 2 of 6')).toBeInTheDocument();
 
     fireEvent.click(
