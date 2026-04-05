@@ -501,7 +501,10 @@ export default function AIExtractionReview({
       <div className="ai-review-topbar">
         <div>
           <h3>Donate with AI</h3>
-          <p>Upload a label photo to generate a donation draft you can review and submit.</p>
+          <p>
+            Upload a label photo to generate a donation draft you can review and
+            submit.
+          </p>
         </div>
         <button
           className="ai-review-reupload"

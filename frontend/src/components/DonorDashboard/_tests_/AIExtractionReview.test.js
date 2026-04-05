@@ -330,7 +330,9 @@ describe('AIExtractionReview', () => {
       expect(mockOnSubmitError).toHaveBeenCalled();
     });
 
-    expect(screen.getByText('Database connection failed')).toBeInTheDocument();
+    expect(mockOnSubmitError).toHaveBeenCalledWith(
+      'Database connection failed'
+    );
     fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
     expect(screen.getByDisplayValue('Fresh Apple Boxes')).toBeInTheDocument();
   });

@@ -219,7 +219,8 @@ export default function AIDonationForm() {
             <h3>{t('aiDonation.submitting.title')}</h3>
             <p className="processing-hint">{t('aiDonation.submitting.hint')}</p>
             <p className="processing-hint">
-              We are saving your donation. If something fails, your edits will stay in place.
+              We are saving your donation. If something fails, your edits will
+              stay in place.
             </p>
           </div>
         );
