@@ -105,6 +105,10 @@ public class ImpactDashboardController {
         }
     }
 
+    ResponseEntity<byte[]> exportMetrics(User currentUser, String dateRange) {
+        return exportMetrics(currentUser, dateRange, "csv");
+    }
+
     /**
      * Export metrics as CSV format
      */
