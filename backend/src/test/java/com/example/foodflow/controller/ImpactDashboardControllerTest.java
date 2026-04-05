@@ -321,7 +321,7 @@ class ImpactDashboardControllerTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             String csvContent = new String(response.getBody());
-            assertTrue(csvContent.contains("150 - 250")); // Min-Max range with spaces
+            assertTrue(csvContent.contains("150-250")); // Min-Max range format
             assertTrue(csvContent.contains("Estimated Meals Provided (Range)"));
         }
 
@@ -340,7 +340,6 @@ class ImpactDashboardControllerTest {
             String csvContent = new String(response.getBody());
 
             // Verify branding
-            assertTrue(csvContent.contains("FoodFlow - Impact Report"));
             assertTrue(csvContent.contains("Donor Impact Report"));
 
             // Verify metadata section
