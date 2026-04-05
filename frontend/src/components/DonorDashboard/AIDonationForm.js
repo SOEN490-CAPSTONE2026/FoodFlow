@@ -63,14 +63,18 @@ export default function AIDonationForm() {
     }
 
     if (error?.code === 'ECONNABORTED') {
-      return 'Image analysis is taking longer than expected. Your image is still selected, so you can retry without starting over.';
+      return t('aiDonation.toast.requestTimedOut');
     }
 
     if (serverMessage) {
       return serverMessage;
     }
 
-    return 'We could not analyze this image. Your current work is still available, so please try again or continue manually.';
+    if (error?.response) {
+      return t('aiDonation.toast.analysisFailed');
+    }
+
+    return t('aiDonation.toast.networkError');
   };
 
   const handleImageUpload = async imageFile => {
@@ -99,7 +103,7 @@ export default function AIDonationForm() {
         toast.success(t('aiDonation.toast.extractionComplete'));
       } else {
         const errorMessage =
-          response.data.errorMessage || getExtractionErrorMessage();
+          response.data.errorMessage || t('aiDonation.toast.aiFailed');
         setExtractionError(errorMessage);
         toast.error(errorMessage);
         setStep(extractedData ? 'review' : 'upload');
