@@ -4,6 +4,7 @@ import com.example.foodflow.model.dto.MessageHistoryResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page as JpaPage;
 import com.example.foodflow.model.dto.MessageRequest;
 import com.example.foodflow.model.dto.MessageResponse;
 import com.example.foodflow.model.entity.Conversation;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 @Service
 public class MessageService {
@@ -133,15 +135,40 @@ public class MessageService {
         return response;
     }
     /**
-     * Get all messages in a conversation
+     * Get paginated messages in a conversation
+     * @param conversationId the conversation ID
+     * @param currentUser the authenticated user
+     * @param page the page number (0-based, default 0)
+     * @param pageSize the number of messages per page (default 20, max 100)
+     * @return paginated message responses
      */
     @Transactional(readOnly = true)
-    @Timed(value = "message.service.getConversationMessages", description = "Time taken to get a conversation messages")
+    @Timed(value = "message.service.getConversationMessages", description = "Time taken to get conversation messages")
+    public Page<MessageResponse> getConversationMessages(Long conversationId, User currentUser, int page, int pageSize) {
+        // Validate page parameters
+        if (page < 0) page = 0;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > 100) pageSize = 100; // cap at 100 to prevent abuse
+        // Validate user is participant
+        conversationService.getConversation(conversationId, currentUser);
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Message> messages = messageRepository.findByConversationIdWithPagination(conversationId, pageable);
+        businessMetricsService.incrementMessagesReceived();
+        return messages.map(MessageResponse::new);
+    }
+    /**
+     * Get all messages in a conversation (legacy, use getConversationMessages with pagination)
+     */
+    @Transactional(readOnly = true)
+    @Timed(value = "message.service.getConversationMessages", description = "Time taken to get conversation messages")
     public List<MessageResponse> getConversationMessages(Long conversationId, User currentUser) {
         // Validate user is participant
         conversationService.getConversation(conversationId, currentUser);
         List<Message> messages = messageRepository.findByConversationId(conversationId);
         businessMetricsService.incrementMessagesReceived();
+        logger.warn("Deprecated: getConversationMessages called without pagination. " +
+                    "This loads ALL messages which impacts performance. " +
+                    "Use getConversationMessages(Long, User, int, int) instead.");
         return messages.stream()
             .map(MessageResponse::new)
             .collect(Collectors.toList());

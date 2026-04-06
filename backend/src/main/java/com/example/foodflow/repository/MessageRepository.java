@@ -47,4 +47,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      */
     @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt ASC")
     Page<Message> findByConversationIdWithPagination(@Param("conversationId") Long conversationId, Pageable pageable);
+    /**
+     * Find the last message in a conversation (most recent by creation time)
+     * Optimized for preview display - returns only one message
+     */
+    @Query(value = "SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt DESC LIMIT 1")
+    java.util.Optional<Message> findLastMessageInConversation(@Param("conversationId") Long conversationId);
 }

@@ -53,16 +53,17 @@ public class ConversationService {
     }
     /**
      * Get all conversations for the current user
+     * Optimized: uses dedicated query to get last message instead of loading all messages
      */
     @Transactional(readOnly = true)
     public List<ConversationResponse> getUserConversations(User currentUser) {
         List<Conversation> conversations = conversationRepository.findByUserId(currentUser.getId());
         return conversations.stream()
                 .map(conv -> {
-                    // Get last message preview
-                    List<Message> messages = messageRepository.findByConversationId(conv.getId());
-                    String lastMessagePreview = messages.isEmpty() ? "No messages yet"
-                            : messages.get(messages.size() - 1).getMessageBody();
+                    // Get last message preview using optimized query (single record)
+                    String lastMessagePreview = messageRepository.findLastMessageInConversation(conv.getId())
+                            .map(Message::getMessageBody)
+                            .orElse("No messages yet");
                     // Get unread count for current user
                     long unreadCount = messageRepository.countUnreadInConversation(
                             conv.getId(),
