@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.socket.config.annotation.SockJsServiceRegistration;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.StompWebSocketEndpointRegistration;
@@ -41,9 +42,11 @@ class WebSocketConfigTest {
     private WebSocketConfig webSocketConfig;
     @BeforeEach
     void setUp() {
+        // Inject the CORS allowed origins property value
+        ReflectionTestUtils.setField(webSocketConfig, "corsAllowedOrigins", "http://localhost:3000,http://localhost:8080");
         // Mock the chain of method calls for endpoint registration
         when(stompEndpointRegistry.addEndpoint(anyString())).thenReturn(endpointRegistration);
-        when(endpointRegistration.setAllowedOriginPatterns(anyString())).thenReturn(endpointRegistration);
+        when(endpointRegistration.setAllowedOrigins(any(String[].class))).thenReturn(endpointRegistration);
         when(endpointRegistration.setHandshakeHandler(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.addInterceptors(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.withSockJS()).thenReturn(sockJsServiceRegistration);
@@ -94,7 +97,7 @@ class WebSocketConfigTest {
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
         // Assert
         verify(stompEndpointRegistry).addEndpoint("/ws");
-        verify(endpointRegistration).setAllowedOriginPatterns("*");
+        verify(endpointRegistration).setAllowedOrigins(any(String[].class));
         verify(endpointRegistration).setHandshakeHandler(any(PrincipalHandshakeHandler.class));
         verify(endpointRegistration).addInterceptors(any(JwtHandshakeInterceptor.class));
         verify(endpointRegistration).withSockJS();
@@ -110,14 +113,20 @@ class WebSocketConfigTest {
         assertEquals("/ws", endpointCaptor.getValue());
     }
     @Test
-    void testRegisterStompEndpoints_AllowsAllOriginPatterns() {
+    void testRegisterStompEndpoints_RestrictsOriginsByConfiguration() {
         // Arrange
-        ArgumentCaptor<String> originCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String[]> originsCaptor = ArgumentCaptor.forClass(String[].class);
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
         // Assert
-        verify(endpointRegistration).setAllowedOriginPatterns(originCaptor.capture());
-        assertEquals("*", originCaptor.getValue());
+        verify(endpointRegistration).setAllowedOrigins(originsCaptor.capture());
+        String[] allowedOrigins = originsCaptor.getValue();
+        assertNotNull(allowedOrigins);
+        assertTrue(allowedOrigins.length > 0);
+        // Should contain the origins from config, not wildcard
+        for (String origin : allowedOrigins) {
+            assertNotEquals("*", origin, "Origins should be restricted, not wildcard");
+        }
     }
     @Test
     void testRegisterStompEndpoints_SetsPrincipalHandshakeHandler() {
@@ -153,7 +162,7 @@ class WebSocketConfigTest {
         // Assert - verify the chain is called in correct order
         var inOrder = inOrder(stompEndpointRegistry, endpointRegistration);
         inOrder.verify(stompEndpointRegistry).addEndpoint("/ws");
-        inOrder.verify(endpointRegistration).setAllowedOriginPatterns("*");
+        inOrder.verify(endpointRegistration).setAllowedOrigins(any(String[].class));
         inOrder.verify(endpointRegistration).setHandshakeHandler(any(PrincipalHandshakeHandler.class));
         inOrder.verify(endpointRegistration).addInterceptors(any(JwtHandshakeInterceptor.class));
         inOrder.verify(endpointRegistration).withSockJS();
