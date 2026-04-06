@@ -1,5 +1,4 @@
 package com.example.foodflow.repository;
-
 import com.example.foodflow.model.entity.ReceiverPreferences;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
@@ -13,19 +12,14 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
-
 @DataJpaTest
 @ActiveProfiles("test")
 class ReceiverPreferencesRepositoryTest {
-
     @Autowired
     private TestEntityManager entityManager;
-
     @Autowired
     private ReceiverPreferencesRepository preferencesRepository;
-
     private User receiver;
-
     @BeforeEach
     void setUp() {
         // Create receiver user
@@ -36,7 +30,6 @@ class ReceiverPreferencesRepositoryTest {
         entityManager.persist(receiver);
         entityManager.flush();
     }
-
     private ReceiverPreferences createPreferencesWithTimestamps(User user) {
         ReceiverPreferences preferences = new ReceiverPreferences(user);
         // Set timestamps manually since @CreatedDate might not be working in tests
@@ -44,7 +37,6 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setUpdatedAt(LocalDateTime.now());
         return preferences;
     }
-
     @Test
     void testFindByUserId_ReturnsPreferences_WhenExists() {
         // Given
@@ -58,10 +50,8 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setAcceptFrozen(false);
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When
         Optional<ReceiverPreferences> result = preferencesRepository.findByUserId(receiver.getId());
-
         // Then
         assertThat(result).isPresent();
         assertThat(result.get().getUser().getId()).isEqualTo(receiver.getId());
@@ -73,55 +63,44 @@ class ReceiverPreferencesRepositoryTest {
         assertThat(result.get().getAcceptRefrigerated()).isTrue();
         assertThat(result.get().getAcceptFrozen()).isFalse();
     }
-
     @Test
     void testFindByUserId_ReturnsEmpty_WhenNotExists() {
         // When
         Optional<ReceiverPreferences> result = preferencesRepository.findByUserId(999L);
-
         // Then
         assertThat(result).isEmpty();
     }
-
     @Test
     void testExistsByUserId_ReturnsTrue_WhenExists() {
         // Given
         ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When
         boolean exists = preferencesRepository.existsByUserId(receiver.getId());
-
         // Then
         assertThat(exists).isTrue();
     }
-
     @Test
     void testExistsByUserId_ReturnsFalse_WhenNotExists() {
         // When
         boolean exists = preferencesRepository.existsByUserId(999L);
-
         // Then
         assertThat(exists).isFalse();
     }
-
     @Test
     void testDeleteByUserId_RemovesPreferences() {
         // Given
         ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When
         preferencesRepository.deleteByUserId(receiver.getId());
         entityManager.flush();
-
         // Then
         Optional<ReceiverPreferences> result = preferencesRepository.findByUserId(receiver.getId());
         assertThat(result).isEmpty();
     }
-
     @Test
     void testSavePreferences_WithEmptyLists() {
         // Given
@@ -131,17 +110,14 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setMaxCapacity(100);
         preferences.setMinQuantity(0);
         preferences.setMaxQuantity(200);
-
         // When
         ReceiverPreferences saved = preferencesRepository.save(preferences);
         entityManager.flush();
-
         // Then
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getPreferredFoodTypes()).isEmpty();
         assertThat(saved.getPreferredPickupWindows()).isEmpty();
     }
-
     @Test
     void testUpdatePreferences_ModifiesExisting() {
         // Given
@@ -150,21 +126,18 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry"));
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When
         preferences.setMaxCapacity(75);
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry", "Dairy & Cold Items"));
         preferences.setUpdatedAt(LocalDateTime.now()); // Update timestamp
         preferencesRepository.save(preferences);
         entityManager.flush();
-
         // Then
         Optional<ReceiverPreferences> updated = preferencesRepository.findByUserId(receiver.getId());
         assertThat(updated).isPresent();
         assertThat(updated.get().getMaxCapacity()).isEqualTo(75);
         assertThat(updated.get().getPreferredFoodTypes()).hasSize(2);
     }
-
     @Test
     void testHelperMethod_AcceptsFoodType() {
         // Given
@@ -172,12 +145,10 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setPreferredFoodTypes(Arrays.asList("Bakery & Pastry", "Dairy & Cold Items"));
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When/Then
         assertThat(preferences.acceptsFoodType("Bakery & Pastry")).isTrue();
         assertThat(preferences.acceptsFoodType("Frozen Food")).isFalse();
     }
-
     @Test
     void testHelperMethod_AcceptsFoodType_EmptyListAcceptsAll() {
         // Given
@@ -185,12 +156,10 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setPreferredFoodTypes(Arrays.asList());
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When/Then
         assertThat(preferences.acceptsFoodType("Bakery & Pastry")).isTrue();
         assertThat(preferences.acceptsFoodType("Anything")).isTrue();
     }
-
     @Test
     void testHelperMethod_AcceptsQuantity() {
         // Given
@@ -199,7 +168,6 @@ class ReceiverPreferencesRepositoryTest {
         preferences.setMaxQuantity(100);
         entityManager.persist(preferences);
         entityManager.flush();
-
         // When/Then
         assertThat(preferences.acceptsQuantity(50)).isTrue();
         assertThat(preferences.acceptsQuantity(10)).isTrue();
@@ -207,37 +175,31 @@ class ReceiverPreferencesRepositoryTest {
         assertThat(preferences.acceptsQuantity(5)).isFalse();
         assertThat(preferences.acceptsQuantity(101)).isFalse();
     }
-
     // Additional test to verify timestamps are working
     @Test
     void testTimestampsAreSetCorrectly() {
         // Given
         LocalDateTime before = LocalDateTime.now().minusSeconds(1);
         ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
-        
         // When
         ReceiverPreferences saved = preferencesRepository.save(preferences);
         entityManager.flush();
         LocalDateTime after = LocalDateTime.now().plusSeconds(1);
-
         // Then
         assertThat(saved.getCreatedAt()).isNotNull();
         assertThat(saved.getUpdatedAt()).isNotNull();
         assertThat(saved.getCreatedAt()).isAfter(before);
         assertThat(saved.getCreatedAt()).isBefore(after);
     }
-
     // Test to verify user relationship
     @Test
     void testUserRelationshipIsCorrect() {
         // Given
         ReceiverPreferences preferences = createPreferencesWithTimestamps(receiver);
         preferences.setMaxCapacity(75);
-
         // When
         ReceiverPreferences saved = preferencesRepository.save(preferences);
         entityManager.flush();
-
         // Then
         assertThat(saved.getUser()).isNotNull();
         assertThat(saved.getUser().getId()).isEqualTo(receiver.getId());

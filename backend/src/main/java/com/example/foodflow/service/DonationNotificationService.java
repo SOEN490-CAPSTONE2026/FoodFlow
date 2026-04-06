@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.DonationNotificationDTO;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserDonationStats;
@@ -8,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
-
 /**
  * Service responsible for sending real-time donation notifications via WebSocket.
  * Sends three types of notifications:
@@ -20,18 +17,13 @@ import java.math.BigDecimal;
  */
 @Service
 public class DonationNotificationService {
-
     private static final Logger logger = LoggerFactory.getLogger(DonationNotificationService.class);
-
     private static final String USER_DONATION_DESTINATION = "/queue/donations";
     private static final String PLATFORM_DONATION_TOPIC = "/topic/donations";
-
     private final SimpMessagingTemplate messagingTemplate;
-
     public DonationNotificationService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
-
     /**
      * Sends a donation confirmation notification to the donor via their private WebSocket queue.
      *
@@ -43,20 +35,17 @@ public class DonationNotificationService {
         try {
             DonationNotificationDTO notification = buildBaseNotification(user, amount, stats);
             notification.setType("DONATION_RECEIVED");
-
             messagingTemplate.convertAndSendToUser(
                     user.getId().toString(),
                     USER_DONATION_DESTINATION,
                     notification
             );
-
             logger.info("Sent DONATION_RECEIVED WebSocket notification to userId={}", user.getId());
         } catch (Exception e) {
             logger.error("Failed to send DONATION_RECEIVED notification to userId={}: {}",
                     user.getId(), e.getMessage(), e);
         }
     }
-
     /**
      * Sends a badge upgrade notification to the donor via their private WebSocket queue.
      *
@@ -70,13 +59,11 @@ public class DonationNotificationService {
             DonationNotificationDTO notification = buildBaseNotification(user, amount, stats);
             notification.setType("BADGE_UPGRADED");
             notification.setPreviousBadge(previousBadge.name());
-
             messagingTemplate.convertAndSendToUser(
                     user.getId().toString(),
                     USER_DONATION_DESTINATION,
                     notification
             );
-
             logger.info("Sent BADGE_UPGRADED WebSocket notification to userId={}: {} -> {}",
                     user.getId(), previousBadge, stats.getDonorBadge());
         } catch (Exception e) {
@@ -84,7 +71,6 @@ public class DonationNotificationService {
                     user.getId(), e.getMessage(), e);
         }
     }
-
     /**
      * Broadcasts a new donation event to all connected users on the platform topic.
      * Respects anonymity — if the donation is anonymous, the display name is hidden.
@@ -99,7 +85,6 @@ public class DonationNotificationService {
             notification.setType("PLATFORM_DONATION");
             notification.setAmount(amount);
             notification.setCurrency("CAD");
-
             if (anonymous) {
                 notification.setDisplayName("Anonymous");
                 notification.setUserId(null);
@@ -107,20 +92,16 @@ public class DonationNotificationService {
                 notification.setDisplayName(getDisplayName(user));
                 notification.setUserId(user.getId());
             }
-
             messagingTemplate.convertAndSend(PLATFORM_DONATION_TOPIC, notification);
-
             logger.info("Broadcast PLATFORM_DONATION WebSocket notification: amount={}, anonymous={}",
                     amount, anonymous);
         } catch (Exception e) {
             logger.error("Failed to broadcast PLATFORM_DONATION notification: {}", e.getMessage(), e);
         }
     }
-
     private DonationNotificationDTO buildBaseNotification(User user, BigDecimal amount, UserDonationStats stats) {
         DonorBadge currentBadge = stats.getDonorBadge() != null ? stats.getDonorBadge() : DonorBadge.NONE;
         DonorBadge nextBadge = currentBadge.nextTier();
-
         DonationNotificationDTO dto = new DonationNotificationDTO();
         dto.setUserId(user.getId());
         dto.setDisplayName(getDisplayName(user));
@@ -130,11 +111,9 @@ public class DonationNotificationService {
         dto.setBadgeDescription(currentBadge.getDescription());
         dto.setTotalDonated(stats.getTotalDonated());
         dto.setDonationCount(stats.getDonationCount());
-
         if (nextBadge != null) {
             dto.setNextBadge(nextBadge.name());
             dto.setAmountToNextBadge(currentBadge.amountToNextTier(stats.getTotalDonated()));
-
             BigDecimal currentThreshold = currentBadge.getThreshold();
             BigDecimal nextThreshold = nextBadge.getThreshold();
             BigDecimal range = nextThreshold.subtract(currentThreshold);
@@ -148,10 +127,8 @@ public class DonationNotificationService {
             dto.setAmountToNextBadge(BigDecimal.ZERO);
             dto.setProgressPercent(100.0);
         }
-
         return dto;
     }
-
     private String getDisplayName(User user) {
         String fullName = user.getFullName();
         if (fullName != null && !fullName.isBlank()) {

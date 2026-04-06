@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.AdminPaymentSummaryResponse;
 import com.example.foodflow.model.dto.AdminPaymentTransactionResponse;
 import com.example.foodflow.model.dto.InvoiceResponse;
@@ -20,21 +19,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
-
 @Service
 @RequiredArgsConstructor
 public class AdminPaymentService {
-
     private final PaymentRepository paymentRepository;
     private final RefundRepository refundRepository;
     private final RefundService refundService;
     private final InvoiceService invoiceService;
-
     @Transactional(readOnly = true)
     public Page<AdminPaymentTransactionResponse> getTransactions(
         String status,
@@ -50,14 +45,11 @@ public class AdminPaymentService {
         Pageable pageable = PageRequest.of(page, size);
         int start = Math.min((int) pageable.getOffset(), filteredPayments.size());
         int end = Math.min(start + pageable.getPageSize(), filteredPayments.size());
-
         List<AdminPaymentTransactionResponse> content = filteredPayments.subList(start, end).stream()
             .map(this::toTransactionResponse)
             .toList();
-
         return new PageImpl<>(content, pageable, filteredPayments.size());
     }
-
     @Transactional(readOnly = true)
     public AdminPaymentSummaryResponse getSummary(
         String status,
@@ -68,15 +60,12 @@ public class AdminPaymentService {
         LocalDate toDate
     ) {
         List<Payment> filteredPayments = getFilteredPayments(status, refundStatus, currency, search, fromDate, toDate);
-
         BigDecimal totalVolume = filteredPayments.stream()
             .map(Payment::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         BigDecimal refundedVolume = filteredPayments.stream()
             .map(this::getRefundedAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         return AdminPaymentSummaryResponse.builder()
             .totalTransactions(filteredPayments.size())
             .successfulTransactions(filteredPayments.stream().filter(payment -> payment.getStatus() == com.example.foodflow.model.types.PaymentStatus.SUCCEEDED).count())
@@ -87,19 +76,15 @@ public class AdminPaymentService {
             .netVolume(totalVolume.subtract(refundedVolume).max(BigDecimal.ZERO))
             .build();
     }
-
     public RefundResponse approveRefund(Long refundId, User adminUser, String adminNotes) {
         return refundService.approveRefund(refundId, adminUser, adminNotes);
     }
-
     public RefundResponse rejectRefund(Long refundId, User adminUser, String adminNotes) {
         return refundService.rejectRefund(refundId, adminUser, adminNotes);
     }
-
     public RefundResponse createRefundRequest(RefundRequest request, User adminUser) {
         return refundService.createRefundRequestAsAdmin(request, adminUser);
     }
-
     private List<Payment> getFilteredPayments(
         String status,
         String refundStatus,
@@ -109,7 +94,6 @@ public class AdminPaymentService {
         LocalDate toDate
     ) {
         String normalizedSearch = search != null ? search.trim().toLowerCase(Locale.ROOT) : "";
-
         return paymentRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
             .filter(payment -> status == null || status.isBlank() || payment.getStatus().name().equalsIgnoreCase(status))
             .filter(payment -> currency == null || currency.isBlank() || payment.getCurrency().equalsIgnoreCase(currency))
@@ -119,7 +103,6 @@ public class AdminPaymentService {
             .filter(payment -> matchesSearch(payment, normalizedSearch))
             .toList();
     }
-
     private boolean refundMatches(Payment payment, String refundStatus) {
         if (refundStatus == null || refundStatus.isBlank()) {
             return true;
@@ -127,26 +110,22 @@ public class AdminPaymentService {
         return refundRepository.findByPaymentId(payment.getId()).stream()
             .anyMatch(refund -> refund.getStatus().name().equalsIgnoreCase(refundStatus));
     }
-
     private boolean matchesSearch(Payment payment, String search) {
         if (search == null || search.isBlank()) {
             return true;
         }
-
         Organization organization = payment.getOrganization();
         return String.valueOf(payment.getId()).contains(search)
             || (payment.getStripePaymentIntentId() != null && payment.getStripePaymentIntentId().toLowerCase(Locale.ROOT).contains(search))
             || (payment.getDescription() != null && payment.getDescription().toLowerCase(Locale.ROOT).contains(search))
             || (organization != null && organization.getName() != null && organization.getName().toLowerCase(Locale.ROOT).contains(search));
     }
-
     private AdminPaymentTransactionResponse toTransactionResponse(Payment payment) {
         List<RefundResponse> refunds = refundRepository.findByPaymentIdOrderByCreatedAtDesc(payment.getId()).stream()
             .map(refundService::toRefundResponse)
             .toList();
         InvoiceResponse invoice = invoiceService.getInvoiceByPaymentId(payment.getId());
         BigDecimal refundedAmount = getRefundedAmount(payment);
-
         return AdminPaymentTransactionResponse.builder()
             .id(payment.getId())
             .organizationId(payment.getOrganization().getId())
@@ -170,14 +149,12 @@ public class AdminPaymentService {
             .refunds(refunds)
             .build();
     }
-
     private BigDecimal getRefundedAmount(Payment payment) {
         return refundRepository.findByPaymentId(payment.getId()).stream()
             .filter(refund -> refund.getStatus() == RefundStatus.PROCESSING || refund.getStatus() == RefundStatus.SUCCEEDED)
             .map(Refund::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
     private long getPendingRefundCount(Payment payment) {
         return refundRepository.findByPaymentId(payment.getId()).stream()
             .filter(refund -> refund.getStatus() == RefundStatus.PENDING)

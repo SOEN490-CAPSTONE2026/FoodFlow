@@ -1,5 +1,4 @@
 package com.example.foodflow.config;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,30 +16,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.example.foodflow.security.JwtAuthenticationFilter;
 import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.util.Arrays;
 import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Value("${spring.web.cors.allowed-origins:http://localhost:3000}")
     private String corsAllowedOrigins;
-
     // Inject the existing JwtAuthenticationFilter
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -65,28 +57,22 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/analytics/**").permitAll()
                         .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
-
                         // Messaging endpoints - must be accessible to all authenticated users
                         .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-
                         // Calendar OAuth callback - must be public for Google redirect
                         .requestMatchers("/api/calendar/oauth/google/callback").permitAll()
-
                         // Calendar endpoints - accessible to donors and receivers
                         .requestMatchers("/api/calendar/**").hasAnyAuthority("DONOR", "RECEIVER")
-
                         // Surplus endpoints with proper role restrictions
                         .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
                         .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
                         .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
                         .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
-
                         // Messaging endpoints - must be accessible to all authenticated users
                         .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-
                         // Surplus endpoints with proper role restrictions
                         .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
                         .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
@@ -100,56 +86,43 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/surplus/{id}").hasAuthority("DONOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/surplus/{id}/complete").hasAuthority("DONOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
-
                         // Claims endpoints
                         .requestMatchers(HttpMethod.GET, "/api/claims/post/**").hasAnyAuthority("DONOR", "RECEIVER")
                         .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
-
                         // Receiver Preferences endpoints
                         .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
-
                         // Reports/Disputes endpoints - require authentication
                         .requestMatchers("/api/reports/**").hasAnyAuthority("ADMIN", "DONOR", "RECEIVER")
-
                         // Other endpoints
                         .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                         .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
-
                         // Admin API endpoints
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-
                         // Dashboard endpoints
                         .requestMatchers("/donor/**").hasAuthority("DONOR")
                         .requestMatchers("/receiver/**").hasAuthority("RECEIVER")
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
-
                         // Profile endpoints
                         .requestMatchers(HttpMethod.PUT, "/api/profile/**")
                         .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/profile/**")
                         .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
-
                         // Save endpoints
                         .requestMatchers("/api/receiver/saved/**").hasAuthority("RECEIVER")
-
                         // Monetary donation endpoints
                         .requestMatchers("/api/donations/stats/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/badge/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/privacy/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/profile/*/public")
                         .hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-
                         // All other requests require authentication
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
         List<String> allowedOrigins = Arrays.stream(corsAllowedOrigins.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -158,7 +131,6 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

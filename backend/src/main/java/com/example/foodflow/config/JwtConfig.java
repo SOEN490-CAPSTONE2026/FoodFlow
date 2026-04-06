@@ -1,14 +1,11 @@
 package com.example.foodflow.config;
-
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import java.util.Set;
-
 @Configuration
 @ConfigurationProperties(prefix = "jwt")
 public class JwtConfig {
-
     private static final Set<String> KNOWN_WEAK_SECRETS = Set.of(
             "mySecretKey",
             "secret",
@@ -16,10 +13,8 @@ public class JwtConfig {
             "changeme",
             "password"
     );
-
     private String secret;
     private long expiration = 86400000; // 24 hours
-
     @PostConstruct
     public void validateSecret() {
         if (secret == null || secret.isBlank()) {
@@ -35,10 +30,8 @@ public class JwtConfig {
                     "JWT secret is too short (minimum 32 characters). Set a strong JWT_SECRET environment variable.");
         }
     }
-
     public String getSecret() { return secret; }
     public void setSecret(String secret) { this.secret = secret; }
-
     public long getExpiration() { return expiration; }
     public void setExpiration(long expiration) { this.expiration = expiration; }
 }

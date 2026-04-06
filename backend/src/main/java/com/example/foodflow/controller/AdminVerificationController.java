@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.ApprovalResponse;
 import com.example.foodflow.model.dto.RejectionRequest;
 import com.example.foodflow.model.dto.RejectionResponse;
@@ -10,18 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasAuthority('ADMIN')")
 public class AdminVerificationController {
-
     private final AdminVerificationService adminVerificationService;
-
     public AdminVerificationController(AdminVerificationService adminVerificationService) {
         this.adminVerificationService = adminVerificationService;
     }
-
     /**
      * GET /api/admin/pending-users
      * Fetch paginated list of users pending admin approval
@@ -40,7 +35,6 @@ public class AdminVerificationController {
         );
         return ResponseEntity.ok(response);
     }
-
     /**
      * POST /api/admin/approve/{userId}
      * Approve a pending user registration
@@ -58,7 +52,6 @@ public class AdminVerificationController {
                     .body(new ApprovalResponse(false, e.getMessage()));
         }
     }
-
     /**
      * POST /api/admin/verify-email/{userId}
      * Manually verify a user's email when the verification link fails
@@ -76,7 +69,6 @@ public class AdminVerificationController {
                     .body(new ApprovalResponse(false, e.getMessage()));
         }
     }
-
     /**
      * POST /api/admin/reject/{userId}
      * Reject a pending user registration

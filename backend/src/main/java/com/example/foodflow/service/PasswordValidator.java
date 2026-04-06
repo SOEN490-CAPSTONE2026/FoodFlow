@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.PasswordHistory;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.PasswordHistoryRepository;
@@ -14,33 +13,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 @Service
 public class PasswordValidator {
-
     private static final Logger log = LoggerFactory.getLogger(PasswordValidator.class);
-
     @Value("${password.policy.min-length:10}")
     private int minLength;
-
     @Value("${password.policy.require-uppercase:true}")
     private boolean requireUppercase;
-
     @Value("${password.policy.require-lowercase:true}")
     private boolean requireLowercase;
-
     @Value("${password.policy.require-digit:true}")
     private boolean requireDigit;
-
     @Value("${password.policy.require-special-char:true}")
     private boolean requireSpecialChar;
-
     @Value("${password.policy.history-depth:3}")
     private int historyDepth;
-
     private final PasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
-
     // Common weak passwords list (top 100 most common)
     // Note: All passwords are stored in lowercase for case-insensitive comparison
     private static final Set<String> COMMON_PASSWORDS = new HashSet<>(Arrays.asList(
@@ -57,13 +46,11 @@ public class PasswordValidator {
             "hello", "access", "hello123", "password1!", "123qwe", "abc12345", "temp123", "default",
             "letmein123", "admin1", "welcome123", "test1234", "guest", "demo", "user", "root",
             "password123!", "password@123", "pass123", "pass@123"));
-
     public PasswordValidator(PasswordHistoryRepository passwordHistoryRepository,
             PasswordEncoder passwordEncoder) {
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
     /**
      * Validate password against all policy requirements
      * 
@@ -72,46 +59,37 @@ public class PasswordValidator {
      */
     public List<String> validatePassword(String password) {
         List<String> errors = new ArrayList<>();
-
         if (password == null || password.isEmpty()) {
             errors.add("Password is required");
             return errors;
         }
-
         // Check minimum length
         if (password.length() < minLength) {
             errors.add(String.format("Password must be at least %d characters long", minLength));
         }
-
         // Check uppercase requirement
         if (requireUppercase && !Pattern.compile("[A-Z]").matcher(password).find()) {
             errors.add("Password must contain at least one uppercase letter");
         }
-
         // Check lowercase requirement
         if (requireLowercase && !Pattern.compile("[a-z]").matcher(password).find()) {
             errors.add("Password must contain at least one lowercase letter");
         }
-
         // Check digit requirement
         if (requireDigit && !Pattern.compile("[0-9]").matcher(password).find()) {
             errors.add("Password must contain at least one digit");
         }
-
         // Check special character requirement
         if (requireSpecialChar
                 && !Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]").matcher(password).find()) {
             errors.add("Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)");
         }
-
         // Check against common passwords (case-insensitive)
         if (COMMON_PASSWORDS.contains(password.toLowerCase())) {
             errors.add("This password is too common. Please choose a more secure password");
         }
-
         return errors;
     }
-
     /**
      * Check if password was used recently by the user
      * 
@@ -123,20 +101,16 @@ public class PasswordValidator {
         if (user.getId() == null) {
             return false; // New user, no history
         }
-
         List<PasswordHistory> history = passwordHistoryRepository
                 .findTopNByUserIdOrderByCreatedAtDesc(user.getId(), historyDepth);
-
         for (PasswordHistory entry : history) {
             if (passwordEncoder.matches(newPassword, entry.getPasswordHash())) {
                 log.warn("Password reuse detected for user: {}", user.getEmail());
                 return true;
             }
         }
-
         return false;
     }
-
     /**
      * Check if current password matches the stored password
      * 
@@ -147,7 +121,6 @@ public class PasswordValidator {
     public boolean isCurrentPasswordValid(User user, String currentPassword) {
         return passwordEncoder.matches(currentPassword, user.getPassword());
     }
-
     /**
      * Save password to history
      * 
@@ -158,11 +131,9 @@ public class PasswordValidator {
         PasswordHistory entry = new PasswordHistory(user, passwordHash);
         passwordHistoryRepository.save(entry);
         log.debug("Password saved to history for user: {}", user.getEmail());
-
         // Clean up old history entries beyond the configured depth
         List<PasswordHistory> allHistory = passwordHistoryRepository
                 .findByUserIdOrderByCreatedAtDesc(user.getId());
-
         if (allHistory.size() > historyDepth) {
             List<PasswordHistory> toDelete = allHistory.subList(historyDepth, allHistory.size());
             passwordHistoryRepository.deleteAll(toDelete);
@@ -170,7 +141,6 @@ public class PasswordValidator {
                     toDelete.size(), user.getEmail());
         }
     }
-
     /**
      * Get password policy requirements as a readable message
      * 
@@ -179,7 +149,6 @@ public class PasswordValidator {
     public String getPasswordPolicyDescription() {
         StringBuilder sb = new StringBuilder("Password must ");
         sb.append("be at least ").append(minLength).append(" characters");
-
         if (requireUppercase)
             sb.append(", contain at least one uppercase letter");
         if (requireLowercase)
@@ -188,7 +157,6 @@ public class PasswordValidator {
             sb.append(", contain at least one digit");
         if (requireSpecialChar)
             sb.append(", contain at least one special character");
-
         sb.append(". You cannot reuse your last ").append(historyDepth).append(" passwords.");
         return sb.toString();
     }

@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import brevo.ApiException;
 import com.example.foodflow.model.dto.ApprovalResponse;
 import com.example.foodflow.model.dto.RejectionResponse;
@@ -22,25 +21,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 @Service
 public class AdminVerificationService {
-
     private static final Logger log = LoggerFactory.getLogger(AdminVerificationService.class);
-
     private final UserRepository userRepository;
     private final EmailNotificationService emailService;
     private final EmailVerificationTokenRepository verificationTokenRepository;
     private final NotificationPreferenceService notificationPreferenceService;
     private final SimpMessagingTemplate messagingTemplate;
-
     public AdminVerificationService(UserRepository userRepository,
                                    EmailNotificationService emailService,
                                    EmailVerificationTokenRepository verificationTokenRepository,
@@ -52,7 +46,6 @@ public class AdminVerificationService {
         this.notificationPreferenceService = notificationPreferenceService;
         this.messagingTemplate = messagingTemplate;
     }
-
     /**
      * Get paginated list of users pending admin approval
      */
@@ -73,11 +66,9 @@ public class AdminVerificationService {
                 // Invalid role, ignore filter
             }
         }
-
         // Create sort object
         Sort sort = createSort(sortBy, sortOrder);
         Pageable pageable = PageRequest.of(page, size, sort);
-
         // Query database
         Page<User> userPage = userRepository.findByAccountStatusInAndSearchTerm(
                 List.of(AccountStatus.PENDING_ADMIN_APPROVAL, AccountStatus.PENDING_VERIFICATION),
@@ -85,12 +76,10 @@ public class AdminVerificationService {
                 search,
                 pageable
         );
-
         // Convert to DTOs
         List<UserVerificationDTO> content = userPage.getContent().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-
         return new UserVerificationPageResponse(
                 content,
                 userPage.getTotalElements(),
@@ -98,7 +87,6 @@ public class AdminVerificationService {
                 userPage.getNumber()
         );
     }
-
     /**
      * Approve a pending user
      */
@@ -106,19 +94,15 @@ public class AdminVerificationService {
     public ApprovalResponse approveUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
         if (user.getAccountStatus() != AccountStatus.PENDING_ADMIN_APPROVAL) {
             throw new IllegalStateException("User is not pending admin approval");
         }
-
         // Update user status
         user.setAccountStatus(AccountStatus.ACTIVE);
         userRepository.save(user);
-
         String userName = user.getOrganization() != null 
             ? user.getOrganization().getName() 
             : user.getEmail();
-
         // Send email notification if preference allows
         if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "email")) {
             try {
@@ -134,7 +118,6 @@ public class AdminVerificationService {
         } else {
             log.info("Email notification skipped for user {} - preference disabled", user.getEmail());
         }
-
         // Send WebSocket notification if preference allows
         if (notificationPreferenceService.shouldSendNotification(user, "verificationStatusChanged", "websocket")) {
             try {
@@ -143,7 +126,6 @@ public class AdminVerificationService {
                 notification.put("message", "Your account has been approved! You now have full access to FoodFlow.");
                 notification.put("organizationName", userName);
                 notification.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).toString());
-
                 log.info("Sending WebSocket approval notification to user ID: {}", user.getId());
                 messagingTemplate.convertAndSendToUser(
                     user.getId().toString(),
@@ -158,10 +140,8 @@ public class AdminVerificationService {
         } else {
             log.info("WebSocket notification skipped for user ID {} - preference disabled", user.getId());
         }
-
         return new ApprovalResponse(true, "User approved successfully");
     }
-
     /**
      * Manually verify a user's email when the verification link fails.
      * Moves user from PENDING_VERIFICATION to PENDING_ADMIN_APPROVAL.
@@ -170,28 +150,21 @@ public class AdminVerificationService {
     public ApprovalResponse verifyEmailManually(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
         if (user.getAccountStatus() != AccountStatus.PENDING_VERIFICATION) {
             throw new IllegalStateException("User is not pending email verification");
         }
-
         user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
-        
         // Automatically enable email notifications upon email verification
         user.setEmailNotificationsEnabled(true);
         log.info("Email notifications automatically enabled for user: {} during manual verification", user.getEmail());
-        
         userRepository.save(user);
-
         verificationTokenRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
                 .ifPresent(token -> {
                     token.setVerifiedAt(new java.sql.Timestamp(System.currentTimeMillis()));
                     verificationTokenRepository.save(token);
                 });
-
         return new ApprovalResponse(true, "Email verified manually");
     }
-
     /**
      * Reject a pending user
      */
@@ -199,16 +172,13 @@ public class AdminVerificationService {
     public RejectionResponse rejectUser(Long userId, String reason, String message) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
         if (user.getAccountStatus() != AccountStatus.PENDING_ADMIN_APPROVAL) {
             throw new IllegalStateException("User is not pending admin approval");
         }
-
         // Update user status to deactivated with admin notes
         user.setAccountStatus(AccountStatus.DEACTIVATED);
         user.setAdminNotes("Rejected: " + reason + (message != null ? " - " + message : ""));
         userRepository.save(user);
-
         // Send rejection email
         try {
             String userName = user.getOrganization() != null 
@@ -223,10 +193,8 @@ public class AdminVerificationService {
         } catch (Exception e) {
             log.error("Unexpected error sending rejection email to {}: {}", user.getEmail(), e.getMessage(), e);
         }
-
         return new RejectionResponse(true, "User rejected successfully");
     }
-
     /**
      * Convert User entity to UserVerificationDTO
      */
@@ -237,7 +205,6 @@ public class AdminVerificationService {
         dto.setRole(user.getRole());
         dto.setAccountStatus(user.getAccountStatus());
         dto.setCreatedAt(user.getCreatedAt());
-
         Organization org = user.getOrganization();
         if (org != null) {
             dto.setOrganizationName(org.getName());
@@ -246,12 +213,10 @@ public class AdminVerificationService {
             dto.setOrganizationType(org.getOrganizationType());
             dto.setCharityRegistrationNumber(org.getCharityRegistrationNumber());
             dto.setBusinessLicense(org.getBusinessLicense());
-            
             // Convert capacity to string
             if (org.getCapacity() != null) {
                 dto.setCapacity(org.getCapacity() + " meals/day");
             }
-
             // Parse address string into AddressDTO
             // Since Organization stores address as a single string, we'll return it as street for now
             // In a real scenario, you'd need a proper address parser or structured address storage
@@ -263,14 +228,11 @@ public class AdminVerificationService {
                 addressDTO.setCountry(user.getCountry());
                 dto.setAddress(addressDTO);
             }
-
             // Map the supporting document URL from the organization
             dto.setSupportingDocument(org.getSupportingDocumentUrl());
         }
-
         return dto;
     }
-
     /**
      * Create Sort object based on sortBy and sortOrder parameters
      */
@@ -278,7 +240,6 @@ public class AdminVerificationService {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder) 
                 ? Sort.Direction.ASC 
                 : Sort.Direction.DESC;
-
         return switch (sortBy != null ? sortBy.toLowerCase() : "date") {
             case "usertype" -> Sort.by(direction, "role");
             case "waitingtime", "date" -> Sort.by(direction, "createdAt");

@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.AchievementResponse;
 import com.example.foodflow.model.dto.GamificationStatsResponse;
 import com.example.foodflow.model.entity.User;
@@ -23,48 +22,39 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class GamificationControllerTest {
-    
     @Autowired
     private MockMvc mockMvc;
-    
     @MockBean
     private GamificationService gamificationService;
-    
     private User testUser;
     private User otherUser;
     private UsernamePasswordAuthenticationToken authentication;
     private UsernamePasswordAuthenticationToken otherAuthentication;
-    
     @BeforeEach
     void setUp() {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@example.com");
         testUser.setRole(UserRole.DONOR);
-        
         otherUser = new User();
         otherUser.setId(2L);
         otherUser.setEmail("other@example.com");
         otherUser.setRole(UserRole.RECEIVER);
-        
         authentication = new UsernamePasswordAuthenticationToken(
             testUser,
             null,
             Collections.singletonList(new SimpleGrantedAuthority(UserRole.DONOR.name()))
         );
-        
         otherAuthentication = new UsernamePasswordAuthenticationToken(
             otherUser,
             null,
             Collections.singletonList(new SimpleGrantedAuthority(UserRole.RECEIVER.name()))
         );
     }
-    
     @Test
     void getUserStats_ValidRequest_ShouldReturn200() throws Exception {
         // Given
@@ -72,9 +62,7 @@ class GamificationControllerTest {
         stats.setUserId(1L);
         stats.setTotalPoints(500);
         stats.setAchievementCount(5);
-        
         when(gamificationService.getUserGamificationStats(anyLong())).thenReturn(stats);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats")
                 .with(authentication(authentication)))
@@ -83,24 +71,20 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.totalPoints").value(500))
                 .andExpect(jsonPath("$.achievementCount").value(5));
     }
-    
     @Test
     void getUserStats_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats"))
                 .andExpect(status().isUnauthorized());
     }
-    
     @Test
     void getUserStats_DifferentUser_ShouldReturn403() throws Exception {
         // Given - User 2 trying to access User 1's stats
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats")
                 .with(authentication(otherAuthentication)))
                 .andExpect(status().isForbidden());
     }
-    
     @Test
     void getUserStats_OwnStats_ShouldReturn200() throws Exception {
         // Given
@@ -108,9 +92,7 @@ class GamificationControllerTest {
         stats.setUserId(2L);
         stats.setTotalPoints(300);
         stats.setAchievementCount(3);
-        
         when(gamificationService.getUserGamificationStats(anyLong())).thenReturn(stats);
-        
         // When & Then - User 2 accessing their own stats
         mockMvc.perform(get("/api/gamification/users/2/stats")
                 .with(authentication(otherAuthentication)))
@@ -119,7 +101,6 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.totalPoints").value(300))
                 .andExpect(jsonPath("$.achievementCount").value(3));
     }
-    
     @Test
     void getUserStats_WithAchievements_ShouldReturn200() throws Exception {
         // Given
@@ -127,7 +108,6 @@ class GamificationControllerTest {
         stats.setUserId(1L);
         stats.setTotalPoints(1000);
         stats.setAchievementCount(10);
-        
         List<AchievementResponse> achievements = new ArrayList<>();
         AchievementResponse achievement1 = new AchievementResponse();
         achievement1.setId(1L);
@@ -135,11 +115,8 @@ class GamificationControllerTest {
         achievement1.setDescription("Complete your first donation");
         achievement1.setPointsValue(50);
         achievements.add(achievement1);
-        
         stats.setUnlockedAchievements(achievements);
-        
         when(gamificationService.getUserGamificationStats(anyLong())).thenReturn(stats);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats")
                 .with(authentication(authentication)))
@@ -149,35 +126,29 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.unlockedAchievements").isArray())
                 .andExpect(jsonPath("$.unlockedAchievements[0].name").value("First Donation"));
     }
-    
     @Test
     void getAllAchievements_ShouldReturn200() throws Exception {
         // Given
         List<AchievementResponse> achievements = new ArrayList<>();
-        
         AchievementResponse achievement1 = new AchievementResponse();
         achievement1.setId(1L);
         achievement1.setName("First Donation");
         achievement1.setDescription("Complete your first donation");
         achievement1.setPointsValue(50);
         achievements.add(achievement1);
-        
         AchievementResponse achievement2 = new AchievementResponse();
         achievement2.setId(2L);
         achievement2.setName("10 Donations");
         achievement2.setDescription("Complete 10 donations");
         achievement2.setPointsValue(100);
         achievements.add(achievement2);
-        
         AchievementResponse achievement3 = new AchievementResponse();
         achievement3.setId(3L);
         achievement3.setName("Community Helper");
         achievement3.setDescription("Help 50 people");
         achievement3.setPointsValue(200);
         achievements.add(achievement3);
-        
         when(gamificationService.getAllAchievements()).thenReturn(achievements);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/achievements")
                 .with(authentication(authentication)))
@@ -191,12 +162,10 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$[2].name").value("Community Helper"))
                 .andExpect(jsonPath("$[2].pointsValue").value(200));
     }
-    
     @Test
     void getAllAchievements_EmptyList_ShouldReturn200() throws Exception {
         // Given
         when(gamificationService.getAllAchievements()).thenReturn(new ArrayList<>());
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/achievements")
                 .with(authentication(authentication)))
@@ -204,7 +173,6 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
     }
-    
     @Test
     void getUserStats_NewUser_ShouldReturnZeroPoints() throws Exception {
         // Given
@@ -212,9 +180,7 @@ class GamificationControllerTest {
         stats.setUserId(1L);
         stats.setTotalPoints(0);
         stats.setAchievementCount(0);
-        
         when(gamificationService.getUserGamificationStats(anyLong())).thenReturn(stats);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats")
                 .with(authentication(authentication)))
@@ -222,7 +188,6 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.totalPoints").value(0))
                 .andExpect(jsonPath("$.achievementCount").value(0));
     }
-    
     @Test
     void getUserStats_HighLevelUser_ShouldReturnCorrectStats() throws Exception {
         // Given
@@ -230,9 +195,7 @@ class GamificationControllerTest {
         stats.setUserId(1L);
         stats.setTotalPoints(10000);
         stats.setAchievementCount(50);
-        
         when(gamificationService.getUserGamificationStats(anyLong())).thenReturn(stats);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats")
                 .with(authentication(authentication)))
@@ -240,17 +203,14 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.totalPoints").value(10000))
                 .andExpect(jsonPath("$.achievementCount").value(50));
     }
-    
     @Test
     void getUserStats_InvalidUserId_ShouldReturn403() throws Exception {
         // Given - User 1 trying to access stats for non-existent user 999
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/999/stats")
                 .with(authentication(authentication)))
                 .andExpect(status().isForbidden());
     }
-    
     @Test
     void getAllAchievements_AsAuthenticatedUser_ShouldReturn200() throws Exception {
         // Given
@@ -261,9 +221,7 @@ class GamificationControllerTest {
         achievement.setDescription("Create your first listing");
         achievement.setPointsValue(25);
         achievements.add(achievement);
-        
         when(gamificationService.getAllAchievements()).thenReturn(achievements);
-        
         // When & Then - Authenticated users can view all achievements
         mockMvc.perform(get("/api/gamification/achievements")
                 .with(authentication(authentication)))
@@ -272,7 +230,6 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("First Step"));
     }
-    
     @Test
     void getUserStats_WithProgressData_ShouldReturnCompleteStats() throws Exception {
         // Given
@@ -280,9 +237,7 @@ class GamificationControllerTest {
         stats.setUserId(1L);
         stats.setTotalPoints(750);
         stats.setAchievementCount(7);
-        
         when(gamificationService.getUserGamificationStats(anyLong())).thenReturn(stats);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/users/1/stats")
                 .with(authentication(authentication)))
@@ -291,15 +246,12 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.totalPoints").value(750))
                 .andExpect(jsonPath("$.achievementCount").value(7));
     }
-    
     // ==================== Tests for getLeaderboard ====================
-    
     @Test
     void getLeaderboard_DonorRole_ShouldReturn200() throws Exception {
         // Given
         com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
             new com.example.foodflow.model.dto.LeaderboardResponse();
-        
         List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
         com.example.foodflow.model.dto.LeaderboardEntryDTO entry1 = 
             new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 1L, "Top Donor", 1000, true, null);
@@ -307,13 +259,10 @@ class GamificationControllerTest {
             new com.example.foodflow.model.dto.LeaderboardEntryDTO(2, 2L, "Second Donor", 900, false, null);
         topUsers.add(entry1);
         topUsers.add(entry2);
-        
         leaderboardResponse.setTopUsers(topUsers);
         leaderboardResponse.setCurrentUserEntry(null);
         leaderboardResponse.setTotalUsers(2);
-        
         when(gamificationService.getLeaderboard(UserRole.DONOR, 1L)).thenReturn(leaderboardResponse);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/leaderboard/DONOR")
                 .with(authentication(authentication)))
@@ -326,24 +275,19 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.topUsers[0].isCurrentUser").value(true))
                 .andExpect(jsonPath("$.totalUsers").value(2));
     }
-    
     @Test
     void getLeaderboard_ReceiverRole_ShouldReturn200() throws Exception {
         // Given
         com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
             new com.example.foodflow.model.dto.LeaderboardResponse();
-        
         List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
         com.example.foodflow.model.dto.LeaderboardEntryDTO entry1 = 
             new com.example.foodflow.model.dto.LeaderboardEntryDTO(1, 2L, "Top Receiver", 500, true, null);
         topUsers.add(entry1);
-        
         leaderboardResponse.setTopUsers(topUsers);
         leaderboardResponse.setCurrentUserEntry(null);
         leaderboardResponse.setTotalUsers(1);
-        
         when(gamificationService.getLeaderboard(UserRole.RECEIVER, 2L)).thenReturn(leaderboardResponse);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/leaderboard/RECEIVER")
                 .with(authentication(otherAuthentication)))
@@ -354,28 +298,22 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.topUsers[0].displayName").value("Top Receiver"))
                 .andExpect(jsonPath("$.totalUsers").value(1));
     }
-    
     @Test
     void getLeaderboard_WithCurrentUserOutsideTop10_ShouldIncludeCurrentEntry() throws Exception {
         // Given
         com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
             new com.example.foodflow.model.dto.LeaderboardResponse();
-        
         List<com.example.foodflow.model.dto.LeaderboardEntryDTO> topUsers = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             topUsers.add(new com.example.foodflow.model.dto.LeaderboardEntryDTO(
                 i, (long) i, "User " + i, 1000 - (i * 10), false, null));
         }
-        
         com.example.foodflow.model.dto.LeaderboardEntryDTO currentEntry = 
             new com.example.foodflow.model.dto.LeaderboardEntryDTO(15, 1L, "Current User", 500, true, null);
-        
         leaderboardResponse.setTopUsers(topUsers);
         leaderboardResponse.setCurrentUserEntry(currentEntry);
         leaderboardResponse.setTotalUsers(20);
-        
         when(gamificationService.getLeaderboard(UserRole.DONOR, 1L)).thenReturn(leaderboardResponse);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/leaderboard/DONOR")
                 .with(authentication(authentication)))
@@ -386,19 +324,15 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.currentUserEntry.isCurrentUser").value(true))
                 .andExpect(jsonPath("$.totalUsers").value(20));
     }
-    
     @Test
     void getLeaderboard_EmptyLeaderboard_ShouldReturn200() throws Exception {
         // Given
         com.example.foodflow.model.dto.LeaderboardResponse leaderboardResponse = 
             new com.example.foodflow.model.dto.LeaderboardResponse();
-        
         leaderboardResponse.setTopUsers(new ArrayList<>());
         leaderboardResponse.setCurrentUserEntry(null);
         leaderboardResponse.setTotalUsers(0);
-        
         when(gamificationService.getLeaderboard(UserRole.DONOR, 1L)).thenReturn(leaderboardResponse);
-        
         // When & Then
         mockMvc.perform(get("/api/gamification/leaderboard/DONOR")
                 .with(authentication(authentication)))
@@ -407,14 +341,12 @@ class GamificationControllerTest {
                 .andExpect(jsonPath("$.topUsers.length()").value(0))
                 .andExpect(jsonPath("$.totalUsers").value(0));
     }
-    
     @Test
     void getLeaderboard_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/gamification/leaderboard/DONOR"))
                 .andExpect(status().isUnauthorized());
     }
-    
     @Test
     void getLeaderboard_InvalidRole_ShouldReturn400() throws Exception {
         // When & Then
@@ -422,7 +354,6 @@ class GamificationControllerTest {
                 .with(authentication(authentication)))
                 .andExpect(status().isBadRequest());
     }
-    
     @Test
     void getLeaderboard_MissingRoleParameter_ShouldReturn500() throws Exception {
         // When & Then - Without role in path, causes internal error

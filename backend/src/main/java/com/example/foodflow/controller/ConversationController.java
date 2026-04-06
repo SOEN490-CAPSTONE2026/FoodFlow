@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.StartPostConversationRequest;
 import com.example.foodflow.model.dto.ConversationResponse;
 import com.example.foodflow.model.dto.MessageResponse;
@@ -13,21 +12,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/conversations")
 public class ConversationController {
-
     private final ConversationService conversationService;
     private final MessageService messageService;
-
     public ConversationController(ConversationService conversationService, MessageService messageService) {
         this.conversationService = conversationService;
         this.messageService = messageService;
     }
-
     /**
      * Get all conversations for the current user
      */
@@ -37,7 +31,6 @@ public class ConversationController {
         List<ConversationResponse> conversations = conversationService.getUserConversations(currentUser);
         return ResponseEntity.ok(conversations);
     }
-
     /**
      * Start a new conversation with a user by email
      */
@@ -48,7 +41,6 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.startConversation(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
-
     /**
      * Get a specific conversation
      */
@@ -59,7 +51,6 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.getConversationResponse(id, currentUser);
         return ResponseEntity.ok(conversation);
     }
-
     /**
      * Get all messages in a conversation
      */
@@ -70,7 +61,6 @@ public class ConversationController {
         List<MessageResponse> messages = messageService.getConversationMessages(id, currentUser);
         return ResponseEntity.ok(messages);
     }
-
     /**
      * Mark all messages in a conversation as read
      */
@@ -81,7 +71,6 @@ public class ConversationController {
         messageService.markConversationAsRead(id, currentUser);
         return ResponseEntity.ok().build();
     }
-
     /**
      * Get conversation for a specific post
      * Returns the conversation details including the other participant
@@ -94,7 +83,6 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.getConversationByPost(postId, currentUser);
         return ResponseEntity.ok(conversation);
     }
-
     /**
      * Create or get conversation for a specific post
      * Creates a new conversation linked to the post if one doesn't exist
@@ -109,7 +97,6 @@ public class ConversationController {
                 postId, request.getOtherUserId(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
-
     /**
      * Express interest in a donation - creates/returns a donation-anchored
      * conversation thread.

@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.AchievementNotificationDTO;
 import com.example.foodflow.model.dto.AchievementProgress;
 import com.example.foodflow.model.dto.AchievementResponse;
@@ -31,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 /**
  * Service handling gamification logic including points, achievements, and progress tracking.
  * Automatically checks and unlocks achievements when criteria are met.
@@ -39,7 +37,6 @@ import java.util.stream.Collectors;
 @Service
 public class GamificationService {
     private static final Logger logger = LoggerFactory.getLogger(GamificationService.class);
-
     private final UserRepository userRepository;
     private final AchievementRepository achievementRepository;
     private final UserAchievementRepository userAchievementRepository;
@@ -48,7 +45,6 @@ public class GamificationService {
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
     private final SimpMessagingTemplate messagingTemplate;
-
     public GamificationService(UserRepository userRepository,
                               AchievementRepository achievementRepository,
                               UserAchievementRepository userAchievementRepository,
@@ -66,7 +62,6 @@ public class GamificationService {
         this.conversationRepository = conversationRepository;
         this.messagingTemplate = messagingTemplate;
     }
-
     /**
      * Award points to a user and update their total points.
      * 
@@ -78,14 +73,11 @@ public class GamificationService {
     public void awardPoints(Long userId, int points, String reason) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-
         int currentPoints = user.getTotalPoints() != null ? user.getTotalPoints() : 0;
         user.setTotalPoints(currentPoints + points);
         userRepository.save(user);
-
         logger.info("Awarded {} points to userId={} for: {}", points, userId, reason);
     }
-
     /**
      * Check all active achievements and unlock those where user meets the criteria.
      * Called after point-awarding actions.
@@ -97,17 +89,14 @@ public class GamificationService {
     public List<UserAchievement> checkAndUnlockAchievements(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-
         // Get all active achievements
         List<Achievement> allAchievements = achievementRepository.findByIsActiveTrue();
-        
         // Get already earned achievement IDs
         List<UserAchievement> existingAchievements = userAchievementRepository
             .findByUserIdOrderByEarnedAtDesc(userId);
         List<Long> earnedAchievementIds = existingAchievements.stream()
             .map(ua -> ua.getAchievement().getId())
             .collect(Collectors.toList());
-
         // Check remaining achievements
         List<UserAchievement> newlyUnlocked = new ArrayList<>();
         for (Achievement achievement : allAchievements) {
@@ -115,33 +104,26 @@ public class GamificationService {
             if (earnedAchievementIds.contains(achievement.getId())) {
                 continue;
             }
-
             // Check if user meets criteria
             if (meetsAchievementCriteria(user, achievement)) {
                 UserAchievement userAchievement = new UserAchievement(user, achievement);
                 userAchievement = userAchievementRepository.save(userAchievement);
                 newlyUnlocked.add(userAchievement);
-
                 // Award achievement points
                 int currentPoints = user.getTotalPoints() != null ? user.getTotalPoints() : 0;
                 user.setTotalPoints(currentPoints + achievement.getPointsValue());
                 userRepository.save(user);
-
                 // Send WebSocket notification
                 sendAchievementNotification(user, userAchievement);
-
                 // Mark as notified
                 userAchievement.setNotified(true);
                 userAchievementRepository.save(userAchievement);
-
                 logger.info("User {} unlocked achievement: {} (+{} points)",
                     userId, achievement.getName(), achievement.getPointsValue());
             }
         }
-
         return newlyUnlocked;
     }
-
     /**
      * Get comprehensive gamification statistics for a user.
      * 
@@ -152,15 +134,12 @@ public class GamificationService {
     public GamificationStatsResponse getUserGamificationStats(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-
         // Get total points and achievement count
         Integer totalPoints = user.getTotalPoints() != null ? user.getTotalPoints() : 0;
         long achievementCount = userAchievementRepository.countByUserId(userId);
-
         GamificationStatsResponse response = new GamificationStatsResponse(
             userId, totalPoints, (int) achievementCount
         );
-
         // Get unlocked achievements with earned timestamps
         List<UserAchievement> userAchievements = userAchievementRepository
             .findByUserIdWithAchievementDetails(userId);
@@ -172,13 +151,11 @@ public class GamificationService {
             })
             .collect(Collectors.toList());
         response.setUnlockedAchievements(unlockedList);
-
         // Calculate progress towards next achievements - filtered by user role
         List<Achievement> allActive = achievementRepository.findByIsActiveTrue();
         List<Long> earnedIds = userAchievements.stream()
             .map(ua -> ua.getAchievement().getId())
             .collect(Collectors.toList());
-
         List<AchievementProgress> progressList = new ArrayList<>();
         for (Achievement achievement : allActive) {
             // Only include achievements relevant to this user's role
@@ -197,10 +174,8 @@ public class GamificationService {
             }
         }
         response.setProgressToNext(progressList);
-
         return response;
     }
-
     /**
      * Get all available achievements (both locked and unlocked).
      * 
@@ -213,7 +188,6 @@ public class GamificationService {
             .map(AchievementResponse::fromEntity)
             .collect(Collectors.toList());
     }
-
     /**
      * Check if an achievement is relevant for a user based on their role.
      * Donors can earn DONATION-based and SOCIAL achievements.
@@ -226,30 +200,25 @@ public class GamificationService {
     private boolean isAchievementRelevantForUser(User user, Achievement achievement) {
         CriteriaType criteriaType = achievement.getCriteriaType();
         UserRole userRole = user.getRole();
-
         // SOCIAL achievements are available to everyone
         if (criteriaType == CriteriaType.MESSAGE_COUNT || 
             criteriaType == CriteriaType.UNIQUE_PARTNER_COUNT) {
             return true;
         }
-
         // Donor-specific achievements
         if (userRole == UserRole.DONOR) {
             return criteriaType == CriteriaType.DONATION_COUNT || 
                    criteriaType == CriteriaType.WEEKLY_STREAK;
         }
-
         // Receiver-specific achievements
         if (userRole == UserRole.RECEIVER) {
             return criteriaType == CriteriaType.CLAIM_COUNT || 
                    criteriaType == CriteriaType.PICKUP_COUNT || 
                    criteriaType == CriteriaType.QUICK_CLAIM_COUNT;
         }
-
         // Default: show achievement (for future role types)
         return true;
     }
-
     /**
      * Check if user meets the criteria for a specific achievement.
      * 
@@ -262,11 +231,9 @@ public class GamificationService {
         if (!isAchievementRelevantForUser(user, achievement)) {
             return false;
         }
-        
         int currentValue = getCurrentValueForCriteria(user, achievement.getCriteriaType());
         return currentValue >= achievement.getCriteriaValue();
     }
-
     /**
      * Get the current value for a specific criteria type for a user.
      * 
@@ -278,36 +245,30 @@ public class GamificationService {
         switch (criteriaType) {
             case DONATION_COUNT:
                 return (int) surplusPostRepository.countByDonorId(user.getId());
-
             case CLAIM_COUNT:
                 return (int) claimRepository.countByReceiverId(user.getId());
-
             case PICKUP_COUNT:
                 // Count completed claims - receiver claims with COMPLETED status
                 return (int) claimRepository.findReceiverClaimsWithDetails(
                     user.getId(),
                     java.util.List.of(ClaimStatus.COMPLETED)
                 ).size();
-
             case MESSAGE_COUNT:
                 // Count messages sent by user
                 return (int) messageRepository.findAll().stream()
                     .filter(message -> message.getSender().getId().equals(user.getId()))
                     .count();
-
             case UNIQUE_PARTNER_COUNT:
                 // Count unique conversation partners the user has interacted with
                 return (int) conversationRepository.findByUserId(user.getId()).stream()
                     .map(conversation -> conversation.getOtherParticipant(user.getId()).getId())
                     .distinct()
                     .count();
-
             default:
                 logger.warn("Unsupported criteria type for achievement checking: {}", criteriaType);
                 return 0;
         }
     }
-
     /**
      * Get leaderboard for a specific role (DONOR or RECEIVER).
      * Returns top 10 users by points and current user's position if outside top 10.
@@ -321,27 +282,21 @@ public class GamificationService {
     @Transactional(readOnly = true)
     public LeaderboardResponse getLeaderboard(UserRole role, Long currentUserId) {
         logger.info("Fetching leaderboard for role: {} and userId: {}", role, currentUserId);
-        
         // Get top 10 users by role and points
         PageRequest topTenRequest = PageRequest.of(0, 10, 
             Sort.by(Sort.Direction.DESC, "totalPoints"));
-        
         List<User> topUsers = userRepository.findByRole(role, topTenRequest).getContent();
-        
         // Get total count of users in this role
         long totalUsers = userRepository.countByRole(role);
-        
         // Build top 10 leaderboard entries
         List<LeaderboardEntryDTO> topEntries = new ArrayList<>();
         boolean currentUserInTop10 = false;
-        
         for (int i = 0; i < topUsers.size(); i++) {
             User user = topUsers.get(i);
             boolean isCurrentUser = user.getId().equals(currentUserId);
             if (isCurrentUser) {
                 currentUserInTop10 = true;
             }
-            
             // Get display name: organization name if available, otherwise full name or email
             String displayName = user.getEmail(); // fallback
             if (user.getOrganization() != null && user.getOrganization().getName() != null) {
@@ -349,7 +304,6 @@ public class GamificationService {
             } else if (user.getFullName() != null && !user.getFullName().isEmpty()) {
                 displayName = user.getFullName();
             }
-            
             LeaderboardEntryDTO entry = new LeaderboardEntryDTO(
                 i + 1, // rank (1-based)
                 user.getId(),
@@ -360,18 +314,15 @@ public class GamificationService {
             );
             topEntries.add(entry);
         }
-        
         // If current user is not in top 10, find their rank
         LeaderboardEntryDTO currentUserEntry = null;
         if (!currentUserInTop10) {
             User currentUser = userRepository.findById(currentUserId)
                 .orElse(null);
-            
             if (currentUser != null && currentUser.getRole() == role) {
                 // Count users with more points to determine rank
                 int userPoints = currentUser.getTotalPoints() != null ? currentUser.getTotalPoints() : 0;
                 long rank = userRepository.countByRoleAndTotalPointsGreaterThan(role, userPoints) + 1;
-                
                 // Get display name: organization name if available, otherwise full name or email
                 String displayName = currentUser.getEmail(); // fallback
                 if (currentUser.getOrganization() != null && currentUser.getOrganization().getName() != null) {
@@ -379,7 +330,6 @@ public class GamificationService {
                 } else if (currentUser.getFullName() != null && !currentUser.getFullName().isEmpty()) {
                     displayName = currentUser.getFullName();
                 }
-                
                 currentUserEntry = new LeaderboardEntryDTO(
                     (int) rank,
                     currentUser.getId(),
@@ -390,20 +340,16 @@ public class GamificationService {
                 );
             }
         }
-        
         LeaderboardResponse response = new LeaderboardResponse(
             topEntries,
             currentUserEntry,
             (int) totalUsers,
             LocalDateTime.now()
         );
-        
         logger.info("Leaderboard generated for role {}: {} top users, currentUser in top10: {}", 
             role, topEntries.size(), currentUserInTop10);
-        
         return response;
     }
-
     /**
      * Send WebSocket notification when achievement is unlocked.
      *
@@ -413,7 +359,6 @@ public class GamificationService {
     private void sendAchievementNotification(User user, UserAchievement userAchievement) {
         try {
             Achievement achievement = userAchievement.getAchievement();
-
             AchievementNotificationDTO notification = new AchievementNotificationDTO(
                 achievement.getId(),
                 achievement.getName(),
@@ -423,13 +368,11 @@ public class GamificationService {
                 achievement.getCategory() != null ? achievement.getCategory().toString() : null,
                 userAchievement.getEarnedAt()
             );
-
             messagingTemplate.convertAndSendToUser(
                 user.getId().toString(),
                 "/queue/achievements",
                 notification
             );
-
             logger.info("Sent achievement notification to userId={} for achievement: {}",
                 user.getId(), achievement.getName());
         } catch (Exception e) {

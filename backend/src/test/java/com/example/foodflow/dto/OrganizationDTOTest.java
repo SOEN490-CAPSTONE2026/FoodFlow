@@ -4,9 +4,7 @@ import com.example.foodflow.model.dto.*;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
-
 class OrganizationDTOTest {
-
     @Test
     void testToDTO() {
         Organization org = new Organization();
@@ -20,9 +18,7 @@ class OrganizationDTOTest {
         org.setBusinessLicense("LICENSE123");
         org.setVerificationStatus(VerificationStatus.PENDING);
         org.setCreatedAt(LocalDateTime.now());
-
         OrganizationDTO dto = OrganizationDTO.toDTO(org);
-
         assertEquals(100L, dto.getId());
         assertEquals("Alice", dto.getContactPerson());
         assertEquals(50, dto.getCapacity());

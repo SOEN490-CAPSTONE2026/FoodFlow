@@ -1,9 +1,7 @@
 package com.example.foodflow.validation;
-
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import java.lang.annotation.*;
-
 /**
  * Validation annotation to ensure a Location represents a full street address,
  * not just a city, province, country, or postal code.

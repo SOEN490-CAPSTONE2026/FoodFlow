@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.*;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.entity.UserRole;
@@ -28,43 +27,34 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @ResourceLock("spring-context-mockmvc")
 class ConversationControllerTest {
-    
     @Autowired
     private MockMvc mockMvc;
-    
     @Autowired
     private ObjectMapper objectMapper;
-    
     @MockBean
     private ConversationService conversationService;
-    
     @MockBean
     private MessageService messageService;
-    
     private User testUser;
     private UsernamePasswordAuthenticationToken auth;
-    
     @BeforeEach
     void setUp() {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("user@test.com");
         testUser.setRole(UserRole.DONOR);
-        
         auth = new UsernamePasswordAuthenticationToken(
             testUser,
             null,
             Collections.singletonList(new SimpleGrantedAuthority("DONOR"))
         );
     }
-    
     @Test
     void getUserConversations_ShouldReturn200() throws Exception {
         // Given
@@ -72,9 +62,7 @@ class ConversationControllerTest {
         ConversationResponse conv = new ConversationResponse();
         conv.setId(1L);
         conversations.add(conv);
-        
         when(conversationService.getUserConversations(any(User.class))).thenReturn(conversations);
-        
         // When & Then
         mockMvc.perform(get("/api/conversations")
                 .with(authentication(auth)))
@@ -82,19 +70,15 @@ class ConversationControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].id").value(1));
     }
-    
     @Test
     void startConversation_ValidRequest_ShouldReturn201() throws Exception {
         // Given
         StartConversationRequest request = new StartConversationRequest();
         request.setRecipientEmail("other@test.com");
-        
         ConversationResponse response = new ConversationResponse();
         response.setId(1L);
-        
         when(conversationService.startConversation(any(User.class), any(StartConversationRequest.class)))
             .thenReturn(response);
-        
         // When & Then
         mockMvc.perform(post("/api/conversations")
                 .with(authentication(auth))
@@ -103,16 +87,13 @@ class ConversationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1));
     }
-    
     @Test
     void startConversation_InvalidUser_ShouldReturn400() throws Exception {
         // Given
         StartConversationRequest request = new StartConversationRequest();
         request.setRecipientEmail("invalid@test.com");
-        
         when(conversationService.startConversation(any(), any(StartConversationRequest.class)))
             .thenThrow(new IllegalArgumentException("User not found"));
-        
         // When & Then
         mockMvc.perform(post("/api/conversations")
                 .with(authentication(auth))
@@ -120,35 +101,29 @@ class ConversationControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
-    
     @Test
     void getConversation_ValidId_ShouldReturn200() throws Exception {
         // Given
         ConversationResponse response = new ConversationResponse();
         response.setId(1L);
-        
         when(conversationService.getConversationResponse(eq(1L), any(User.class)))
             .thenReturn(response);
-        
         // When & Then
         mockMvc.perform(get("/api/conversations/1")
                 .with(authentication(auth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
     }
-    
     @Test
     void getConversation_Forbidden_ShouldReturn403() throws Exception {
         // Given
         when(conversationService.getConversationResponse(eq(1L), any()))
             .thenThrow(new com.example.foodflow.exception.domain.UnauthorizedAccessException("Access denied"));
-        
         // When & Then
         mockMvc.perform(get("/api/conversations/1")
                 .with(authentication(auth)))
                 .andExpect(status().isForbidden());
     }
-    
     @Test
     void getConversationMessages_ShouldReturn200() throws Exception {
         // Given
@@ -156,68 +131,55 @@ class ConversationControllerTest {
         MessageResponse msg = new MessageResponse();
         msg.setId(1L);
         messages.add(msg);
-        
         when(messageService.getConversationMessages(eq(1L), any(User.class)))
             .thenReturn(messages);
-        
         // When & Then
         mockMvc.perform(get("/api/conversations/1/messages")
                 .with(authentication(auth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
-    
     @Test
     void markConversationAsRead_ShouldReturn200() throws Exception {
         // Given
         doNothing().when(messageService).markConversationAsRead(eq(1L), any(User.class));
-        
         // When & Then
         mockMvc.perform(put("/api/conversations/1/read")
                 .with(authentication(auth)))
                 .andExpect(status().isOk());
     }
-    
     @Test
     void getConversationByPost_ShouldReturn200() throws Exception {
         // Given
         ConversationResponse response = new ConversationResponse();
         response.setId(1L);
-        
         when(conversationService.getConversationByPost(eq(1L), any(User.class)))
             .thenReturn(response);
-        
         // When & Then
         mockMvc.perform(get("/api/conversations/post/1")
                 .with(authentication(auth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
     }
-    
     @Test
     void getConversationByPost_NotFound_ShouldReturn404() throws Exception {
         // Given
         when(conversationService.getConversationByPost(eq(999L), any(User.class)))
             .thenThrow(new com.example.foodflow.exception.domain.ConversationNotFoundException("Not found"));
-        
         // When & Then
         mockMvc.perform(get("/api/conversations/post/999")
                 .with(authentication(auth)))
                 .andExpect(status().isNotFound());
     }
-    
     @Test
     void createOrGetPostConversation_ShouldReturn201() throws Exception {
         // Given
         StartPostConversationRequest request = new StartPostConversationRequest();
         request.setOtherUserId(2L);
-        
         ConversationResponse response = new ConversationResponse();
         response.setId(1L);
-        
         when(conversationService.createOrGetPostConversation(eq(1L), eq(2L), any(User.class)))
             .thenReturn(response);
-        
         // When & Then
         mockMvc.perform(post("/api/conversations/post/1")
                 .with(authentication(auth))
@@ -226,7 +188,6 @@ class ConversationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1));
     }
-    
     @Test
     void getUserConversations_Unauthenticated_ShouldReturn401() throws Exception {
         // When & Then

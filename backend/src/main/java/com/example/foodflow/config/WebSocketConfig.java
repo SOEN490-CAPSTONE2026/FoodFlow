@@ -1,27 +1,21 @@
 package com.example.foodflow.config;
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-
 import com.example.foodflow.websocket.JwtHandshakeInterceptor;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.repository.UserRepository;
-
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-
     public WebSocketConfig(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Enable a simple in-memory broker for /topic and /queue
@@ -31,7 +25,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Set user destination prefix for private messages
         config.setUserDestinationPrefix("/user");
     }
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Register STOMP endpoint at /ws

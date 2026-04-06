@@ -1,5 +1,4 @@
 package com.example.foodflow.exception.domain;
-
 public class DonationNotFoundException extends RuntimeException {
     public DonationNotFoundException(Long postId) {
         super("Donation with ID " + postId + " not found");

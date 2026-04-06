@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.ReferralRequest;
 import com.example.foodflow.model.dto.ReferralResponse;
 import com.example.foodflow.model.entity.Referral;
@@ -16,51 +15,39 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ReferralServiceTest {
-
     @Mock
     private ReferralRepository referralRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @InjectMocks
     private ReferralService referralService;
-
     private User donorUser;
     private User receiverUser;
-
     @BeforeEach
     void setUp() {
         donorUser = new User();
         donorUser.setId(1L);
         donorUser.setEmail("donor@example.com");
         donorUser.setRole(UserRole.DONOR);
-
         receiverUser = new User();
         receiverUser.setId(2L);
         receiverUser.setEmail("receiver@example.com");
         receiverUser.setRole(UserRole.RECEIVER);
     }
-
     // ─── submitReferral ───────────────────────────────────────────────────────
-
     @Nested
     @DisplayName("submitReferral")
     class SubmitReferral {
-
         @Test
         @DisplayName("should save and return a SUGGEST_BUSINESS referral from donor")
         void submitReferral_SuggestBusiness_ShouldSaveAndReturn() {
@@ -70,7 +57,6 @@ class ReferralServiceTest {
             request.setContactEmail("contact@bakery.com");
             request.setContactPhone("+1 555-123-4567");
             request.setMessage("They have lots of surplus bread.");
-
             Referral saved = new Referral();
             saved.setId(1L);
             saved.setSubmitter(donorUser);
@@ -80,12 +66,9 @@ class ReferralServiceTest {
             saved.setContactPhone("+1 555-123-4567");
             saved.setMessage("They have lots of surplus bread.");
             saved.setCreatedAt(LocalDateTime.now());
-
             when(userRepository.findById(1L)).thenReturn(Optional.of(donorUser));
             when(referralRepository.save(any(Referral.class))).thenReturn(saved);
-
             ReferralResponse response = referralService.submitReferral(request, 1L);
-
             assertThat(response).isNotNull();
             assertThat(response.getId()).isEqualTo(1L);
             assertThat(response.getReferralType()).isEqualTo(ReferralType.SUGGEST_BUSINESS);
@@ -94,10 +77,8 @@ class ReferralServiceTest {
             assertThat(response.getContactPhone()).isEqualTo("+1 555-123-4567");
             assertThat(response.getMessage()).isEqualTo("They have lots of surplus bread.");
             assertThat(response.getSubmittedByEmail()).isEqualTo("donor@example.com");
-
             verify(referralRepository).save(any(Referral.class));
         }
-
         @Test
         @DisplayName("should save and return an INVITE_COMMUNITY referral from receiver")
         void submitReferral_InviteCommunity_ShouldSaveAndReturn() {
@@ -105,7 +86,6 @@ class ReferralServiceTest {
             request.setReferralType(ReferralType.INVITE_COMMUNITY);
             request.setBusinessName("Community Food Pantry");
             request.setContactEmail("info@pantry.org");
-
             Referral saved = new Referral();
             saved.setId(2L);
             saved.setSubmitter(receiverUser);
@@ -113,12 +93,9 @@ class ReferralServiceTest {
             saved.setBusinessName("Community Food Pantry");
             saved.setContactEmail("info@pantry.org");
             saved.setCreatedAt(LocalDateTime.now());
-
             when(userRepository.findById(2L)).thenReturn(Optional.of(receiverUser));
             when(referralRepository.save(any(Referral.class))).thenReturn(saved);
-
             ReferralResponse response = referralService.submitReferral(request, 2L);
-
             assertThat(response).isNotNull();
             assertThat(response.getId()).isEqualTo(2L);
             assertThat(response.getReferralType()).isEqualTo(ReferralType.INVITE_COMMUNITY);
@@ -127,7 +104,6 @@ class ReferralServiceTest {
             assertThat(response.getContactPhone()).isNull();
             assertThat(response.getMessage()).isNull();
         }
-
         @Test
         @DisplayName("should throw RuntimeException when submitter not found")
         void submitReferral_SubmitterNotFound_ShouldThrow() {
@@ -135,16 +111,12 @@ class ReferralServiceTest {
             request.setReferralType(ReferralType.SUGGEST_BUSINESS);
             request.setBusinessName("Some Business");
             request.setContactEmail("contact@business.com");
-
             when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
             assertThatThrownBy(() -> referralService.submitReferral(request, 99L))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Submitter not found");
-
             verify(referralRepository, never()).save(any());
         }
-
         @Test
         @DisplayName("should set all fields correctly on the saved referral")
         void submitReferral_ShouldSetAllFieldsOnEntity() {
@@ -154,7 +126,6 @@ class ReferralServiceTest {
             request.setContactEmail("test@biz.com");
             request.setContactPhone("555-0000");
             request.setMessage("Optional note");
-
             Referral captured = new Referral();
             captured.setId(5L);
             captured.setSubmitter(donorUser);
@@ -164,7 +135,6 @@ class ReferralServiceTest {
             captured.setContactPhone("555-0000");
             captured.setMessage("Optional note");
             captured.setCreatedAt(LocalDateTime.now());
-
             when(userRepository.findById(1L)).thenReturn(Optional.of(donorUser));
             when(referralRepository.save(any(Referral.class))).thenAnswer(inv -> {
                 Referral r = inv.getArgument(0);
@@ -176,18 +146,14 @@ class ReferralServiceTest {
                 assertThat(r.getSubmitter()).isEqualTo(donorUser);
                 return captured;
             });
-
             referralService.submitReferral(request, 1L);
             verify(referralRepository).save(any(Referral.class));
         }
     }
-
     // ─── getAllReferrals ──────────────────────────────────────────────────────
-
     @Nested
     @DisplayName("getAllReferrals")
     class GetAllReferrals {
-
         @Test
         @DisplayName("should return all referrals ordered by newest first")
         void getAllReferrals_ShouldReturnAllMapped() {
@@ -197,50 +163,37 @@ class ReferralServiceTest {
             Referral r2 = buildReferral(2L, receiverUser, ReferralType.INVITE_COMMUNITY,
                     "Pantry", "pantry@test.com", "+1 555-0000", "Great org",
                     LocalDateTime.of(2026, 3, 2, 12, 0));
-
             when(referralRepository.findAllByOrderByCreatedAtDesc()).thenReturn(Arrays.asList(r2, r1));
-
             List<ReferralResponse> result = referralService.getAllReferrals();
-
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getId()).isEqualTo(2L);
             assertThat(result.get(0).getReferralType()).isEqualTo(ReferralType.INVITE_COMMUNITY);
             assertThat(result.get(0).getSubmittedByEmail()).isEqualTo("receiver@example.com");
             assertThat(result.get(0).getContactPhone()).isEqualTo("+1 555-0000");
             assertThat(result.get(0).getMessage()).isEqualTo("Great org");
-
             assertThat(result.get(1).getId()).isEqualTo(1L);
             assertThat(result.get(1).getReferralType()).isEqualTo(ReferralType.SUGGEST_BUSINESS);
             assertThat(result.get(1).getSubmittedByEmail()).isEqualTo("donor@example.com");
         }
-
         @Test
         @DisplayName("should return empty list when no referrals exist")
         void getAllReferrals_NoReferrals_ShouldReturnEmptyList() {
             when(referralRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of());
-
             List<ReferralResponse> result = referralService.getAllReferrals();
-
             assertThat(result).isEmpty();
         }
-
         @Test
         @DisplayName("should correctly map createdAt timestamp")
         void getAllReferrals_ShouldMapCreatedAt() {
             LocalDateTime timestamp = LocalDateTime.of(2026, 3, 3, 9, 30);
             Referral r = buildReferral(3L, donorUser, ReferralType.SUGGEST_BUSINESS,
                     "Biz", "biz@test.com", null, null, timestamp);
-
             when(referralRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(r));
-
             List<ReferralResponse> result = referralService.getAllReferrals();
-
             assertThat(result.get(0).getCreatedAt()).isEqualTo(timestamp);
         }
     }
-
     // ─── Helpers ─────────────────────────────────────────────────────────────
-
     private Referral buildReferral(Long id, User submitter, ReferralType type,
             String name, String email, String phone, String message,
             LocalDateTime createdAt) {
@@ -256,4 +209,3 @@ class ReferralServiceTest {
         return r;
     }
 }
-

@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import brevo.ApiException;
 import brevoApi.TransactionalEmailsApi;
 import brevoModel.SendSmtpEmail;
@@ -13,37 +12,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
-
 @Service
 public class EmailService implements EmailNotificationService {
-    
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private static final String DEFAULT_FRONTEND_URL = "http://localhost:3000";
-    
     private final MessageSource messageSource;
     private final UserRepository userRepository;
     private final BusinessMetricsService businessMetricsService;
     private final TransactionalEmailClientFactory transactionalEmailClientFactory;
-    
     @Value("${brevo.api.key}")
     private String brevoApiKey;
-    
     @Value("${brevo.from.email}")
     private String fromEmail;
-    
     @Value("${brevo.from.name}")
     private String fromName;
-    
     @Value("${frontend.url:" + DEFAULT_FRONTEND_URL + "}")
     private String frontendUrl = DEFAULT_FRONTEND_URL;
-
     @Value("${email.frontend-url:${frontend.url:" + DEFAULT_FRONTEND_URL + "}}")
     private String emailFrontendUrl = DEFAULT_FRONTEND_URL;
-
     // ──────────────────────────────────────────────────────────────
     // Brand constants
     // ──────────────────────────────────────────────────────────────
@@ -53,18 +42,13 @@ public class EmailService implements EmailNotificationService {
     private static final String COLOR_DANGER    = "#ef4444";
     private static final String COLOR_INFO      = "#3b82f6";
     private static final String COLOR_PURPLE    = "#7c3aed";
-
     private static final String FONT_STACK = "'Segoe UI', Tahoma, Geneva, Verdana, Arial, Helvetica, sans-serif";
-
     private static final String FOOTER_NOTIFICATION = "<p style=\"margin:4px 0;\">You received this because you have email notifications enabled in your preferences.</p>"
             + "<p style=\"margin:4px 0;\">Manage your settings in your FoodFlow account.</p>";
     private static final String FOOTER_AUTOMATED = "<p style=\"margin:4px 0;\">Need help? Contact us at foodflow.group@gmail.com</p>";
     private static final String FOOTER_ADMIN_ACTION = "<p style=\"margin:4px 0;\">You received this because administrative action was taken on your account.</p>";
-
-
     // Supported languages matching the platform's language list
     private static final String[] SUPPORTED_LANGUAGES = {"en", "fr", "es", "zh", "ar", "pt"};
-    
     public EmailService(MessageSource messageSource, UserRepository userRepository,
                         BusinessMetricsService businessMetricsService,
                         TransactionalEmailClientFactory transactionalEmailClientFactory) {
@@ -73,7 +57,6 @@ public class EmailService implements EmailNotificationService {
         this.businessMetricsService = businessMetricsService;
         this.transactionalEmailClientFactory = transactionalEmailClientFactory;
     }
-
     private CreateSmtpEmail sendEmailTracked(TransactionalEmailsApi api, SendSmtpEmail email) throws ApiException {
         io.micrometer.core.instrument.Timer.Sample sample = businessMetricsService.startTimer();
         try {
@@ -87,7 +70,6 @@ public class EmailService implements EmailNotificationService {
             throw e;
         }
     }
-    
     /**
      * Get user's preferred language from their profile, with fallback to English
      * @param email user's email address
@@ -109,7 +91,6 @@ public class EmailService implements EmailNotificationService {
             return Locale.ENGLISH;
         }
     }
-    
     /**
      * Check if a language code is supported
      */
@@ -121,7 +102,6 @@ public class EmailService implements EmailNotificationService {
         }
         return false;
     }
-    
     /**
      * Get translated message with fallback to English
      */
@@ -138,35 +118,28 @@ public class EmailService implements EmailNotificationService {
             }
         }
     }
-
     private String resolveFrontendBaseUrl() {
         String configuredUrl = null;
-
         if (emailFrontendUrl != null && !emailFrontendUrl.isBlank()) {
             configuredUrl = emailFrontendUrl;
         } else if (frontendUrl != null && !frontendUrl.isBlank()) {
             configuredUrl = frontendUrl;
         }
-
         if (configuredUrl == null) {
             configuredUrl = DEFAULT_FRONTEND_URL;
         }
-
         return configuredUrl.endsWith("/")
                 ? configuredUrl.substring(0, configuredUrl.length() - 1)
                 : configuredUrl;
     }
-
     private String buildFrontendUrl(String path) {
         String baseUrl = resolveFrontendBaseUrl();
         String normalizedPath = path.startsWith("/") ? path : "/" + path;
         return baseUrl + normalizedPath;
     }
-
     private TransactionalEmailsApi createTransactionalEmailsApi() {
         return transactionalEmailClientFactory.create(brevoApiKey);
     }
-
     /**
      * Send an email verification link to new users
      * @param toEmail recipient email address
@@ -175,27 +148,21 @@ public class EmailService implements EmailNotificationService {
      */
     public void sendVerificationEmail(String toEmail, String verificationToken) throws ApiException {
         log.info("Sending verification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-        
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
-
         // Set subject and content (localized)
         String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
         sendSmtpEmail.setSubject(getMessage("email.verification.subject", locale));
         sendSmtpEmail.setTextContent(buildVerificationEmailText(verificationLink, locale));
         sendSmtpEmail.setHtmlContent(buildVerificationEmailBody(verificationToken, locale));
-        
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Verification email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -205,7 +172,6 @@ public class EmailService implements EmailNotificationService {
             throw ex;
         }
     }
-    
     /**
      * Send a password reset email with a verification code
      * @param toEmail recipient email address
@@ -214,27 +180,20 @@ public class EmailService implements EmailNotificationService {
      */
     public void sendPasswordResetEmail(String toEmail, String resetCode) throws ApiException {
         log.info("Sending password reset email to: {}", toEmail);
-
         Locale locale = getUserLocale(toEmail);
-        
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-        
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
-        
         // Set subject and content (localized)
         sendSmtpEmail.setSubject(getMessage("email.password_reset.subject", locale));
         sendSmtpEmail.setTextContent(getMessage("email.password_reset.text_content", locale, resetCode));
         sendSmtpEmail.setHtmlContent(buildPasswordResetEmailBody(resetCode, locale));
-
-        
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Password reset email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -244,159 +203,126 @@ public class EmailService implements EmailNotificationService {
             throw ex;
         }
     }
-    
     /**
      * Send notification email for new donation available
      */
     public void sendNewDonationNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending new donation notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.new_donation.subject", locale));
             sendSmtpEmail.setHtmlContent(buildNewDonationEmailBody(userName, donationData, locale));
-
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("New donation notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending new donation notification to: {}", toEmail, ex);
         }
     }
-    
     /**
      * Send notification email for donation claimed
      */
     public void sendDonationClaimedNotification(String toEmail, String userName, Map<String, Object> claimData) {
         log.info("Sending donation claimed notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.donation_claimed.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationClaimedEmailBody(userName, claimData, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation claimed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending donation claimed notification to: {}", toEmail, ex);
         }
     }
-    
     /**
      * Send notification email for claim canceled
      */
     public void sendClaimCanceledNotification(String toEmail, String userName, Map<String, Object> claimData) {
         log.info("Sending claim canceled notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            
             sendSmtpEmail.setSubject(getMessage("email.claim_canceled.subject", locale));
             sendSmtpEmail.setHtmlContent(buildClaimCanceledEmailBody(userName, claimData, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Claim canceled notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending claim canceled notification to: {}", toEmail, ex);
         }
     }
-    
     /**
      * Send notification email for review received
      */
     public void sendReviewReceivedNotification(String toEmail, String userName, Map<String, Object> reviewData) {
         log.info("Sending review received notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-            
             sendSmtpEmail.setSubject(getMessage("email.review_received.subject", locale));
             sendSmtpEmail.setHtmlContent(buildReviewReceivedEmailBody(userName, reviewData, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Review received notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending review received notification to: {}", toEmail, ex);
         }
     }
-
     /**
      * Send notification email for donation picked up
      */
     public void sendDonationPickedUpNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending donation picked up notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.donation_picked_up.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationPickedUpEmailBody(userName, donationData, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation picked up notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending donation picked up notification to: {}", toEmail, ex);
         }
     }
-    
     /**
      * Build HTML email body for password reset
      */
@@ -450,13 +376,11 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer_automated", locale)
             );
     }
-    
     /**
      * Build HTML email body for email verification
      */
     private String buildVerificationEmailBody(String verificationToken, Locale locale) {
         String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
-
         return """
             <!DOCTYPE html>
             <html>
@@ -507,23 +431,17 @@ public class EmailService implements EmailNotificationService {
                     <div class="content">
                         <p>%s</p>
                         <p>%s</p>
-                        
                         <div class="info-box">
                             <strong>%s</strong>
                             <p style="margin: 10px 0 0 0;">%s</p>
                         </div>
-                        
                         <p><strong>%s</strong></p>
-                        
                         <div class="button-container">
                             <a href="%s" class="verify-button">%s</a>
                         </div>
-                        
                         <p style="font-size: 14px; color: #666;">%s</p>
-                        
                         <p>%s</p>
                         <div class="alternative-link">%s</div>
-                        
                         <p style="margin-top: 30px;">%s</p>
                     </div>
                     <div class="footer">
@@ -552,21 +470,15 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.support", locale)
             );
     }
-
     private String buildVerificationEmailText(String verificationLink, Locale locale) {
         return """
             %s
-
-            %s
-
             %s
             %s
-
             %s
             %s
-
             %s
-
+            %s
             %s
             %s
             """.formatted(
@@ -581,7 +493,6 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.support", locale)
             );
     }
-    
     /**
      * Build HTML email body for new donation notification
      */
@@ -589,7 +500,6 @@ public class EmailService implements EmailNotificationService {
         String title = (String) donationData.getOrDefault("title", "New Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String matchReason = (String) donationData.getOrDefault("matchReason", "Matches your preferences");
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -650,7 +560,6 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer_manage_settings", locale)
             );
     }
-    
     /**
      * Build HTML email body for donation claimed notification
      */
@@ -658,7 +567,6 @@ public class EmailService implements EmailNotificationService {
         String title = (String) claimData.getOrDefault("title", "Your Donation");
         String receiverName = (String) claimData.getOrDefault("receiverName", "A receiver");
         String quantity = String.valueOf(claimData.getOrDefault("quantity", "N/A"));
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -719,14 +627,12 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer_manage_settings", locale)
             );
     }
-    
     /**
      * Build HTML email body for claim canceled notification
      */
     private String buildClaimCanceledEmailBody(String userName, Map<String, Object> claimData, Locale locale) {
         String title = (String) claimData.getOrDefault("title", "A Donation");
         String reason = (String) claimData.getOrDefault("reason", getMessage("email.claim_canceled.default_reason", locale));
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -785,7 +691,6 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer_manage_settings", locale)
             );
     }
-    
     /**
      * Build HTML email body for review received notification
      */
@@ -794,18 +699,14 @@ public class EmailService implements EmailNotificationService {
         Integer rating = (Integer) reviewData.getOrDefault("rating", 0);
         String reviewText = (String) reviewData.getOrDefault("reviewText", "");
         Boolean isDonorReview = (Boolean) reviewData.getOrDefault("isDonorReview", false);
-        
         // Generate star rating display
         String stars = "⭐".repeat(Math.max(0, Math.min(5, rating)));
         String emptyStars = "☆".repeat(Math.max(0, 5 - rating));
         String starDisplay = stars + emptyStars;
-        
         // Determine review context
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
-        
         // Determine correct settings URL based on role
         String settingsUrl = isDonorReview ? buildFrontendUrl("/receiver/settings") : buildFrontendUrl("/donor/settings");
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -872,7 +773,6 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer_manage_settings", locale)
             );
     }
-
     /**
      * Send notification email for new message received
      * @param toEmail recipient email address
@@ -882,31 +782,25 @@ public class EmailService implements EmailNotificationService {
      */
     public void sendNewMessageNotification(String toEmail, String recipientName, String senderName, String messagePreview) {
         log.info("Sending new message notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.new_message.subject", locale, senderName));
             sendSmtpEmail.setHtmlContent(buildNewMessageEmailBody(recipientName, senderName, messagePreview, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("New message notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending new message notification to: {}", toEmail, ex);
         }
     }
-
     /**
      * Send account approval email to user
      * @param toEmail recipient email address
@@ -916,25 +810,20 @@ public class EmailService implements EmailNotificationService {
     public void sendAccountApprovalEmail(String toEmail, String userName) throws ApiException {
         log.info("Sending account approval email to: {}", toEmail);
         Locale locale = getUserLocale(toEmail);
-        
         // Configure API client
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-        
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
-        
         // Set subject and content
         sendSmtpEmail.setSubject(getMessage("email.account_approval.subject", locale));
         sendSmtpEmail.setTextContent(getMessage("email.account_approval.text_content", locale));
         sendSmtpEmail.setHtmlContent(buildAccountApprovalEmailBody(userName, locale));
-        
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account approval email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -944,7 +833,6 @@ public class EmailService implements EmailNotificationService {
             throw ex;
         }
     }
-    
     /**
      * Send account rejection email to user
      * @param toEmail recipient email address
@@ -956,25 +844,20 @@ public class EmailService implements EmailNotificationService {
     public void sendAccountRejectionEmail(String toEmail, String userName, String reason, String customMessage) throws ApiException {
         log.info("Sending account rejection email to: {}", toEmail);
         Locale locale = getUserLocale(toEmail);
-        
         // Configure API client
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-        
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
-        
         // Set subject and content
         sendSmtpEmail.setSubject(getMessage("email.account_rejection.subject", locale));
         sendSmtpEmail.setTextContent(getMessage("email.account_rejection.text_content", locale, getRejectionReasonText(reason, locale)));
         sendSmtpEmail.setHtmlContent(buildAccountRejectionEmailBody(userName, reason, customMessage, locale));
-        
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account rejection email sent successfully to: {}. MessageId: {}", toEmail, result.getMessageId());
@@ -984,7 +867,6 @@ public class EmailService implements EmailNotificationService {
             throw ex;
         }
     }
-    
     /**
      * Convert rejection reason code to human-readable text
      */
@@ -999,7 +881,6 @@ public class EmailService implements EmailNotificationService {
             default -> getMessage("email.account_rejection.reason.unspecified", locale);
         };
     }
-    
     /**
      * Build HTML email body for new message notification
      */
@@ -1009,7 +890,6 @@ public class EmailService implements EmailNotificationService {
         if (preview.length() > 150) {
             preview = preview.substring(0, 147) + "...";
         }
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -1068,7 +948,6 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer_manage_settings", locale)
             );
     }
-
     /**
      * Build HTML email body for account approval
      */
@@ -1127,14 +1006,12 @@ public class EmailService implements EmailNotificationService {
             </html>
             """.formatted(userName, frontendUrl);
     }
-    
     /**
      * Build HTML email body for account rejection
      */
     private String buildAccountRejectionEmailBody(String userName, String reason, String customMessage, Locale locale) {
         String reasonText = getRejectionReasonText(reason, locale);
         String messageSection = "";
-        
         if (customMessage != null && !customMessage.trim().isEmpty()) {
             messageSection = """
                 <div class="message-box">
@@ -1143,7 +1020,6 @@ public class EmailService implements EmailNotificationService {
                 </div>
                 """.formatted(customMessage);
         }
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -1201,7 +1077,6 @@ public class EmailService implements EmailNotificationService {
             </html>
             """.formatted(userName, reasonText, messageSection, frontendUrl);
     }
-
     /**
      * Build HTML email body for donation picked up notification
      */
@@ -1209,7 +1084,6 @@ public class EmailService implements EmailNotificationService {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "Your Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String receiverName = (String) donationData.getOrDefault("receiverName", "A receiver");
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -1275,37 +1149,30 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.manage_settings", locale)
             );
     }
-
     /**
      * Send notification email for donation completed (to receiver)
      */
     public void sendDonationCompletedNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending donation completed notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.donation_completed.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationCompletedEmailBody(userName, donationData, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation completed notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending donation completed notification to: {}", toEmail, ex);
         }
     }
-
     /**
      * Build HTML email body for donation completed notification
      */
@@ -1313,7 +1180,6 @@ public class EmailService implements EmailNotificationService {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String donorName = (String) donationData.getOrDefault("donorName", "A donor");
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -1379,37 +1245,30 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.manage_settings", locale)
             );
     }
-
     /**
      * Send notification email for ready for pickup (to receiver)
      */
     public void sendReadyForPickupNotification(String toEmail, String userName, Map<String, Object> donationData) {
         log.info("Sending ready for pickup notification email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-            
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-            
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.ready_for_pickup.subject", locale));
             sendSmtpEmail.setHtmlContent(buildReadyForPickupEmailBody(userName, donationData, locale));
-            
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Ready for pickup notification sent to: {}. MessageId: {}", toEmail, result.getMessageId());
         } catch (ApiException ex) {
             log.error("Error sending ready for pickup notification to: {}", toEmail, ex);
         }
     }
-
     /**
      * Build HTML email body for ready for pickup notification
      */
@@ -1418,7 +1277,6 @@ public class EmailService implements EmailNotificationService {
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String pickupDate = (String) donationData.getOrDefault("pickupDate", "Soon");
         String pickupTime = (String) donationData.getOrDefault("pickupTime", "Check your app");
-        
         return """
             <!DOCTYPE html>
             <html>
@@ -1486,42 +1344,34 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.manage_settings", locale)
             );
     }
-
     /**
      * Sends a donation expired notification email to a donor
      */
     public void sendDonationExpiredNotification(String toEmail, String donorName, Map<String, Object> donationData) {
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
-
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
-
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             recipient.setName(donorName);
-
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.donation_expired.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationExpiredEmailBody(donorName, donationData, locale));
-
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation expired email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
         } catch (ApiException e) {
             log.error("Failed to send donation expired email to {}: {}", toEmail, e.getMessage(), e);
         }
     }
-
     private String buildDonationExpiredEmailBody(String donorName, Map<String, Object> donationData, Locale locale) {
         String donationTitle = (String) donationData.get("donationTitle");
         String quantity = (String) donationData.get("quantity");
         String expiryDate = (String) donationData.get("expiryDate");
-
         return """
             <!DOCTYPE html>
             <html>
@@ -1596,48 +1446,39 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.manage_settings", locale)
             );
     }
-
     /**
      * Sends a donation status update notification email
      */
     public void sendDonationStatusUpdateNotification(String toEmail, String userName, Map<String, Object> statusData) {
         Locale locale = getUserLocale(toEmail);
-        
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
-
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
-
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             recipient.setName(userName);
-
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
             sendSmtpEmail.setSender(sender);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
             sendSmtpEmail.setSubject(getMessage("email.donation_status_updated.subject", locale));
             sendSmtpEmail.setHtmlContent(buildDonationStatusUpdateEmailBody(userName, statusData, locale));
-
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Donation status update email sent successfully to {} - Message ID: {}", toEmail, result.getMessageId());
         } catch (ApiException e) {
             log.error("Failed to send donation status update email to {}: {}", toEmail, e.getMessage(), e);
         }
     }
-
     private String buildDonationStatusUpdateEmailBody(String userName, Map<String, Object> statusData, Locale locale) {
         String donationTitle = (String) statusData.get("donationTitle");
         String oldStatus = (String) statusData.get("oldStatus");
         String newStatus = (String) statusData.get("newStatus");
         String reason = (String) statusData.get("reason");
         String userType = (String) statusData.get("userType");
-        
         String donationType = userType.equals("donor") ? 
             getMessage("email.donation_status_updated.donation_type", locale) : 
             getMessage("email.donation_status_updated.claim_type", locale);
-
         return """
             <!DOCTYPE html>
             <html>
@@ -1718,30 +1559,24 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.manage_settings", locale)
             );
     }
-
     /**
      * Send account deactivation notification email
      */
     public void sendAccountDeactivationEmail(String toEmail, String userName) throws ApiException {
         log.info("Sending account deactivation email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-        
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         sendSmtpEmail.setSubject(getMessage("email.account_deactivation.subject", locale));
         sendSmtpEmail.setTextContent(getMessage("email.account_deactivation.text_content", locale));
         sendSmtpEmail.setHtmlContent(buildAccountDeactivationEmailBody(userName, locale));
-        
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account deactivation email sent successfully. Message ID: {}", result.getMessageId());
@@ -1750,7 +1585,6 @@ public class EmailService implements EmailNotificationService {
             throw e;
         }
     }
-
     private String buildAccountDeactivationEmailBody(String userName, Locale locale) {
         return """
             <!DOCTYPE html>
@@ -1764,30 +1598,24 @@ public class EmailService implements EmailNotificationService {
                     <div style="background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); padding: 40px 20px; text-align: center;">
                         <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
                     </div>
-                    
                     <div style="padding: 40px 30px;">
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
-                        
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
-                        
                         <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
                             <p style="color: #991b1b; margin: 0; font-size: 14px;">
                                 <strong>%s</strong><br>
                                 %s
                             </p>
                         </div>
-                        
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
-                        
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
                     </div>
-                    
                     <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
                         <p>%s</p>
                         <p>%s</p>
@@ -1807,30 +1635,24 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.notifications", locale)
             );
     }
-
     /**
      * Send account reactivation notification email
      */
     public void sendAccountReactivationEmail(String toEmail, String userName) throws ApiException {
         log.info("Sending account reactivation email to: {}", toEmail);
-        
         Locale locale = getUserLocale(toEmail);
-        
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-        
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         sendSmtpEmail.setSubject(getMessage("email.account_reactivation.subject", locale));
         sendSmtpEmail.setTextContent(buildAccountReactivationEmailText(userName, locale));
         sendSmtpEmail.setHtmlContent(buildAccountReactivationEmailBody(userName, locale));
-        
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account reactivation email sent successfully. Message ID: {}", result.getMessageId());
@@ -1839,7 +1661,6 @@ public class EmailService implements EmailNotificationService {
             throw e;
         }
     }
-
     private String buildAccountReactivationEmailBody(String userName, Locale locale) {
         return """
             <!DOCTYPE html>
@@ -1853,36 +1674,29 @@ public class EmailService implements EmailNotificationService {
                     <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 40px 20px; text-align: center;">
                         <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
                     </div>
-
                     <div style="padding: 40px 30px;">
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
-
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
-
                         <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
                             <p style="color: #065f46; margin: 0; font-size: 14px;">
                                 <strong>%s</strong><br>
                                 %s
                             </p>
                         </div>
-
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
-
                         <p style="text-align: center; margin: 30px 0;">
                             <a href="%s" style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600;">
                                 %s
                             </a>
                         </p>
-
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
                     </div>
-
                     <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
                         <p>%s</p>
                         <p>%s</p>
@@ -1904,19 +1718,14 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.notifications", locale)
             );
     }
-
     private String buildAccountReactivationEmailText(String userName, Locale locale) {
         return """
             %s
-
-            %s
-
             %s
             %s
-
             %s
             %s
-
+            %s
             %s
             """.formatted(
                 getMessage("email.account_reactivation.greeting", locale, userName),
@@ -1928,30 +1737,24 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.account_reactivation.signature", locale)
             );
     }
-
     /**
      * Send account deletion notification email
      */
     public void sendAccountDeletionEmail(String toEmail, String userName, String reason) throws ApiException {
         log.info("Sending account deletion email to: {}", toEmail);
-
         Locale locale = getUserLocale(toEmail);
-
         TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-
         SendSmtpEmailSender sender = new SendSmtpEmailSender();
         sender.setEmail(fromEmail);
         sender.setName(fromName);
         sendSmtpEmail.setSender(sender);
-
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
         recipient.setEmail(toEmail);
         sendSmtpEmail.setTo(Collections.singletonList(recipient));
         sendSmtpEmail.setSubject(getMessage("email.account_deletion.subject", locale));
         sendSmtpEmail.setTextContent(buildAccountDeletionEmailText(userName, reason, locale));
         sendSmtpEmail.setHtmlContent(buildAccountDeletionEmailBody(userName, reason, locale));
-
         try {
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Account deletion email sent successfully. Message ID: {}", result.getMessageId());
@@ -1960,12 +1763,10 @@ public class EmailService implements EmailNotificationService {
             throw e;
         }
     }
-
     private String buildAccountDeletionEmailBody(String userName, String reason, Locale locale) {
         String resolvedReason = (reason != null && !reason.isBlank())
                 ? reason
                 : getMessage("email.account_deletion.default_reason", locale);
-
         return """
             <!DOCTYPE html>
             <html>
@@ -1978,37 +1779,30 @@ public class EmailService implements EmailNotificationService {
                     <div style="background: linear-gradient(135deg, #dc2626 0%%, #991b1b 100%%); padding: 40px 20px; text-align: center;">
                         <h1 style="color: #ffffff; margin: 0; font-size: 28px;">%s</h1>
                     </div>
-
                     <div style="padding: 40px 30px;">
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">%s</p>
-
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
-
                         <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
                             <p style="color: #991b1b; margin: 0; font-size: 14px;">
                                 <strong>%s</strong><br>
                                 %s
                             </p>
                         </div>
-
                         <div style="background-color: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin: 20px 0; border-radius: 4px;">
                             <p style="color: #9a3412; margin: 0; font-size: 14px;">
                                 <strong>%s</strong><br>
                                 %s
                             </p>
                         </div>
-
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
-
                         <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                             %s
                         </p>
                     </div>
-
                     <div style="background-color: #f9fafb; padding: 20px 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
                         <p>%s</p>
                         <p>%s</p>
@@ -2030,23 +1824,17 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.common.footer.notifications", locale)
             );
     }
-
     private String buildAccountDeletionEmailText(String userName, String reason, Locale locale) {
         String resolvedReason = (reason != null && !reason.isBlank())
                 ? reason
                 : getMessage("email.account_deletion.default_reason", locale);
-
         return """
             %s
-
-            %s
-
             %s
             %s
-
             %s
             %s
-
+            %s
             %s
             """.formatted(
                 getMessage("email.account_deletion.greeting", locale, userName),
@@ -2058,7 +1846,6 @@ public class EmailService implements EmailNotificationService {
                 getMessage("email.account_deletion.support", locale)
             );
     }
-
     /**
      * Send an admin alert email to a user
      * @param toEmail recipient email address
@@ -2068,29 +1855,22 @@ public class EmailService implements EmailNotificationService {
     public void sendAdminAlertEmail(String toEmail, String userName, String alertMessage) {
         sendAdminAlertEmail(toEmail, userName, alertMessage, "en");
     }
-
     public void sendAdminAlertEmail(String toEmail, String userName, String alertMessage, String languagePreference) {
         log.info("Sending admin alert email to: {}", toEmail);
-
         String language = normalizeSupportedLanguage(languagePreference);
-
         try {
             TransactionalEmailsApi apiInstance = createTransactionalEmailsApi();
             SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setEmail(fromEmail);
             sender.setName(fromName);
             sendSmtpEmail.setSender(sender);
-
             SendSmtpEmailTo recipient = new SendSmtpEmailTo();
             recipient.setEmail(toEmail);
             sendSmtpEmail.setTo(Collections.singletonList(recipient));
-
             sendSmtpEmail.setSubject(getAdminAlertEmailSubject(language));
             sendSmtpEmail.setTextContent(getAdminAlertEmailText(language, userName, alertMessage));
             sendSmtpEmail.setHtmlContent(buildAdminAlertEmailBody(userName, alertMessage, language));
-
             CreateSmtpEmail result = sendEmailTracked(apiInstance, sendSmtpEmail);
             log.info("Admin alert email sent successfully to: {} (lang={}). MessageId: {}", toEmail, language, result.getMessageId());
         } catch (ApiException ex) {
@@ -2098,11 +1878,7 @@ public class EmailService implements EmailNotificationService {
                       toEmail, ex.getCode(), ex.getResponseBody(), ex);
         }
     }
-
-    
     //  BRANDED TEMPLATE SYSTEM
-   
-
     private String wrapInBrandedTemplate(String bannerTitle, String bannerColor, String innerContent, String footerNote) {
         return """
             <!DOCTYPE html>
@@ -2146,7 +1922,6 @@ public class EmailService implements EmailNotificationService {
                     table { border-collapse: collapse !important; }
                     img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
                     a { color: %s; }
-
                     /* === RESPONSIVE === */
                     @media only screen and (max-width: 620px) {
                         .email-outer { width: 100%% !important; max-width: 100%% !important; }
@@ -2162,12 +1937,10 @@ public class EmailService implements EmailNotificationService {
                 </style>
             </head>
             <body style="margin:0; padding:0; background-color:#f0f4f8; font-family:%s; color:#1f2937; line-height:1.6; -webkit-font-smoothing:antialiased;">
-
                 <!-- Full-width background wrapper -->
                 <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f4f8;">
                 <tr>
                 <td align="center" style="padding:0;">
-
                     <!-- ======== LOGO ======== -->
                     <table role="presentation" class="email-outer" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%;">
                         <tr>
@@ -2207,11 +1980,9 @@ public class EmailService implements EmailNotificationService {
                             </td>
                         </tr>
                     </table>
-
                     <!-- ======== MAIN CARD ======== -->
                     <table role="presentation" class="email-outer" width="600" cellpadding="0" cellspacing="0" border="0"
                            style="max-width:600px; width:100%%; border-radius:12px; overflow:hidden; background-color:#ffffff;">
-
                         <!-- Banner -->
                         <tr>
                             <td class="banner-cell" align="center"
@@ -2221,7 +1992,6 @@ public class EmailService implements EmailNotificationService {
                                 </h1>
                             </td>
                         </tr>
-
                         <!-- Content -->
                         <tr>
                             <td class="content-cell"
@@ -2229,7 +1999,6 @@ public class EmailService implements EmailNotificationService {
                                 %s
                             </td>
                         </tr>
-
                         <!-- Footer -->
                         <tr>
                             <td class="footer-cell"
@@ -2263,12 +2032,10 @@ public class EmailService implements EmailNotificationService {
                             </td>
                         </tr>
                     </table>
-
                     <!-- Bottom spacer -->
                     <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
                         <tr><td style="height:32px; font-size:0; line-height:0;">&nbsp;</td></tr>
                     </table>
-
                 </td>
                 </tr>
                 </table>
@@ -2289,21 +2056,17 @@ public class EmailService implements EmailNotificationService {
                 footerNote             
             );
     }
-
     // ──────────────────────────────────────────────────────────────
     // Reusable component builders
     // ──────────────────────────────────────────────────────────────
-
     /** Standard paragraph */
     private static String p(String html) {
         return "<p style=\"margin:0 0 16px 0; font-size:15px; color:#374151; line-height:1.6;\">" + html + "</p>";
     }
-
     /** Bold intro paragraph */
     private static String pBold(String html) {
         return "<p style=\"margin:0 0 16px 0; font-size:15px; color:#374151; line-height:1.6; font-weight:600;\">" + html + "</p>";
     }
-
     /** Colored call-to-action button (table-based for Outlook) */
     private static String ctaButton(String text, String url, String bgColor) {
         return """
@@ -2331,7 +2094,6 @@ public class EmailService implements EmailNotificationService {
             </table>
             """.formatted(url, bgColor, text, url, bgColor, text);
     }
-
     /** Accent-bordered info / alert box */
     private static String infoBox(String borderColor, String bgColor, String innerHtml) {
         return """
@@ -2344,7 +2106,6 @@ public class EmailService implements EmailNotificationService {
             </table>
             """.formatted(borderColor, bgColor, innerHtml);
     }
-
     /** Key-value details card */
     private static String detailsCard(String... labelValuePairs) {
         StringBuilder sb = new StringBuilder();
@@ -2363,7 +2124,6 @@ public class EmailService implements EmailNotificationService {
         sb.append("</table>");
         return sb.toString();
     }
-
     /** Large centered code display (for OTP / verification codes) */
     private static String codeBlock(String code) {
         return """
@@ -2385,7 +2145,6 @@ public class EmailService implements EmailNotificationService {
             </table>
             """.formatted(COLOR_PRIMARY, COLOR_PRIMARY, code);
     }
-
     /** Fallback link (for "if the button doesn't work") */
     private static String fallbackLink(String url) {
         return """
@@ -2399,17 +2158,12 @@ public class EmailService implements EmailNotificationService {
             </table>
             """.formatted(url, COLOR_PRIMARY, url);
     }
-
-    
     //  EMAIL BODY BUILDERS
-    
-
     /**
      * 1. Email Verification
      */
     private String buildVerificationEmailBody(String verificationToken) {
         String verificationLink = buildFrontendUrl("/verify-email?token=" + verificationToken);
-
         String content = p("Hello,")
             + p("Thank you for registering with FoodFlow! We're excited to have you join our community in fighting food waste and helping those in need.")
             + infoBox(COLOR_PRIMARY, "#eff6ff",
@@ -2421,10 +2175,8 @@ public class EmailService implements EmailNotificationService {
             + fallbackLink(verificationLink)
             + "<p style=\"margin:20px 0 0 0; font-size:13px; color:#64748b;\">This verification link will expire in 24 hours.</p>"
             + "<p style=\"margin:12px 0 0 0; font-size:13px; color:#64748b;\">If you didn't create an account with FoodFlow, please ignore this email.</p>";
-
         return wrapInBrandedTemplate("Welcome to FoodFlow! &#127858;", COLOR_PRIMARY, content, FOOTER_AUTOMATED);
     }
-
     /**
      * 2. Password Reset
      */
@@ -2437,10 +2189,8 @@ public class EmailService implements EmailNotificationService {
             + infoBox(COLOR_DANGER, "#fef2f2",
                 "<p style=\"margin:0; font-size:13px; color:#991b1b;\"><strong>&#9888;&#65039; Security Notice:</strong> "
                 + "Never share this code with anyone. FoodFlow will never ask for this code.</p>");
-
         return wrapInBrandedTemplate("&#128274; Password Reset", COLOR_PRIMARY, content, FOOTER_AUTOMATED);
     }
-
     /**
      * 3. New Donation Notification
      */
@@ -2448,16 +2198,13 @@ public class EmailService implements EmailNotificationService {
         String title = (String) donationData.getOrDefault("title", "New Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String matchReason = (String) donationData.getOrDefault("matchReason", "Matches your preferences");
-
         String content = p("Hi " + userName + ",")
             + p("A new donation matching your preferences is now available:")
             + detailsCard("Donation", title, "Quantity", quantity, "Why this matches", matchReason)
             + p("Log in to FoodFlow to view details and claim this donation!")
             + ctaButton("View Donation", buildFrontendUrl("/receiver/dashboard"), COLOR_SUCCESS);
-
         return wrapInBrandedTemplate("&#127869;&#65039; New Donation Available", COLOR_SUCCESS, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 4. Donation Claimed
      */
@@ -2465,33 +2212,27 @@ public class EmailService implements EmailNotificationService {
         String title = (String) claimData.getOrDefault("title", "Your Donation");
         String receiverName = (String) claimData.getOrDefault("receiverName", "A receiver");
         String quantity = String.valueOf(claimData.getOrDefault("quantity", "N/A"));
-
         String content = p("Hi " + userName + ",")
             + p("Great news! Your donation has been claimed:")
             + detailsCard("Donation", title, "Claimed by", receiverName, "Quantity", quantity)
             + p("The receiver will coordinate pickup details with you. Please check your messages in FoodFlow.")
             + ctaButton("View Claim Details", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("&#9989; Your Donation Has Been Claimed!", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 5. Claim Canceled
      */
     private String buildClaimCanceledEmailBody(String userName, Map<String, Object> claimData) {
         String title = (String) claimData.getOrDefault("title", "A Donation");
         String reason = (String) claimData.getOrDefault("reason", "The receiver canceled their claim");
-
         String content = p("Hi " + userName + ",")
             + p("A claim on your donation has been canceled:")
             + detailsCard("Donation", title, "Reason", reason)
             + infoBox(COLOR_WARNING, "#fffbeb",
                 "<p style=\"margin:0; font-size:14px; color:#92400e;\">Your donation is now available again for other receivers to claim.</p>")
             + ctaButton("View Your Donations", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("&#8505;&#65039; Claim Canceled", COLOR_WARNING, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 6. Review Received
      */
@@ -2500,16 +2241,13 @@ public class EmailService implements EmailNotificationService {
         Integer rating = (Integer) reviewData.getOrDefault("rating", 0);
         String reviewText = (String) reviewData.getOrDefault("reviewText", "");
         Boolean isDonorReview = (Boolean) reviewData.getOrDefault("isDonorReview", false);
-
         String stars = "&#11088;".repeat(Math.max(0, Math.min(5, rating)));
         String emptyStars = "&#9734;".repeat(Math.max(0, 5 - rating));
         String starDisplay = stars + emptyStars;
-
         String reviewContext = isDonorReview ? "a donor" : "a receiver";
         String settingsUrl = isDonorReview
             ? buildFrontendUrl("/receiver/settings")
             : buildFrontendUrl("/donor/settings");
-
         String reviewSection = "";
         if (reviewText != null && !reviewText.isEmpty()) {
             reviewSection = """
@@ -2522,7 +2260,6 @@ public class EmailService implements EmailNotificationService {
                 </table>
                 """.formatted(reviewText);
         }
-
         String content = p("Hi " + userName + ",")
             + p("You've received a new review from " + reviewerName + "!")
             + infoBox("#eab308", "#fefce8",
@@ -2533,10 +2270,8 @@ public class EmailService implements EmailNotificationService {
             + reviewSection
             + p("Your feedback helps build trust in the FoodFlow community. Keep up the great work!")
             + ctaButton("View Your Profile", settingsUrl, COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("&#11088; New Review Received", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 7. Donation Picked Up
      */
@@ -2544,7 +2279,6 @@ public class EmailService implements EmailNotificationService {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "Your Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String receiverName = (String) donationData.getOrDefault("receiverName", "A receiver");
-
         String content = p("Hi " + userName + ",")
             + infoBox(COLOR_SUCCESS, "#ecfdf5",
                 "<p style=\"margin:0; font-size:14px; color:#065f46;\"><strong>Great news!</strong> "
@@ -2552,10 +2286,8 @@ public class EmailService implements EmailNotificationService {
             + detailsCard("Donation", donationTitle, "Quantity", quantity, "Picked Up By", receiverName)
             + p("Thank you for making a difference in your community! Your donation will help someone in need.")
             + ctaButton("View Your Dashboard", buildFrontendUrl("/donor/dashboard"), COLOR_SUCCESS);
-
         return wrapInBrandedTemplate("&#10003; Donation Picked Up", COLOR_SUCCESS, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 8. New Message
      */
@@ -2564,7 +2296,6 @@ public class EmailService implements EmailNotificationService {
         if (preview.length() > 150) {
             preview = preview.substring(0, 147) + "...";
         }
-
         String content = p("Hi " + recipientName + ",")
             + p("You have received a new message on FoodFlow:")
             + infoBox(COLOR_PRIMARY, "#eff6ff",
@@ -2575,10 +2306,8 @@ public class EmailService implements EmailNotificationService {
                 + "</td></tr></table>")
             + p("Log in to FoodFlow to view the full message and reply!")
             + ctaButton("View Message", buildFrontendUrl("/donor/messages"), COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("&#128172; New Message Received", COLOR_PRIMARY, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 9. Account Approved
      */
@@ -2601,23 +2330,19 @@ public class EmailService implements EmailNotificationService {
             + "</table></td></tr></table>"
             + p("We're excited to have you join our mission to reduce food waste and help those in need!")
             + ctaButton("Get Started", buildFrontendUrl("/login"), COLOR_SUCCESS);
-
         return wrapInBrandedTemplate("&#127881; Welcome to FoodFlow!", COLOR_SUCCESS, content, FOOTER_AUTOMATED);
     }
-
     /**
      * 10. Account Rejected
      */
     private String buildAccountRejectionEmailBody(String userName, String reason, String customMessage) {
         String reasonText = getRejectionReasonText(reason);
-
         String messageSection = "";
         if (customMessage != null && !customMessage.trim().isEmpty()) {
             messageSection = infoBox(COLOR_WARNING, "#fffbeb",
                 "<p style=\"margin:0 0 6px 0; font-size:14px; font-weight:600; color:#92400e;\">Additional Information:</p>"
                 + "<p style=\"margin:0; font-size:14px; color:#78350f;\">" + customMessage + "</p>");
         }
-
         String content = p("Hi " + userName + ",")
             + infoBox(COLOR_DANGER, "#fef2f2",
                 "<p style=\"margin:0 0 6px 0; font-size:16px; font-weight:700; color:#991b1b;\">Account Registration Status</p>"
@@ -2639,10 +2364,8 @@ public class EmailService implements EmailNotificationService {
             + "<p style=\"margin:12px 0 0 0; font-size:14px; color:#374151;\">You may also re-register with updated information.</p>"
             + "</td></tr></table>"
             + ctaButton("Re-Register", buildFrontendUrl("/register"), COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("FoodFlow Registration Update", COLOR_DANGER, content, FOOTER_AUTOMATED);
     }
-
     /**
      * 11. Donation Completed
      */
@@ -2650,7 +2373,6 @@ public class EmailService implements EmailNotificationService {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String donorName = (String) donationData.getOrDefault("donorName", "A donor");
-
         String content = p("Hi " + userName + ",")
             + infoBox(COLOR_SUCCESS, "#ecfdf5",
                 "<p style=\"margin:0; font-size:14px; color:#065f46;\"><strong>Excellent news!</strong> "
@@ -2658,10 +2380,8 @@ public class EmailService implements EmailNotificationService {
             + detailsCard("Donation Item", donationTitle, "Quantity Received", quantity, "From", donorName)
             + p("This donation will make a real difference in your community. Your support is deeply appreciated!")
             + ctaButton("View Your Dashboard", buildFrontendUrl("/receiver/dashboard"), COLOR_INFO);
-
         return wrapInBrandedTemplate("&#10003; Donation Completed", COLOR_INFO, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 12. Ready for Pickup
      */
@@ -2670,7 +2390,6 @@ public class EmailService implements EmailNotificationService {
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String pickupDate = (String) donationData.getOrDefault("pickupDate", "Soon");
         String pickupTime = (String) donationData.getOrDefault("pickupTime", "Check your app");
-
         String content = p("Hi " + userName + ",")
             + infoBox(COLOR_WARNING, "#fffbeb",
                 "<p style=\"margin:0; font-size:14px; color:#92400e;\"><strong>Great news!</strong> "
@@ -2680,10 +2399,8 @@ public class EmailService implements EmailNotificationService {
                 "<p style=\"margin:0; font-size:14px; color:#1e40af;\"><strong>&#128276; Don't forget to bring your pickup code!</strong> "
                 + "You'll need it to confirm the pickup.</p>")
             + ctaButton("View Pickup Details", buildFrontendUrl("/receiver/dashboard"), COLOR_WARNING);
-
         return wrapInBrandedTemplate("&#128680; Ready for Pickup!", COLOR_WARNING, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 13. Donation Expired
      */
@@ -2691,7 +2408,6 @@ public class EmailService implements EmailNotificationService {
         String donationTitle = (String) donationData.getOrDefault("donationTitle", "A Donation");
         String quantity = String.valueOf(donationData.getOrDefault("quantity", "N/A"));
         String expiryDate = (String) donationData.getOrDefault("expiryDate", "N/A");
-
         String content = p("Hello " + donorName + ",")
             + infoBox(COLOR_DANGER, "#fef2f2",
                 "<p style=\"margin:0 0 6px 0; font-size:14px; font-weight:600; color:#991b1b;\">Your donation has expired</p>"
@@ -2705,10 +2421,8 @@ public class EmailService implements EmailNotificationService {
             + "<tr><td style=\"padding:5px 0 5px 4px; font-size:14px; color:#374151;\">&#8226; You can create a new donation if food is still available</td></tr>"
             + "</table>"
             + ctaButton("View Dashboard", buildFrontendUrl("/donor/dashboard"), COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("&#128680; Donation Expired", COLOR_DANGER, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 14. Donation Status Updated (Admin)
      */
@@ -2718,16 +2432,13 @@ public class EmailService implements EmailNotificationService {
         String newStatus = (String) statusData.getOrDefault("newStatus", "Unknown");
         String reason = (String) statusData.getOrDefault("reason", "No reason provided");
         String userType = (String) statusData.getOrDefault("userType", "donor");
-
         String entityLabel = userType.equals("donor") ? "donation" : "claim";
-
         String statusChange = "<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:8px 0;\">"
             + "<tr>"
             + "<td style=\"padding:6px 14px; background-color:#fef2f2; border-radius:6px; font-size:13px; font-weight:600; color:#991b1b;\">" + oldStatus + "</td>"
             + "<td style=\"padding:0 10px; font-size:20px; color:#94a3b8;\">&#8594;</td>"
             + "<td style=\"padding:6px 14px; background-color:#ecfdf5; border-radius:6px; font-size:13px; font-weight:600; color:#065f46;\">" + newStatus + "</td>"
             + "</tr></table>";
-
         String content = p("Hello " + userName + ",")
             + infoBox(COLOR_PURPLE, "#f5f3ff",
                 "<p style=\"margin:0 0 4px 0; font-size:14px; font-weight:600; color:#5b21b6;\">Admin Status Update</p>"
@@ -2741,10 +2452,8 @@ public class EmailService implements EmailNotificationService {
             + p("<strong>What does this mean?</strong> An administrator has manually updated the status of this donation. "
                 + "This may have been done to resolve an issue, correct an error, or manage the donation lifecycle.")
             + ctaButton("View Dashboard", buildFrontendUrl("/" + userType + "/dashboard"), COLOR_PRIMARY);
-
         return wrapInBrandedTemplate("&#128276; Status Updated by Admin", COLOR_PURPLE, content, FOOTER_NOTIFICATION);
     }
-
     /**
      * 15. Account Deactivated
      */
@@ -2757,10 +2466,8 @@ public class EmailService implements EmailNotificationService {
             + p("If you believe this is a mistake or would like to appeal this decision, please contact our support team.")
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">"
             + "Best regards,<br/><strong>The FoodFlow Team</strong></p>";
-
         return wrapInBrandedTemplate("Account Deactivated", COLOR_DANGER, content, FOOTER_ADMIN_ACTION);
     }
-
     /**
      * 16. Account Reactivated
      */
@@ -2774,22 +2481,17 @@ public class EmailService implements EmailNotificationService {
             + ctaButton("Log In to Your Account", buildFrontendUrl("/login"), COLOR_SUCCESS)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">"
             + "Welcome back,<br/><strong>The FoodFlow Team</strong></p>";
-
         return wrapInBrandedTemplate("Account Reactivated &#127881;", COLOR_SUCCESS, content, FOOTER_ADMIN_ACTION);
     }
-
-   
     /**
      * 17. Admin Alert Email
      */
     private String buildAdminAlertEmailBody(String userName, String alertMessage) {
         return buildAdminAlertEmailBody(userName, alertMessage, "en");
     }
-
     private String buildAdminAlertEmailBody(String userName, String alertMessage, String language) {
         String normalizedLanguage = normalizeSupportedLanguage(language);
         String formattedMessage = formatAlertMessageToHtml(alertMessage);
-
         String content = p(getAdminAlertGreeting(normalizedLanguage) + " " + userName + ",")
             + p(getAdminAlertIntro(normalizedLanguage))
             + infoBox(COLOR_WARNING, "#fffbeb",
@@ -2799,69 +2501,55 @@ public class EmailService implements EmailNotificationService {
             + ctaButton(getAdminAlertCta(normalizedLanguage), buildFrontendUrl("/login"), COLOR_PRIMARY)
             + "<p style=\"margin:16px 0 0 0; font-size:15px; color:#374151; line-height:1.6;\">" 
             + getAdminAlertSignoff(normalizedLanguage) + "<br/><strong>" + getFoodFlowTeamLabel(normalizedLanguage) + "</strong></p>";
-
         return wrapInBrandedTemplate("&#9888; " + getAdminAlertHeader(normalizedLanguage), COLOR_WARNING, content, FOOTER_ADMIN_ACTION);
     }
-
     private String normalizeSupportedLanguage(String languagePreference) {
         if (languagePreference == null || languagePreference.isBlank()) {
             return "en";
         }
-
         String normalized = languagePreference.trim().toLowerCase(Locale.ROOT);
         if (normalized.contains("-")) {
             normalized = normalized.substring(0, normalized.indexOf('-'));
         }
-
         return switch (normalized) {
             case "en", "fr", "es", "zh", "ar", "pt" -> normalized;
             default -> "en";
         };
     }
-
     private String getAdminAlertEmailSubject(String language) {
         return msg("email.adminAlert.subject", null,
                 "[No-Reply] FoodFlow - Important Alert from Administration", language);
     }
-
     private String getAdminAlertEmailText(String language, String userName, String alertMessage) {
         Object[] args = new Object[] { userName, alertMessage };
         String fallback = "Dear " + userName
                 + ", You have received an alert from the FoodFlow administration team: " + alertMessage;
         return msg("email.adminAlert.text", args, fallback, language);
     }
-
     private String getAdminAlertHeader(String language) {
         return msg("email.adminAlert.header", null, "Admin Alert", language);
     }
-
     private String getAdminAlertGreeting(String language) {
         return msg("email.adminAlert.greeting", null, "Dear", language);
     }
-
     private String getAdminAlertIntro(String language) {
         return msg("email.adminAlert.intro", null,
                 "You have received an important alert from the FoodFlow administration team.", language);
     }
-
     private String getAdminAlertBody(String language) {
         return msg("email.adminAlert.body", null,
                 "Please review this alert carefully and take any necessary action. If you have questions or believe this was sent in error, please contact our support team.",
                 language);
     }
-
     private String getAdminAlertCta(String language) {
         return msg("email.adminAlert.cta", null, "Go to FoodFlow", language);
     }
-
     private String getAdminAlertSignoff(String language) {
         return msg("email.adminAlert.signoff", null, "Best regards,", language);
     }
-
     private String getFoodFlowTeamLabel(String language) {
         return msg("email.team.name", null, "The FoodFlow Team", language);
     }
-
     private String msg(String key, Object[] args, String fallback, String language) {
         Locale locale = resolveLocale(language);
         if (messageSource == null) {
@@ -2869,7 +2557,6 @@ public class EmailService implements EmailNotificationService {
         }
         return messageSource.getMessage(key, args, fallback, locale);
     }
-
     private Locale resolveLocale(String language) {
         return switch (normalizeSupportedLanguage(language)) {
             case "fr" -> Locale.FRENCH;
@@ -2880,7 +2567,6 @@ public class EmailService implements EmailNotificationService {
             default -> Locale.ENGLISH;
         };
     }
-
     /**
      * Convert plain-text alert message (with \n line breaks and bullet markers)
      * into formatted HTML for email rendering.
@@ -2888,11 +2574,9 @@ public class EmailService implements EmailNotificationService {
      */
     private static String formatAlertMessageToHtml(String message) {
         if (message == null || message.isEmpty()) return "";
-
         String[] lines = message.split("\n");
         StringBuilder sb = new StringBuilder();
         boolean inList = false;
-
         for (String line : lines) {
             String trimmed = line.trim();
             // Detect bullet lines: starting with "- " or "✓ " (with or without space)
@@ -2925,7 +2609,6 @@ public class EmailService implements EmailNotificationService {
         }
         return sb.toString();
     }
-
     /**
      * Convert rejection reason code to human-readable text
      */

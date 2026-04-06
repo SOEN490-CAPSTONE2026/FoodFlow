@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.exception.ResourceNotFoundException;
 import com.example.foodflow.model.dto.ClaimRequest;
@@ -28,7 +27,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -36,11 +34,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 @Service
 public class ClaimService {
     private static final Logger logger = LoggerFactory.getLogger(ClaimService.class);
-    
     private final ClaimRepository claimRepository;
     private final SurplusPostRepository surplusPostRepository;
     private final BusinessMetricsService businessMetricsService;
@@ -59,7 +55,6 @@ public class ClaimService {
     private Clock clock = Clock.systemUTC();
     @Autowired(required = false)
     private DonationImageResolverService donationImageResolverService;
-    
     public ClaimService(ClaimRepository claimRepository,
                        SurplusPostRepository surplusPostRepository,
                        BusinessMetricsService businessMetricsService,
@@ -89,7 +84,6 @@ public class ClaimService {
         this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
         this.syncedCalendarEventRepository = syncedCalendarEventRepository;
     }
-                       
     @Transactional
     @Timed(value = "claim.service.create", description = "Time taken to create a claim")
     public ClaimResponse claimSurplusPost(ClaimRequest request, User receiver) {
@@ -98,49 +92,40 @@ public class ClaimService {
         // Fetch and lock the surplus post to prevent concurrent claims
         SurplusPost surplusPost = surplusPostRepository.findById(request.getSurplusPostId())
             .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
-
         // Check if post has expired using canonical expiry semantics.
         LocalDateTime effectiveExpiry = ExpiryDateTimeResolver.resolveEffectiveExpiryUtc(surplusPost);
         if (effectiveExpiry != null &&
                 !LocalDateTime.now(clock).isBefore(effectiveExpiry)) {
             throw new com.example.foodflow.exception.domain.InvalidClaimStateException("This donation has expired and cannot be claimed");
         }
-
         // Check if post status is EXPIRED
         if (surplusPost.getStatus() == PostStatus.EXPIRED) {
             throw new com.example.foodflow.exception.domain.InvalidClaimStateException("This donation has expired and cannot be claimed");
         }
-
         if (surplusPost.getStatus() != PostStatus.AVAILABLE &&
             surplusPost.getStatus() != PostStatus.READY_FOR_PICKUP) {
             throw new BusinessException("error.claim.not_available");
         }
-
         // Check if already claimed (race condition prevention)
         if (claimRepository.existsBySurplusPostIdAndStatus(
                 surplusPost.getId(), ClaimStatus.ACTIVE)) {
             throw new BusinessException("error.claim.already_claimed");
         }
-
         // Prevent donor from claiming their own post
         if (surplusPost.getDonor().getId().equals(receiver.getId())) {
             throw new BusinessException("error.claim.own_post");
         }
-
         // Create the claim
         Claim claim = new Claim(surplusPost, receiver);
-        
         // Get receiver's timezone for conversion (default to UTC if not set)
         String receiverTimezone = receiver.getTimezone() != null ? receiver.getTimezone() : "UTC";
         // Get donor's timezone for verification
         String donorTimezone = surplusPost.getDonor().getTimezone() != null ? surplusPost.getDonor().getTimezone() : "UTC";
-        
         logger.info("=== CLAIM CREATION DEBUG ===");
         logger.info("Post ID: {}, Receiver: {}, ReceiverTZ: {}, DonorTZ: {}", 
             surplusPost.getId(), receiver.getEmail(), receiverTimezone, donorTimezone);
         logger.info("Request has pickupSlot: {}, pickupSlotId: {}", 
             request.getPickupSlot() != null, request.getPickupSlotId());
-        
         // Store the confirmed pickup slot that the receiver selected
         // CRITICAL: ALL times MUST be converted to UTC for storage to work with the scheduler
         if (request.getPickupSlot() != null) {
@@ -150,7 +135,6 @@ public class ClaimService {
                 request.getPickupSlot().getPickupDate(), 
                 request.getPickupSlot().getStartTime(), 
                 request.getPickupSlot().getEndTime());
-            
             LocalDateTime startTimeUTC = TimezoneResolver.convertDateTime(
                 request.getPickupSlot().getPickupDate(),
                 request.getPickupSlot().getStartTime(),
@@ -163,82 +147,65 @@ public class ClaimService {
                 receiverTimezone,
                 "UTC"
             );
-            
             claim.setConfirmedPickupDate(startTimeUTC != null ? startTimeUTC.toLocalDate() : request.getPickupSlot().getPickupDate());
             claim.setConfirmedPickupStartTime(startTimeUTC != null ? startTimeUTC.toLocalTime() : request.getPickupSlot().getStartTime());
             claim.setConfirmedPickupEndTime(endTimeUTC != null ? endTimeUTC.toLocalTime() : request.getPickupSlot().getEndTime());
-            
             logger.info("✓ Stored in UTC - Date: {}, Start: {}, End: {}", 
                 claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
-                
         } else if (request.getPickupSlotId() != null) {
             // SCENARIO 2: Reference to existing pickup slot by ID
             // These times SHOULD already be in UTC from when the donor created the post
             // BUT we need to verify this and handle edge cases
             logger.info("SCENARIO 2: Slot ID reference - Looking up slot ID {}", request.getPickupSlotId());
-            
             PickupSlot selectedSlot = surplusPost.getPickupSlots().stream()
                 .filter(slot -> slot.getId().equals(request.getPickupSlotId()))
                 .findFirst()
                 .orElse(null);
-            
             if (selectedSlot != null) {
                 logger.info("Found slot - Date: {}, Start: {}, End: {}", 
                     selectedSlot.getPickupDate(), selectedSlot.getStartTime(), selectedSlot.getEndTime());
-                
                 // DEFENSIVE: These times should already be in UTC, but let's verify
                 // by checking if they make sense (end time should be after start time)
                 java.time.LocalDateTime slotStart = java.time.LocalDateTime.of(
                     selectedSlot.getPickupDate(), selectedSlot.getStartTime());
                 java.time.LocalDateTime slotEnd = java.time.LocalDateTime.of(
                     selectedSlot.getPickupDate(), selectedSlot.getEndTime());
-                
                 if (slotEnd.isBefore(slotStart)) {
                     logger.warn("⚠ SUSPICIOUS: Slot end time is before start time! This might indicate timezone issues.");
                     logger.warn("Start: {}, End: {}", slotStart, slotEnd);
                 }
-                
                 // Copy the times directly (they should be UTC from post creation)
                 claim.setConfirmedPickupDate(selectedSlot.getPickupDate());
                 claim.setConfirmedPickupStartTime(selectedSlot.getStartTime());
                 claim.setConfirmedPickupEndTime(selectedSlot.getEndTime());
-                
                 logger.info("✓ Copied from slot (assumed UTC) - Date: {}, Start: {}, End: {}", 
                     claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
             } else {
                 logger.error("✗ Slot ID {} not found in post's pickup slots!", request.getPickupSlotId());
             }
         }
-        
         // SCENARIO 3: Fallback to post's default pickup time
         if (claim.getConfirmedPickupDate() == null && surplusPost.getPickupDate() != null) {
             logger.info("SCENARIO 3: Using post defaults (assumed UTC)");
             logger.info("Post default times - Date: {}, From: {}, To: {}", 
                 surplusPost.getPickupDate(), surplusPost.getPickupFrom(), surplusPost.getPickupTo());
-            
             claim.setConfirmedPickupDate(surplusPost.getPickupDate());
             claim.setConfirmedPickupStartTime(surplusPost.getPickupFrom());
             claim.setConfirmedPickupEndTime(surplusPost.getPickupTo());
-            
             logger.info("✓ Stored from defaults - Date: {}, Start: {}, End: {}", 
                 claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
         }
-        
         claim = claimRepository.save(claim);
-
         // Check if the CONFIRMED pickup time has already started
         // CRITICAL: Use UTC for comparison since confirmed pickup times MUST be in UTC
         java.time.ZonedDateTime nowUtc = java.time.ZonedDateTime.now(clock);
         java.time.LocalDate today = nowUtc.toLocalDate();
         java.time.LocalTime currentTime = nowUtc.toLocalTime();
-
         boolean pickupTimeStarted = false;
-        
         logger.info("=== PICKUP TIME EVALUATION ===");
         logger.info("Current UTC: {} {}", today, currentTime);
         logger.info("Confirmed pickup (UTC): {} {} to {}", 
             claim.getConfirmedPickupDate(), claim.getConfirmedPickupStartTime(), claim.getConfirmedPickupEndTime());
-        
         // Use the CONFIRMED pickup slot that receiver selected (must be in UTC)
         if (claim.getConfirmedPickupDate() != null && claim.getConfirmedPickupStartTime() != null) {
           if (claim.getConfirmedPickupDate().isBefore(today)) {
@@ -252,9 +219,7 @@ public class ClaimService {
               logger.info("✗ Pickup date is in the future - not started yet");
           }
         }
-        
         logger.info("=== END CLAIM DEBUG ===");
-         
         // Update surplus post status
         if (pickupTimeStarted) {
             surplusPost.setStatus(PostStatus.READY_FOR_PICKUP);
@@ -265,9 +230,7 @@ public class ClaimService {
         } else {
             surplusPost.setStatus(PostStatus.CLAIMED);
         }
-
         surplusPostRepository.save(surplusPost);
-
         // Create timeline event for donation being claimed
         String receiverName = receiver.getOrganization() != null 
             ? receiver.getOrganization().getName() 
@@ -282,12 +245,10 @@ public class ClaimService {
             "Claimed by " + receiverName,
             true
         );
-
         businessMetricsService.incrementClaimCreated();
         businessMetricsService.incrementSurplusPostClaimed();
         businessMetricsService.incrementDonationsClaimed();
         businessMetricsService.recordTimer(sample, "claim.service.create", "status", claim.getStatus().toString());
-
         // Award gamification points for claiming donation
         try {
             gamificationService.awardPoints(receiver.getId(), 5, "Claimed donation: " + surplusPost.getTitle());
@@ -295,9 +256,7 @@ public class ClaimService {
         } catch (Exception e) {
             logger.error("Failed to award gamification points for claimId={}: {}", claim.getId(), e.getMessage());
         }
-
         ClaimResponse response = toClaimResponse(claim);
-        
         // Broadcast websocket event to donor (if they have notifications enabled)
         User donor = surplusPost.getDonor();
         if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "websocket")) {
@@ -315,7 +274,6 @@ public class ClaimService {
         } else {
             logger.info("Skipped claim notification to donor userId={} - notification type disabled", donor.getId());
         }
-        
         // Send email notification to donor if enabled
         if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "email")) {
             try {
@@ -325,14 +283,12 @@ public class ClaimService {
                 claimData.put("receiverName", receiverName);
                 claimData.put("quantity", surplusPost.getQuantity() != null ? 
                     surplusPost.getQuantity().getValue().intValue() : "N/A");
-                
                 emailService.sendDonationClaimedNotification(donor.getEmail(), donorName, claimData);
                 logger.info("Sent donation claimed email to donor userId={}", donor.getId());
             } catch (Exception e) {
                 logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
             }
         }
-        
         // Send SMS notification to donor if enabled
         if (notificationPreferenceService.shouldSendNotification(donor, "donationClaimed", "sms")) {
             if (hasValidPhoneNumber(donor)) {
@@ -342,7 +298,6 @@ public class ClaimService {
                     claimData.put("donationTitle", surplusPost.getTitle());
                     claimData.put("receiverName", receiverName);
                     claimData.put("pickupCode", surplusPost.getOtpCode());
-                    
                     boolean smsSent = smsService.sendDonationClaimedNotification(donor.getPhone(), donorName, claimData);
                     if (smsSent) {
                         logger.info("Sent donation claimed SMS to donor userId={}", donor.getId());
@@ -356,7 +311,6 @@ public class ClaimService {
                 logger.warn("Cannot send SMS to donor userId={} - no valid phone number", donor.getId());
             }
         }
-        
         // Broadcast websocket event to receiver
         try {
             messagingTemplate.convertAndSendToUser(
@@ -369,7 +323,6 @@ public class ClaimService {
         } catch (Exception e) {
             logger.error("Failed to send websocket notification to receiver: {}", e.getMessage());
         }
-
         // Create calendar events for BOTH users if they have calendar enabled
         logger.info("=== ATTEMPTING TO CREATE CALENDAR EVENTS FOR CLAIM {} ===", claim.getId());
         logger.info("Receiver: {}, Donor: {}", receiver.getId(), donor.getId());
@@ -377,37 +330,29 @@ public class ClaimService {
             createCalendarEventForPickup(claim, receiver, false); // Receiver's event
             createCalendarEventForPickup(claim, donor, true);     // Donor's event
             logger.info("✅ Calendar event creation calls completed for claim {}", claim.getId());
-            
             // Trigger async sync immediately for both users if they have calendar integrated
             triggerCalendarSyncIfEnabled(receiver);
             triggerCalendarSyncIfEnabled(donor);
-            
         } catch (Exception e) {
             // Log but don't fail the claim if calendar sync fails
             logger.error("❌ Failed to create calendar events for claim {}: {}", 
                          claim.getId(), e.getMessage(), e);
         }
-
         return response;
     }
-
     private void ensureAccountApprovedForClaims(User receiver) {
         if (receiver == null || receiver.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new BusinessException("error.account.not_approved");
         }
     }
-
-
     private String generateOtpCode() {
         java.security.SecureRandom random = new java.security.SecureRandom();
         int otp = 100000 + random.nextInt(900000); // 6-digit number
         return String.valueOf(otp);
     }
-
     private ClaimResponse toClaimResponse(Claim claim) {
         return toClaimResponse(claim, null);
     }
-
     private ClaimResponse toClaimResponse(Claim claim, String receiverTimezone) {
         ClaimResponse response = new ClaimResponse(claim);
         if (receiverTimezone != null && !receiverTimezone.trim().isEmpty()) {
@@ -427,7 +372,6 @@ public class ClaimService {
         }
         return response;
     }
-
     private void applyReceiverTimezoneToConfirmedPickupSlot(PickupSlotResponse confirmedSlot, String receiverTimezone) {
         if (confirmedSlot == null ||
                 confirmedSlot.getPickupDate() == null ||
@@ -435,7 +379,6 @@ public class ClaimService {
                 confirmedSlot.getEndTime() == null) {
             return;
         }
-
         LocalDateTime confirmedStart = TimezoneResolver.convertDateTime(
                 confirmedSlot.getPickupDate(),
                 confirmedSlot.getStartTime(),
@@ -446,7 +389,6 @@ public class ClaimService {
                 confirmedSlot.getEndTime(),
                 "UTC",
                 receiverTimezone);
-
         if (confirmedStart != null) {
             confirmedSlot.setPickupDate(confirmedStart.toLocalDate());
             confirmedSlot.setStartTime(confirmedStart.toLocalTime());
@@ -455,12 +397,10 @@ public class ClaimService {
             confirmedSlot.setEndTime(confirmedEnd.toLocalTime());
         }
     }
-
     private void applyReceiverTimezoneToSurplus(SurplusResponse surplus, String receiverTimezone) {
         if (surplus == null) {
             return;
         }
-
         if (surplus.getPickupDate() != null && surplus.getPickupFrom() != null && surplus.getPickupTo() != null) {
             LocalDateTime pickupStart = TimezoneResolver.convertDateTime(
                     surplus.getPickupDate(),
@@ -480,7 +420,6 @@ public class ClaimService {
                 surplus.setPickupTo(pickupEnd.toLocalTime());
             }
         }
-
         if (surplus.getPickupSlots() != null && !surplus.getPickupSlots().isEmpty()) {
             for (var slot : surplus.getPickupSlots()) {
                 if (slot.getPickupDate() == null || slot.getStartTime() == null || slot.getEndTime() == null) {
@@ -506,7 +445,6 @@ public class ClaimService {
             }
         }
     }
-    
     @Transactional(readOnly = true)
     @Timed(value = "claim.service.getReceiverClaims", description = "Time taken to get receiver claims")
     public List<ClaimResponse> getReceiverClaims(User receiver) {
@@ -526,7 +464,6 @@ public class ClaimService {
             .map(claim -> toClaimResponse(claim, receiverTimezone))
             .collect(Collectors.toList());
     }
-    
     @Transactional(readOnly = true)
     public List<ClaimResponse> getClaimsForSurplusPost(Long surplusPostId) {
         return claimRepository.findBySurplusPostId(surplusPostId)
@@ -534,29 +471,24 @@ public class ClaimService {
             .map(this::toClaimResponse)
             .collect(Collectors.toList());
     }
-    
     @Transactional
     @Timed(value = "claim.service.cancel", description = "Time taken to cancel a claim")
     public void cancelClaim(Long claimId, User receiver) {
         Timer.Sample sample = businessMetricsService.startTimer();
         Claim claim = claimRepository.findById(claimId)
             .orElseThrow(() -> new ResourceNotFoundException("error.resource.not_found"));
-
         // Verify receiver owns this claim
         if (!claim.getReceiver().getId().equals(receiver.getId())) {
             throw new BusinessException("error.claim.unauthorized_cancel");
         }
-        
         // Cancel the claim
         claim.setStatus(ClaimStatus.CANCELLED);
         claimRepository.save(claim);
-        
         // Make post available again
         SurplusPost post = claim.getSurplusPost();
         PostStatus oldStatus = post.getStatus();
         post.setStatus(PostStatus.AVAILABLE);
         surplusPostRepository.save(post);
-
         // Create timeline event for claim cancellation
         String receiverName = receiver.getOrganization() != null 
             ? receiver.getOrganization().getName() 
@@ -571,11 +503,9 @@ public class ClaimService {
             "Claim cancelled by " + receiverName,
             true
         );
-
         // Record metrics
         businessMetricsService.incrementClaimCancelled();
         businessMetricsService.recordTimer(sample, "claim.service.cancel", "status", "cancelled");
-        
         // Delete calendar events for both users
         try {
             deleteCalendarEventsForClaim(claimId);
@@ -584,7 +514,6 @@ public class ClaimService {
             logger.error("Failed to delete calendar events for claim {}: {}", 
                          claimId, e.getMessage());
         }
-        
         // Notify donor that the claim was cancelled (if they have notifications enabled)
         User donor = post.getDonor();
         if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "websocket")) {
@@ -603,7 +532,6 @@ public class ClaimService {
             logger.info("Skipped claim cancellation notification to donor userId={} - claimCanceled disabled", 
                 donor.getId());
         }
-        
         // Send email notification to donor if enabled
         if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "email")) {
             try {
@@ -611,14 +539,12 @@ public class ClaimService {
                 java.util.Map<String, Object> claimData = new java.util.HashMap<>();
                 claimData.put("title", post.getTitle());
                 claimData.put("reason", "The receiver canceled their claim");
-                
                 emailService.sendClaimCanceledNotification(donor.getEmail(), donorName, claimData);
                 logger.info("Sent claim canceled email to donor userId={}", donor.getId());
             } catch (Exception e) {
                 logger.error("Failed to send email notification to donor userId={}: {}", donor.getId(), e.getMessage());
             }
         }
-        
         // Send SMS notification to donor if enabled
         if (notificationPreferenceService.shouldSendNotification(donor, "claimCanceled", "sms")) {
             if (hasValidPhoneNumber(donor)) {
@@ -626,7 +552,6 @@ public class ClaimService {
                     String donorName = getDonorName(donor);
                     java.util.Map<String, Object> claimData = new java.util.HashMap<>();
                     claimData.put("donationTitle", post.getTitle());
-                    
                     boolean smsSent = smsService.sendClaimCanceledNotification(donor.getPhone(), donorName, claimData);
                     if (smsSent) {
                         logger.info("Sent claim canceled SMS to donor userId={}", donor.getId());
@@ -641,18 +566,14 @@ public class ClaimService {
             }
         }
     }
-
     @Transactional
     @Timed(value = "claim.service.complete", description = "Time taken to complete a claim")
     public void completeClaim(Long claimId) {
         Timer.Sample sample = businessMetricsService.startTimer();
-
         Claim claim = claimRepository.findById(claimId)
             .orElseThrow(() -> new com.example.foodflow.exception.domain.ClaimNotFoundException(claimId));
-
         claim.setStatus(ClaimStatus.COMPLETED);
         claimRepository.save(claim);
-
         // Award gamification points for completing pickup
         try {
             gamificationService.awardPoints(
@@ -664,14 +585,11 @@ public class ClaimService {
         } catch (Exception e) {
             logger.error("Failed to award pickup completion points for claimId={}: {}", claimId, e.getMessage());
         }
-
         // Increment completed claim counter
         businessMetricsService.incrementClaimCompleted();
-
         // Record timer
         businessMetricsService.recordTimer(sample, "claim.service.complete", "status", "completed");
     }
-    
     /**
      * Get donor name from organization
      */
@@ -681,7 +599,6 @@ public class ClaimService {
         }
         return "Donor";
     }
-    
     /**
      * Get receiver name from organization
      */
@@ -691,7 +608,6 @@ public class ClaimService {
         }
         return "Receiver";
     }
-    
     /**
      * Check if user has a valid phone number for SMS notifications
      */
@@ -699,14 +615,11 @@ public class ClaimService {
         if (user == null || user.getPhone() == null || user.getPhone().trim().isEmpty()) {
             return false;
         }
-        
         String phone = user.getPhone().trim();
-        
         // E.164 format validation: +[country code][number] (e.g., +12345678901)
         // Must start with +, followed by 1-15 digits
         return phone.matches("^\\+[1-9]\\d{1,14}$");
     }
-    
     /**
      * Create a calendar event for a pickup claim
      * Creates a separate event for donor or receiver based on their preferences
@@ -722,18 +635,15 @@ public class ClaimService {
             }
             logger.info("✓ User {} has Google Calendar connected", user.getId());
             logger.info("✓ User {} has Google Calendar connected", user.getId());
-            
             // 2. Load user's calendar sync preferences
             Optional<CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository.findByUserId(user.getId());
             if (!prefsOpt.isPresent()) {
                 logger.info("⚠️ User {} has no calendar sync preferences, skipping event creation", user.getId());
                 return;
             }
-            
             CalendarSyncPreference prefs = prefsOpt.get();
             logger.info("✓ User {} preferences found - syncEnabled={}, syncClaimEvents={}", 
                        user.getId(), prefs.getSyncEnabled(), prefs.getSyncClaimEvents());
-            
             // 3. Check if sync is enabled and claim events are enabled
             if (!prefs.getSyncEnabled() || !prefs.getSyncClaimEvents()) {
                 logger.info("⚠️ User {} has calendar sync disabled for claim events (syncEnabled={}, syncClaimEvents={})", 
@@ -741,23 +651,19 @@ public class ClaimService {
                 return;
             }
             logger.info("✓ User {} has claim event sync enabled", user.getId());
-            
             // 4. Get pickup time details (stored in UTC in database)
             if (claim.getConfirmedPickupDate() == null || claim.getConfirmedPickupStartTime() == null) {
                 logger.warn("Claim {} has no confirmed pickup time, cannot create calendar event", claim.getId());
                 return;
             }
-            
             java.time.LocalDate pickupDateUTC = claim.getConfirmedPickupDate();
             java.time.LocalTime startTimeUTC = claim.getConfirmedPickupStartTime();
             java.time.LocalTime endTimeUTC = claim.getConfirmedPickupEndTime();
-            
             // 5. Convert UTC times to user's timezone for display in calendar
             String userTimezone = user.getTimezone() != null ? user.getTimezone() : "UTC";
             LocalDateTime startInUserTz = TimezoneResolver.convertDateTime(
                 pickupDateUTC, startTimeUTC, "UTC", userTimezone
             );
-            
             LocalDateTime endInUserTz;
             if (endTimeUTC != null) {
                 endInUserTz = TimezoneResolver.convertDateTime(
@@ -767,15 +673,12 @@ public class ClaimService {
                 // Fallback: use event duration preference
                 endInUserTz = startInUserTz.plusMinutes(prefs.getEventDuration());
             }
-            
             // 6. Build event title and description
             SurplusPost post = claim.getSurplusPost();
             String eventTitle = buildEventTitle(post, isDonor);
             String eventDescription = buildEventDescription(claim, user, isDonor);
-            
             logger.info("📅 Calling CalendarEventService to create event for user {}: '{}' ({} to {})", 
                        user.getId(), eventTitle, startInUserTz, endInUserTz);
-            
             // 7. Create the synced calendar event record
             SyncedCalendarEvent event = calendarEventService.createCalendarEvent(
                 user,
@@ -786,22 +689,17 @@ public class ClaimService {
                 endInUserTz,
                 userTimezone
             );
-            
             logger.info("✅ CalendarEventService returned event with ID: {}", event.getId());
-            
             // 8. Link event to claim
             calendarEventService.linkEventToClaim(event, claim);
-            
             logger.info("Created calendar event {} for user {} (isDonor={}) for claim {}", 
                        event.getId(), user.getId(), isDonor, claim.getId());
-                       
         } catch (Exception e) {
             logger.error("Error creating calendar event for user {} claim {}: {}", 
                         user.getId(), claim.getId(), e.getMessage(), e);
             throw e; // Re-throw to be caught by calling method
         }
     }
-    
     /**
      * Delete calendar events for a cancelled claim
      */
@@ -809,24 +707,19 @@ public class ClaimService {
         try {
             // Find all synced events for this claim
             List<SyncedCalendarEvent> events = syncedCalendarEventRepository.findByClaimId(claimId);
-            
             if (events.isEmpty()) {
                 logger.info("No calendar events found for claim {}", claimId);
                 return;
             }
-            
             // Track unique users who need sync
             Set<Long> userIdsToSync = new HashSet<>();
-            
             // Mark each event as deleted (soft delete)
             for (SyncedCalendarEvent event : events) {
                 calendarEventService.deleteCalendarEvent(event);
                 userIdsToSync.add(event.getUser().getId());
                 logger.info("Marked calendar event {} as deleted for claim {}", event.getId(), claimId);
             }
-            
             logger.info("Deleted {} calendar events for claim {}", events.size(), claimId);
-            
             // Trigger async sync for each affected user to actually delete from Google Calendar
             for (Long userId : userIdsToSync) {
                 User user = events.stream()
@@ -834,19 +727,16 @@ public class ClaimService {
                     .findFirst()
                     .map(SyncedCalendarEvent::getUser)
                     .orElse(null);
-                    
                 if (user != null) {
                     logger.info("Triggering sync to delete calendar event from Google for user {}", userId);
                     triggerCalendarSyncIfEnabled(user);
                 }
             }
-            
         } catch (Exception e) {
             logger.error("Error deleting calendar events for claim {}: {}", claimId, e.getMessage(), e);
             throw e;
         }
     }
-    
     /**
      * Build event title based on user role
      */
@@ -858,7 +748,6 @@ public class ClaimService {
             return "🍽️ Pickup Appointment - " + foodTitle;
         }
     }
-    
     /**
      * Build detailed event description
      */
@@ -866,11 +755,9 @@ public class ClaimService {
         SurplusPost post = claim.getSurplusPost();
         User donor = post.getDonor();
         User receiver = claim.getReceiver();
-        
         StringBuilder desc = new StringBuilder();
         desc.append("🍽️ FoodFlow Pickup Event\n\n");
         desc.append("📦 Food: ").append(post.getTitle()).append("\n");
-        
         if (post.getQuantity() != null) {
             desc.append("📊 Quantity: ")
                 .append(post.getQuantity().getValue())
@@ -878,9 +765,7 @@ public class ClaimService {
                 .append(post.getQuantity().getUnit())
                 .append("\n");
         }
-        
         desc.append("\n");
-        
         if (isDonor) {
             // Donor's view
             String receiverName = getReceiverName(receiver);
@@ -895,11 +780,9 @@ public class ClaimService {
             // Receiver's view
             String donorName = getDonorName(donor);
             desc.append("👤 Donor: ").append(donorName).append("\n");
-            
             if (post.getPickupLocation() != null && post.getPickupLocation().getAddress() != null) {
                 desc.append("📍 Location: ").append(post.getPickupLocation().getAddress()).append("\n");
             }
-            
             if (donor.getEmail() != null) {
                 desc.append("📧 Contact: ").append(donor.getEmail()).append("\n");
             }
@@ -907,16 +790,12 @@ public class ClaimService {
                 desc.append("📱 Phone: ").append(donor.getPhone()).append("\n");
             }
         }
-        
         if (post.getOtpCode() != null && !post.getOtpCode().isEmpty()) {
             desc.append("\n🔐 Confirmation Code: ").append(post.getOtpCode()).append("\n");
         }
-        
         desc.append("\n⏰ Please arrive on time. Contact the other party if there are any issues.");
-        
         return desc.toString();
     }
-    
     /**
      * Trigger async calendar sync for a user if they have calendar integrated and sync enabled
      * Uses TransactionSynchronization to ensure sync happens AFTER transaction commits
@@ -928,14 +807,12 @@ public class ClaimService {
                 logger.debug("User {} does not have calendar connected, skipping async sync", user.getId());
                 return;
             }
-            
             // Check if sync is enabled in preferences
             Optional<CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository.findByUserId(user.getId());
             if (!prefsOpt.isPresent() || !prefsOpt.get().getSyncEnabled()) {
                 logger.debug("User {} has sync disabled, skipping async sync", user.getId());
                 return;
             }
-            
             // Register callback to trigger async sync AFTER transaction commits
             // This fixes the bug where @Async threads query before the transaction commits
             if (TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -952,7 +829,6 @@ public class ClaimService {
                 logger.info("🚀 Triggering async calendar sync for user {} (no active transaction)", user.getId());
                 calendarSyncService.syncUserPendingEventsAsync(user);
             }
-            
         } catch (Exception e) {
             logger.error("Error triggering calendar sync for user {}: {}", user.getId(), e.getMessage());
         }

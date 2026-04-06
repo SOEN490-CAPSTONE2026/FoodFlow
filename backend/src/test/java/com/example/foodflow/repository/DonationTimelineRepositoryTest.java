@@ -1,5 +1,4 @@
 package com.example.foodflow.repository;
-
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
@@ -15,20 +14,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
-
 @DataJpaTest
 @ActiveProfiles("test")
 class DonationTimelineRepositoryTest {
-
     @Autowired
     private TestEntityManager entityManager;
-
     @Autowired
     private DonationTimelineRepository donationTimelineRepository;
-
     private SurplusPost testPost;
     private User testDonor;
-
     @BeforeEach
     void setUp() {
         // Create test donor
@@ -36,7 +30,6 @@ class DonationTimelineRepositoryTest {
         testDonor.setEmail("donor@test.com");
         testDonor.setPassword("hashedpassword");
         entityManager.persist(testDonor);
-
         // Create test surplus post with all required fields
         testPost = new SurplusPost();
         testPost.setTitle("Test Donation");
@@ -50,7 +43,6 @@ class DonationTimelineRepositoryTest {
         entityManager.persist(testPost);
         entityManager.flush();
     }
-
     @Test
     void findBySurplusPostIdOrderByTimestampDesc_WithMultipleEvents_ReturnsOrderedList() {
         // Arrange
@@ -61,7 +53,6 @@ class DonationTimelineRepositoryTest {
         event1.setActor("donor");
         event1.setVisibleToUsers(true);
         entityManager.persist(event1);
-
         DonationTimeline event2 = new DonationTimeline();
         event2.setSurplusPost(testPost);
         event2.setEventType("DONATION_CLAIMED");
@@ -69,7 +60,6 @@ class DonationTimelineRepositoryTest {
         event2.setActor("receiver");
         event2.setVisibleToUsers(true);
         entityManager.persist(event2);
-
         DonationTimeline event3 = new DonationTimeline();
         event3.setSurplusPost(testPost);
         event3.setEventType("ADMIN_STATUS_OVERRIDE");
@@ -77,45 +67,36 @@ class DonationTimelineRepositoryTest {
         event3.setActor("admin");
         event3.setVisibleToUsers(false);
         entityManager.persist(event3);
-
         entityManager.flush();
-
         // Act
         List<DonationTimeline> results = donationTimelineRepository
                 .findBySurplusPostIdOrderByTimestampDesc(testPost.getId());
-
         // Assert
         assertNotNull(results);
         assertEquals(3, results.size());
-        
         // Verify descending order (most recent first)
         assertEquals("ADMIN_STATUS_OVERRIDE", results.get(0).getEventType());
         assertEquals("DONATION_CLAIMED", results.get(1).getEventType());
         assertEquals("DONATION_CREATED", results.get(2).getEventType());
     }
-
     @Test
     void findBySurplusPostIdOrderByTimestampDesc_WithNoEvents_ReturnsEmptyList() {
         // Act
         List<DonationTimeline> results = donationTimelineRepository
                 .findBySurplusPostIdOrderByTimestampDesc(testPost.getId());
-
         // Assert
         assertNotNull(results);
         assertTrue(results.isEmpty());
     }
-
     @Test
     void findBySurplusPostIdOrderByTimestampDesc_WithNonExistentPostId_ReturnsEmptyList() {
         // Act
         List<DonationTimeline> results = donationTimelineRepository
                 .findBySurplusPostIdOrderByTimestampDesc(999L);
-
         // Assert
         assertNotNull(results);
         assertTrue(results.isEmpty());
     }
-
     @Test
     void save_WithValidTimeline_PersistsSuccessfully() {
         // Arrange
@@ -129,12 +110,10 @@ class DonationTimelineRepositoryTest {
         timeline.setNewStatus("CLAIMED");
         timeline.setDetails("Test details");
         timeline.setVisibleToUsers(true);
-
         // Act
         DonationTimeline saved = donationTimelineRepository.save(timeline);
         entityManager.flush();
         entityManager.clear();
-
         // Assert
         assertNotNull(saved.getId());
         DonationTimeline found = entityManager.find(DonationTimeline.class, saved.getId());
@@ -147,7 +126,6 @@ class DonationTimelineRepositoryTest {
         assertEquals("Test details", found.getDetails());
         assertTrue(found.getVisibleToUsers());
     }
-
     @Test
     void save_WithAdminOverrideEvent_SavesWithVisibleToUsersFalse() {
         // Arrange
@@ -161,18 +139,15 @@ class DonationTimelineRepositoryTest {
         adminEvent.setNewStatus("COMPLETED");
         adminEvent.setDetails("Admin forced completion");
         adminEvent.setVisibleToUsers(false);
-
         // Act
         DonationTimeline saved = donationTimelineRepository.save(adminEvent);
         entityManager.flush();
-
         // Assert
         assertNotNull(saved.getId());
         assertFalse(saved.getVisibleToUsers());
         assertEquals("admin", saved.getActor());
         assertEquals("ADMIN_STATUS_OVERRIDE", saved.getEventType());
     }
-
     @Test
     void findBySurplusPostIdOrderByTimestampDesc_IncludesAdminOnlyEvents() {
         // Arrange
@@ -183,7 +158,6 @@ class DonationTimelineRepositoryTest {
         userVisibleEvent.setActor("donor");
         userVisibleEvent.setVisibleToUsers(true);
         entityManager.persist(userVisibleEvent);
-
         DonationTimeline adminOnlyEvent = new DonationTimeline();
         adminOnlyEvent.setSurplusPost(testPost);
         adminOnlyEvent.setEventType("ADMIN_STATUS_OVERRIDE");
@@ -191,21 +165,16 @@ class DonationTimelineRepositoryTest {
         adminOnlyEvent.setActor("admin");
         adminOnlyEvent.setVisibleToUsers(false);
         entityManager.persist(adminOnlyEvent);
-
         entityManager.flush();
-
         // Act
         List<DonationTimeline> results = donationTimelineRepository
                 .findBySurplusPostIdOrderByTimestampDesc(testPost.getId());
-
         // Assert
         assertEquals(2, results.size());
-        
         // Verify both visible and admin-only events are returned
         assertTrue(results.stream().anyMatch(e -> e.getVisibleToUsers()));
         assertTrue(results.stream().anyMatch(e -> !e.getVisibleToUsers()));
     }
-
     @Test
     void save_WithOptionalFields_SavesSuccessfully() {
         // Arrange
@@ -218,12 +187,10 @@ class DonationTimelineRepositoryTest {
         timeline.setPackagingCondition("GOOD");
         timeline.setPickupEvidenceUrl("https://example.com/evidence.jpg");
         timeline.setVisibleToUsers(true);
-
         // Act
         DonationTimeline saved = donationTimelineRepository.save(timeline);
         entityManager.flush();
         entityManager.clear();
-
         // Assert
         DonationTimeline found = entityManager.find(DonationTimeline.class, saved.getId());
         assertNotNull(found);
@@ -231,12 +198,10 @@ class DonationTimelineRepositoryTest {
         assertEquals("GOOD", found.getPackagingCondition());
         assertEquals("https://example.com/evidence.jpg", found.getPickupEvidenceUrl());
     }
-
     @Test
     void findBySurplusPostIdOrderByTimestampDesc_WithSameTimestamp_ReturnsAllEvents() {
         // Arrange
         LocalDateTime sameTime = LocalDateTime.now();
-        
         DonationTimeline event1 = new DonationTimeline();
         event1.setSurplusPost(testPost);
         event1.setEventType("EVENT_1");
@@ -244,7 +209,6 @@ class DonationTimelineRepositoryTest {
         event1.setActor("actor1");
         event1.setVisibleToUsers(true);
         entityManager.persist(event1);
-
         DonationTimeline event2 = new DonationTimeline();
         event2.setSurplusPost(testPost);
         event2.setEventType("EVENT_2");
@@ -252,17 +216,13 @@ class DonationTimelineRepositoryTest {
         event2.setActor("actor2");
         event2.setVisibleToUsers(true);
         entityManager.persist(event2);
-
         entityManager.flush();
-
         // Act
         List<DonationTimeline> results = donationTimelineRepository
                 .findBySurplusPostIdOrderByTimestampDesc(testPost.getId());
-
         // Assert
         assertEquals(2, results.size());
     }
-
     @Test
     void findBySurplusPostIdOrderByTimestampDesc_OnlyReturnsSameSurplusPost() {
         // Arrange
@@ -278,7 +238,6 @@ class DonationTimelineRepositoryTest {
         anotherPost.setPickupTo(LocalTime.of(18, 0));
         entityManager.persist(anotherPost);
         entityManager.flush();
-
         // Create timeline for first post
         DonationTimeline timeline1 = new DonationTimeline();
         timeline1.setSurplusPost(testPost);
@@ -287,7 +246,6 @@ class DonationTimelineRepositoryTest {
         timeline1.setActor("actor");
         timeline1.setVisibleToUsers(true);
         entityManager.persist(timeline1);
-
         // Create timeline for second post
         DonationTimeline timeline2 = new DonationTimeline();
         timeline2.setSurplusPost(anotherPost);
@@ -296,13 +254,10 @@ class DonationTimelineRepositoryTest {
         timeline2.setActor("actor");
         timeline2.setVisibleToUsers(true);
         entityManager.persist(timeline2);
-
         entityManager.flush();
-
         // Act
         List<DonationTimeline> results = donationTimelineRepository
                 .findBySurplusPostIdOrderByTimestampDesc(testPost.getId());
-
         // Assert
         assertEquals(1, results.size());
         assertEquals("EVENT_POST_1", results.get(0).getEventType());

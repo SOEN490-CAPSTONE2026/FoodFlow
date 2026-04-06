@@ -1,13 +1,9 @@
 package com.example.foodflow.service.calendar;
-
 import org.springframework.stereotype.Component;
-
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-
 @Component
 public class TimezoneUtility {
-
     /**
      * Convert a LocalDateTime from one timezone to another
      */
@@ -15,19 +11,16 @@ public class TimezoneUtility {
         try {
             ZoneId fromZone = ZoneId.of(fromTimeZone);
             ZoneId toZone = ZoneId.of(toTimeZone);
-            
             // Treat the input as if it's in fromTimeZone
             ZonedDateTime sourceZoned = dateTime.atZone(fromZone);
             // Convert to target timezone
             ZonedDateTime targetZoned = sourceZoned.withZoneSameInstant(toZone);
-            
             return targetZoned.toLocalDateTime();
         } catch (Exception e) {
             // Fall back to UTC if timezone is invalid
             return dateTime;
         }
     }
-
     /**
      * Get user's timezone, fallback to UTC
      */
@@ -42,14 +35,12 @@ public class TimezoneUtility {
             return "UTC";
         }
     }
-
     /**
      * Convert LocalDateTime to ISO 8601 format for calendar APIs
      */
     public String toIso8601(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ISO_DATE_TIME);
     }
-
     /**
      * Convert LocalDateTime with timezone to Instant (UTC)
      */
@@ -61,7 +52,6 @@ public class TimezoneUtility {
             return dateTime.atZone(ZoneId.of("UTC")).toInstant();
         }
     }
-
     /**
      * Get current time in user's timezone
      */
@@ -69,7 +59,6 @@ public class TimezoneUtility {
         String tz = getUserTimeZone(userTimeZone);
         return LocalDateTime.now(ZoneId.of(tz));
     }
-
     /**
      * Check if a time is in the future
      */
@@ -77,7 +66,6 @@ public class TimezoneUtility {
         LocalDateTime nowInUserTimeZone = getCurrentTimeInUserTimeZone(timeZone);
         return dateTime.isAfter(nowInUserTimeZone);
     }
-
     /**
      * Calculate minutes until an event starts
      */

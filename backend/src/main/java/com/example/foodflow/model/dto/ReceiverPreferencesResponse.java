@@ -1,12 +1,9 @@
 package com.example.foodflow.model.dto;
-
 import com.example.foodflow.model.entity.ReceiverPreferences;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 public class ReceiverPreferencesResponse {
-    
     private Long id;
     private Long userId;
     private List<String> preferredFoodTypes;
@@ -20,7 +17,6 @@ public class ReceiverPreferencesResponse {
     private List<String> preferredDonationSizes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
     // Constructor from entity
     public ReceiverPreferencesResponse(ReceiverPreferences preferences) {
         this.id = preferences.getId();
@@ -40,111 +36,84 @@ public class ReceiverPreferencesResponse {
         this.createdAt = preferences.getCreatedAt();
         this.updatedAt = preferences.getUpdatedAt();
     }
-    
     // Default constructor
     public ReceiverPreferencesResponse() {}
-    
     // Getters and Setters
     public Long getId() {
         return id;
     }
-    
     public void setId(Long id) {
         this.id = id;
     }
-    
     public Long getUserId() {
         return userId;
     }
-    
     public void setUserId(Long userId) {
         this.userId = userId;
     }
-    
     public List<String> getPreferredFoodTypes() {
         return preferredFoodTypes;
     }
-    
     public void setPreferredFoodTypes(List<String> preferredFoodTypes) {
         this.preferredFoodTypes = preferredFoodTypes;
     }
-    
     public Integer getMaxCapacity() {
         return maxCapacity;
     }
-    
     public void setMaxCapacity(Integer maxCapacity) {
         this.maxCapacity = maxCapacity;
     }
-    
     public Integer getMinQuantity() {
         return minQuantity;
     }
-    
     public void setMinQuantity(Integer minQuantity) {
         this.minQuantity = minQuantity;
     }
-    
     public Integer getMaxQuantity() {
         return maxQuantity;
     }
-    
     public void setMaxQuantity(Integer maxQuantity) {
         this.maxQuantity = maxQuantity;
     }
-    
     public List<String> getPreferredPickupWindows() {
         return preferredPickupWindows;
     }
-    
     public void setPreferredPickupWindows(List<String> preferredPickupWindows) {
         this.preferredPickupWindows = preferredPickupWindows;
     }
-    
     public Boolean getAcceptRefrigerated() {
         return acceptRefrigerated;
     }
-    
     public void setAcceptRefrigerated(Boolean acceptRefrigerated) {
         this.acceptRefrigerated = acceptRefrigerated;
     }
-    
     public Boolean getAcceptFrozen() {
         return acceptFrozen;
     }
-    
     public void setAcceptFrozen(Boolean acceptFrozen) {
         this.acceptFrozen = acceptFrozen;
     }
-    
     public Boolean getNotificationPreferencesEnabled() {
         return notificationPreferencesEnabled;
     }
-    
     public void setNotificationPreferencesEnabled(Boolean notificationPreferencesEnabled) {
         this.notificationPreferencesEnabled = notificationPreferencesEnabled;
     }
-    
     public List<String> getPreferredDonationSizes() {
         return preferredDonationSizes;
     }
-    
     public void setPreferredDonationSizes(List<String> preferredDonationSizes) {
         this.preferredDonationSizes = preferredDonationSizes;
     }
-    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-    
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-    
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
-    
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }

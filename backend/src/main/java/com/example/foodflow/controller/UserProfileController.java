@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.RegionResponse;
 import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
@@ -11,22 +10,17 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 /**
  * REST controller for managing user profile settings including region and timezone.
  */
 @RestController
 @RequestMapping("/api/profile")
 public class UserProfileController {
-    
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserProfileController.class);
-
     private final UserProfileService userProfileService;
-    
     public UserProfileController(UserProfileService userProfileService) {
         this.userProfileService = userProfileService;
     }
-    
     /**
      * GET /api/profile
      * Retrieves the user profile data including organization information.
@@ -37,11 +31,9 @@ public class UserProfileController {
     @GetMapping("")
     public ResponseEntity<UserProfileResponse> getProfile(
             @AuthenticationPrincipal User currentUser) {
-        
         UserProfileResponse response = userProfileService.getProfile(currentUser);
         return ResponseEntity.ok(response);
     }
-    
     /**
      * PUT /api/profile
      * Updates the user profile data including organization information.
@@ -55,7 +47,6 @@ public class UserProfileController {
             @AuthenticationPrincipal User currentUser,
             @Valid @RequestBody UpdateProfileRequest request,
             jakarta.servlet.http.HttpServletRequest httpRequest) {
-        
         // Debugging: log authentication and headers to diagnose 403s
         try {
             var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -64,11 +55,9 @@ public class UserProfileController {
         } catch (Exception e) {
             log.warn("Failed to log authentication info: {}", e.getMessage());
         }
-
         UserProfileResponse response = userProfileService.updateProfile(currentUser, request);
         return ResponseEntity.ok(response);
     }
-    
     /**
      * GET /api/profile/region
      * Retrieves the current region settings for the authenticated user.
@@ -79,11 +68,9 @@ public class UserProfileController {
     @GetMapping("/region")
     public ResponseEntity<RegionResponse> getRegionSettings(
             @AuthenticationPrincipal User currentUser) {
-        
         RegionResponse response = userProfileService.getRegionSettings(currentUser);
         return ResponseEntity.ok(response);
     }
-    
     /**
      * PUT /api/profile/region
      * Updates the region settings for the authenticated user.
@@ -97,16 +84,13 @@ public class UserProfileController {
     public ResponseEntity<RegionResponse> updateRegionSettings(
             @AuthenticationPrincipal User currentUser,
             @Valid @RequestBody UpdateRegionRequest request) {
-        
         RegionResponse response = userProfileService.updateRegionSettings(currentUser, request);
         return ResponseEntity.ok(response);
     }
-
     @PutMapping("/onboarding")
     public ResponseEntity<UserProfileResponse> updateOnboarding(
             @AuthenticationPrincipal User currentUser,
             @Valid @RequestBody UpdateOnboardingRequest request) {
-
         UserProfileResponse response = userProfileService.updateOnboarding(currentUser, request);
         return ResponseEntity.ok(response);
     }

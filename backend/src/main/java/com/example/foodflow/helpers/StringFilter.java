@@ -1,5 +1,4 @@
 package com.example.foodflow.helpers;
-
 /*
  * public class StringFilter extends Filter<String> {
  * 
