@@ -54,7 +54,6 @@ class SurplusPostRepositoryTest {
         donor = userRepository.save(donor);
     }
 
-    
     @Test
     void testSaveSurplusPost() {
         // Given
@@ -87,12 +86,11 @@ class SurplusPostRepositoryTest {
         assertThat(saved.getCreatedAt()).isNotNull();
     }
 
-    
     @Test
     void testFindAll() {
         // Given
-        SurplusPost post1 = createSurplusPost("Bread", new Quantity(5.0,Quantity.Unit.ITEM));
-        SurplusPost post2 = createSurplusPost("Milk", new Quantity(3.0,Quantity.Unit.ITEM));
+        SurplusPost post1 = createSurplusPost("Bread", new Quantity(5.0, Quantity.Unit.ITEM));
+        SurplusPost post2 = createSurplusPost("Milk", new Quantity(3.0, Quantity.Unit.ITEM));
         surplusPostRepository.save(post1);
         surplusPostRepository.save(post2);
 
@@ -103,11 +101,10 @@ class SurplusPostRepositoryTest {
         assertThat(all).hasSize(2);
     }
 
-    
     @Test
     void testFindById() {
         // Given
-        SurplusPost post = createSurplusPost("Fruit", new Quantity(20.0,Quantity.Unit.ITEM));
+        SurplusPost post = createSurplusPost("Fruit", new Quantity(20.0, Quantity.Unit.ITEM));
         SurplusPost saved = surplusPostRepository.save(post);
 
         // When

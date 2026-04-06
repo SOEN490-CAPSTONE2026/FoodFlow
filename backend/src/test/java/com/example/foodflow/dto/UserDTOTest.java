@@ -1,4 +1,5 @@
 package com.example.foodflow.dto;
+
 import com.example.foodflow.model.entity.*;
 import com.example.foodflow.model.dto.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 
 class UserDTOTest {
 

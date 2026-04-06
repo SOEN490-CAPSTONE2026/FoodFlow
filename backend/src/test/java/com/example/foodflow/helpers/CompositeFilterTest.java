@@ -1,6 +1,5 @@
 package com.example.foodflow.helpers;
 
-
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,7 +9,7 @@ class CompositeFilterTest {
     void testIntegerFiltersAllPass() {
         CompositeFilter<Integer> composite = new CompositeFilter<>();
         composite.add(BasicFilter.greaterThan(5))
-                 .add(BasicFilter.lessThanOrEqual(10));
+                .add(BasicFilter.lessThanOrEqual(10));
 
         assertTrue(composite.check(7)); // passes both filters
     }
@@ -19,35 +18,34 @@ class CompositeFilterTest {
     void testIntegerFiltersOneFails() {
         CompositeFilter<Integer> composite = new CompositeFilter<>();
         composite.add(BasicFilter.greaterThan(5))
-                 .add(BasicFilter.lessThanOrEqual(10));
+                .add(BasicFilter.lessThanOrEqual(10));
 
-        assertFalse(composite.check(4));  // fails greaterThan(5)
+        assertFalse(composite.check(4)); // fails greaterThan(5)
         assertFalse(composite.check(11)); // fails lessThanOrEqual(10)
     }
 
-    /* 
-    @Test
-    void testStringFiltersAllPass() {
-        CompositeFilter<String> composite = new CompositeFilter<>();
-        composite.add(StringFilter.startsWith("A"))
-                 .add(StringFilter.endsWith("e"))
-                 .add(StringFilter.contains("lic"));
-
-        assertTrue(composite.check("Alice"));
-    }
-
-    
-    @Test
-    void testStringFiltersOneFails() {
-        CompositeFilter<String> composite = new CompositeFilter<>();
-        composite.add(StringFilter.startsWith("A"))
-                 .add(StringFilter.endsWith("e"))
-                 .add(StringFilter.contains("lic"));
-
-        assertFalse(composite.check("Alicia")); // doesn’t end with "e"
-        assertFalse(composite.check("Bob"));    // fails all
-    }
-        */
+    /*
+     * @Test
+     * void testStringFiltersAllPass() {
+     * CompositeFilter<String> composite = new CompositeFilter<>();
+     * composite.add(StringFilter.startsWith("A"))
+     * .add(StringFilter.endsWith("e"))
+     * .add(StringFilter.contains("lic"));
+     * 
+     * assertTrue(composite.check("Alice"));
+     * }
+     * 
+     * @Test
+     * void testStringFiltersOneFails() {
+     * CompositeFilter<String> composite = new CompositeFilter<>();
+     * composite.add(StringFilter.startsWith("A"))
+     * .add(StringFilter.endsWith("e"))
+     * .add(StringFilter.contains("lic"));
+     * 
+     * assertFalse(composite.check("Alicia")); // doesn’t end with "e"
+     * assertFalse(composite.check("Bob")); // fails all
+     * }
+     */
 
     @Test
     void testEmptyCompositeFilter() {
@@ -56,15 +54,15 @@ class CompositeFilterTest {
         assertTrue(composite.check("anything"));
     }
 
-    /* 
-    @Test
-    void testNullValueThrows() {
-        CompositeFilter<String> composite = new CompositeFilter<>();
-        composite.add(StringFilter.contains("test"));
-
-        assertThrows(NullPointerException.class, () -> composite.check(null));
-    }
-    */
+    /*
+     * @Test
+     * void testNullValueThrows() {
+     * CompositeFilter<String> composite = new CompositeFilter<>();
+     * composite.add(StringFilter.contains("test"));
+     * 
+     * assertThrows(NullPointerException.class, () -> composite.check(null));
+     * }
+     */
 
     @Test
     void testAddMultipleFiltersWithVarargs() {

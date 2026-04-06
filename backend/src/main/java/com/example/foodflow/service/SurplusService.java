@@ -199,7 +199,8 @@ public class SurplusService {
 
         if (fabricationDate != null) {
             if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
-                throw new com.example.foodflow.exception.domain.InvalidSurplusPostException("Fabrication date cannot be in the future");
+                throw new com.example.foodflow.exception.domain.InvalidSurplusPostException(
+                        "Fabrication date cannot be in the future");
             }
             post.setFabricationDate(fabricationDate);
         }
@@ -366,11 +367,12 @@ public class SurplusService {
     @Timed(value = "surplus.service.getById", description = "Time taken to get surplus post by ID")
     public SurplusResponse getSurplusPostByIdForDonor(Long postId, User donor) {
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         // Verify the requesting user is the owner
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to view this post");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                    "You are not authorized to view this post");
         }
 
         String donorTimezone = donor.getTimezone() != null ? donor.getTimezone() : "UTC";
@@ -387,17 +389,18 @@ public class SurplusService {
         Timer.Sample sample = businessMetricsService.startTimer();
 
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         // Verify the requesting user is the owner
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to update this post");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                    "You are not authorized to update this post");
         }
 
         // Only allow updates for AVAILABLE posts
         if (post.getStatus() != PostStatus.AVAILABLE) {
             throw new com.example.foodflow.exception.domain.InvalidClaimStateException(
-                "Cannot edit a post that has been claimed or completed. Current status: " + post.getStatus());
+                    "Cannot edit a post that has been claimed or completed. Current status: " + post.getStatus());
         }
 
         // Update basic fields
@@ -417,7 +420,8 @@ public class SurplusService {
 
         if (fabricationDate != null) {
             if (!expiryCalculationService.isValidFabricationDate(fabricationDate)) {
-                throw new com.example.foodflow.exception.domain.InvalidSurplusPostException("Fabrication date cannot be in the future");
+                throw new com.example.foodflow.exception.domain.InvalidSurplusPostException(
+                        "Fabrication date cannot be in the future");
             }
             post.setFabricationDate(fabricationDate);
         } else {
@@ -571,7 +575,8 @@ public class SurplusService {
         response.setDonorLogoUrl(post.getDonor().getProfilePhoto());
         if (donationImageResolverService != null) {
             response.setResolvedDonationImageUrl(
-                    donationImageResolverService.resolveDonationImageUrl(post.getDonor(), post.getFoodType(), post.getId()));
+                    donationImageResolverService.resolveDonationImageUrl(post.getDonor(), post.getFoodType(),
+                            post.getId()));
         }
         response.setCreatedAt(post.getCreatedAt());
         response.setUpdatedAt(post.getUpdatedAt());
@@ -842,22 +847,25 @@ public class SurplusService {
 
     /**
      * Search surplus posts for a receiver with times converted to their timezone.
-     * Also applies country-based filtering to only show donations from the same country.
+     * Also applies country-based filtering to only show donations from the same
+     * country.
      * 
      * @param filterRequest Filter criteria
-     * @param receiver      The receiver user (for timezone conversion and country filtering)
-     * @return List of surplus posts with times in receiver's timezone, filtered by country
+     * @param receiver      The receiver user (for timezone conversion and country
+     *                      filtering)
+     * @return List of surplus posts with times in receiver's timezone, filtered by
+     *         country
      */
     public List<SurplusResponse> searchSurplusPostsForReceiver(SurplusFilterRequest filterRequest, User receiver) {
         Specification<SurplusPost> specification = buildSpecificationFromFilter(filterRequest);
 
         List<SurplusPost> posts = applyPostFiltersAndSort(surplusPostRepository.findAll(specification), filterRequest);
-        
+
         // Apply country-based filtering only if receiver exists (skip for test mocks)
         if (receiver != null) {
             posts = applyCountryFilter(posts, receiver);
         }
-        
+
         // Apply receiver prioritization (expiring soon first, etc.)
         posts = applyReceiverPrioritization(posts, filterRequest);
 
@@ -886,8 +894,8 @@ public class SurplusService {
         if (filterRequest.hasFoodCategories()) {
             // Convert strings to FoodCategory enums
             List<FoodCategory> categories = filterRequest.getFoodCategories().stream()
-                .map(FoodCategory::valueOf)
-                .collect(Collectors.toList());
+                    .map(FoodCategory::valueOf)
+                    .collect(Collectors.toList());
             builder.and(ArrayFilter.containsAny(categories).toSpecification("foodCategories"));
         }
 
@@ -988,29 +996,30 @@ public class SurplusService {
     /**
      * Apply country-based filtering to only show donations from the same country.
      * Extracts country from receiver's organization address.
-     * If receiver has no country set, or donation has no country, allow (permissive).
+     * If receiver has no country set, or donation has no country, allow
+     * (permissive).
      * Only filters out donations from DIFFERENT countries.
      */
     private List<SurplusPost> applyCountryFilter(List<SurplusPost> posts, User receiver) {
         // Extract country from receiver's organization address
         String receiverCountryRaw = extractCountryFromOrganization(receiver);
-        
+
         // If receiver has no country, show all donations (permissive)
         if (receiverCountryRaw == null || receiverCountryRaw.trim().isEmpty()) {
-            logger.debug("Receiver {} has no country set (org address: {}), showing all donations", 
-                       receiver.getId(), 
-                       receiver.getOrganization() != null ? receiver.getOrganization().getAddress() : "null");
+            logger.debug("Receiver {} has no country set (org address: {}), showing all donations",
+                    receiver.getId(),
+                    receiver.getOrganization() != null ? receiver.getOrganization().getAddress() : "null");
             return posts;
         }
 
         final String receiverCountry = receiverCountryRaw.trim();
-        logger.debug("Applying country filter for receiver {} with country: {} (extracted from org address)", 
-                   receiver.getId(), receiverCountry);
+        logger.debug("Applying country filter for receiver {} with country: {} (extracted from org address)",
+                receiver.getId(), receiverCountry);
 
         return posts.stream()
                 .filter(post -> {
                     Location pickupLocation = post.getPickupLocation();
-                    if (pickupLocation == null || pickupLocation.getCountry() == null 
+                    if (pickupLocation == null || pickupLocation.getCountry() == null
                             || pickupLocation.getCountry().trim().isEmpty()) {
                         // If donation has no country, allow it (permissive for legacy data)
                         logger.debug("Post {} has no country, allowing", post.getId());
@@ -1019,19 +1028,19 @@ public class SurplusService {
 
                     String postCountry = pickupLocation.getCountry().trim();
                     boolean sameCountry = isSameCountry(receiverCountry, postCountry);
-                    
+
                     if (!sameCountry) {
-                        logger.debug("Filtering out post {} - receiver country: {}, post country: {}", 
-                                   post.getId(), receiverCountry, postCountry);
+                        logger.debug("Filtering out post {} - receiver country: {}, post country: {}",
+                                post.getId(), receiverCountry, postCountry);
                     } else {
                         logger.debug("Including post {} - countries match: {}", post.getId(), receiverCountry);
                     }
-                    
+
                     return sameCountry;
                 })
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Extract country from user's organization address.
      * Assumes address format: "street, city, province/state, postal, Country"
@@ -1044,21 +1053,21 @@ public class SurplusService {
         if (user == null || user.getOrganization() == null) {
             return null;
         }
-        
+
         String address = user.getOrganization().getAddress();
         if (address == null || address.trim().isEmpty()) {
             return null;
         }
-        
+
         // Find the last comma and extract everything after it
         int lastCommaIndex = address.lastIndexOf(',');
         if (lastCommaIndex >= 0 && lastCommaIndex < address.length() - 1) {
             String country = address.substring(lastCommaIndex + 1).trim();
-            logger.debug("Extracted country '{}' from address '{}' for user {}", 
-                       country, address, user.getId());
+            logger.debug("Extracted country '{}' from address '{}' for user {}",
+                    country, address, user.getId());
             return country;
         }
-        
+
         logger.debug("Could not extract country from address '{}' for user {}", address, user.getId());
         return null;
     }
@@ -1105,13 +1114,17 @@ public class SurplusService {
 
     private FoodType mapFoodCategoryToFoodType(FoodCategory category) {
         return switch (category) {
-            case PREPARED_MEALS, READY_TO_EAT, SANDWICHES, SALADS, SOUPS, STEWS, CASSEROLES, LEFTOVERS -> FoodType.PREPARED;
-            case FRUITS_VEGETABLES, LEAFY_GREENS, ROOT_VEGETABLES, BERRIES, CITRUS_FRUITS, TROPICAL_FRUITS -> FoodType.PRODUCE;
+            case PREPARED_MEALS, READY_TO_EAT, SANDWICHES, SALADS, SOUPS, STEWS, CASSEROLES, LEFTOVERS ->
+                FoodType.PREPARED;
+            case FRUITS_VEGETABLES, LEAFY_GREENS, ROOT_VEGETABLES, BERRIES, CITRUS_FRUITS, TROPICAL_FRUITS ->
+                FoodType.PRODUCE;
             case BAKERY_PASTRY, BREAD, BAKED_GOODS, BAKERY_ITEMS, CAKES_PASTRIES -> FoodType.BAKERY;
             case DAIRY, DAIRY_COLD, MILK, CHEESE, YOGURT, BUTTER, CREAM, EGGS -> FoodType.DAIRY_EGGS;
             case FRESH_MEAT, GROUND_MEAT, POULTRY -> FoodType.MEAT_POULTRY;
             case SEAFOOD, FISH, FROZEN_SEAFOOD -> FoodType.SEAFOOD;
-            case BEVERAGES, WATER, JUICE, SOFT_DRINKS, SPORTS_DRINKS, TEA, COFFEE, HOT_CHOCOLATE, PROTEIN_SHAKES, SMOOTHIES -> FoodType.BEVERAGES;
+            case BEVERAGES, WATER, JUICE, SOFT_DRINKS, SPORTS_DRINKS, TEA, COFFEE, HOT_CHOCOLATE, PROTEIN_SHAKES,
+                    SMOOTHIES ->
+                FoodType.BEVERAGES;
             default -> FoodType.PANTRY;
         };
     }
@@ -1147,11 +1160,12 @@ public class SurplusService {
     @Transactional
     public SurplusResponse overrideExpiry(Long postId, String expiryDateRaw, String reason, User actor) {
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (actor.getRole() != com.example.foodflow.model.entity.UserRole.ADMIN
-            && !post.getDonor().getId().equals(actor.getId())) {
-            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to override expiry for this post");
+                && !post.getDonor().getId().equals(actor.getId())) {
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                    "You are not authorized to override expiry for this post");
         }
 
         LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
@@ -1174,11 +1188,12 @@ public class SurplusService {
     @Transactional
     public SurplusResponse clearExpiryOverride(Long postId, User actor) {
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (actor.getRole() != com.example.foodflow.model.entity.UserRole.ADMIN
-            && !post.getDonor().getId().equals(actor.getId())) {
-            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to clear expiry override for this post");
+                && !post.getDonor().getId().equals(actor.getId())) {
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                    "You are not authorized to clear expiry override for this post");
         }
 
         LocalDateTime previousEffective = resolveEffectiveExpiryForSort(post);
@@ -1190,7 +1205,8 @@ public class SurplusService {
 
         applyExpiryPredictionAndResolution(post, actor, "EXPIRY_OVERRIDE_REMOVED");
         SurplusPost saved = surplusPostRepository.save(post);
-        logExpiryAudit(saved, actor.getId(), "EXPIRY_OVERRIDE_REMOVED", previousEffective, saved.getExpiryDateEffective(),
+        logExpiryAudit(saved, actor.getId(), "EXPIRY_OVERRIDE_REMOVED", previousEffective,
+                saved.getExpiryDateEffective(),
                 Map.of("reason", "override_removed"));
 
         return convertToResponse(saved);
@@ -1331,16 +1347,16 @@ public class SurplusService {
         Timer.Sample sample = businessMetricsService.startTimer();
 
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
             throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
-                "You are not authorized to complete this post. Only the post owner can mark it as completed.");
+                    "You are not authorized to complete this post. Only the post owner can mark it as completed.");
         }
 
         if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
             throw new com.example.foodflow.exception.domain.InvalidClaimStateException(
-                "Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
+                    "Post must be in READY_FOR_PICKUP status to be completed. Current status: " + post.getStatus());
         }
 
         if (post.getOtpCode() == null || !post.getOtpCode().equals(otpCode)) {
@@ -1367,123 +1383,159 @@ public class SurplusService {
         logger.info("Looking for claim associated with postId={}", post.getId());
         claimRepository.findBySurplusPost(post)
                 .ifPresentOrElse(
-                    claim -> {
-                        logger.info("Found claim claimId={} with status={} for postId={}", claim.getId(), claim.getStatus(), post.getId());
-                        if (claim.getStatus() != ClaimStatus.COMPLETED) {
-                            claimService.completeClaim(claim.getId());
-                            
-                            User receiver = claim.getReceiver();
-                            String receiverName = receiver.getOrganization() != null && receiver.getOrganization().getName() != null
-                                ? receiver.getOrganization().getName()
-                                : receiver.getFullName();
-                            
-                            // Send WebSocket notification to receiver that donation was completed (if preference allows)
-                            try {
-                                logger.info("Checking websocket preference for receiver userId={} for donationCompleted notification", receiver.getId());
-                                
-                                if (notificationPreferenceService.shouldSendNotification(receiver, "donationCompleted", "websocket")) {
-                                    logger.info("Receiver {} has websocket notifications enabled for donationCompleted, sending websocket notification", receiver.getId());
-                                    
-                                    Map<String, Object> receiverNotification = new HashMap<>();
-                                    receiverNotification.put("type", "DONATION_COMPLETED");
-                                    receiverNotification.put("donationId", post.getId());
-                                    receiverNotification.put("title", post.getTitle());
-                                    receiverNotification.put("message", "Donation Completed");
-                                    receiverNotification.put("timestamp", System.currentTimeMillis());
-                                    
-                                    messagingTemplate.convertAndSendToUser(
-                                        receiver.getId().toString(),
-                                        "/queue/donations/completed",
-                                        receiverNotification
-                                    );
-                                    logger.info("Successfully sent donation completed websocket notification to receiver userId={} for postId={}", receiver.getId(), post.getId());
-                                } else {
-                                    logger.info("Receiver {} has websocket notifications disabled for donationCompleted, skipping websocket notification", receiver.getId());
-                                }
-                            } catch (Exception e) {
-                                logger.error("Failed to send donation completed websocket notification to receiver: {}", e.getMessage(), e);
-                            }
-                            
-                            // Send email notification to receiver that donation was completed (if preference allows)
-                            try {
-                                logger.info("Checking email preference for receiver userId={} for donationCompleted notification", receiver.getId());
-                                
-                                if (notificationPreferenceService.shouldSendNotification(receiver, "donationCompleted", "email")) {
-                                    logger.info("Receiver {} has email notifications enabled for donationCompleted, sending email", receiver.getId());
-                                    
-                                    String donorName = donor.getOrganization() != null && donor.getOrganization().getName() != null 
-                                        ? donor.getOrganization().getName() 
-                                        : donor.getFullName();
-                                    
-                                    Map<String, Object> donationData = new HashMap<>();
-                                    donationData.put("donationTitle", post.getTitle());
-                                    donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
-                                    donationData.put("donorName", donorName);
-                                    
-                                    emailService.sendDonationCompletedNotification(
-                                        receiver.getEmail(),
-                                        receiverName,
-                                        donationData
-                                    );
-                                    
-                                    logger.info("Successfully sent donation completed email to receiver userId={} email={}", receiver.getId(), receiver.getEmail());
-                                } else {
-                                    logger.info("Receiver {} has email notifications disabled for donationCompleted or email globally disabled, skipping email", receiver.getId());
-                                }
-                            } catch (Exception e) {
-                                logger.error("Failed to send donation completed email notification to receiver: {}", e.getMessage(), e);
-                                // Don't throw - email is secondary to main functionality
-                            }
-                            
-                            // Send email notification to donor that donation was picked up (with preference checking)
-                            try {
-                                logger.info("Checking email preference for donor userId={} for donationPickedUp notification", donor.getId());
-                                
-                                if (notificationPreferenceService.shouldSendNotification(donor, "donationPickedUp", "email")) {
-                                    logger.info("Donor {} has email notifications enabled for donationPickedUp, sending email", donor.getId());
-                                    
-                                    // Prepare notification data
-                                    String donorName = donor.getOrganization() != null && donor.getOrganization().getName() != null 
-                                        ? donor.getOrganization().getName() 
-                                        : donor.getFullName();
-                                    
-                                    Map<String, Object> donationData = new HashMap<>();
-                                    donationData.put("donationTitle", post.getTitle());
-                                    donationData.put("quantity", post.getQuantity().getValue() + " " + post.getQuantity().getUnit().getLabel());
-                                    donationData.put("receiverName", receiverName);
-                                    
-                                    emailService.sendDonationPickedUpNotification(
-                                        donor.getEmail(),
-                                        donorName,
-                                        donationData
-                                    );
-                                    
-                                    logger.info("Successfully sent donation picked up email to donor userId={} email={}", donor.getId(), donor.getEmail());
-                                } else {
-                                    logger.info("Donor {} has email notifications disabled for donationPickedUp or email globally disabled, skipping email", donor.getId());
-                                }
-                            } catch (Exception e) {
-                                logger.error("Failed to send donation picked up email notification to donor: {}", e.getMessage(), e);
-                            }
-                            
-                            // Update calendar events to mark as completed
-                            try {
-                                updateCalendarEventsForCompletion(claim.getId());
-                                // Trigger async sync for both donor and receiver
-                                triggerCalendarSyncIfEnabled(donor);
-                                triggerCalendarSyncIfEnabled(claim.getReceiver());
-                            } catch (Exception e) {
-                                logger.error("Failed to update calendar events for completed claim {}: {}", claim.getId(), e.getMessage(), e);
-                                // Don't fail the completion if calendar update fails
-                            }
-                        } else {
-                            logger.info("Claim claimId={} already completed, skipping notification", claim.getId());
-                        }
-                    },
-                    () -> logger.warn("No claim found for postId={}, skipping receiver notification", post.getId())
-                );
+                        claim -> {
+                            logger.info("Found claim claimId={} with status={} for postId={}", claim.getId(),
+                                    claim.getStatus(), post.getId());
+                            if (claim.getStatus() != ClaimStatus.COMPLETED) {
+                                claimService.completeClaim(claim.getId());
 
+                                User receiver = claim.getReceiver();
+                                String receiverName = receiver.getOrganization() != null
+                                        && receiver.getOrganization().getName() != null
+                                                ? receiver.getOrganization().getName()
+                                                : receiver.getFullName();
 
+                                // Send WebSocket notification to receiver that donation was completed (if
+                                // preference allows)
+                                try {
+                                    logger.info(
+                                            "Checking websocket preference for receiver userId={} for donationCompleted notification",
+                                            receiver.getId());
+
+                                    if (notificationPreferenceService.shouldSendNotification(receiver,
+                                            "donationCompleted", "websocket")) {
+                                        logger.info(
+                                                "Receiver {} has websocket notifications enabled for donationCompleted, sending websocket notification",
+                                                receiver.getId());
+
+                                        Map<String, Object> receiverNotification = new HashMap<>();
+                                        receiverNotification.put("type", "DONATION_COMPLETED");
+                                        receiverNotification.put("donationId", post.getId());
+                                        receiverNotification.put("title", post.getTitle());
+                                        receiverNotification.put("message", "Donation Completed");
+                                        receiverNotification.put("timestamp", System.currentTimeMillis());
+
+                                        messagingTemplate.convertAndSendToUser(
+                                                receiver.getId().toString(),
+                                                "/queue/donations/completed",
+                                                receiverNotification);
+                                        logger.info(
+                                                "Successfully sent donation completed websocket notification to receiver userId={} for postId={}",
+                                                receiver.getId(), post.getId());
+                                    } else {
+                                        logger.info(
+                                                "Receiver {} has websocket notifications disabled for donationCompleted, skipping websocket notification",
+                                                receiver.getId());
+                                    }
+                                } catch (Exception e) {
+                                    logger.error(
+                                            "Failed to send donation completed websocket notification to receiver: {}",
+                                            e.getMessage(), e);
+                                }
+
+                                // Send email notification to receiver that donation was completed (if
+                                // preference allows)
+                                try {
+                                    logger.info(
+                                            "Checking email preference for receiver userId={} for donationCompleted notification",
+                                            receiver.getId());
+
+                                    if (notificationPreferenceService.shouldSendNotification(receiver,
+                                            "donationCompleted", "email")) {
+                                        logger.info(
+                                                "Receiver {} has email notifications enabled for donationCompleted, sending email",
+                                                receiver.getId());
+
+                                        String donorName = donor.getOrganization() != null
+                                                && donor.getOrganization().getName() != null
+                                                        ? donor.getOrganization().getName()
+                                                        : donor.getFullName();
+
+                                        Map<String, Object> donationData = new HashMap<>();
+                                        donationData.put("donationTitle", post.getTitle());
+                                        donationData.put("quantity", post.getQuantity().getValue() + " "
+                                                + post.getQuantity().getUnit().getLabel());
+                                        donationData.put("donorName", donorName);
+
+                                        emailService.sendDonationCompletedNotification(
+                                                receiver.getEmail(),
+                                                receiverName,
+                                                donationData);
+
+                                        logger.info(
+                                                "Successfully sent donation completed email to receiver userId={} email={}",
+                                                receiver.getId(), receiver.getEmail());
+                                    } else {
+                                        logger.info(
+                                                "Receiver {} has email notifications disabled for donationCompleted or email globally disabled, skipping email",
+                                                receiver.getId());
+                                    }
+                                } catch (Exception e) {
+                                    logger.error("Failed to send donation completed email notification to receiver: {}",
+                                            e.getMessage(), e);
+                                    // Don't throw - email is secondary to main functionality
+                                }
+
+                                // Send email notification to donor that donation was picked up (with preference
+                                // checking)
+                                try {
+                                    logger.info(
+                                            "Checking email preference for donor userId={} for donationPickedUp notification",
+                                            donor.getId());
+
+                                    if (notificationPreferenceService.shouldSendNotification(donor, "donationPickedUp",
+                                            "email")) {
+                                        logger.info(
+                                                "Donor {} has email notifications enabled for donationPickedUp, sending email",
+                                                donor.getId());
+
+                                        // Prepare notification data
+                                        String donorName = donor.getOrganization() != null
+                                                && donor.getOrganization().getName() != null
+                                                        ? donor.getOrganization().getName()
+                                                        : donor.getFullName();
+
+                                        Map<String, Object> donationData = new HashMap<>();
+                                        donationData.put("donationTitle", post.getTitle());
+                                        donationData.put("quantity", post.getQuantity().getValue() + " "
+                                                + post.getQuantity().getUnit().getLabel());
+                                        donationData.put("receiverName", receiverName);
+
+                                        emailService.sendDonationPickedUpNotification(
+                                                donor.getEmail(),
+                                                donorName,
+                                                donationData);
+
+                                        logger.info(
+                                                "Successfully sent donation picked up email to donor userId={} email={}",
+                                                donor.getId(), donor.getEmail());
+                                    } else {
+                                        logger.info(
+                                                "Donor {} has email notifications disabled for donationPickedUp or email globally disabled, skipping email",
+                                                donor.getId());
+                                    }
+                                } catch (Exception e) {
+                                    logger.error("Failed to send donation picked up email notification to donor: {}",
+                                            e.getMessage(), e);
+                                }
+
+                                // Update calendar events to mark as completed
+                                try {
+                                    updateCalendarEventsForCompletion(claim.getId());
+                                    // Trigger async sync for both donor and receiver
+                                    triggerCalendarSyncIfEnabled(donor);
+                                    triggerCalendarSyncIfEnabled(claim.getReceiver());
+                                } catch (Exception e) {
+                                    logger.error("Failed to update calendar events for completed claim {}: {}",
+                                            claim.getId(), e.getMessage(), e);
+                                    // Don't fail the completion if calendar update fails
+                                }
+                            } else {
+                                logger.info("Claim claimId={} already completed, skipping notification", claim.getId());
+                            }
+                        },
+                        () -> logger.warn("No claim found for postId={}, skipping receiver notification",
+                                post.getId()));
 
         businessMetricsService.incrementSurplusPostCompleted();
         businessMetricsService.incrementDonationsCompleted();
@@ -1509,7 +1561,8 @@ public class SurplusService {
                 .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to confirm this pickup.");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                    "You are not authorized to confirm this pickup.");
         }
 
         if (post.getOtpCode() == null) {
@@ -1521,11 +1574,13 @@ public class SurplusService {
         }
 
         if (post.getStatus() != PostStatus.READY_FOR_PICKUP) {
-            throw new com.example.foodflow.exception.domain.InvalidClaimStateException("Donation is not ready for pickup. Current status: " + post.getStatus());
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException(
+                    "Donation is not ready for pickup. Current status: " + post.getStatus());
         }
 
         Claim claim = claimRepository.findBySurplusPost(post)
-                .orElseThrow(() -> new com.example.foodflow.exception.domain.ClaimNotFoundException("No active claim found for this post"));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.ClaimNotFoundException(
+                        "No active claim found for this post"));
 
         // Validate pickup time with tolerance
         LocalDate confirmedDate = claim.getConfirmedPickupDate();
@@ -1588,14 +1643,16 @@ public class SurplusService {
                 .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         if (!post.getDonor().getId().equals(donor.getId())) {
-            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("You are not authorized to delete this post.");
+            throw new com.example.foodflow.exception.domain.UnauthorizedAccessException(
+                    "You are not authorized to delete this post.");
         }
 
         if (post.getStatus() == PostStatus.CLAIMED ||
                 post.getStatus() == PostStatus.READY_FOR_PICKUP ||
                 post.getStatus() == PostStatus.COMPLETED) {
 
-            throw new com.example.foodflow.exception.domain.InvalidClaimStateException("You cannot delete a post that has already been claimed or completed.");
+            throw new com.example.foodflow.exception.domain.InvalidClaimStateException(
+                    "You cannot delete a post that has already been claimed or completed.");
         }
 
         List<Claim> claims = claimRepository.findBySurplusPostId(postId);
@@ -1616,7 +1673,7 @@ public class SurplusService {
     public List<DonationTimelineDTO> getTimelineForPost(Long postId, User user) {
         // Fetch the post
         SurplusPost post = surplusPostRepository.findById(postId)
-            .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
+                .orElseThrow(() -> new com.example.foodflow.exception.domain.DonationNotFoundException(postId));
 
         // Authorization check: user must be the donor or a receiver with an
         // active/completed claim
@@ -1714,7 +1771,7 @@ public class SurplusService {
 
         return new UploadEvidenceResponse(fileUrl, "Evidence uploaded successfully", true);
     }
-    
+
     /**
      * Update calendar events to mark them as completed
      */
@@ -1722,42 +1779,43 @@ public class SurplusService {
         try {
             // Find all synced events for this claim
             List<SyncedCalendarEvent> events = syncedCalendarEventRepository.findByClaimId(claimId);
-            
+
             if (events.isEmpty()) {
                 logger.info("No calendar events found for claim {}", claimId);
                 return;
             }
-            
+
             // Update each event's description to indicate completion
             for (SyncedCalendarEvent event : events) {
-                String updatedDescription = event.getEventDescription() + 
-                    "\n\n✅ COMPLETED - This pickup has been successfully completed.";
+                String updatedDescription = event.getEventDescription() +
+                        "\n\n✅ COMPLETED - This pickup has been successfully completed.";
                 String updatedTitle = "✅ " + event.getEventTitle();
-                
+
                 calendarEventService.updateCalendarEvent(
-                    event,
-                    updatedTitle,
-                    updatedDescription,
-                    event.getStartTime(),
-                    event.getEndTime(),
-                    event.getTimezone()
-                );
-                
-                logger.info("Updated calendar event {} to mark as completed for claim {}", 
-                           event.getId(), claimId);
+                        event,
+                        updatedTitle,
+                        updatedDescription,
+                        event.getStartTime(),
+                        event.getEndTime(),
+                        event.getTimezone());
+
+                logger.info("Updated calendar event {} to mark as completed for claim {}",
+                        event.getId(), claimId);
             }
-            
+
             logger.info("Updated {} calendar events for completed claim {}", events.size(), claimId);
-            
+
         } catch (Exception e) {
             logger.error("Error updating calendar events for claim {}: {}", claimId, e.getMessage(), e);
             throw e;
         }
     }
-    
+
     /**
-     * Trigger async calendar sync for a user if they have calendar integrated and sync enabled
-     * Uses TransactionSynchronization to ensure sync happens AFTER transaction commits
+     * Trigger async calendar sync for a user if they have calendar integrated and
+     * sync enabled
+     * Uses TransactionSynchronization to ensure sync happens AFTER transaction
+     * commits
      */
     private void triggerCalendarSyncIfEnabled(User user) {
         try {
@@ -1766,15 +1824,15 @@ public class SurplusService {
                 logger.debug("User {} does not have calendar connected, skipping async sync", user.getId());
                 return;
             }
-            
+
             // Check if sync is enabled in preferences
-            java.util.Optional<com.example.foodflow.model.entity.CalendarSyncPreference> prefsOpt = 
-                calendarSyncPreferenceRepository.findByUserId(user.getId());
+            java.util.Optional<com.example.foodflow.model.entity.CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository
+                    .findByUserId(user.getId());
             if (!prefsOpt.isPresent() || !prefsOpt.get().getSyncEnabled()) {
                 logger.debug("User {} has sync disabled, skipping async sync", user.getId());
                 return;
             }
-            
+
             // Register callback to trigger async sync AFTER transaction commits
             // This fixes the bug where @Async threads query before the transaction commits
             if (TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -1791,7 +1849,7 @@ public class SurplusService {
                 logger.info("🚀 Triggering async calendar sync for user {} (no active transaction)", user.getId());
                 calendarSyncService.syncUserPendingEventsAsync(user);
             }
-            
+
         } catch (Exception e) {
             logger.error("Error triggering calendar sync for user {}: {}", user.getId(), e.getMessage());
         }

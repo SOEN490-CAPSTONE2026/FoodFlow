@@ -1,6 +1,5 @@
 package com.example.foodflow.helpers;
 
-
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,7 +54,7 @@ class BasicFilterTest {
     @Test
     void testStringComparisonLexicographically() {
         BasicFilter<String> filter = BasicFilter.lessThan("mango");
-        assertTrue(filter.check("apple"));   // "apple" < "mango"
+        assertTrue(filter.check("apple")); // "apple" < "mango"
         assertFalse(filter.check("zebra"));
     }
 
@@ -72,4 +71,3 @@ class BasicFilterTest {
         assertEquals(BasicFilter.Operation.GREATER_THAN, filter.getOperation());
     }
 }
-

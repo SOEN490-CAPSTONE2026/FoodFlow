@@ -44,44 +44,44 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
-            .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
-                .accessDeniedHandler((request, response, accessDeniedException) ->
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN)))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // Public endpoints
-                .requestMatchers("/api/auth/resend-verification-email").authenticated()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/files/**").permitAll()  // Allow access to uploaded files
-                .requestMatchers("/uploads/**").permitAll()  // Allow access to legacy upload URLs
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/analytics/**").permitAll()
-                .requestMatchers("/ws/**").permitAll()  // Allow WebSocket connections
-                
-                // Messaging endpoints - must be accessible to all authenticated users
-                .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-                .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-                
-                // Calendar OAuth callback - must be public for Google redirect
-                .requestMatchers("/api/calendar/oauth/google/callback").permitAll()
-                
-                // Calendar endpoints - accessible to donors and receivers
-                .requestMatchers("/api/calendar/**").hasAnyAuthority("DONOR", "RECEIVER")
-                
-                // Surplus endpoints with proper role restrictions
-                .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
-                .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
-                .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
-                .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> response
+                                .sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> response
+                                .sendError(HttpServletResponse.SC_FORBIDDEN)))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Public endpoints
+                        .requestMatchers("/api/auth/resend-verification-email").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/files/**").permitAll() // Allow access to uploaded files
+                        .requestMatchers("/uploads/**").permitAll() // Allow access to legacy upload URLs
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/api/analytics/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
+
+                        // Messaging endpoints - must be accessible to all authenticated users
+                        .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/messages/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+
+                        // Calendar OAuth callback - must be public for Google redirect
+                        .requestMatchers("/api/calendar/oauth/google/callback").permitAll()
+
+                        // Calendar endpoints - accessible to donors and receivers
+                        .requestMatchers("/api/calendar/**").hasAnyAuthority("DONOR", "RECEIVER")
+
+                        // Surplus endpoints with proper role restrictions
+                        .requestMatchers(HttpMethod.POST, "/api/surplus").hasAuthority("DONOR")
+                        .requestMatchers(HttpMethod.POST, "/api/surplus/*/evidence").hasAuthority("DONOR")
+                        .requestMatchers(HttpMethod.GET, "/api/surplus").hasAuthority("RECEIVER")
+                        .requestMatchers(HttpMethod.GET, "/api/surplus/my-posts").hasAuthority("DONOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/surplus/**").hasAuthority("DONOR")
 
                         // Messaging endpoints - must be accessible to all authenticated users
                         .requestMatchers("/api/conversations/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
@@ -136,8 +136,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/donations/stats/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/badge/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/privacy/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-                        .requestMatchers("/api/donations/profile/*/public").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-
+                        .requestMatchers("/api/donations/profile/*/public")
+                        .hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
 
                         // All other requests require authentication
                         .anyRequest().authenticated())

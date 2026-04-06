@@ -243,14 +243,13 @@ class ClaimServiceTest {
         claim2.setId(2L);
 
         when(claimRepository.findReceiverClaimsWithDetails(
-            eq(receiver.getId()),
-            eq(List.of(
-                ClaimStatus.ACTIVE,
-                ClaimStatus.COMPLETED,
-                ClaimStatus.NOT_COMPLETED,
-                ClaimStatus.EXPIRED
-            ))))
-            .thenReturn(Arrays.asList(claim1, claim2));
+                eq(receiver.getId()),
+                eq(List.of(
+                        ClaimStatus.ACTIVE,
+                        ClaimStatus.COMPLETED,
+                        ClaimStatus.NOT_COMPLETED,
+                        ClaimStatus.EXPIRED))))
+                .thenReturn(Arrays.asList(claim1, claim2));
 
         // When
         List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
@@ -266,30 +265,29 @@ class ClaimServiceTest {
         receiver.setTimezone("America/Toronto");
         surplusPost.setPickupDate(LocalDate.of(2026, 1, 15));
         surplusPost.setPickupFrom(LocalTime.of(15, 0)); // Stored as UTC
-        surplusPost.setPickupTo(LocalTime.of(17, 0));   // Stored as UTC
+        surplusPost.setPickupTo(LocalTime.of(17, 0)); // Stored as UTC
 
         Claim claim = new Claim(surplusPost, receiver);
         claim.setId(10L);
 
         when(claimRepository.findReceiverClaimsWithDetails(
-            eq(receiver.getId()),
-            eq(List.of(
-                ClaimStatus.ACTIVE,
-                ClaimStatus.COMPLETED,
-                ClaimStatus.NOT_COMPLETED,
-                ClaimStatus.EXPIRED
-            ))))
-            .thenReturn(List.of(claim));
+                eq(receiver.getId()),
+                eq(List.of(
+                        ClaimStatus.ACTIVE,
+                        ClaimStatus.COMPLETED,
+                        ClaimStatus.NOT_COMPLETED,
+                        ClaimStatus.EXPIRED))))
+                .thenReturn(List.of(claim));
 
         List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
 
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getSurplusPost().getPickupDate())
-            .isEqualTo(LocalDate.of(2026, 1, 15));
+                .isEqualTo(LocalDate.of(2026, 1, 15));
         assertThat(responses.get(0).getSurplusPost().getPickupFrom())
-            .isEqualTo(LocalTime.of(10, 0));
+                .isEqualTo(LocalTime.of(10, 0));
         assertThat(responses.get(0).getSurplusPost().getPickupTo())
-            .isEqualTo(LocalTime.of(12, 0));
+                .isEqualTo(LocalTime.of(12, 0));
     }
 
     @Test
@@ -300,42 +298,40 @@ class ClaimServiceTest {
         claim.setId(11L);
         claim.setConfirmedPickupDate(LocalDate.of(2026, 1, 15));
         claim.setConfirmedPickupStartTime(LocalTime.of(22, 45)); // UTC
-        claim.setConfirmedPickupEndTime(LocalTime.of(23, 45));   // UTC
+        claim.setConfirmedPickupEndTime(LocalTime.of(23, 45)); // UTC
 
         when(claimRepository.findReceiverClaimsWithDetails(
-            eq(receiver.getId()),
-            eq(List.of(
-                ClaimStatus.ACTIVE,
-                ClaimStatus.COMPLETED,
-                ClaimStatus.NOT_COMPLETED,
-                ClaimStatus.EXPIRED
-            ))))
-            .thenReturn(List.of(claim));
+                eq(receiver.getId()),
+                eq(List.of(
+                        ClaimStatus.ACTIVE,
+                        ClaimStatus.COMPLETED,
+                        ClaimStatus.NOT_COMPLETED,
+                        ClaimStatus.EXPIRED))))
+                .thenReturn(List.of(claim));
 
         List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
 
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getConfirmedPickupSlot()).isNotNull();
         assertThat(responses.get(0).getConfirmedPickupSlot().getPickupDate())
-            .isEqualTo(LocalDate.of(2026, 1, 15));
+                .isEqualTo(LocalDate.of(2026, 1, 15));
         assertThat(responses.get(0).getConfirmedPickupSlot().getStartTime())
-            .isEqualTo(LocalTime.of(17, 45));
+                .isEqualTo(LocalTime.of(17, 45));
         assertThat(responses.get(0).getConfirmedPickupSlot().getEndTime())
-            .isEqualTo(LocalTime.of(18, 45));
+                .isEqualTo(LocalTime.of(18, 45));
     }
 
     @Test
     void getReceiverClaims_NoClaims_ReturnsEmptyList() {
         // Given
         when(claimRepository.findReceiverClaimsWithDetails(
-            eq(receiver.getId()),
-            eq(List.of(
-                ClaimStatus.ACTIVE,
-                ClaimStatus.COMPLETED,
-                ClaimStatus.NOT_COMPLETED,
-                ClaimStatus.EXPIRED
-            ))))
-            .thenReturn(Arrays.asList());
+                eq(receiver.getId()),
+                eq(List.of(
+                        ClaimStatus.ACTIVE,
+                        ClaimStatus.COMPLETED,
+                        ClaimStatus.NOT_COMPLETED,
+                        ClaimStatus.EXPIRED))))
+                .thenReturn(Arrays.asList());
 
         // When
         List<ClaimResponse> responses = claimService.getReceiverClaims(receiver);
@@ -740,7 +736,8 @@ class ClaimServiceTest {
 
         claimService.claimSurplusPost(claimRequest, receiver);
 
-        verify(notificationPreferenceService, times(3)).shouldSendNotification(eq(donor), eq("donationClaimed"), anyString());
+        verify(notificationPreferenceService, times(3)).shouldSendNotification(eq(donor), eq("donationClaimed"),
+                anyString());
         // Should still send to receiver
         verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/claims"), any());
     }
@@ -823,7 +820,8 @@ class ClaimServiceTest {
 
         claimService.cancelClaim(1L, receiver);
 
-        verify(notificationPreferenceService, times(3)).shouldSendNotification(eq(donor), eq("claimCanceled"), anyString());
+        verify(notificationPreferenceService, times(3)).shouldSendNotification(eq(donor), eq("claimCanceled"),
+                anyString());
         verify(messagingTemplate, never()).convertAndSendToUser(anyString(), eq("/queue/claims/cancelled"), any());
     }
 
@@ -850,7 +848,7 @@ class ClaimServiceTest {
     @Test
     void claimSurplusPost_SendsSmsWhenEnabledAndPhoneValid() {
         donor.setPhone("+12345678901");
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
 
@@ -870,7 +868,7 @@ class ClaimServiceTest {
     @Test
     void claimSurplusPost_DoesNotSendSmsWhenPhoneInvalid() {
         donor.setPhone("invalid-phone");
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
 
@@ -890,7 +888,7 @@ class ClaimServiceTest {
     @Test
     void cancelClaim_SendsSmsWhenEnabledAndPhoneValid() {
         donor.setPhone("+19876543210");
-        
+
         Claim activeClaim = new Claim(surplusPost, receiver);
         activeClaim.setId(1L);
         activeClaim.setStatus(ClaimStatus.ACTIVE);
@@ -910,7 +908,7 @@ class ClaimServiceTest {
     @Test
     void cancelClaim_DoesNotSendSmsWhenPhoneMissing() {
         donor.setPhone(null);
-        
+
         Claim activeClaim = new Claim(surplusPost, receiver);
         activeClaim.setId(1L);
         activeClaim.setStatus(ClaimStatus.ACTIVE);
@@ -931,7 +929,7 @@ class ClaimServiceTest {
     void claimSurplusPost_SendsEmailWithDonorNameWhenNoOrganization() {
         // Ensure donor has no organization
         donor.setOrganization(null);
-        
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
 
@@ -952,7 +950,7 @@ class ClaimServiceTest {
     void cancelClaim_SendsEmailWithDonorNameWhenNoOrganization() {
         // Ensure donor has no organization
         donor.setOrganization(null);
-        
+
         Claim activeClaim = new Claim(surplusPost, receiver);
         activeClaim.setId(1L);
         activeClaim.setStatus(ClaimStatus.ACTIVE);
@@ -971,8 +969,8 @@ class ClaimServiceTest {
 
     @Test
     void claimSurplusPost_DoesNotSendSmsWhenPhoneEmpty() {
-        donor.setPhone("   ");  // Empty/whitespace phone
-        
+        donor.setPhone("   "); // Empty/whitespace phone
+
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(surplusPost));
         when(claimRepository.existsBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE)).thenReturn(false);
 
@@ -991,8 +989,8 @@ class ClaimServiceTest {
 
     @Test
     void cancelClaim_DoesNotSendSmsWhenPhoneEmpty() {
-        donor.setPhone("");  // Empty string phone
-        
+        donor.setPhone(""); // Empty string phone
+
         Claim activeClaim = new Claim(surplusPost, receiver);
         activeClaim.setId(1L);
         activeClaim.setStatus(ClaimStatus.ACTIVE);
@@ -1036,8 +1034,7 @@ class ClaimServiceTest {
                 eq(PostStatus.AVAILABLE),
                 any(PostStatus.class),
                 eq("Claimed by Test Food Bank"),
-                eq(true)
-        );
+                eq(true));
     }
 
     @Test
@@ -1064,8 +1061,7 @@ class ClaimServiceTest {
                 eq(PostStatus.AVAILABLE),
                 any(PostStatus.class),
                 eq("Claimed by receiver@test.com"),
-                eq(true)
-        );
+                eq(true));
     }
 
     @Test
@@ -1098,18 +1094,16 @@ class ClaimServiceTest {
         claimService.claimSurplusPost(claimRequest, receiver);
 
         // Verify OTP code wasn't changed
-        verify(surplusPostRepository).save(argThat(post -> 
-                "EXISTING123".equals(post.getOtpCode()) && 
-                post.getStatus() == PostStatus.READY_FOR_PICKUP
-        ));
+        verify(surplusPostRepository).save(argThat(post -> "EXISTING123".equals(post.getOtpCode()) &&
+                post.getStatus() == PostStatus.READY_FOR_PICKUP));
     }
 
     @Test
     void claimSurplusPost_WithInvalidSlotTimes_LogsWarning() {
         // Given - slot with end time before start time (suspicious timezone issue)
         LocalDate pickupDate = LocalDate.now().plusDays(2);
-        LocalTime startTime = LocalTime.of(16, 0);  // 4 PM
-        LocalTime endTime = LocalTime.of(14, 0);    // 2 PM (before start!)
+        LocalTime startTime = LocalTime.of(16, 0); // 4 PM
+        LocalTime endTime = LocalTime.of(14, 0); // 2 PM (before start!)
 
         PickupSlot suspiciousSlot = new PickupSlot();
         suspiciousSlot.setId(200L);
@@ -1177,7 +1171,6 @@ class ClaimServiceTest {
         verify(claimRepository, never()).save(any());
     }
 
-
     @Test
     void completeClaim_AwardsGamificationPoints() {
         // Given
@@ -1211,7 +1204,6 @@ class ClaimServiceTest {
                 .hasMessageContaining("expired");
     }
 
-
     @Test
     void cancelClaim_CreatesTimelineEvent() {
         // Given
@@ -1235,8 +1227,7 @@ class ClaimServiceTest {
                 eq(PostStatus.AVAILABLE),
                 eq(PostStatus.AVAILABLE),
                 anyString(),
-                eq(true)
-        );
+                eq(true));
     }
 
     @Test
