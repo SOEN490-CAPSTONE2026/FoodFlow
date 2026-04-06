@@ -61,4 +61,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
         */
        @Query(value = "SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt DESC LIMIT 1")
        java.util.Optional<Message> findLastMessageInConversation(@Param("conversationId") Long conversationId);
+
+       /**
+        * Count messages sent by a user
+        */
+       @Query("SELECT COUNT(m) FROM Message m WHERE m.sender.id = :senderId")
+       long countBySenderId(@Param("senderId") Long senderId);
 }

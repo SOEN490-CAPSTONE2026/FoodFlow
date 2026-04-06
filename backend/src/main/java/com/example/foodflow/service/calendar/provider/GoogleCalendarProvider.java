@@ -1,4 +1,5 @@
 package com.example.foodflow.service.calendar.provider;
+
 import com.example.foodflow.model.dto.calendar.google.GoogleCalendarEventRequest;
 import com.example.foodflow.model.dto.calendar.google.GoogleCalendarEventResponse;
 import com.example.foodflow.model.dto.calendar.google.GoogleCalendarSettingsResponse;
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 /**
  * Implementation for Google Calendar API integration
  * Uses Google Calendar v3 REST API
@@ -40,23 +42,27 @@ public class GoogleCalendarProvider implements CalendarProvider {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
+
     public GoogleCalendarProvider(GoogleOAuthService googleOAuthService,
-                                  EncryptionUtility encryptionUtility,
-                                  RestTemplate restTemplate,
-                                  ObjectMapper objectMapper,
-                                  CalendarSyncPreferenceRepository calendarSyncPreferenceRepository) {
+            EncryptionUtility encryptionUtility,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper,
+            CalendarSyncPreferenceRepository calendarSyncPreferenceRepository) {
         this.googleOAuthService = googleOAuthService;
         this.encryptionUtility = encryptionUtility;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
     }
+
     @Override
     public String getProviderName() {
         return PROVIDER_NAME;
     }
+
     @Override
-    public String createEvent(String encryptedRefreshToken, SyncedCalendarEvent event) throws CalendarProviderException {
+    public String createEvent(String encryptedRefreshToken, SyncedCalendarEvent event)
+            throws CalendarProviderException {
         try {
             String refreshToken = encryptionUtility.decrypt(encryptedRefreshToken);
             String accessToken = getValidAccessToken(refreshToken);
@@ -79,11 +85,12 @@ public class GoogleCalendarProvider implements CalendarProvider {
             logger.info("Response Body:\n{}", response.getBody());
             writeDebugLog("CREATE_EVENT_RESPONSE", response.getBody());
             if (!response.getStatusCode().is2xxSuccessful()) {
-                logger.error("Failed to create event. Status: {}, Body: {}", response.getStatusCode(), response.getBody());
+                logger.error("Failed to create event. Status: {}, Body: {}", response.getStatusCode(),
+                        response.getBody());
                 throw new CalendarProviderException("Failed to create event: " + response.getStatusCode());
             }
             GoogleCalendarEventResponse createdEvent = objectMapper.readValue(
-                response.getBody(), GoogleCalendarEventResponse.class);
+                    response.getBody(), GoogleCalendarEventResponse.class);
             logger.info("✅ Event created on Google Calendar with ID: {}", createdEvent.getId());
             return createdEvent.getId();
         } catch (CalendarProviderException e) {
@@ -94,6 +101,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             throw new CalendarProviderException("Event creation failed: " + e.getMessage(), e);
         }
     }
+
     @Override
     public void updateEvent(String encryptedRefreshToken, SyncedCalendarEvent event) throws CalendarProviderException {
         try {
@@ -107,7 +115,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             HttpEntity<GoogleCalendarEventRequest> request = new HttpEntity<>(googleEvent, headers);
             String url = GOOGLE_CALENDAR_API_BASE + "/" + event.getExternalEventId();
             ResponseEntity<String> response = restTemplate.exchange(
-                url, HttpMethod.PATCH, request, String.class);
+                    url, HttpMethod.PATCH, request, String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new CalendarProviderException("Failed to update event: " + response.getStatusCode());
             }
@@ -119,6 +127,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             throw new CalendarProviderException("Event update failed: " + e.getMessage(), e);
         }
     }
+
     @Override
     public void deleteEvent(String encryptedRefreshToken, String externalEventId) throws CalendarProviderException {
         try {
@@ -128,7 +137,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             HttpEntity<Void> request = new HttpEntity<>(headers);
             String url = GOOGLE_CALENDAR_API_BASE + "/" + externalEventId;
             ResponseEntity<Void> response = restTemplate.exchange(
-                url, HttpMethod.DELETE, request, Void.class);
+                    url, HttpMethod.DELETE, request, Void.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new CalendarProviderException("Failed to delete event: " + response.getStatusCode());
             }
@@ -140,12 +149,12 @@ public class GoogleCalendarProvider implements CalendarProvider {
             throw new CalendarProviderException("Event deletion failed: " + e.getMessage(), e);
         }
     }
+
     @Override
     public String refreshAccessToken(String encryptedRefreshToken) throws CalendarProviderException {
         try {
             String refreshToken = encryptionUtility.decrypt(encryptedRefreshToken);
-            GoogleOAuthService.GoogleTokenResponse tokenResponse = 
-                googleOAuthService.refreshAccessToken(refreshToken);
+            GoogleOAuthService.GoogleTokenResponse tokenResponse = googleOAuthService.refreshAccessToken(refreshToken);
             logger.info("Access token refreshed successfully");
             return tokenResponse.getAccessToken();
         } catch (Exception e) {
@@ -153,6 +162,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             throw new CalendarProviderException("Token refresh failed: " + e.getMessage(), e);
         }
     }
+
     /**
      * Get a valid access token, refreshing if necessary
      */
@@ -161,27 +171,28 @@ public class GoogleCalendarProvider implements CalendarProvider {
         // TODO: Implement token caching with expiry checking
         return refreshAccessToken(encryptionUtility.encrypt(refreshToken));
     }
+
     /**
      * Verify calendar access by calling a lightweight endpoint
      * Returns true if access is valid, false if permissions have been revoked
-     * @throws CalendarProviderException with "invalid_grant" message if refresh token is invalid
+     * 
+     * @throws CalendarProviderException with "invalid_grant" message if refresh
+     *                                   token is invalid
      */
     public boolean verifyCalendarAccess(String refreshToken) throws CalendarProviderException {
         try {
             logger.info("Verifying calendar access");
             // Get access token (will attempt refresh)
-            GoogleOAuthService.GoogleTokenResponse tokenResponse = 
-                googleOAuthService.refreshAccessToken(refreshToken);
+            GoogleOAuthService.GoogleTokenResponse tokenResponse = googleOAuthService.refreshAccessToken(refreshToken);
             String accessToken = tokenResponse.getAccessToken();
             // Make lightweight API call to verify permissions
             HttpHeaders headers = createAuthHeaders(accessToken);
             HttpEntity<Void> request = new HttpEntity<>(headers);
             ResponseEntity<String> response = restTemplate.exchange(
-                GOOGLE_CALENDAR_PRIMARY, 
-                HttpMethod.GET, 
-                request, 
-                String.class
-            );
+                    GOOGLE_CALENDAR_PRIMARY,
+                    HttpMethod.GET,
+                    request,
+                    String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 logger.info("Calendar access verified successfully");
                 return true;
@@ -199,8 +210,10 @@ public class GoogleCalendarProvider implements CalendarProvider {
             throw new CalendarProviderException("Verification failed: " + errorMessage, e);
         }
     }
+
     /**
      * Fetch calendar settings (name, timezone) from Google Calendar API
+     * 
      * @param refreshToken Refresh token (NOT encrypted)
      * @return GoogleCalendarSettingsResponse containing calendar metadata
      * @throws CalendarProviderException if the API call fails
@@ -209,27 +222,27 @@ public class GoogleCalendarProvider implements CalendarProvider {
         try {
             logger.info("Fetching Google Calendar settings");
             // Get access token
-            GoogleOAuthService.GoogleTokenResponse tokenResponse = 
-                googleOAuthService.refreshAccessToken(refreshToken);
+            GoogleOAuthService.GoogleTokenResponse tokenResponse = googleOAuthService.refreshAccessToken(refreshToken);
             String accessToken = tokenResponse.getAccessToken();
-            // Call Google Calendar List API to get primary calendar settings with better metadata
-            // This endpoint returns more complete information including proper calendar name
+            // Call Google Calendar List API to get primary calendar settings with better
+            // metadata
+            // This endpoint returns more complete information including proper calendar
+            // name
             HttpHeaders headers = createAuthHeaders(accessToken);
             HttpEntity<Void> request = new HttpEntity<>(headers);
             ResponseEntity<String> response = restTemplate.exchange(
-                GOOGLE_CALENDAR_LIST_PRIMARY, 
-                HttpMethod.GET, 
-                request, 
-                String.class
-            );
+                    GOOGLE_CALENDAR_LIST_PRIMARY,
+                    HttpMethod.GET,
+                    request,
+                    String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
                 logger.error("Failed to fetch calendar settings. Status: {}", response.getStatusCode());
                 throw new CalendarProviderException("Failed to fetch calendar settings: " + response.getStatusCode());
             }
             GoogleCalendarSettingsResponse settings = objectMapper.readValue(
-                response.getBody(), GoogleCalendarSettingsResponse.class);
-            logger.info("✅ Calendar settings fetched - id={}, summary={}, summaryOverride={}, timezone={}", 
-                       settings.getId(), settings.getSummary(), settings.getSummaryOverride(), settings.getTimeZone());
+                    response.getBody(), GoogleCalendarSettingsResponse.class);
+            logger.info("✅ Calendar settings fetched - id={}, summary={}, summaryOverride={}, timezone={}",
+                    settings.getId(), settings.getSummary(), settings.getSummaryOverride(), settings.getTimeZone());
             logger.info("Final calendar name will be: {}", settings.getCalendarName());
             return settings;
         } catch (CalendarProviderException e) {
@@ -239,6 +252,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             throw new CalendarProviderException("Failed to fetch calendar settings: " + e.getMessage(), e);
         }
     }
+
     /**
      * Map FoodFlow event to Google Calendar event with user preferences applied
      */
@@ -260,33 +274,36 @@ public class GoogleCalendarProvider implements CalendarProvider {
             googleEvent.setEnd(end);
         }
         // Apply user preferences
-        Optional<CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository.findByUserId(event.getUser().getId());
+        Optional<CalendarSyncPreference> prefsOpt = calendarSyncPreferenceRepository
+                .findByUserId(event.getUser().getId());
         if (prefsOpt.isPresent()) {
             CalendarSyncPreference prefs = prefsOpt.get();
             // Apply color
             googleEvent.setColorId(mapColorToGoogleColorId(prefs.getEventColor()));
             // Apply visibility
-            googleEvent.setVisibility(prefs.getEventVisibility() != null ? 
-                prefs.getEventVisibility().toLowerCase() : "private");
+            googleEvent.setVisibility(
+                    prefs.getEventVisibility() != null ? prefs.getEventVisibility().toLowerCase() : "private");
             // Apply reminders
             if (prefs.getAutoCreateReminders()) {
                 googleEvent.setReminders(buildReminders(prefs));
             }
             // Add location if this is a claim event with pickup location
-            if (event.getClaim() != null && 
-                event.getClaim().getSurplusPost() != null && 
-                event.getClaim().getSurplusPost().getPickupLocation() != null) {
+            if (event.getClaim() != null &&
+                    event.getClaim().getSurplusPost() != null &&
+                    event.getClaim().getSurplusPost().getPickupLocation() != null) {
                 googleEvent.setLocation(event.getClaim().getSurplusPost().getPickupLocation().getAddress());
             }
         }
         return googleEvent;
     }
+
     /**
      * Map color preference to Google Calendar color ID
      */
     private String mapColorToGoogleColorId(String color) {
-        if (color == null) return "1"; // Default blue
-        return switch(color.toUpperCase()) {
+        if (color == null)
+            return "1"; // Default blue
+        return switch (color.toUpperCase()) {
             case "BLUE" -> "1";
             case "GREEN" -> "2";
             case "PURPLE" -> "3";
@@ -297,6 +314,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
             default -> "1"; // Default blue
         };
     }
+
     /**
      * Build reminders configuration from preferences
      */
@@ -313,17 +331,19 @@ public class GoogleCalendarProvider implements CalendarProvider {
             reminders.add(new GoogleCalendarEventRequest.Reminder("popup", minutes));
         }
         return new GoogleCalendarEventRequest.RemindersConfig(
-            false, 
-            reminders.toArray(new GoogleCalendarEventRequest.Reminder[0])
-        );
+                false,
+                reminders.toArray(new GoogleCalendarEventRequest.Reminder[0]));
     }
+
     /**
      * Format LocalDateTime to ISO 8601 string
      */
     private String formatDateTime(LocalDateTime dateTime) {
-        if (dateTime == null) return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        if (dateTime == null)
+            return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         return dateTime.format(DateTimeFormatter.ISO_DATE_TIME);
     }
+
     /**
      * Write debug information to file for troubleshooting
      */
@@ -331,12 +351,14 @@ public class GoogleCalendarProvider implements CalendarProvider {
         try {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS"));
             String filename = "logs/google-calendar-debug-" + prefix + "-" + timestamp + ".json";
-            Files.write(Paths.get(filename), content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.write(Paths.get(filename), content.getBytes(), StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING);
             logger.info("📝 Debug log written to: {}", filename);
         } catch (Exception e) {
             logger.warn("Failed to write debug log: {}", e.getMessage());
         }
     }
+
     /**
      * Get stack trace as string
      */
@@ -351,6 +373,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
         }
         return sb.toString();
     }
+
     /**
      * Create HTTP headers with authorization
      */

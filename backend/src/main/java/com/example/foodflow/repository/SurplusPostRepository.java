@@ -1,4 +1,5 @@
 package com.example.foodflow.repository;
+
 import com.example.foodflow.model.entity.SurplusPost;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -9,20 +10,30 @@ import java.util.List;
 import java.time.LocalDateTime;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
+
 @Repository
 public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
         JpaSpecificationExecutor<SurplusPost> {
     List<SurplusPost> findByDonorId(Long donorId);
+
     long countByDonorId(Long donorId);
+
     List<SurplusPost> findByPickupLocation_Address(String address);
+
     List<SurplusPost> findByPickupLocation_LatitudeAndPickupLocation_Longitude(Double lat, Double lon);
+
     // All posts that are NOT claimed
     List<SurplusPost> findByStatusNot(PostStatus status);
+
     // Only claimed posts
     List<SurplusPost> findByStatus(PostStatus status);
+
     long countByStatus(PostStatus status);
+
     List<SurplusPost> findByStatusIn(List<PostStatus> statuses);
+
     List<SurplusPost> findByDonorOrderByCreatedAtDesc(User donor);
+
     /**
      * Find posts within a certain distance using native Haversine formula.
      * This uses a native SQL query which is database-specific but more efficient.
@@ -51,6 +62,7 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
             @Param("longitude") Double longitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
             @Param("status") String status);
+
     /**
      * Find posts within distance AND matching food categories.
      */
@@ -75,6 +87,7 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
             @Param("maxDistanceKm") Double maxDistanceKm,
             @Param("foodCategories") List<String> foodCategories,
             @Param("status") String status);
+
     /**
      * Find posts created within a date range
      */
@@ -83,6 +96,7 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
     List<SurplusPost> findByCreatedDateRange(
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
     /**
      * Find posts by donor created within a date range
      */

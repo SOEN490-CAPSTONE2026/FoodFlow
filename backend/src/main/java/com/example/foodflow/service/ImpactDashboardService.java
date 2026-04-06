@@ -1,4 +1,5 @@
 package com.example.foodflow.service;
+
 import com.example.foodflow.model.dto.ImpactMetricsDTO;
 import com.example.foodflow.model.entity.Claim;
 import com.example.foodflow.model.entity.SurplusPost;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 /**
  * Service for calculating impact dashboard metrics
  */
@@ -38,6 +40,7 @@ public class ImpactDashboardService {
     private final FoodTypeImpactService foodTypeImpactService;
     private final ImpactMetricsEngine impactMetricsEngine;
     private final ObjectMapper objectMapper;
+
     public ImpactDashboardService(
             SurplusPostRepository surplusPostRepository,
             ClaimRepository claimRepository,
@@ -52,6 +55,7 @@ public class ImpactDashboardService {
         this.impactMetricsEngine = impactMetricsEngine;
         this.objectMapper = objectMapper;
     }
+
     /**
      * Get impact metrics for a donor
      */
@@ -127,6 +131,7 @@ public class ImpactDashboardService {
                 metrics.getTotalFoodWeightKg(), mealRange[0], mealRange[1], metrics.getCo2EmissionsAvoidedKg());
         return metrics;
     }
+
     /**
      * Get impact metrics for a receiver
      */
@@ -187,6 +192,7 @@ public class ImpactDashboardService {
                 metrics.getTotalFoodWeightKg(), mealRange[0], mealRange[1], allClaims.size());
         return metrics;
     }
+
     /**
      * Get platform-wide impact metrics for admin
      */
@@ -289,6 +295,7 @@ public class ImpactDashboardService {
                 metrics.getTotalFoodWeightKg(), mealRange[0], mealRange[1], activeDonors, activeReceivers);
         return metrics;
     }
+
     /**
      * Calculate total food weight in kg from posts
      */
@@ -299,6 +306,7 @@ public class ImpactDashboardService {
                 .mapToDouble(calculationService::convertToKg)
                 .sum();
     }
+
     private double calculateExpiredWeight(List<SurplusPost> posts) {
         LocalDateTime now = LocalDateTime.now();
         return posts.stream()
@@ -312,6 +320,7 @@ public class ImpactDashboardService {
                 .mapToDouble(calculationService::convertToKg)
                 .sum();
     }
+
     private void applyImpactMetrics(
             ImpactMetricsDTO metrics,
             ImpactMetricsEngine.ImpactComputationResult impactResult) {
@@ -331,6 +340,7 @@ public class ImpactDashboardService {
         metrics.setWaterVsPreviousPct(deltas.waterPct());
         metrics.setImpactAuditJson(serializeAudit(impactResult.audit()));
     }
+
     private String serializeAudit(ImpactMetricsEngine.ImpactAudit audit) {
         try {
             return objectMapper.writeValueAsString(audit);
@@ -338,6 +348,7 @@ public class ImpactDashboardService {
             return "{\"serializationError\":true}";
         }
     }
+
     private ImpactMetricsEngine.DonationImpactRecord toImpactRecord(SurplusPost post, Claim claim) {
         double weightKg = calculationService.convertToKg(post.getQuantity());
         String status = resolveStatus(post, claim);
@@ -353,6 +364,7 @@ public class ImpactDashboardService {
                 expirationTime,
                 eventTime);
     }
+
     private String resolveStatus(SurplusPost post, Claim claim) {
         if (claim != null && claim.getStatus() == ClaimStatus.COMPLETED) {
             return "picked_up";
@@ -362,6 +374,7 @@ public class ImpactDashboardService {
         }
         return post.getStatus().name().toLowerCase();
     }
+
     private LocalDateTime resolvePickupTime(SurplusPost post, Claim claim) {
         if (claim != null) {
             LocalDateTime fromClaim = toDateTime(claim.getConfirmedPickupDate(), claim.getConfirmedPickupEndTime())
@@ -376,12 +389,14 @@ public class ImpactDashboardService {
         }
         return null;
     }
+
     private Optional<LocalDateTime> toDateTime(java.time.LocalDate date, LocalTime time) {
         if (date == null || time == null) {
             return Optional.empty();
         }
         return Optional.of(LocalDateTime.of(date, time));
     }
+
     private LocalDateTime resolveExpiryTime(SurplusPost post) {
         if (post.getExpiryDateEffective() != null) {
             return post.getExpiryDateEffective();
@@ -391,6 +406,7 @@ public class ImpactDashboardService {
         }
         return null;
     }
+
     /**
      * Calculate time-based metrics for completed donations with claims
      */
@@ -417,6 +433,7 @@ public class ImpactDashboardService {
         // Calculate pickup timeliness (placeholder - requires pickup time data)
         metrics.setPickupTimelinessRate(0.0); // Will be enhanced when pickup time tracking is added
     }
+
     /**
      * Calculate time-based metrics from claims directly
      */
@@ -425,9 +442,8 @@ public class ImpactDashboardService {
         for (Claim claim : completedClaims) {
             if (claim.getClaimedAt() != null && claim.getSurplusPost() != null) {
                 long hoursToClaim = ChronoUnit.HOURS.between(
-                    claim.getSurplusPost().getCreatedAt(),
-                    claim.getClaimedAt()
-                );
+                        claim.getSurplusPost().getCreatedAt(),
+                        claim.getClaimedAt());
                 claimTimeHours.add((double) hoursToClaim);
             }
         }
@@ -441,6 +457,7 @@ public class ImpactDashboardService {
         }
         metrics.setPickupTimelinessRate(0.0); // Placeholder
     }
+
     /**
      * Calculate date range boundaries based on range type
      */
@@ -463,15 +480,17 @@ public class ImpactDashboardService {
                 startDate = LocalDateTime.of(2020, 1, 1, 0, 0); // Platform inception
                 break;
         }
-        return new LocalDateTime[]{startDate, endDate};
+        return new LocalDateTime[] { startDate, endDate };
     }
+
     private LocalDateTime[] calculatePreviousDateRange(LocalDateTime currentStart, LocalDateTime currentEnd) {
         long seconds = ChronoUnit.SECONDS.between(currentStart, currentEnd);
         if (seconds <= 0) {
-            return new LocalDateTime[]{currentStart.minusDays(1), currentStart};
+            return new LocalDateTime[] { currentStart.minusDays(1), currentStart };
         }
-        return new LocalDateTime[]{currentStart.minusSeconds(seconds), currentStart};
+        return new LocalDateTime[] { currentStart.minusSeconds(seconds), currentStart };
     }
+
     private List<ImpactMetricsDTO.TimeSeriesPointDTO> buildFoodSavedTimeSeries(
             List<ImpactMetricsEngine.DonationImpactRecord> records,
             LocalDateTime startDate,
@@ -485,6 +504,7 @@ public class ImpactDashboardService {
         }
         return buildDailyFoodSavedTimeSeries(records, startDate, endDate);
     }
+
     private List<ImpactMetricsDTO.TimeSeriesPointDTO> buildDailyFoodSavedTimeSeries(
             List<ImpactMetricsEngine.DonationImpactRecord> records,
             LocalDateTime startDate,
@@ -513,6 +533,7 @@ public class ImpactDashboardService {
                 .map(entry -> new ImpactMetricsDTO.TimeSeriesPointDTO(entry.getKey().toString(), entry.getValue()))
                 .toList();
     }
+
     private List<ImpactMetricsDTO.TimeSeriesPointDTO> buildMonthlyFoodSavedTimeSeries(
             List<ImpactMetricsEngine.DonationImpactRecord> records,
             LocalDateTime startDate,
@@ -541,6 +562,7 @@ public class ImpactDashboardService {
                 .map(entry -> new ImpactMetricsDTO.TimeSeriesPointDTO(entry.getKey().toString(), entry.getValue()))
                 .toList();
     }
+
     /**
      * Check if datetime is within range
      */
