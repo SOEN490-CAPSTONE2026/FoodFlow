@@ -16,7 +16,8 @@ import java.nio.file.Paths;
 
 /**
  * Controller for serving files from legacy /uploads/ URLs.
- * This handles old URLs stored in the database that don't have the /api/files prefix.
+ * This handles old URLs stored in the database that don't have the /api/files
+ * prefix.
  */
 @RestController
 @RequestMapping("/uploads")
@@ -44,9 +45,9 @@ public class LegacyFileController {
 
             // Search for file in uploads directory tree
             java.util.Optional<Path> foundFile = Files.walk(uploadPath)
-                .filter(Files::isRegularFile)
-                .filter(p -> p.getFileName().toString().equals(filename))
-                .findFirst();
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().equals(filename))
+                    .findFirst();
 
             if (foundFile.isEmpty()) {
                 logger.warn("File not found: {}", filename);
@@ -66,10 +67,11 @@ public class LegacyFileController {
             String contentType = Files.probeContentType(file);
 
             return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                .header(HttpHeaders.CACHE_CONTROL, "max-age=86400")
-                .body(resource);
+                    .contentType(
+                            MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .header(HttpHeaders.CACHE_CONTROL, "max-age=86400")
+                    .body(resource);
 
         } catch (IOException e) {
             logger.error("Error serving file: {}", filename, e);

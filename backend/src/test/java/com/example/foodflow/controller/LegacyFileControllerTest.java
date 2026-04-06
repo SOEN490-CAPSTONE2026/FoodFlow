@@ -106,7 +106,7 @@ class LegacyFileControllerTest {
 
         // Then
         assertThat(response.getHeaders().getContentDisposition().toString())
-            .contains("inline")
-            .contains("inline-file.jpg");
+                .contains("inline")
+                .contains("inline-file.jpg");
     }
 }

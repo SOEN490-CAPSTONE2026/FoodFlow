@@ -32,8 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class ReportsEndpointSecurityTest {
 
-    private static final String VALID_BODY =
-            "{\"reportedId\": 1, \"description\": \"Behaviour that violated the platform rules\"}";
+    private static final String VALID_BODY = "{\"reportedId\": 1, \"description\": \"Behaviour that violated the platform rules\"}";
 
     @Autowired
     private MockMvc mockMvc;
@@ -82,8 +81,8 @@ class ReportsEndpointSecurityTest {
     @Test
     void postReports_withoutAuthentication_returns401() throws Exception {
         mockMvc.perform(post("/api/reports")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(VALID_BODY))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_BODY))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -94,9 +93,9 @@ class ReportsEndpointSecurityTest {
         // Passes SecurityConfig URL filter and method-level @PreAuthorize;
         // service mocked → 201 Created
         mockMvc.perform(post("/api/reports")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(VALID_BODY)
-                        .with(authentication(authAs(donorUser, "DONOR"))))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_BODY)
+                .with(authentication(authAs(donorUser, "DONOR"))))
                 .andExpect(status().isCreated());
     }
 
@@ -105,9 +104,9 @@ class ReportsEndpointSecurityTest {
     @Test
     void postReports_withReceiverRole_returns201() throws Exception {
         mockMvc.perform(post("/api/reports")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(VALID_BODY)
-                        .with(authentication(authAs(receiverUser, "RECEIVER"))))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_BODY)
+                .with(authentication(authAs(receiverUser, "RECEIVER"))))
                 .andExpect(status().isCreated());
     }
 
@@ -116,11 +115,12 @@ class ReportsEndpointSecurityTest {
     @Test
     void postReports_withAdminRole_returns400() throws Exception {
         // SecurityConfig allows ADMIN on /api/reports/**, but the method-level
-        // @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER')") blocks ADMIN by throwing 400 status code
+        // @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER')") blocks ADMIN by
+        // throwing 400 status code
         mockMvc.perform(post("/api/reports")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(VALID_BODY)
-                        .with(authentication(authAs(adminUser, "ADMIN"))))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_BODY)
+                .with(authentication(authAs(adminUser, "ADMIN"))))
                 .andExpect(status().isBadRequest());
     }
 }

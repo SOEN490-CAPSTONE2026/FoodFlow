@@ -169,7 +169,8 @@ public class SurplusController {
                 values.add(FoodType.valueOf(normalized));
             } catch (IllegalArgumentException ex) {
                 throw new IllegalArgumentException(
-                        "Invalid foodType '" + normalized + "'. Allowed values: [" + FoodTaxonomyContract.allowedFoodTypes()
+                        "Invalid foodType '" + normalized + "'. Allowed values: ["
+                                + FoodTaxonomyContract.allowedFoodTypes()
                                 + "]");
             }
         }
@@ -232,8 +233,7 @@ public class SurplusController {
         SurplusResponse response = surplusService.confirmPickup(
                 request.getPostId(),
                 request.getOtpCode(),
-                donor
-        );
+                donor);
         return ResponseEntity.ok(response);
     }
 
@@ -262,7 +262,8 @@ public class SurplusController {
             @PathVariable Long id,
             @Valid @RequestBody ExpiryOverrideRequest request,
             @AuthenticationPrincipal User actor) {
-        SurplusResponse response = surplusService.overrideExpiry(id, request.getExpiryDate(), request.getReason(), actor);
+        SurplusResponse response = surplusService.overrideExpiry(id, request.getExpiryDate(), request.getReason(),
+                actor);
         return ResponseEntity.ok(response);
     }
 
@@ -291,12 +292,10 @@ public class SurplusController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
-                new UploadEvidenceResponse(null, e.getMessage(), false)
-            );
+                    new UploadEvidenceResponse(null, e.getMessage(), false));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                new UploadEvidenceResponse(null, "Failed to upload file", false)
-            );
+                    new UploadEvidenceResponse(null, "Failed to upload file", false));
         }
     }
 

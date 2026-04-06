@@ -1,4 +1,5 @@
 package com.example.foodflow.controller;
+
 import com.example.foodflow.model.dto.*;
 import com.example.foodflow.model.entity.AuditLog;
 import com.example.foodflow.model.entity.User;
@@ -103,11 +104,10 @@ class AdminControllerTest {
             // Given
             Page<AdminUserResponse> userPage = new PageImpl<>(Arrays.asList(testUserResponse));
             when(adminUserService.getAllUsers(null, null, null, 0, 20))
-                .thenReturn(userPage);
+                    .thenReturn(userPage);
 
             // When
-            ResponseEntity<Page<AdminUserResponse>> response = 
-                adminController.getAllUsers(null, null, null, 0, 20);
+            ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers(null, null, null, 0, 20);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -124,11 +124,10 @@ class AdminControllerTest {
             // Given
             Page<AdminUserResponse> userPage = new PageImpl<>(Arrays.asList(testUserResponse));
             when(adminUserService.getAllUsers("DONOR", null, null, 0, 20))
-                .thenReturn(userPage);
+                    .thenReturn(userPage);
 
             // When
-            ResponseEntity<Page<AdminUserResponse>> response = 
-                adminController.getAllUsers("DONOR", null, null, 0, 20);
+            ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers("DONOR", null, null, 0, 20);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -143,11 +142,10 @@ class AdminControllerTest {
             // Given
             Page<AdminUserResponse> userPage = new PageImpl<>(Arrays.asList(testUserResponse));
             when(adminUserService.getAllUsers(null, null, "test", 0, 20))
-                .thenReturn(userPage);
+                    .thenReturn(userPage);
 
             // When
-            ResponseEntity<Page<AdminUserResponse>> response = 
-                adminController.getAllUsers(null, null, "test", 0, 20);
+            ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers(null, null, "test", 0, 20);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -161,13 +159,12 @@ class AdminControllerTest {
         void shouldReturnInternalServerErrorWhenServiceThrowsException() {
             // Given
             when(adminUserService.getAllUsers(null, null, null, 0, 20))
-                .thenThrow(new RuntimeException("Database error"));
+                    .thenThrow(new RuntimeException("Database error"));
 
             // When
             try {
-                ResponseEntity<Page<AdminUserResponse>> response = 
-                    adminController.getAllUsers(null, null, null, 0, 20);
-                
+                ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers(null, null, null, 0, 20);
+
                 // If the controller catches exceptions and returns error responses
                 // then check for error status, otherwise it will throw
                 if (response.getStatusCode().isError()) {
@@ -211,12 +208,12 @@ class AdminControllerTest {
         void shouldHandleUserNotFoundGracefully() {
             // Given
             when(adminUserService.getUserById(999L))
-                .thenThrow(new RuntimeException("User not found"));
+                    .thenThrow(new RuntimeException("User not found"));
 
             // When
             try {
                 ResponseEntity<AdminUserResponse> response = adminController.getUserById(999L);
-                
+
                 // If controller catches exceptions and returns error response
                 if (response.getStatusCode().isError()) {
                     assertTrue(response.getStatusCode().isError());
@@ -233,7 +230,7 @@ class AdminControllerTest {
     }
 
     @Nested
-    @DisplayName("deactivateUser Tests") 
+    @DisplayName("deactivateUser Tests")
     class DeactivateUserTests {
 
         @Test
@@ -242,17 +239,16 @@ class AdminControllerTest {
             // Given
             DeactivateUserRequest request = new DeactivateUserRequest();
             request.setAdminNotes("Test deactivation reason");
-            
+
             testUserResponse.setAccountStatus("DEACTIVATED");
             testUserResponse.setDeactivatedAt(LocalDateTime.now());
             testUserResponse.setAdminNotes("Test deactivation reason");
-            
+
             // Only mock if the controller actually calls the service method
             // Remove unnecessary stubbing that isn't being used
 
             // When
-            ResponseEntity<?> response = 
-                adminController.deactivateUser(1L, request, "admin@test.com");
+            ResponseEntity<?> response = adminController.deactivateUser(1L, request, "admin@test.com");
 
             // Then
             if (response.getStatusCode() == HttpStatus.OK) {
@@ -273,13 +269,13 @@ class AdminControllerTest {
             DeactivateUserRequest request = new DeactivateUserRequest();
             request.setAdminNotes("Test");
 
-            // Remove unnecessary stubbing since controller might not call service for invalid requests
+            // Remove unnecessary stubbing since controller might not call service for
+            // invalid requests
 
             // When
             try {
-                ResponseEntity<?> response = 
-                    adminController.deactivateUser(1L, request, "admin@test.com");
-                
+                ResponseEntity<?> response = adminController.deactivateUser(1L, request, "admin@test.com");
+
                 // Controller should return BAD_REQUEST for business logic violations
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
             } catch (RuntimeException e) {
@@ -297,9 +293,8 @@ class AdminControllerTest {
 
             // When
             try {
-                ResponseEntity<?> response = 
-                    adminController.deactivateUser(1L, request, "admin@test.com");
-                
+                ResponseEntity<?> response = adminController.deactivateUser(1L, request, "admin@test.com");
+
                 // Controller should return BAD_REQUEST for validation failures
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
             } catch (Exception e) {
@@ -319,7 +314,7 @@ class AdminControllerTest {
             // Given
             testUserResponse.setAccountStatus("ACTIVE");
             testUserResponse.setDeactivatedAt(null);
-            
+
             when(adminUserService.reactivateUser(1L)).thenReturn(testUserResponse);
 
             // When
@@ -340,12 +335,12 @@ class AdminControllerTest {
         void shouldHandleReactivationOfActiveUser() {
             // Given
             when(adminUserService.reactivateUser(1L))
-                .thenThrow(new RuntimeException("User is already active"));
+                    .thenThrow(new RuntimeException("User is already active"));
 
             // When
             try {
                 ResponseEntity<?> response = adminController.reactivateUser(1L);
-                
+
                 // Controller should return BAD_REQUEST for business logic violations
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
             } catch (RuntimeException e) {
@@ -390,12 +385,12 @@ class AdminControllerTest {
             when(jwtTokenProvider.getEmailFromToken("token")).thenReturn("admin@test.com");
             when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
             doThrow(new RuntimeException("User not found"))
-                .when(adminUserService).sendAlertToUser(999L, "Test alert", null, 999L);
+                    .when(adminUserService).sendAlertToUser(999L, "Test alert", null, 999L);
 
             // When
             try {
                 ResponseEntity<?> response = adminController.sendAlert(999L, request, "Bearer token");
-                
+
                 // Controller should return BAD_REQUEST for invalid users
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
             } catch (RuntimeException e) {
@@ -452,12 +447,12 @@ class AdminControllerTest {
         void shouldHandleUserNotFoundForActivity() {
             // Given
             when(adminUserService.getUserActivity(999L))
-                .thenThrow(new RuntimeException("User not found"));
+                    .thenThrow(new RuntimeException("User not found"));
 
             // When
             try {
                 ResponseEntity<AdminUserResponse> response = adminController.getUserActivity(999L);
-                
+
                 // Controller should return error status for not found
                 assertTrue(response.getStatusCode().isError());
             } catch (RuntimeException e) {
@@ -477,11 +472,10 @@ class AdminControllerTest {
             // Given
             Page<AdminUserResponse> emptyPage = new PageImpl<>(Arrays.asList());
             when(adminUserService.getAllUsers(null, null, null, 0, 20))
-                .thenReturn(emptyPage);
+                    .thenReturn(emptyPage);
 
             // When
-            ResponseEntity<Page<AdminUserResponse>> response = 
-                adminController.getAllUsers(null, null, null, 0, 20);
+            ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers(null, null, null, 0, 20);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -496,11 +490,10 @@ class AdminControllerTest {
             // Given
             Page<AdminUserResponse> largePage = new PageImpl<>(Arrays.asList(testUserResponse));
             when(adminUserService.getAllUsers(null, null, null, 0, 100))
-                .thenReturn(largePage);
+                    .thenReturn(largePage);
 
             // When
-            ResponseEntity<Page<AdminUserResponse>> response = 
-                adminController.getAllUsers(null, null, null, 0, 100);
+            ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers(null, null, null, 0, 100);
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -514,13 +507,13 @@ class AdminControllerTest {
         void shouldHandleServiceTimeoutsGracefully() {
             // Given
             when(adminUserService.getAllUsers(any(), any(), any(), anyInt(), anyInt()))
-                .thenThrow(new RuntimeException("Service timeout"));
+                    .thenThrow(new RuntimeException("Service timeout"));
 
             // When
             try {
-                ResponseEntity<Page<AdminUserResponse>> response = 
-                    adminController.getAllUsers("DONOR", "ACTIVE", "search", 0, 20);
-                
+                ResponseEntity<Page<AdminUserResponse>> response = adminController.getAllUsers("DONOR", "ACTIVE",
+                        "search", 0, 20);
+
                 // Controller might catch exception and return error response
                 if (response.getStatusCode().isError()) {
                     assertTrue(response.getStatusCode().isError());
@@ -588,8 +581,7 @@ class AdminControllerTest {
                     new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(2), 2L, "SurplusPost", "B", null),
                     new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(3), 3L, "SurplusPost", "C", null),
                     new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(4), 4L, "SurplusPost", "D", null),
-                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(5), 5L, "SurplusPost", "E", null)
-            );
+                    new UserActivityDTO("DONATION", LocalDateTime.now().minusDays(5), 5L, "SurplusPost", "E", null));
             when(adminUserService.getRecentActivity(1L, 5)).thenReturn(activities);
 
             ResponseEntity<List<UserActivityDTO>> response = adminController.getRecentActivity(1L, 5);

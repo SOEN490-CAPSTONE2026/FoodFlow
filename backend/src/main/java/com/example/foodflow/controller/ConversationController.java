@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/conversations")
 public class ConversationController {
-    
+
     private final ConversationService conversationService;
     private final MessageService messageService;
 
@@ -27,7 +27,7 @@ public class ConversationController {
         this.conversationService = conversationService;
         this.messageService = messageService;
     }
-    
+
     /**
      * Get all conversations for the current user
      */
@@ -37,7 +37,7 @@ public class ConversationController {
         List<ConversationResponse> conversations = conversationService.getUserConversations(currentUser);
         return ResponseEntity.ok(conversations);
     }
-    
+
     /**
      * Start a new conversation with a user by email
      */
@@ -48,7 +48,7 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.startConversation(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
-    
+
     /**
      * Get a specific conversation
      */
@@ -59,7 +59,7 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.getConversationResponse(id, currentUser);
         return ResponseEntity.ok(conversation);
     }
-    
+
     /**
      * Get all messages in a conversation
      */
@@ -70,7 +70,7 @@ public class ConversationController {
         List<MessageResponse> messages = messageService.getConversationMessages(id, currentUser);
         return ResponseEntity.ok(messages);
     }
-    
+
     /**
      * Mark all messages in a conversation as read
      */
@@ -82,7 +82,7 @@ public class ConversationController {
         return ResponseEntity.ok().build();
     }
 
-     /**
+    /**
      * Get conversation for a specific post
      * Returns the conversation details including the other participant
      * for the current user and the specified post
@@ -106,14 +106,15 @@ public class ConversationController {
             @Valid @RequestBody StartPostConversationRequest request,
             @AuthenticationPrincipal User currentUser) {
         ConversationResponse conversation = conversationService.createOrGetPostConversation(
-            postId, request.getOtherUserId(), currentUser
-        );
+                postId, request.getOtherUserId(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
 
     /**
-     * Express interest in a donation - creates/returns a donation-anchored conversation thread.
-     * No request body needed - receiver is the authenticated user, donor comes from the post.
+     * Express interest in a donation - creates/returns a donation-anchored
+     * conversation thread.
+     * No request body needed - receiver is the authenticated user, donor comes from
+     * the post.
      */
     @PostMapping("/interested/{postId}")
     public ResponseEntity<ConversationResponse> expressInterest(

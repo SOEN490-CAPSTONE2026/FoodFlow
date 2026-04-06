@@ -66,16 +66,16 @@ class ClaimControllerTest {
     void claimSurplusPost_Success() throws Exception {
         // Given
         when(claimService.claimSurplusPost(any(ClaimRequest.class), any()))
-            .thenReturn(claimResponse);
+                .thenReturn(claimResponse);
 
         // When & Then
         mockMvc.perform(post("/api/claims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(claimRequest)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.surplusPostTitle").value("Test Food"))
-            .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.surplusPostTitle").value("Test Food"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
 
         verify(claimService).claimSurplusPost(any(ClaimRequest.class), any());
     }
@@ -87,7 +87,7 @@ class ClaimControllerTest {
         mockMvc.perform(post("/api/claims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(claimRequest)))
-            .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
 
         verify(claimService, never()).claimSurplusPost(any(), any());
     }
@@ -98,7 +98,7 @@ class ClaimControllerTest {
         mockMvc.perform(post("/api/claims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(claimRequest)))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
 
         verify(claimService, never()).claimSurplusPost(any(), any());
     }
@@ -107,12 +107,12 @@ class ClaimControllerTest {
     @WithMockUser(authorities = "RECEIVER")
     void claimSurplusPost_UnapprovedAccount_BadRequest() throws Exception {
         when(claimService.claimSurplusPost(any(ClaimRequest.class), any()))
-            .thenThrow(new BusinessException("error.account.not_approved"));
+                .thenThrow(new BusinessException("error.account.not_approved"));
 
         mockMvc.perform(post("/api/claims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(claimRequest)))
-            .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -121,14 +121,14 @@ class ClaimControllerTest {
         // Given
         List<ClaimResponse> claims = Arrays.asList(claimResponse);
         when(claimService.getReceiverClaims(any()))
-            .thenReturn(claims);
+                .thenReturn(claims);
 
         // When & Then
         mockMvc.perform(get("/api/claims/my-claims"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$[0].id").value(1))
-            .andExpect(jsonPath("$[0].surplusPostTitle").value("Test Food"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].surplusPostTitle").value("Test Food"));
 
         verify(claimService).getReceiverClaims(any());
     }
@@ -138,13 +138,13 @@ class ClaimControllerTest {
     void getMyClaims_EmptyList_ReturnsEmptyArray() throws Exception {
         // Given
         when(claimService.getReceiverClaims(any(User.class)))
-            .thenReturn(Arrays.asList());
+                .thenReturn(Arrays.asList());
 
         // When & Then
         mockMvc.perform(get("/api/claims/my-claims"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$").isEmpty());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
@@ -152,7 +152,7 @@ class ClaimControllerTest {
     void getMyClaims_DonorRole_Forbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/claims/my-claims"))
-            .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
 
         verify(claimService, never()).getReceiverClaims(any());
     }
@@ -165,7 +165,7 @@ class ClaimControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/api/claims/1"))
-            .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent());
 
         verify(claimService).cancelClaim(eq(1L), any());
     }
@@ -175,7 +175,7 @@ class ClaimControllerTest {
     void cancelClaim_DonorRole_Forbidden() throws Exception {
         // When & Then
         mockMvc.perform(delete("/api/claims/1"))
-            .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
 
         verify(claimService, never()).cancelClaim(any(), any());
     }
@@ -186,13 +186,13 @@ class ClaimControllerTest {
         // Given
         List<ClaimResponse> claims = Arrays.asList(claimResponse);
         when(claimService.getClaimsForSurplusPost(1L))
-            .thenReturn(claims);
+                .thenReturn(claims);
 
         // When & Then
         mockMvc.perform(get("/api/claims/post/1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(1));
 
         verify(claimService).getClaimsForSurplusPost(1L);
     }
@@ -203,12 +203,12 @@ class ClaimControllerTest {
         // Given
         List<ClaimResponse> claims = Arrays.asList(claimResponse);
         when(claimService.getClaimsForSurplusPost(1L))
-            .thenReturn(claims);
+                .thenReturn(claims);
 
         // When & Then
         mockMvc.perform(get("/api/claims/post/1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
 
         verify(claimService).getClaimsForSurplusPost(1L);
     }
@@ -217,7 +217,7 @@ class ClaimControllerTest {
     void getClaimsForPost_Unauthenticated_Unauthorized() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/claims/post/1"))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
 
         verify(claimService, never()).getClaimsForSurplusPost(any());
     }

@@ -37,11 +37,10 @@ class SurplusControllerEvidenceUploadTest {
         mockDonor.setEmail("donor@test.com");
 
         mockFile = new MockMultipartFile(
-            "file",
-            "evidence.jpg",
-            "image/jpeg",
-            "test image content".getBytes()
-        );
+                "file",
+                "evidence.jpg",
+                "image/jpeg",
+                "test image content".getBytes());
     }
 
     @Test
@@ -50,16 +49,14 @@ class SurplusControllerEvidenceUploadTest {
         Long postId = 1L;
         String expectedUrl = "/api/files/evidence/donation-1/uuid.jpg";
         UploadEvidenceResponse expectedResponse = new UploadEvidenceResponse(
-            expectedUrl, "Evidence uploaded successfully", true
-        );
+                expectedUrl, "Evidence uploaded successfully", true);
 
         when(surplusService.uploadPickupEvidence(eq(postId), any(), eq(mockDonor)))
-            .thenReturn(expectedResponse);
+                .thenReturn(expectedResponse);
 
         // When
         ResponseEntity<UploadEvidenceResponse> response = surplusController.uploadPickupEvidence(
-            postId, mockFile, mockDonor
-        );
+                postId, mockFile, mockDonor);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -73,12 +70,11 @@ class SurplusControllerEvidenceUploadTest {
         // Given
         Long postId = 1L;
         when(surplusService.uploadPickupEvidence(eq(postId), any(), eq(mockDonor)))
-            .thenThrow(new IllegalArgumentException("Invalid file type"));
+                .thenThrow(new IllegalArgumentException("Invalid file type"));
 
         // When
         ResponseEntity<UploadEvidenceResponse> response = surplusController.uploadPickupEvidence(
-            postId, mockFile, mockDonor
-        );
+                postId, mockFile, mockDonor);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -92,12 +88,11 @@ class SurplusControllerEvidenceUploadTest {
         // Given
         Long postId = 1L;
         when(surplusService.uploadPickupEvidence(eq(postId), any(), eq(mockDonor)))
-            .thenThrow(new IOException("Disk full"));
+                .thenThrow(new IOException("Disk full"));
 
         // When
         ResponseEntity<UploadEvidenceResponse> response = surplusController.uploadPickupEvidence(
-            postId, mockFile, mockDonor
-        );
+                postId, mockFile, mockDonor);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -111,12 +106,11 @@ class SurplusControllerEvidenceUploadTest {
         // Given
         Long postId = 1L;
         when(surplusService.uploadPickupEvidence(eq(postId), any(), eq(mockDonor)))
-            .thenThrow(new IllegalArgumentException("You are not authorized"));
+                .thenThrow(new IllegalArgumentException("You are not authorized"));
 
         // When
         ResponseEntity<UploadEvidenceResponse> response = surplusController.uploadPickupEvidence(
-            postId, mockFile, mockDonor
-        );
+                postId, mockFile, mockDonor);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
