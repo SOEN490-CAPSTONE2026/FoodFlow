@@ -1,4 +1,5 @@
 package com.example.foodflow.service;
+
 import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.repository.SurplusPostRepository;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Service
 public class ConversationService {
     private static final Logger logger = LoggerFactory.getLogger(ConversationService.class);
@@ -32,6 +34,7 @@ public class ConversationService {
     private final SmsService smsService;
     private final NotificationPreferenceService notificationPreferenceService;
     private final DonationImageResolverService donationImageResolverService;
+
     public ConversationService(ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             UserRepository userRepository,
@@ -51,9 +54,11 @@ public class ConversationService {
         this.notificationPreferenceService = notificationPreferenceService;
         this.donationImageResolverService = donationImageResolverService;
     }
+
     /**
      * Get all conversations for the current user
-     * Optimized: uses dedicated query to get last message instead of loading all messages
+     * Optimized: uses dedicated query to get last message instead of loading all
+     * messages
      */
     @Transactional(readOnly = true)
     public List<ConversationResponse> getUserConversations(User currentUser) {
@@ -74,6 +79,7 @@ public class ConversationService {
                 })
                 .collect(Collectors.toList());
     }
+
     /**
      * Create or get a direct (non-donation) conversation between two users.
      * Used for support escalation and other person-to-person threads.
@@ -91,6 +97,7 @@ public class ConversationService {
         return conversationRepository.findByUsers(userId1, userId2)
                 .orElseGet(() -> conversationRepository.save(new Conversation(userA, userB)));
     }
+
     /**
      * Start a new conversation or return existing one
      */
@@ -135,6 +142,7 @@ public class ConversationService {
                         conversationAlreadyExists),
                 conversation);
     }
+
     /**
      * Get a specific conversation (validates user is participant)
      */
@@ -149,6 +157,7 @@ public class ConversationService {
         }
         return conversation;
     }
+
     /**
      * Get conversation response with details
      */
@@ -167,6 +176,7 @@ public class ConversationService {
                 new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
                 conversation);
     }
+
     /**
      * Get conversation for a specific post
      * Returns conversation details including the other participant
@@ -188,6 +198,7 @@ public class ConversationService {
                 new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
                 conversation);
     }
+
     /**
      * Create or get conversation for a specific post
      * Creates a new conversation linked to the post if one doesn't exist
@@ -231,6 +242,7 @@ public class ConversationService {
                 new ConversationResponse(conversation, currentUser, lastMessagePreview, unreadCount, true),
                 conversation);
     }
+
     /**
      * Express interest in a donation - creates a donation-anchored thread.
      * Uses (donation_id, receiver_id) as the unique key.
@@ -330,6 +342,7 @@ public class ConversationService {
                 new ConversationResponse(conversation, receiver, lastMessagePreview, unreadCount, alreadyExists),
                 conversation);
     }
+
     private ConversationResponse enrichConversationResponse(ConversationResponse response, Conversation conversation) {
         if (response == null || conversation == null || conversation.getSurplusPost() == null) {
             return response;

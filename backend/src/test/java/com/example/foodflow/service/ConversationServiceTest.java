@@ -1,4 +1,5 @@
 package com.example.foodflow.service;
+
 import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.ConversationResponse;
 import com.example.foodflow.model.dto.StartConversationRequest;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 class ConversationServiceTest {
     @Mock
@@ -45,6 +47,7 @@ class ConversationServiceTest {
     private Conversation conversation;
     private Message message;
     private SurplusPost surplusPost;
+
     @BeforeEach
     void setUp() {
         user1 = new User();
@@ -66,12 +69,13 @@ class ConversationServiceTest {
         surplusPost.setId(1L);
         surplusPost.setDonor(user1);
     }
+
     // ==================== Tests for getUserConversations ====================
     @Test
     void testGetUserConversations_Success() {
         // Given
         when(conversationRepository.findByUserId(1L)).thenReturn(Arrays.asList(conversation));
-        when(messageRepository.findByConversationId(1L)).thenReturn(Arrays.asList(message));
+        when(messageRepository.findLastMessageInConversation(1L)).thenReturn(Optional.of(message));
         when(messageRepository.countUnreadInConversation(1L, 1L)).thenReturn(2L);
         // When
         List<ConversationResponse> responses = conversationService.getUserConversations(user1);
@@ -80,14 +84,15 @@ class ConversationServiceTest {
         assertThat(responses.get(0).getLastMessagePreview()).isEqualTo("Test message");
         assertThat(responses.get(0).getUnreadCount()).isEqualTo(2L);
         verify(conversationRepository).findByUserId(1L);
-        verify(messageRepository).findByConversationId(1L);
+        verify(messageRepository).findLastMessageInConversation(1L);
         verify(messageRepository).countUnreadInConversation(1L, 1L);
     }
+
     @Test
     void testGetUserConversations_NoMessages() {
         // Given
         when(conversationRepository.findByUserId(1L)).thenReturn(Arrays.asList(conversation));
-        when(messageRepository.findByConversationId(1L)).thenReturn(Collections.emptyList());
+        when(messageRepository.findLastMessageInConversation(1L)).thenReturn(Optional.empty());
         when(messageRepository.countUnreadInConversation(1L, 1L)).thenReturn(0L);
         // When
         List<ConversationResponse> responses = conversationService.getUserConversations(user1);
@@ -96,6 +101,7 @@ class ConversationServiceTest {
         assertThat(responses.get(0).getLastMessagePreview()).isEqualTo("No messages yet");
         assertThat(responses.get(0).getUnreadCount()).isEqualTo(0L);
     }
+
     @Test
     void testGetUserConversations_EmptyList() {
         // Given
@@ -106,6 +112,7 @@ class ConversationServiceTest {
         assertThat(responses).isEmpty();
         verify(conversationRepository).findByUserId(1L);
     }
+
     @Test
     void testGetUserConversations_MultipleConversations() {
         // Given
@@ -115,8 +122,8 @@ class ConversationServiceTest {
         message2.setId(2L);
         message2.setMessageBody("Second message");
         when(conversationRepository.findByUserId(1L)).thenReturn(Arrays.asList(conversation, conversation2));
-        when(messageRepository.findByConversationId(1L)).thenReturn(Arrays.asList(message));
-        when(messageRepository.findByConversationId(2L)).thenReturn(Arrays.asList(message2));
+        when(messageRepository.findLastMessageInConversation(1L)).thenReturn(Optional.of(message));
+        when(messageRepository.findLastMessageInConversation(2L)).thenReturn(Optional.of(message2));
         when(messageRepository.countUnreadInConversation(1L, 1L)).thenReturn(1L);
         when(messageRepository.countUnreadInConversation(2L, 1L)).thenReturn(0L);
         // When
@@ -125,6 +132,7 @@ class ConversationServiceTest {
         assertThat(responses).hasSize(2);
         verify(conversationRepository).findByUserId(1L);
     }
+
     // ==================== Tests for startConversation ====================
     @Test
     void testStartConversation_NewConversation() {
@@ -145,6 +153,7 @@ class ConversationServiceTest {
         verify(conversationRepository).findByUsers(1L, 2L);
         verify(conversationRepository).save(any(Conversation.class));
     }
+
     @Test
     void testStartConversation_ExistingConversation() {
         // Given
@@ -163,6 +172,7 @@ class ConversationServiceTest {
         assertThat(response.getUnreadCount()).isEqualTo(3L);
         verify(conversationRepository, never()).save(any(Conversation.class));
     }
+
     @Test
     void testStartConversation_RecipientNotFound() {
         // Given
@@ -174,6 +184,7 @@ class ConversationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("User not found with email");
     }
+
     @Test
     void testStartConversation_SelfConversation() {
         // Given
@@ -186,6 +197,7 @@ class ConversationServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("error.conversation.self_conversation");
     }
+
     @Test
     void testStartConversation_UserOrderReversed() {
         // Given - User2 initiates conversation with User1
@@ -201,6 +213,7 @@ class ConversationServiceTest {
         verify(conversationRepository).findByUsers(1L, 2L); // Should query with min, max order
         verify(conversationRepository).save(any(Conversation.class));
     }
+
     // ==================== Tests for getConversation ====================
     @Test
     void testGetConversation_Success() {
@@ -213,6 +226,7 @@ class ConversationServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         verify(conversationRepository).findById(1L);
     }
+
     @Test
     void testGetConversation_NotFound() {
         // Given
@@ -222,6 +236,7 @@ class ConversationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Conversation not found");
     }
+
     @Test
     void testGetConversation_NotParticipant() {
         // Given
@@ -234,6 +249,7 @@ class ConversationServiceTest {
                 .isInstanceOf(com.example.foodflow.exception.domain.UnauthorizedAccessException.class)
                 .hasMessage("You are not authorized to view this conversation");
     }
+
     @Test
     void testGetConversation_User2AsParticipant() {
         // Given
@@ -244,6 +260,7 @@ class ConversationServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
     }
+
     // ==================== Tests for getConversationResponse ====================
     @Test
     void testGetConversationResponse_Success() {
@@ -259,6 +276,7 @@ class ConversationServiceTest {
         assertThat(response.getUnreadCount()).isEqualTo(5L);
         assertThat(response.getAlreadyExists()).isTrue();
     }
+
     @Test
     void testGetConversationResponse_NoMessages() {
         // Given
@@ -272,6 +290,7 @@ class ConversationServiceTest {
         assertThat(response.getLastMessagePreview()).isEqualTo("No messages yet");
         assertThat(response.getUnreadCount()).isEqualTo(0L);
     }
+
     @Test
     void testGetConversationResponse_PrefersLiveDonationDetailsOverSnapshot() {
         surplusPost.setTitle("Fresh produce bundle");
@@ -293,6 +312,7 @@ class ConversationServiceTest {
         assertThat(response.getDonationPhoto()).isEqualTo("PRODUCE");
         assertThat(response.getStatus()).isEqualTo("CLAIMED");
     }
+
     @Test
     void testGetConversationResponse_NotParticipant() {
         // Given
@@ -304,6 +324,7 @@ class ConversationServiceTest {
                 .isInstanceOf(com.example.foodflow.exception.domain.UnauthorizedAccessException.class)
                 .hasMessage("You are not authorized to view this conversation");
     }
+
     // ==================== Tests for getConversationByPost ====================
     @Test
     void testGetConversationByPost_Success() {
@@ -319,6 +340,7 @@ class ConversationServiceTest {
         assertThat(response.getUnreadCount()).isEqualTo(1L);
         verify(conversationRepository).findByPostIdAndUserId(1L, 1L);
     }
+
     @Test
     void testGetConversationByPost_NotFound() {
         // Given
@@ -328,6 +350,7 @@ class ConversationServiceTest {
                 .isInstanceOf(com.example.foodflow.exception.domain.ConversationNotFoundException.class)
                 .hasMessageContaining("No conversation found for this post");
     }
+
     @Test
     void testGetConversationByPost_WithMessages() {
         // Given
@@ -343,7 +366,9 @@ class ConversationServiceTest {
         assertThat(response.getLastMessagePreview()).isEqualTo("Latest message");
         assertThat(response.getUnreadCount()).isEqualTo(2L);
     }
-    // ==================== Tests for createOrGetPostConversation ====================
+
+    // ==================== Tests for createOrGetPostConversation
+    // ====================
     @Test
     void testCreateOrGetPostConversation_NewConversation() {
         // Given
@@ -361,6 +386,7 @@ class ConversationServiceTest {
         assertThat(response.getUnreadCount()).isEqualTo(0L);
         verify(conversationRepository).save(any(Conversation.class));
     }
+
     @Test
     void testCreateOrGetPostConversation_ExistingConversation() {
         // Given
@@ -377,6 +403,7 @@ class ConversationServiceTest {
         assertThat(response.getUnreadCount()).isEqualTo(2L);
         verify(conversationRepository, never()).save(any(Conversation.class));
     }
+
     @Test
     void testCreateOrGetPostConversation_PostNotFound() {
         // Given
@@ -386,6 +413,7 @@ class ConversationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Post not found");
     }
+
     @Test
     void testCreateOrGetPostConversation_OtherUserNotFound() {
         // Given
@@ -396,6 +424,7 @@ class ConversationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Other user not found");
     }
+
     @Test
     void testCreateOrGetPostConversation_SelfConversation() {
         // Given
@@ -406,6 +435,7 @@ class ConversationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cannot create conversation with yourself");
     }
+
     @Test
     void testCreateOrGetPostConversation_WithMultipleMessages() {
         // Given
