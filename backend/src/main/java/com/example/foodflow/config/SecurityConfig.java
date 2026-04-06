@@ -1,4 +1,5 @@
 package com.example.foodflow.config;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -25,14 +27,17 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     @Value("${spring.web.cors.allowed-origins:http://localhost:3000}")
     private String corsAllowedOrigins;
+
     // Inject the existing JwtAuthenticationFilter
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -80,14 +85,17 @@ public class SecurityConfig {
                         // User preferences and profile
                         .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
                         .requestMatchers("/api/receiver/saved/**").hasAuthority("RECEIVER")
-                        .requestMatchers(HttpMethod.PUT, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/profile/**")
+                        .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/profile/**")
+                        .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
                         // Reports and donations
                         .requestMatchers("/api/reports/**").hasAnyAuthority("ADMIN", "DONOR", "RECEIVER")
                         .requestMatchers("/api/donations/stats/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/badge/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/privacy/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-                        .requestMatchers("/api/donations/profile/*/public").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/donations/profile/*/public")
+                        .hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         // Other authenticated endpoints
                         .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
                         .requestMatchers("/api/requests/**").hasAnyAuthority("DONOR", "RECEIVER")
@@ -96,6 +104,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
