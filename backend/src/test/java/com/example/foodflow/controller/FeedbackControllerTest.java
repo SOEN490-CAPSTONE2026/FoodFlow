@@ -359,8 +359,7 @@ class FeedbackControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
-    
-    
+
     @Test
     void isFeedbackComplete_True_ShouldReturn200() throws Exception {
         // Given

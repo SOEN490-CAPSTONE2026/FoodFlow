@@ -105,7 +105,6 @@ class SurplusControllerTest {
         request.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
         request.setPackagingType(PackagingType.SEALED);
 
-
         response = new SurplusResponse();
         response.setId(1L);
         response.setTitle("Vegetable Lasagna");

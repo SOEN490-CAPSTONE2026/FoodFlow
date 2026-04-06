@@ -115,7 +115,6 @@ class ClaimControllerTest {
             .andExpect(status().isBadRequest());
     }
 
-
     @Test
     @WithMockUser(authorities = "RECEIVER")
     void getMyClaims_Success() throws Exception {

@@ -95,8 +95,7 @@ public class ConversationController {
         return ResponseEntity.ok(conversation);
     }
 
-
-      /**
+    /**
      * Create or get conversation for a specific post
      * Creates a new conversation linked to the post if one doesn't exist
      * Returns existing conversation if it already exists

@@ -123,4 +123,3 @@ class SurplusControllerEvidenceUploadTest {
         assertThat(response.getBody().getMessage()).contains("not authorized");
     }
 }
-

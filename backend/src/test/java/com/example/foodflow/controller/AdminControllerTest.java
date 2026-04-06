@@ -64,7 +64,6 @@ class AdminControllerTest {
 
     private AdminUserResponse testUserResponse;
 
-
     @BeforeEach
     void setUp() {
         testUserResponse = new AdminUserResponse();

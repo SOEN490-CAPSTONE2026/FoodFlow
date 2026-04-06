@@ -110,4 +110,3 @@ class LegacyFileControllerTest {
             .contains("inline-file.jpg");
     }
 }
-
