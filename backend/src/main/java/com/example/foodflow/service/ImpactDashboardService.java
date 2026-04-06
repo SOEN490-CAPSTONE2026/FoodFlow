@@ -63,11 +63,8 @@ public class ImpactDashboardService {
         LocalDateTime startDate = dateRangeBounds[0];
         LocalDateTime endDate = dateRangeBounds[1];
         LocalDateTime[] previousRangeBounds = calculatePreviousDateRange(startDate, endDate);
-        // Get all posts by donor within date range
-        List<SurplusPost> donorPosts = surplusPostRepository.findByDonorId(donorId);
-        List<SurplusPost> allPosts = donorPosts.stream()
-                .filter(post -> isWithinDateRange(post.getCreatedAt(), startDate, endDate))
-                .toList();
+        // Get all posts by donor within date range (optimized query)
+        List<SurplusPost> allPosts = surplusPostRepository.findByDonorAndCreatedDateRange(donorId, startDate, endDate);
         // Get completed posts only for impact calculation
         List<SurplusPost> completedPosts = allPosts.stream()
                 .filter(post -> post.getStatus() == PostStatus.COMPLETED)
@@ -78,14 +75,13 @@ public class ImpactDashboardService {
         metrics.setDateRange(dateRange);
         metrics.setStartDate(startDate);
         metrics.setEndDate(endDate);
-        Map<Long, Claim> claimByPostId = claimRepository.findAll().stream()
-                .filter(claim -> claim.getSurplusPost() != null && claim.getSurplusPost().getDonor() != null)
-                .filter(claim -> claim.getSurplusPost().getDonor().getId().equals(donorId))
+        // Get claims by donor (optimized query)
+        Map<Long, Claim> claimByPostId = claimRepository.findByDonorId(donorId).stream()
                 .collect(Collectors.toMap(
                         claim -> claim.getSurplusPost().getId(),
                         Function.identity(),
                         (first, second) -> first));
-        List<ImpactMetricsEngine.DonationImpactRecord> records = donorPosts.stream()
+        List<ImpactMetricsEngine.DonationImpactRecord> records = allPosts.stream()
                 .map(post -> toImpactRecord(post, claimByPostId.get(post.getId())))
                 .toList();
         ImpactMetricsEngine.ImpactComputationResult impactResult = impactMetricsEngine.computeImpactMetrics(
@@ -142,9 +138,8 @@ public class ImpactDashboardService {
         LocalDateTime startDate = dateRangeBounds[0];
         LocalDateTime endDate = dateRangeBounds[1];
         LocalDateTime[] previousRangeBounds = calculatePreviousDateRange(startDate, endDate);
-        List<Claim> receiverClaims = claimRepository.findAll().stream()
-                .filter(claim -> claim.getReceiver().getId().equals(receiverId))
-                .toList();
+        // Get receiver's claims (optimized query)
+        List<Claim> receiverClaims = claimRepository.findAllByReceiverId(receiverId);
         // Get all claims by receiver within date range
         List<Claim> allClaims = receiverClaims.stream()
                 .filter(claim -> isWithinDateRange(claim.getClaimedAt(), startDate, endDate))
@@ -203,14 +198,12 @@ public class ImpactDashboardService {
         LocalDateTime startDate = dateRangeBounds[0];
         LocalDateTime endDate = dateRangeBounds[1];
         LocalDateTime[] previousRangeBounds = calculatePreviousDateRange(startDate, endDate);
-        // Get all posts within date range
-        List<SurplusPost> allPosts = surplusPostRepository.findAll().stream()
-                .filter(post -> isWithinDateRange(post.getCreatedAt(), startDate, endDate))
-                .collect(Collectors.toList());
+        // Get all posts within date range (optimized query)
+        List<SurplusPost> allPosts = surplusPostRepository.findByCreatedDateRange(startDate, endDate);
         List<SurplusPost> completedPosts = allPosts.stream()
                 .filter(post -> post.getStatus() == PostStatus.COMPLETED)
                 .toList();
-        // Get all claims within date range
+        // Get all claims within date range - build map for post association
         List<Claim> allClaims = claimRepository.findAll().stream()
                 .filter(claim -> isWithinDateRange(claim.getClaimedAt(), startDate, endDate))
                 .toList();
@@ -222,13 +215,15 @@ public class ImpactDashboardService {
         metrics.setDateRange(dateRange);
         metrics.setStartDate(startDate);
         metrics.setEndDate(endDate);
-        Map<Long, Claim> claimByPostId = claimRepository.findAll().stream()
+        // Build claim map from claims in date range
+        Map<Long, Claim> claimByPostId = allClaims.stream()
                 .filter(claim -> claim.getSurplusPost() != null)
                 .collect(Collectors.toMap(
                         claim -> claim.getSurplusPost().getId(),
                         Function.identity(),
                         (first, second) -> first));
-        List<ImpactMetricsEngine.DonationImpactRecord> records = surplusPostRepository.findAll().stream()
+        // Generate records only from posts in date range
+        List<ImpactMetricsEngine.DonationImpactRecord> records = allPosts.stream()
                 .map(post -> toImpactRecord(post, claimByPostId.get(post.getId())))
                 .toList();
         ImpactMetricsEngine.ImpactComputationResult impactResult = impactMetricsEngine.computeImpactMetrics(

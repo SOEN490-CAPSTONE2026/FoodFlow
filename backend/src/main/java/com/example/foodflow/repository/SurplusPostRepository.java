@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.time.LocalDateTime;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.model.types.PostStatus;
 @Repository
@@ -74,4 +75,22 @@ public interface SurplusPostRepository extends JpaRepository<SurplusPost, Long>,
             @Param("maxDistanceKm") Double maxDistanceKm,
             @Param("foodCategories") List<String> foodCategories,
             @Param("status") String status);
+    /**
+     * Find posts created within a date range
+     */
+    @Query("SELECT sp FROM SurplusPost sp " +
+            "WHERE sp.createdAt >= :startDate AND sp.createdAt <= :endDate")
+    List<SurplusPost> findByCreatedDateRange(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+    /**
+     * Find posts by donor created within a date range
+     */
+    @Query("SELECT sp FROM SurplusPost sp " +
+            "WHERE sp.donor.id = :donorId " +
+            "AND sp.createdAt >= :startDate AND sp.createdAt <= :endDate")
+    List<SurplusPost> findByDonorAndCreatedDateRange(
+            @Param("donorId") Long donorId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

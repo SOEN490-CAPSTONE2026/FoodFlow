@@ -16,7 +16,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -342,9 +341,15 @@ public class GoogleCalendarProvider implements CalendarProvider {
      * Get stack trace as string
      */
     private String getStackTrace(Exception e) {
-        java.io.StringWriter sw = new java.io.StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append(e).append("\n");
+        for (StackTraceElement element : e.getStackTrace()) {
+            sb.append("\tat ").append(element).append("\n");
+        }
+        if (e.getCause() != null) {
+            sb.append("Caused by: ").append(getStackTrace((Exception) e.getCause()));
+        }
+        return sb.toString();
     }
     /**
      * Create HTTP headers with authorization

@@ -14,6 +14,8 @@ import com.example.foodflow.model.types.FoodTaxonomyContract;
 import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.service.SurplusService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/surplus")
 public class SurplusController {
+    private static final Logger logger = LoggerFactory.getLogger(SurplusController.class);
     private final SurplusService surplusService;
     public SurplusController(SurplusService surplusService) {
         this.surplusService = surplusService;
@@ -123,7 +126,7 @@ public class SurplusController {
                 filterRequest.setExpiryBefore(java.time.LocalDate.parse(expiryBefore));
             } catch (Exception e) {
                 // Log the error and continue without expiry filter
-                System.err.println("Invalid expiryBefore format: " + expiryBefore);
+                logger.warn("Invalid expiryBefore format: {}", expiryBefore, e);
             }
         }
         List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);

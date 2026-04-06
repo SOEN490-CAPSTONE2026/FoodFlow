@@ -51,4 +51,18 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
             "AND (sp.donor = :user OR c.receiver = :user) " +
             "ORDER BY c.confirmedPickupDate ASC, c.confirmedPickupStartTime ASC")
     List<Claim> findActiveClaimsForUser(@Param("user") User user);
+    /**
+     * Find all claims by donor ID through the surplus post
+     */
+    @Query("SELECT c FROM Claim c " +
+            "JOIN FETCH c.surplusPost sp " +
+            "WHERE sp.donor.id = :donorId")
+    List<Claim> findByDonorId(@Param("donorId") Long donorId);
+    /**
+     * Find all claims by receiver ID
+     */
+    @Query("SELECT c FROM Claim c " +
+            "JOIN FETCH c.surplusPost sp " +
+            "WHERE c.receiver.id = :receiverId")
+    List<Claim> findAllByReceiverId(@Param("receiverId") Long receiverId);
 }
