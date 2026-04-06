@@ -1,4 +1,5 @@
 package com.example.foodflow.config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -7,11 +8,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import com.example.foodflow.websocket.JwtHandshakeInterceptor;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.repository.UserRepository;
+import java.util.Arrays;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    @Value("${spring.web.cors.allowed-origins:http://localhost:3000}")
+    private String corsAllowedOrigins;
     public WebSocketConfig(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
@@ -27,11 +31,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Register STOMP endpoint at /ws
-    registry.addEndpoint("/ws")
-        .setAllowedOriginPatterns("*")
-        .setHandshakeHandler(new com.example.foodflow.websocket.PrincipalHandshakeHandler())
-        .addInterceptors(new JwtHandshakeInterceptor(jwtTokenProvider, userRepository))
-        .withSockJS();  // Enable SockJS fallback options
+        // Get allowed origins from same config as HTTP CORS
+        String[] allowedOrigins = Arrays.stream(corsAllowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        // Register STOMP endpoint at /ws with restricted origins
+        registry.addEndpoint("/ws")
+                .setAllowedOrigins(allowedOrigins)
+                .setHandshakeHandler(new com.example.foodflow.websocket.PrincipalHandshakeHandler())
+                .addInterceptors(new JwtHandshakeInterceptor(jwtTokenProvider, userRepository))
+                .withSockJS();  // Enable SockJS fallback options
     }
 }
