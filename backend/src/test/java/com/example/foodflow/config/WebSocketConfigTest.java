@@ -1,4 +1,5 @@
 package com.example.foodflow.config;
+
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.websocket.JwtHandshakeInterceptor;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class WebSocketConfigTest {
@@ -40,10 +42,12 @@ class WebSocketConfigTest {
     private SockJsServiceRegistration sockJsServiceRegistration;
     @InjectMocks
     private WebSocketConfig webSocketConfig;
+
     @BeforeEach
     void setUp() {
         // Inject the CORS allowed origins property value
-        ReflectionTestUtils.setField(webSocketConfig, "corsAllowedOrigins", "http://localhost:3000,http://localhost:8080");
+        ReflectionTestUtils.setField(webSocketConfig, "corsAllowedOrigins",
+                "http://localhost:3000,http://localhost:8080");
         // Mock the chain of method calls for endpoint registration
         when(stompEndpointRegistry.addEndpoint(anyString())).thenReturn(endpointRegistration);
         when(endpointRegistration.setAllowedOrigins(any(String[].class))).thenReturn(endpointRegistration);
@@ -51,6 +55,7 @@ class WebSocketConfigTest {
         when(endpointRegistration.addInterceptors(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.withSockJS()).thenReturn(sockJsServiceRegistration);
     }
+
     @Test
     void testConfigureMessageBroker() {
         // Act
@@ -60,6 +65,7 @@ class WebSocketConfigTest {
         verify(messageBrokerRegistry).setApplicationDestinationPrefixes("/app");
         verify(messageBrokerRegistry).setUserDestinationPrefix("/user");
     }
+
     @Test
     void testConfigureMessageBroker_EnablesCorrectBrokerDestinations() {
         // Arrange
@@ -71,6 +77,7 @@ class WebSocketConfigTest {
         assertTrue(destinationCaptor.getAllValues().contains("/topic"));
         assertTrue(destinationCaptor.getAllValues().contains("/queue"));
     }
+
     @Test
     void testConfigureMessageBroker_SetsApplicationPrefix() {
         // Arrange
@@ -81,6 +88,7 @@ class WebSocketConfigTest {
         verify(messageBrokerRegistry).setApplicationDestinationPrefixes(prefixCaptor.capture());
         assertEquals("/app", prefixCaptor.getValue());
     }
+
     @Test
     void testConfigureMessageBroker_SetsUserPrefix() {
         // Arrange
@@ -91,6 +99,7 @@ class WebSocketConfigTest {
         verify(messageBrokerRegistry).setUserDestinationPrefix(prefixCaptor.capture());
         assertEquals("/user", prefixCaptor.getValue());
     }
+
     @Test
     void testRegisterStompEndpoints() {
         // Act
@@ -102,6 +111,7 @@ class WebSocketConfigTest {
         verify(endpointRegistration).addInterceptors(any(JwtHandshakeInterceptor.class));
         verify(endpointRegistration).withSockJS();
     }
+
     @Test
     void testRegisterStompEndpoints_AddsCorrectEndpoint() {
         // Arrange
@@ -112,6 +122,7 @@ class WebSocketConfigTest {
         verify(stompEndpointRegistry).addEndpoint(endpointCaptor.capture());
         assertEquals("/ws", endpointCaptor.getValue());
     }
+
     @Test
     void testRegisterStompEndpoints_RestrictsOriginsByConfiguration() {
         // Arrange
@@ -128,6 +139,7 @@ class WebSocketConfigTest {
             assertNotEquals("*", origin, "Origins should be restricted, not wildcard");
         }
     }
+
     @Test
     void testRegisterStompEndpoints_SetsPrincipalHandshakeHandler() {
         // Arrange
@@ -138,6 +150,7 @@ class WebSocketConfigTest {
         verify(endpointRegistration).setHandshakeHandler(handlerCaptor.capture());
         assertInstanceOf(PrincipalHandshakeHandler.class, handlerCaptor.getValue());
     }
+
     @Test
     void testRegisterStompEndpoints_AddsJwtHandshakeInterceptor() {
         // Arrange
@@ -148,6 +161,7 @@ class WebSocketConfigTest {
         verify(endpointRegistration).addInterceptors(interceptorCaptor.capture());
         assertInstanceOf(JwtHandshakeInterceptor.class, interceptorCaptor.getValue());
     }
+
     @Test
     void testRegisterStompEndpoints_EnablesSockJS() {
         // Act
@@ -155,6 +169,7 @@ class WebSocketConfigTest {
         // Assert
         verify(endpointRegistration).withSockJS();
     }
+
     @Test
     void testRegisterStompEndpoints_CallsInCorrectOrder() {
         // Act
@@ -167,6 +182,7 @@ class WebSocketConfigTest {
         inOrder.verify(endpointRegistration).addInterceptors(any(JwtHandshakeInterceptor.class));
         inOrder.verify(endpointRegistration).withSockJS();
     }
+
     @Test
     void testConfigureMessageBroker_CalledMultipleTimes() {
         // Act
@@ -177,6 +193,7 @@ class WebSocketConfigTest {
         verify(messageBrokerRegistry, times(2)).setApplicationDestinationPrefixes("/app");
         verify(messageBrokerRegistry, times(2)).setUserDestinationPrefix("/user");
     }
+
     @Test
     void testRegisterStompEndpoints_CalledMultipleTimes() {
         // Act
@@ -186,11 +203,13 @@ class WebSocketConfigTest {
         verify(stompEndpointRegistry, times(2)).addEndpoint("/ws");
         verify(endpointRegistration, times(2)).withSockJS();
     }
+
     @Test
     void testWebSocketConfig_HasCorrectDependencies() {
         // Assert - verify dependencies are correctly injected
         assertNotNull(webSocketConfig);
     }
+
     @Test
     void testConfigureMessageBroker_AllMethodsCalled() {
         // Arrange
@@ -203,6 +222,7 @@ class WebSocketConfigTest {
         verify(messageBrokerRegistry, times(1)).setUserDestinationPrefix(anyString());
         verifyNoMoreInteractions(messageBrokerRegistry);
     }
+
     @Test
     void testRegisterStompEndpoints_AllMethodsCalled() {
         // Arrange
