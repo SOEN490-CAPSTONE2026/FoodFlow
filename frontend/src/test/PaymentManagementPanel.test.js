@@ -22,7 +22,9 @@ describe('PaymentManagementPanel', () => {
     expect(screen.getByText('Billing Tools')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Open Tools' }));
 
-    expect(screen.getByRole('tablist', { name: 'Billing tools' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tablist', { name: 'Billing tools' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Methods' })).toHaveAttribute(
       'aria-selected',
       'true'

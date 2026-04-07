@@ -58,7 +58,9 @@ describe('FeedbackModal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('You have already submitted feedback for this donation.')
+        screen.getByText(
+          'You have already submitted feedback for this donation.'
+        )
       ).toBeInTheDocument();
     });
   });
@@ -71,7 +73,9 @@ describe('FeedbackModal', () => {
     renderModal({ onClose, onSubmitted });
 
     const starButtons = screen.getAllByRole('button');
-    fireEvent.click(starButtons.find(button => button.className.includes('star-btn')));
+    fireEvent.click(
+      starButtons.find(button => button.className.includes('star-btn'))
+    );
     fireEvent.change(screen.getByPlaceholderText('Optional short review'), {
       target: { value: '  helpful pickup  ' },
     });
@@ -105,9 +109,15 @@ describe('FeedbackModal', () => {
     const { container } = renderModal({ onClose });
 
     const starButtons = screen.getAllByRole('button');
-    fireEvent.mouseEnter(starButtons.find(button => button.className.includes('star-btn')));
-    fireEvent.mouseLeave(starButtons.find(button => button.className.includes('star-btn')));
-    fireEvent.click(starButtons.find(button => button.className.includes('star-btn')));
+    fireEvent.mouseEnter(
+      starButtons.find(button => button.className.includes('star-btn'))
+    );
+    fireEvent.mouseLeave(
+      starButtons.find(button => button.className.includes('star-btn'))
+    );
+    fireEvent.click(
+      starButtons.find(button => button.className.includes('star-btn'))
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Submit Feedback' }));
 
     await waitFor(() => {
@@ -125,6 +135,8 @@ describe('FeedbackModal', () => {
     renderModal({ claimId: null }, { userId: null });
 
     expect(feedbackAPI.getFeedbackForClaim).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'Submit Feedback' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Submit Feedback' })
+    ).toBeDisabled();
   });
 });

@@ -60,7 +60,9 @@ describe('ChangePasswordModal', () => {
 
   test('does not render when closed', () => {
     render(<ChangePasswordModal isOpen={false} onClose={jest.fn()} />);
-    expect(screen.queryByText('changePasswordModal.title')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('changePasswordModal.title')
+    ).not.toBeInTheDocument();
   });
 
   test('validates required fields and clears a field error when typing', async () => {
@@ -167,34 +169,39 @@ describe('ChangePasswordModal', () => {
       /fields.currentPassword/i,
       'Incorrect current password',
     ],
-    ['Passwords do not match', /fields.confirmNewPassword/i, 'Passwords do not match'],
-    ['New password same as current', /fields.newPassword/i, 'New password same as current'],
+    [
+      'Passwords do not match',
+      /fields.confirmNewPassword/i,
+      'Passwords do not match',
+    ],
+    [
+      'New password same as current',
+      /fields.newPassword/i,
+      'New password same as current',
+    ],
     ['Unexpected failure', null, 'Unexpected failure'],
-  ])(
-    'maps backend errors for "%s"',
-    async (message, fieldLabel, expected) => {
-      authAPI.changePassword.mockRejectedValueOnce({
-        response: { data: { message } },
-      });
+  ])('maps backend errors for "%s"', async (message, fieldLabel, expected) => {
+    authAPI.changePassword.mockRejectedValueOnce({
+      response: { data: { message } },
+    });
 
-      renderModal();
-      fillForm();
-      fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
+    renderModal();
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
 
-      await waitFor(() => {
-        expect(authAPI.changePassword).toHaveBeenCalled();
-      });
+    await waitFor(() => {
+      expect(authAPI.changePassword).toHaveBeenCalled();
+    });
 
-      await waitFor(() => {
-        expect(screen.getByText(expected)).toBeInTheDocument();
-      });
-      if (fieldLabel) {
-        expect(screen.getByLabelText(fieldLabel)).toHaveClass('error');
-      }
-
-      cleanup();
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeInTheDocument();
+    });
+    if (fieldLabel) {
+      expect(screen.getByLabelText(fieldLabel)).toHaveClass('error');
     }
-  );
+
+    cleanup();
+  });
 
   test('cancels from the overlay and reset button', () => {
     const onClose = jest.fn();
