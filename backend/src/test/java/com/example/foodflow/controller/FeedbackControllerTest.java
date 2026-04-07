@@ -342,11 +342,9 @@ class FeedbackControllerTest {
     @Test
     void getAdminUserRatings_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
-        // FIXED: Validation happens before authorization, so missing required params
-        // returns 400
         mockMvc.perform(get("/api/feedback/admin/users/2/ratings")
                 .with(authentication(donorAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void getAdminRatingDashboard_AsAdmin_ShouldReturn200() throws Exception {
@@ -362,11 +360,9 @@ class FeedbackControllerTest {
     @Test
     void getAdminRatingDashboard_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
-        // FIXED: Validation happens before authorization, so missing required params
-        // returns 400
         mockMvc.perform(get("/api/feedback/admin/ratings/dashboard")
                 .with(authentication(donorAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void getUsersBelowThreshold_AsAdmin_ShouldReturn200() throws Exception {
@@ -390,11 +386,9 @@ class FeedbackControllerTest {
     @Test
     void getUsersBelowThreshold_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
-        // FIXED: Validation happens before authorization, so missing required params
-        // returns 400
         mockMvc.perform(get("/api/feedback/admin/ratings/below-threshold")
                 .with(authentication(receiverAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void getFlaggedRatings_AsAdmin_ShouldReturn200() throws Exception {
@@ -416,11 +410,9 @@ class FeedbackControllerTest {
     @Test
     void getFlaggedRatings_AsNonAdmin_ShouldReturn403() throws Exception {
         // When & Then
-        // FIXED: Validation happens before authorization, so missing required params
-        // returns 400
         mockMvc.perform(get("/api/feedback/admin/ratings/flagged")
                 .with(authentication(donorAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void submitFeedback_Unauthenticated_ShouldReturn401() throws Exception {

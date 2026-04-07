@@ -71,11 +71,11 @@ class ImageControllerAuthTest {
     void receiverCannotAccessDonorPhotoEndpoints() throws Exception {
         mockMvc.perform(get("/api/donor/settings/photos")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(receiverAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
         MockMultipartFile file = new MockMultipartFile("file", "x.jpg", "image/jpeg", "img".getBytes());
         mockMvc.perform(multipart("/api/images/upload")
                         .file(file)
                         .with(SecurityMockMvcRequestPostProcessors.authentication(receiverAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 }

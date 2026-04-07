@@ -90,14 +90,14 @@ class ReportsEndpointSecurityTest {
     }
     // --- ADMIN role ---
     @Test
-    void postReports_withAdminRole_returns400() throws Exception {
+    void postReports_withAdminRole_returns403() throws Exception {
         // SecurityConfig allows ADMIN on /api/reports/**, but the method-level
-        // @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER')") blocks ADMIN by
-        // throwing 400 status code
+        // @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER')") blocks ADMIN with
+        // a 403 access-denied response.
         mockMvc.perform(post("/api/reports")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_BODY)
                 .with(authentication(authAs(adminUser, "ADMIN"))))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 }

@@ -233,12 +233,11 @@ class ReportControllerTest {
         request.setDonationId(100L);
         request.setDescription("User did not show up");
         // When & Then
-        // FIXED: Validation happens before role check, returns 400
         mockMvc.perform(post("/api/reports")
                 .with(authentication(adminAuth))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void createReport_DuplicateReport_ShouldReturn400() throws Exception {

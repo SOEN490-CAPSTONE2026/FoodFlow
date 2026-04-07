@@ -94,12 +94,11 @@ class PickupPreferenceControllerTest {
                 .andExpect(status().isUnauthorized());
     }
     @Test
-    void getPreferences_WithReceiverRole_ReturnsBadRequest() throws Exception {
-        // AccessDeniedException extends RuntimeException, which GlobalExceptionHandler maps to 400
+    void getPreferences_WithReceiverRole_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/donors/pickup-preferences")
                         .with(authentication(receiverAuth)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void getPreferences_WhenServiceThrows_ReturnsBadRequest() throws Exception {
@@ -178,8 +177,7 @@ class PickupPreferenceControllerTest {
                 .andExpect(status().isUnauthorized());
     }
     @Test
-    void savePreferences_WithReceiverRole_ReturnsBadRequest() throws Exception {
-        // AccessDeniedException extends RuntimeException, which GlobalExceptionHandler maps to 400
+    void savePreferences_WithReceiverRole_ReturnsForbidden() throws Exception {
         // Given
         PickupPreferenceRequest request = new PickupPreferenceRequest();
         request.setSlots(Collections.emptyList());
@@ -188,7 +186,7 @@ class PickupPreferenceControllerTest {
                         .with(authentication(receiverAuth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     @Test
     void savePreferences_WhenServiceThrows_ReturnsBadRequest() throws Exception {
