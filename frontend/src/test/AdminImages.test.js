@@ -14,7 +14,7 @@ jest.mock('../services/api', () => ({
   },
 }));
 
-const { adminImageAPI } = require('../../../services/api');
+const { adminImageAPI } = require('../services/api');
 
 describe('AdminImages', () => {
   beforeEach(() => {

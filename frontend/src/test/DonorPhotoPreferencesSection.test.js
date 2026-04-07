@@ -19,7 +19,7 @@ const {
   donorPhotoSettingsAPI,
   imageAPI,
   imageLibraryAPI,
-} = require('../../../services/api');
+} = require('../services/api');
 
 describe('DonorPhotoPreferencesSection', () => {
   beforeEach(() => {
