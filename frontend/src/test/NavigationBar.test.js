@@ -1,122 +1,167 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../contexts/AuthContext';
 import NavigationBar from '../components/NavigationBar';
+import { AuthContext } from '../contexts/AuthContext';
 
-// Mock dependencies
+const mockNavigate = jest.fn();
+const mockChangeLanguage = jest.fn();
+let mockLocation = { pathname: '/', state: null, search: '' };
+let mockLanguage = 'en';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+  useLocation: () => mockLocation,
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: key => key,
-    i18n: { language: 'en' },
+    i18n: {
+      language: mockLanguage,
+      changeLanguage: mockChangeLanguage,
+    },
   }),
 }));
 
-const renderWithProviders = component => {
-  return render(
-    <BrowserRouter>
-      <AuthProvider>{component}</AuthProvider>
-    </BrowserRouter>
-  );
-};
+jest.mock('react-icons/fa', () => ({
+  FaBars: () => <span data-testid="bars-icon">bars</span>,
+  FaTimes: () => <span data-testid="times-icon">times</span>,
+}));
 
 describe('NavigationBar', () => {
-  test('renders navigation bar', () => {
-    renderWithProviders(<NavigationBar />);
-
-    // Check if the navigation bar is rendered
-    const navbar = document.querySelector('.navbar');
-    expect(navbar).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    sessionStorage.clear();
+    mockLocation = { pathname: '/', state: null, search: '' };
+    mockLanguage = 'en';
+    Element.prototype.scrollIntoView = jest.fn();
+    jest.spyOn(window.history, 'replaceState');
   });
 
-  test('displays logo', () => {
-    renderWithProviders(<NavigationBar />);
-
-    // Check if logo is present
-    const logo = screen.getByAltText(/logo/i);
-    expect(logo).toBeInTheDocument();
+  afterEach(() => {
+    window.history.replaceState.mockRestore();
   });
 
-  test('shows language switcher', () => {
-    renderWithProviders(<NavigationBar />);
+  const renderNav = (authValue = { isLoggedIn: false, role: null }) =>
+    render(
+      <AuthContext.Provider value={authValue}>
+        <NavigationBar />
+      </AuthContext.Provider>
+    );
 
-    // Check if language switcher button is present (mobile + desktop)
-    const languageButtons = screen.getAllByLabelText('language.select');
-    expect(languageButtons.length).toBeGreaterThan(0);
+  test('renders logged-out navigation and toggles the menu', () => {
+    renderNav();
+
+    expect(screen.getByAltText('Logo')).toBeInTheDocument();
+    expect(screen.getAllByText('nav.login').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('language.select').length).toBe(2);
+
+    const menuToggle = screen.getByRole('button', { name: 'Toggle menu' });
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(menuToggle);
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByTestId('times-icon')).toBeInTheDocument();
   });
 
-  test('handles user authentication state', () => {
-    renderWithProviders(<NavigationBar />);
+  test('navigates to login and register and closes the mobile menu', () => {
+    renderNav();
 
-    // Navigation bar should be present regardless of auth state
-    const navbar = document.querySelector('.navbar');
-    expect(navbar).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.click(screen.getAllByText('nav.login')[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('/login');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.click(screen.getAllByText('nav.register')[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('/register');
+
+    expect(screen.getByRole('button', { name: 'Toggle menu' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
   });
 
-  test('renders navigation links', () => {
-    renderWithProviders(<NavigationBar />);
+  test('scrolls on the landing page and updates the hash', () => {
+    const section = document.createElement('section');
+    section.id = 'about';
+    section.scrollIntoView = jest.fn();
+    document.body.appendChild(section);
 
-    // Check for common navigation elements
-    const navElement =
-      document.querySelector('nav') || document.querySelector('.navbar');
-    expect(navElement).toBeInTheDocument();
+    renderNav();
+    fireEvent.click(screen.getByText('nav.about'));
+
+    expect(window.history.replaceState).toHaveBeenCalled();
+    expect(section.scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    });
   });
 
-  test('handles mobile menu toggle', () => {
-    renderWithProviders(<NavigationBar />);
+  test('stores the target and navigates when jumping to a section from another route', () => {
+    mockLocation = {
+      pathname: '/login',
+      state: { from: '/receiver/browse' },
+      search: '?next=1',
+    };
 
-    // Look for a hamburger menu or toggle button
-    const menuButton =
-      document.querySelector('.menu-toggle') ||
-      document.querySelector('.hamburger') ||
-      document.querySelector('[data-testid="menu-toggle"]');
+    renderNav();
+    fireEvent.click(screen.getByText('nav.contact'));
 
-    if (menuButton) {
-      fireEvent.click(menuButton);
-      // Menu should still be present after click
-      expect(menuButton).toBeInTheDocument();
-    } else {
-      // If no mobile menu, just verify navbar exists
-      const navbar =
-        document.querySelector('.navbar') || document.querySelector('nav');
-      expect(navbar).toBeInTheDocument();
-    }
+    expect(sessionStorage.getItem('landingScrollTarget')).toBe('contact');
+    expect(sessionStorage.getItem('returnFrom')).toBe('/receiver/browse');
+    expect(mockNavigate).toHaveBeenCalledWith('/#contact', {
+      state: { scrollTo: 'contact', from: '/receiver/browse' },
+    });
   });
 
-  test('displays correct styling classes', () => {
-    renderWithProviders(<NavigationBar />);
+  test('handles logo clicks both on and off the landing page', () => {
+    mockLocation = { pathname: '/privacy', state: null, search: '' };
+    const { rerender } = renderNav();
 
-    // Check for common navbar classes
-    const navbar =
-      document.querySelector('.navbar') ||
-      document.querySelector('.navigation-bar') ||
-      document.querySelector('nav');
-    expect(navbar).toBeInTheDocument();
+    fireEvent.click(screen.getByAltText('Logo'));
+    expect(sessionStorage.getItem('landingScrollTarget')).toBe('home');
+    expect(mockNavigate).toHaveBeenCalledWith('/#home', {
+      state: { from: undefined, scrollTo: 'home' },
+    });
+
+    mockNavigate.mockClear();
+    mockLocation = { pathname: '/', state: null, search: '?lang=en' };
+    rerender(
+      <AuthContext.Provider value={{ isLoggedIn: false, role: null }}>
+        <NavigationBar />
+      </AuthContext.Provider>
+    );
+
+    fireEvent.click(screen.getByAltText('Logo'));
+    expect(window.history.replaceState).toHaveBeenCalled();
   });
 
-  test('handles responsive design', () => {
-    renderWithProviders(<NavigationBar />);
+  test.each([
+    ['RECEIVER', '/receiver/browse'],
+    ['DONOR', '/donor'],
+    ['ADMIN', '/admin/dashboard'],
+    ['OTHER', '/'],
+  ])('returns logged-in users to the right dashboard for %s', (role, path) => {
+    renderNav({ isLoggedIn: true, role });
 
-    // Navigation should be rendered
-    const nav =
-      document.querySelector('nav') || document.querySelector('.navbar');
-    expect(nav).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText('nav.returnToDashboard')[0]);
+    expect(mockNavigate).toHaveBeenCalledWith(path);
   });
 
-  test('renders without crashing', () => {
-    expect(() => {
-      renderWithProviders(<NavigationBar />);
-    }).not.toThrow();
-  });
+  test('changes language and closes the dropdown when clicking outside', () => {
+    renderNav();
 
-  test('contains navigation elements', () => {
-    renderWithProviders(<NavigationBar />);
+    fireEvent.click(screen.getAllByLabelText('language.select')[0]);
+    expect(screen.getAllByText('language.french').length).toBeGreaterThan(0);
 
-    // Should have some navigation structure
-    const navigation =
-      document.querySelector('nav') ||
-      document.querySelector('.navbar') ||
-      document.querySelector('.navigation');
-    expect(navigation).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText('language.french')[0]);
+    expect(mockChangeLanguage).toHaveBeenCalledWith('fr');
+
+    fireEvent.click(screen.getAllByLabelText('language.select')[0]);
+    expect(screen.getAllByText('language.spanish').length).toBeGreaterThan(0);
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryAllByText('language.spanish')).toHaveLength(0);
   });
 });
