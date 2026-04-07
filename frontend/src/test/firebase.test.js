@@ -35,7 +35,7 @@ describe('Firebase Configuration', () => {
 
   beforeAll(() => {
     // Require firebase module once to execute the actual code
-    firebaseModule = require('../firebase');
+    firebaseModule = require('../services/firebase');
   });
 
   beforeEach(() => {
@@ -102,7 +102,7 @@ describe('Firebase Configuration', () => {
   test('isAnalyticsInitialized starts false and becomes true after getAnalyticsInstance is called', () => {
     // Use a fresh module isolated from beforeAll's cached copy so _analytics starts null
     jest.isolateModules(() => {
-      const freshModule = require('../firebase');
+      const freshModule = require('../services/firebase');
       expect(freshModule.isAnalyticsInitialized()).toBe(false);
       freshModule.getAnalyticsInstance();
       expect(freshModule.isAnalyticsInitialized()).toBe(true);

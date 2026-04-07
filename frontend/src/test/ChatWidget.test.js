@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ChatWidget from '../components/ChatWidget';
+import ChatWidget from '../components/shared/ChatWidget';
 import api from '../services/api';
 
 // Mock the API service
@@ -20,7 +20,7 @@ jest.mock('react-router-dom', () => ({
 
 // Mock AuthContext
 const mockUseAuth = jest.fn();
-jest.mock('../../../contexts/AuthContext', () => ({
+jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }));
 

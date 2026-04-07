@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import BadgeDisplay from '../BadgeDisplay';
-import * as gamificationHook from '../../../hooks/useGamification';
+import BadgeDisplay from '../components/shared/BadgeDisplay';
+import * as gamificationHook from '../hooks/useGamification';
 
 // Mock the hook
 jest.mock('../hooks/useGamification');

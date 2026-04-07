@@ -6,7 +6,7 @@ import {
   waitFor,
   act,
 } from '@testing-library/react';
-import AchievementNotification from '../AchievementNotification';
+import AchievementNotification from '../components/shared/AchievementNotification';
 
 jest.mock('../components/shared/BadgeIcon', () => {
   return function BadgeIconMock() {

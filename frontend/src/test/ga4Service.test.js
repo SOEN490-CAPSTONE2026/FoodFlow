@@ -42,7 +42,7 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   jest.clearAllMocks();
-  ga4Service = require('../ga4Service').default;
+  ga4Service = require('../services/ga4Service').default;
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

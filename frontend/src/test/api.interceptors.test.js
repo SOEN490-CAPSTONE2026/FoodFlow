@@ -40,11 +40,11 @@ jest.mock('axios', () => ({
   })),
 }));
 
-jest.mock('../authEvents', () => ({
+jest.mock('../services/authEvents', () => ({
   emitUnauthorized: (...args) => mockEmitUnauthorized(...args),
 }));
 
-jest.mock('../navigation', () => ({
+jest.mock('../services/navigation', () => ({
   navigateTo: (...args) => mockNavigateTo(...args),
   getNavigationLocation: (...args) => mockGetNavigationLocation(...args),
 }));

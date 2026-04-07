@@ -3,7 +3,7 @@ import {
   setNavigationLocation,
   getNavigationLocation,
   navigateTo,
-} from '../navigation';
+} from '../services/navigation';
 
 describe('navigation', () => {
   beforeEach(() => {

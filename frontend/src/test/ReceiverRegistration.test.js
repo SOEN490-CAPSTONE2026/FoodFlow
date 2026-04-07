@@ -14,7 +14,7 @@ jest.mock(
   '../assets/illustrations/receiver-ilustration.jpg',
   () => 'receiver.jpg'
 );
-jest.mock('../components/Registration.css', () => ({}), { virtual: true });
+jest.mock('../../components/Registration.css', () => ({}), { virtual: true });
 
 // Mock navigate
 const mockNavigate = jest.fn();

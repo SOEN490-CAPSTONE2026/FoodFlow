@@ -1,15 +1,15 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Leaderboard from '../Leaderboard';
-import useLeaderboard from '../../../hooks/useLeaderboard';
+import Leaderboard from '../components/shared/Leaderboard';
+import useLeaderboard from '../hooks/useLeaderboard';
 
 // Mock the hooks
 jest.mock('../hooks/useLeaderboard');
 jest.mock('@tanstack/react-query');
 
 // Mock LeaderboardEntry component
-jest.mock('../LeaderboardEntry', () => {
+jest.mock('../components/shared/LeaderboardEntry', () => {
   return function MockLeaderboardEntry({ entry }) {
     return (
       <div data-testid="leaderboard-entry">

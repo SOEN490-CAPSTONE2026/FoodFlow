@@ -18,6 +18,30 @@ jest.mock('axios', () => ({
   })),
 }));
 
+// Load API modules after mocks are set up
+const {
+  authAPI,
+  surplusAPI,
+  imageAPI,
+  donorPhotoSettingsAPI,
+  conversationAPI,
+  claimsAPI,
+  feedbackAPI,
+  gamificationAPI,
+  impactDashboardAPI,
+  notificationPreferencesAPI,
+  profileAPI,
+  rateLimitAPI,
+  recommendationAPI,
+  reportAPI,
+  savedDonationAPI,
+  supportChatAPI,
+  userAPI,
+  adminDisputeAPI,
+  adminDonationAPI,
+  adminVerificationAPI,
+} = require('../services/api');
+
 describe('API service', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -31,7 +55,6 @@ describe('API service', () => {
 
   test('call /auth/login', async () => {
     mockPost.mockResolvedValue({ data: { token: 'test-token-123' } });
-    const { authAPI } = require('../api');
     const resp = await authAPI.login({ username: 'alice', password: 'pw' });
     expect(mockPost).toHaveBeenCalledWith('/auth/login', {
       username: 'alice',
@@ -44,7 +67,6 @@ describe('API service', () => {
   test('call /auth/logout', async () => {
     localStorage.setItem('jwtToken', 'existing-token');
     mockPost.mockResolvedValue({ status: 200 });
-    const { authAPI } = require('../api');
     const resp = await authAPI.logout();
     expect(localStorage.getItem('jwtToken')).toBeNull();
     expect(mockPost).toHaveBeenCalledWith('/auth/logout');
@@ -53,7 +75,6 @@ describe('API service', () => {
 
   test('call /surplus/search', async () => {
     mockPost.mockResolvedValue({ data: { results: [] } });
-    const { surplusAPI } = require('../api');
     const filters = {
       foodType: ['Fruits & Vegetables', 'Frozen Food'],
       expiryBefore: '2025-12-01',
@@ -76,7 +97,6 @@ describe('API service', () => {
 
   test('send pickupSlotId', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { surplusAPI } = require('../api');
     const postId = 123;
     const slot = { id: 55 };
     const resp = await surplusAPI.claim(postId, slot);
@@ -89,7 +109,6 @@ describe('API service', () => {
 
   test('surplusAPI.claim includes pickupSlot', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { surplusAPI } = require('../api');
     const postId = 222;
     const slot = { start: '10:00', end: '10:30' };
     const resp = await surplusAPI.claim(postId, slot);
@@ -102,7 +121,6 @@ describe('API service', () => {
 
   test('surplusAPI.searchBasic builds query params and calls GET', async () => {
     mockGet.mockResolvedValue({ data: { items: [] } });
-    const { surplusAPI } = require('../api');
     const filters = {
       foodType: ['Bakery & Pastry'],
       expiryBefore: '2025-01-01',
@@ -140,7 +158,6 @@ describe('API service', () => {
     ];
 
     mockGet.mockResolvedValue({ data: mockTimelineData });
-    const { surplusAPI } = require('../api');
     const postId = 123;
     const resp = await surplusAPI.getTimeline(postId);
 
@@ -151,7 +168,6 @@ describe('API service', () => {
 
   test('surplusAPI.getTimeline handles empty timeline', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
     const postId = 456;
     const resp = await surplusAPI.getTimeline(postId);
 
@@ -161,7 +177,6 @@ describe('API service', () => {
 
   test('surplusAPI.getTimeline handles API error', async () => {
     mockGet.mockRejectedValue(new Error('Network error'));
-    const { surplusAPI } = require('../api');
     const postId = 789;
 
     await expect(surplusAPI.getTimeline(postId)).rejects.toThrow(
@@ -174,7 +189,6 @@ describe('API service', () => {
   test('authAPI.registerDonor with FormData', async () => {
     const mockPut = jest.fn();
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const formData = new FormData();
     formData.append('email', 'donor@test.com');
@@ -188,7 +202,6 @@ describe('API service', () => {
 
   test('authAPI.registerDonor with regular object', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const data = { email: 'donor@test.com', password: 'pass123' };
     const resp = await authAPI.registerDonor(data);
@@ -199,7 +212,6 @@ describe('API service', () => {
 
   test('authAPI.registerReceiver with FormData', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const formData = new FormData();
     formData.append('email', 'receiver@test.com');
@@ -213,7 +225,6 @@ describe('API service', () => {
 
   test('authAPI.registerReceiver with regular object', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const data = { email: 'receiver@test.com', password: 'pass123' };
     const resp = await authAPI.registerReceiver(data);
@@ -224,7 +235,6 @@ describe('API service', () => {
 
   test('authAPI.forgotPassword', async () => {
     mockPost.mockResolvedValue({ data: { message: 'Email sent' } });
-    const { authAPI } = require('../api');
 
     const data = { email: 'user@test.com' };
     const resp = await authAPI.forgotPassword(data);
@@ -235,7 +245,6 @@ describe('API service', () => {
 
   test('authAPI.verifyResetCode', async () => {
     mockPost.mockResolvedValue({ data: { valid: true } });
-    const { authAPI } = require('../api');
 
     const data = { email: 'user@test.com', code: '123456' };
     const resp = await authAPI.verifyResetCode(data);
@@ -246,7 +255,6 @@ describe('API service', () => {
 
   test('authAPI.resetPassword', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const data = {
       email: 'user@test.com',
@@ -261,7 +269,6 @@ describe('API service', () => {
 
   test('authAPI.checkEmailExists', async () => {
     mockGet.mockResolvedValue({ data: { exists: true } });
-    const { authAPI } = require('../api');
 
     const resp = await authAPI.checkEmailExists('test@test.com');
 
@@ -273,7 +280,6 @@ describe('API service', () => {
 
   test('imageAPI.upload sends multipart form-data', async () => {
     mockPost.mockResolvedValue({ data: { image: { id: 1 } } });
-    const { imageAPI } = require('../api');
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
 
     await imageAPI.upload(file, { foodType: 'PRODUCE', donationId: 9 });
@@ -290,7 +296,6 @@ describe('API service', () => {
   test('donorPhotoSettingsAPI calls expected endpoints', async () => {
     mockGet.mockResolvedValue({ data: { displayType: 'SINGLE' } });
     mockPut.mockResolvedValue({ data: { displayType: 'PER_FOOD_TYPE' } });
-    const { donorPhotoSettingsAPI } = require('../api');
 
     await donorPhotoSettingsAPI.get();
     await donorPhotoSettingsAPI.update({ displayType: 'PER_FOOD_TYPE' });
@@ -303,7 +308,6 @@ describe('API service', () => {
 
   test('authAPI.checkPhoneExists', async () => {
     mockGet.mockResolvedValue({ data: { exists: false } });
-    const { authAPI } = require('../api');
 
     const resp = await authAPI.checkPhoneExists('514-555-1234');
 
@@ -315,7 +319,6 @@ describe('API service', () => {
 
   test('authAPI.changePassword', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const data = { oldPassword: 'old', newPassword: 'new' };
     const resp = await authAPI.changePassword(data);
@@ -326,7 +329,6 @@ describe('API service', () => {
 
   test('authAPI.verifyEmail', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { authAPI } = require('../api');
 
     const resp = await authAPI.verifyEmail('token123');
 
@@ -338,7 +340,6 @@ describe('API service', () => {
 
   test('authAPI.resendVerificationEmail', async () => {
     mockPost.mockResolvedValue({ data: { sent: true } });
-    const { authAPI } = require('../api');
 
     const resp = await authAPI.resendVerificationEmail();
 
@@ -349,7 +350,6 @@ describe('API service', () => {
   // surplusAPI tests
   test('surplusAPI.list', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.list();
 
@@ -359,7 +359,6 @@ describe('API service', () => {
 
   test('surplusAPI.getMyPosts', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.getMyPosts();
 
@@ -369,7 +368,6 @@ describe('API service', () => {
 
   test('surplusAPI.getPost', async () => {
     mockGet.mockResolvedValue({ data: { id: 1 } });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.getPost(1);
 
@@ -379,7 +377,6 @@ describe('API service', () => {
 
   test('surplusAPI.create', async () => {
     mockPost.mockResolvedValue({ data: { id: 1 } });
-    const { surplusAPI } = require('../api');
 
     const data = { title: 'Food', quantity: 10 };
     const resp = await surplusAPI.create(data);
@@ -412,7 +409,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { surplusAPI } = require('../api');
 
     const data = { title: 'Updated' };
     const resp = await surplusAPI.update(1, data);
@@ -429,7 +425,6 @@ describe('API service', () => {
 
   test('surplusAPI.deletePost', async () => {
     mockDelete.mockResolvedValue({ data: { success: true } });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.deletePost(1);
 
@@ -439,7 +434,6 @@ describe('API service', () => {
 
   test('surplusAPI.claim without slot', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.claim(123);
 
@@ -449,7 +443,6 @@ describe('API service', () => {
 
   test('surplusAPI.completeSurplusPost', async () => {
     mockPatch.mockResolvedValue({ data: { success: true } });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.completeSurplusPost(1, '123456');
 
@@ -461,7 +454,6 @@ describe('API service', () => {
 
   test('surplusAPI.confirmPickup', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { surplusAPI } = require('../api');
 
     const resp = await surplusAPI.confirmPickup(1, '654321');
 
@@ -474,7 +466,6 @@ describe('API service', () => {
 
   test('surplusAPI.search with minimal filters', async () => {
     mockPost.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = {};
     const resp = await surplusAPI.search(filters);
@@ -487,7 +478,6 @@ describe('API service', () => {
 
   test('surplusAPI.search with foodType only', async () => {
     mockPost.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = { foodType: ['Dairy & Cold Items'] };
     const resp = await surplusAPI.search(filters);
@@ -501,7 +491,6 @@ describe('API service', () => {
 
   test('surplusAPI.search with expiryBefore only', async () => {
     mockPost.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = { expiryBefore: '2026-02-01' };
     const resp = await surplusAPI.search(filters);
@@ -515,7 +504,6 @@ describe('API service', () => {
 
   test('surplusAPI.search with location but no distance', async () => {
     mockPost.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = {
       locationCoords: { lat: '45.5', lng: '-73.5', address: 'Montreal' },
@@ -530,7 +518,6 @@ describe('API service', () => {
 
   test('surplusAPI.search with dietary tags and sort', async () => {
     mockPost.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = {
       dietaryTags: ['VEGAN', 'HALAL'],
@@ -552,7 +539,6 @@ describe('API service', () => {
     mockPost.mockResolvedValue({
       data: { url: 'http://example.com/evidence.jpg' },
     });
-    const { surplusAPI } = require('../api');
 
     const file = new File(['content'], 'evidence.jpg', { type: 'image/jpeg' });
     const resp = await surplusAPI.uploadEvidence(1, file);
@@ -567,7 +553,6 @@ describe('API service', () => {
 
   test('surplusAPI.searchBasic with empty foodType', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = { foodType: [] };
     const resp = await surplusAPI.searchBasic(filters);
@@ -580,7 +565,6 @@ describe('API service', () => {
 
   test('surplusAPI.searchBasic with dietary tags and sort', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { surplusAPI } = require('../api');
 
     const filters = {
       dietaryTags: ['VEGETARIAN', 'NUT_FREE'],
@@ -610,7 +594,6 @@ describe('API service', () => {
       .mockResolvedValueOnce({ data: [{ id: 1 }] })
       .mockResolvedValueOnce({ data: { id: 7 } })
       .mockResolvedValueOnce({ data: [{ id: 9, content: 'hi' }] });
-    const { conversationAPI } = require('../api');
 
     const interestResp = await conversationAPI.expressInterest(99);
     const createResp = await conversationAPI.createOrGetPostConversation(99, 7);
@@ -635,7 +618,6 @@ describe('API service', () => {
   // claimsAPI tests
   test('claimsAPI.myClaims', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { claimsAPI } = require('../api');
 
     const resp = await claimsAPI.myClaims();
 
@@ -645,7 +627,6 @@ describe('API service', () => {
 
   test('claimsAPI.claim', async () => {
     mockPost.mockResolvedValue({ data: { id: 1 } });
-    const { claimsAPI } = require('../api');
 
     const resp = await claimsAPI.claim(123);
 
@@ -655,7 +636,6 @@ describe('API service', () => {
 
   test('claimsAPI.cancel', async () => {
     mockDelete.mockResolvedValue({ data: { success: true } });
-    const { claimsAPI } = require('../api');
 
     const resp = await claimsAPI.cancel(456);
 
@@ -665,7 +645,6 @@ describe('API service', () => {
 
   test('claimsAPI.getClaimForSurplusPost', async () => {
     mockGet.mockResolvedValue({ data: { id: 789 } });
-    const { claimsAPI } = require('../api');
 
     const resp = await claimsAPI.getClaimForSurplusPost(123);
 
@@ -676,7 +655,6 @@ describe('API service', () => {
   // savedDonationAPI tests
   test('savedDonationAPI.getSavedDonations', async () => {
     mockGet.mockResolvedValue({ data: [{ id: 1 }] });
-    const { savedDonationAPI } = require('../api');
 
     const resp = await savedDonationAPI.getSavedDonations();
 
@@ -686,7 +664,6 @@ describe('API service', () => {
 
   test('savedDonationAPI.save', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { savedDonationAPI } = require('../api');
 
     const resp = await savedDonationAPI.save(42);
 
@@ -696,7 +673,6 @@ describe('API service', () => {
 
   test('savedDonationAPI.unsave', async () => {
     mockDelete.mockResolvedValue({ data: { success: true } });
-    const { savedDonationAPI } = require('../api');
 
     const resp = await savedDonationAPI.unsave(42);
 
@@ -706,7 +682,6 @@ describe('API service', () => {
 
   test('savedDonationAPI.isSaved', async () => {
     mockGet.mockResolvedValue({ data: true });
-    const { savedDonationAPI } = require('../api');
 
     const resp = await savedDonationAPI.isSaved(42);
 
@@ -716,7 +691,6 @@ describe('API service', () => {
 
   test('savedDonationAPI.getSavedCount', async () => {
     mockGet.mockResolvedValue({ data: { count: 3 } });
-    const { savedDonationAPI } = require('../api');
 
     const resp = await savedDonationAPI.getSavedCount();
 
@@ -727,7 +701,6 @@ describe('API service', () => {
   // recommendationAPI tests
   test('recommendationAPI.getBrowseRecommendations with postIds', async () => {
     mockGet.mockResolvedValue({ data: { 1: 80, 2: 90 } });
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getBrowseRecommendations([1, 2, 3]);
 
@@ -738,7 +711,6 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getBrowseRecommendations with empty array', async () => {
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getBrowseRecommendations([]);
 
@@ -747,7 +719,6 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getBrowseRecommendations with null', async () => {
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getBrowseRecommendations(null);
 
@@ -757,7 +728,6 @@ describe('API service', () => {
 
   test('recommendationAPI.getBrowseRecommendations handles error', async () => {
     mockGet.mockRejectedValue(new Error('Network error'));
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getBrowseRecommendations([1, 2]);
 
@@ -769,7 +739,6 @@ describe('API service', () => {
 
   test('recommendationAPI.getRecommendationForPost', async () => {
     mockGet.mockResolvedValue({ data: { score: 85 } });
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getRecommendationForPost(123);
 
@@ -779,7 +748,6 @@ describe('API service', () => {
 
   test('recommendationAPI.getRecommendationForPost handles error', async () => {
     mockGet.mockRejectedValue(new Error('Not found'));
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getRecommendationForPost(999);
 
@@ -789,7 +757,6 @@ describe('API service', () => {
 
   test('recommendationAPI.getTopRecommendations with default minScore', async () => {
     mockGet.mockResolvedValue({ data: [{ id: 1 }, { id: 2 }] });
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getTopRecommendations([1, 2, 3]);
 
@@ -804,7 +771,6 @@ describe('API service', () => {
 
   test('recommendationAPI.getTopRecommendations with custom minScore', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getTopRecommendations([1, 2, 3], 75);
 
@@ -819,7 +785,6 @@ describe('API service', () => {
 
   test('recommendationAPI.getTopRecommendations handles error', async () => {
     mockGet.mockRejectedValue(new Error('Server error'));
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getTopRecommendations([1, 2], 60);
 
@@ -830,7 +795,6 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getTopRecommendations with empty postIds', async () => {
-    const { recommendationAPI } = require('../api');
 
     const result = await recommendationAPI.getTopRecommendations([]);
 
@@ -842,7 +806,6 @@ describe('API service', () => {
   test('userAPI.getProfile', async () => {
     const mockPut = jest.fn();
     mockGet.mockResolvedValue({ data: { id: 1, name: 'John' } });
-    const { userAPI } = require('../api');
 
     const resp = await userAPI.getProfile(123);
 
@@ -867,7 +830,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { userAPI } = require('../api');
 
     const formData = new FormData();
     const resp = await userAPI.updateProfile(formData);
@@ -895,7 +857,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { userAPI } = require('../api');
 
     const data = { oldPassword: 'old', newPassword: 'new' };
     const resp = await userAPI.updatePassword(data);
@@ -907,7 +868,6 @@ describe('API service', () => {
   // profileAPI tests
   test('profileAPI.get', async () => {
     mockGet.mockResolvedValue({ data: { id: 1 } });
-    const { profileAPI } = require('../api');
 
     const resp = await profileAPI.get();
 
@@ -932,7 +892,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { profileAPI } = require('../api');
 
     const data = { name: 'Updated' };
     const resp = await profileAPI.update(data);
@@ -960,7 +919,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { profileAPI } = require('../api');
 
     const data = { onboardingCompleted: true };
     const resp = await profileAPI.updateOnboarding(data);
@@ -972,7 +930,6 @@ describe('API service', () => {
   // reportAPI tests
   test('reportAPI.createReport', async () => {
     mockPost.mockResolvedValue({ data: { id: 1 } });
-    const { reportAPI } = require('../api');
 
     const reportData = {
       reportedUserId: 123,
@@ -994,7 +951,6 @@ describe('API service', () => {
   // feedbackAPI tests
   test('feedbackAPI.submitFeedback', async () => {
     mockPost.mockResolvedValue({ data: { id: 1 } });
-    const { feedbackAPI } = require('../api');
 
     const payload = { rating: 5, comment: 'Great!' };
     const resp = await feedbackAPI.submitFeedback(payload);
@@ -1005,7 +961,6 @@ describe('API service', () => {
 
   test('feedbackAPI.getFeedbackForClaim', async () => {
     mockGet.mockResolvedValue({ data: { rating: 5 } });
-    const { feedbackAPI } = require('../api');
 
     const resp = await feedbackAPI.getFeedbackForClaim(123);
 
@@ -1015,7 +970,6 @@ describe('API service', () => {
 
   test('feedbackAPI.getMyRating', async () => {
     mockGet.mockResolvedValue({ data: { averageRating: 4.5 } });
-    const { feedbackAPI } = require('../api');
 
     const resp = await feedbackAPI.getMyRating();
 
@@ -1025,7 +979,6 @@ describe('API service', () => {
 
   test('feedbackAPI.getUserRating', async () => {
     mockGet.mockResolvedValue({ data: { rating: 4.8 } });
-    const { feedbackAPI } = require('../api');
 
     const resp = await feedbackAPI.getUserRating(456);
 
@@ -1035,7 +988,6 @@ describe('API service', () => {
 
   test('feedbackAPI.canProvideFeedback', async () => {
     mockGet.mockResolvedValue({ data: { can: true } });
-    const { feedbackAPI } = require('../api');
 
     const resp = await feedbackAPI.canProvideFeedback(789);
 
@@ -1045,7 +997,6 @@ describe('API service', () => {
 
   test('feedbackAPI.getPendingFeedback', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { feedbackAPI } = require('../api');
 
     const resp = await feedbackAPI.getPendingFeedback();
 
@@ -1055,7 +1006,6 @@ describe('API service', () => {
 
   test('feedbackAPI.getMyReviews', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { feedbackAPI } = require('../api');
 
     const resp = await feedbackAPI.getMyReviews();
 
@@ -1066,7 +1016,6 @@ describe('API service', () => {
   // adminDisputeAPI tests
   test('adminDisputeAPI.getAllDisputes with no filters', async () => {
     mockGet.mockResolvedValue({ data: { content: [] } });
-    const { adminDisputeAPI } = require('../api');
 
     const resp = await adminDisputeAPI.getAllDisputes();
 
@@ -1080,7 +1029,6 @@ describe('API service', () => {
 
   test('adminDisputeAPI.getAllDisputes with filters', async () => {
     mockGet.mockResolvedValue({ data: { content: [] } });
-    const { adminDisputeAPI } = require('../api');
 
     const filters = { status: 'OPEN', page: 1, size: 10 };
     const resp = await adminDisputeAPI.getAllDisputes(filters);
@@ -1095,7 +1043,6 @@ describe('API service', () => {
 
   test('adminDisputeAPI.getDisputeById', async () => {
     mockGet.mockResolvedValue({ data: { id: 1 } });
-    const { adminDisputeAPI } = require('../api');
 
     const resp = await adminDisputeAPI.getDisputeById(123);
 
@@ -1120,7 +1067,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { adminDisputeAPI } = require('../api');
 
     const resp = await adminDisputeAPI.updateDisputeStatus(
       123,
@@ -1138,7 +1084,6 @@ describe('API service', () => {
   // adminDonationAPI tests
   test('adminDonationAPI.getAllDonations with minimal filters', async () => {
     mockGet.mockResolvedValue({ data: { content: [] } });
-    const { adminDonationAPI } = require('../api');
 
     const resp = await adminDonationAPI.getAllDonations();
 
@@ -1150,7 +1095,6 @@ describe('API service', () => {
 
   test('adminDonationAPI.getAllDonations with all filters', async () => {
     mockGet.mockResolvedValue({ data: { content: [] } });
-    const { adminDonationAPI } = require('../api');
 
     const filters = {
       status: 'COMPLETED',
@@ -1191,7 +1135,6 @@ describe('API service', () => {
 
   test('adminDonationAPI.getDonationById', async () => {
     mockGet.mockResolvedValue({ data: { id: 1 } });
-    const { adminDonationAPI } = require('../api');
 
     const resp = await adminDonationAPI.getDonationById(123);
 
@@ -1201,7 +1144,6 @@ describe('API service', () => {
 
   test('adminDonationAPI.overrideStatus', async () => {
     mockPost.mockResolvedValue({ data: { id: 1 } });
-    const { adminDonationAPI } = require('../api');
 
     const resp = await adminDonationAPI.overrideStatus(
       123,
@@ -1222,7 +1164,6 @@ describe('API service', () => {
   // adminVerificationAPI tests
   test('adminVerificationAPI.getPendingUsers with no filters', async () => {
     mockGet.mockResolvedValue({ data: { content: [] } });
-    const { adminVerificationAPI } = require('../api');
 
     const resp = await adminVerificationAPI.getPendingUsers();
 
@@ -1234,7 +1175,6 @@ describe('API service', () => {
 
   test('adminVerificationAPI.getPendingUsers with all filters', async () => {
     mockGet.mockResolvedValue({ data: { content: [] } });
-    const { adminVerificationAPI } = require('../api');
 
     const filters = {
       userType: 'DONOR',
@@ -1265,7 +1205,6 @@ describe('API service', () => {
 
   test('adminVerificationAPI.approveUser', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { adminVerificationAPI } = require('../api');
 
     const resp = await adminVerificationAPI.approveUser(123);
 
@@ -1275,7 +1214,6 @@ describe('API service', () => {
 
   test('adminVerificationAPI.verifyEmail', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { adminVerificationAPI } = require('../api');
 
     const resp = await adminVerificationAPI.verifyEmail(123);
 
@@ -1285,7 +1223,6 @@ describe('API service', () => {
 
   test('adminVerificationAPI.rejectUser', async () => {
     mockPost.mockResolvedValue({ data: { success: true } });
-    const { adminVerificationAPI } = require('../api');
 
     const resp = await adminVerificationAPI.rejectUser(
       123,
@@ -1317,7 +1254,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { conversationAPI } = require('../api');
     const resp = await conversationAPI.markAsRead(91);
 
     expect(mockPut).toHaveBeenCalledWith('/conversations/91/read');
@@ -1327,7 +1263,6 @@ describe('API service', () => {
   // notificationPreferencesAPI tests
   test('notificationPreferencesAPI.getPreferences', async () => {
     mockGet.mockResolvedValue({ data: { email: true } });
-    const { notificationPreferencesAPI } = require('../api');
 
     const resp = await notificationPreferencesAPI.getPreferences();
 
@@ -1352,7 +1287,6 @@ describe('API service', () => {
     }));
 
     jest.resetModules();
-    const { notificationPreferencesAPI } = require('../api');
 
     const data = { email: false };
     const resp = await notificationPreferencesAPI.updatePreferences(data);
@@ -1367,7 +1301,6 @@ describe('API service', () => {
   // gamificationAPI tests
   test('gamificationAPI.getUserStats', async () => {
     mockGet.mockResolvedValue({ data: { points: 100 } });
-    const { gamificationAPI } = require('../api');
 
     const resp = await gamificationAPI.getUserStats(123);
 
@@ -1377,7 +1310,6 @@ describe('API service', () => {
 
   test('gamificationAPI.getAllAchievements', async () => {
     mockGet.mockResolvedValue({ data: [] });
-    const { gamificationAPI } = require('../api');
 
     const resp = await gamificationAPI.getAllAchievements();
 
@@ -1387,7 +1319,6 @@ describe('API service', () => {
 
   test('gamificationAPI.getLeaderboard', async () => {
     mockGet.mockResolvedValue({ data: [{ userId: 1, points: 100 }] });
-    const { gamificationAPI } = require('../api');
 
     const resp = await gamificationAPI.getLeaderboard('DONOR');
 
@@ -1398,7 +1329,6 @@ describe('API service', () => {
   // support/rate-limit/impact API tests
   test('supportChatAPI.sendMessage', async () => {
     mockPost.mockResolvedValue({ data: { reply: 'ok' } });
-    const { supportChatAPI } = require('../api');
 
     const resp = await supportChatAPI.sendMessage('hello', '/receiver/browse');
 
@@ -1413,7 +1343,6 @@ describe('API service', () => {
     mockGet
       .mockResolvedValueOnce({ data: { totalRequests: 10 } })
       .mockResolvedValueOnce({ data: { status: 'OK' } });
-    const { rateLimitAPI } = require('../api');
 
     const statsResp = await rateLimitAPI.getStats();
     const statusResp = await rateLimitAPI.getUserStatus();
@@ -1426,7 +1355,6 @@ describe('API service', () => {
 
   test('impactDashboardAPI.getMetrics uses default range', async () => {
     mockGet.mockResolvedValue({ data: { mealsSaved: 20 } });
-    const { impactDashboardAPI } = require('../api');
 
     const resp = await impactDashboardAPI.getMetrics();
 
@@ -1438,7 +1366,6 @@ describe('API service', () => {
 
   test('impactDashboardAPI.exportMetrics sets blob response type', async () => {
     mockGet.mockResolvedValue({ data: new Blob(['csv']) });
-    const { impactDashboardAPI } = require('../api');
 
     const resp = await impactDashboardAPI.exportMetrics('MONTHLY');
 

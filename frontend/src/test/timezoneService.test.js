@@ -3,7 +3,7 @@ import {
   inferTimezoneFromAddress,
   getBrowserTimezone,
   isValidTimezone,
-} from '../timezoneService';
+} from '../services/timezoneService';
 
 describe('timezoneService', () => {
   const originalEnv = process.env;

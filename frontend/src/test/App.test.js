@@ -87,7 +87,7 @@ jest.mock('../hooks/useAnalytics', () => ({
 }));
 
 // Mock CSS
-jest.mock('../App.css', () => ({}), { virtual: true });
+jest.mock('../../App.css', () => ({}), { virtual: true });
 
 describe('App', () => {
   beforeEach(() => {

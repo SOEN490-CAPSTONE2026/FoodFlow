@@ -26,7 +26,7 @@ jest.mock('../services/api', () => ({
   },
 }));
 
-const apiModule = require('../api');
+const apiModule = require('../services/api');
 const mockApi = apiModule.default;
 
 describe('API Service - Rate Limiting Integration', () => {
