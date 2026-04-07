@@ -10,7 +10,7 @@ jest.mock('react-icons/fa', () => ({
 }));
 
 // Mock CSS import
-jest.mock('../../components/LandingPage/style/HowItWorks.css', () => ({}));
+jest.mock('../components/LandingPage/style/HowItWorks.css', () => ({}));
 
 describe('HowItWorks Component', () => {
   let observerCallback;

@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import CalendarOAuthSuccess from '../components/CalendarOAuthSuccess';
 
 // Mock the CSS import
-jest.mock('../../style/CalendarOAuthSuccess.css', () => ({}));
+jest.mock('../style/CalendarOAuthSuccess.css', () => ({}));
 
 describe('CalendarOAuthSuccess Component', () => {
   beforeEach(() => {

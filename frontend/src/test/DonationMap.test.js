@@ -35,7 +35,7 @@ jest.mock(
 );
 
 // Import component AFTER mocks
-const DonationMap = require('../DonationsMap/DonationMap').default;
+const DonationMap = require('../components/ReceiverDashboard/DonationsMap/DonationMap').default;
 
 describe('DonationMap', () => {
   const mockDonations = [

@@ -7,7 +7,7 @@ import {
   act,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import DonorOnboardingController from './DonorOnboardingController';
+import DonorOnboardingController from '../components/onboarding/DonorOnboardingController';
 import { useOnboarding } from '../contexts/OnboardingContext';
 
 jest.mock('react-i18next', () => ({

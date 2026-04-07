@@ -2,7 +2,7 @@ import {
   validatePassword,
   getPasswordPolicyDescription,
 } from '../utils/passwordValidation';
-import i18n from '../../locales/i18n';
+import i18n from '../locales/i18n';
 
 describe('validatePassword', () => {
   beforeAll(() => {

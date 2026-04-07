@@ -8,7 +8,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: key => key }),
 }));
 
-jest.mock('../../Admin_Styles/AdminSettings.css', () => ({}));
+jest.mock('../components/AdminDashboard/Admin_Styles/AdminSettings.css', () => ({}));
 
 jest.mock('../components/LanguageSwitcher', () => () => (
   <div data-testid="language-switcher" />

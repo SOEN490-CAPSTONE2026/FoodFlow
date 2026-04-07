@@ -13,7 +13,7 @@ jest.mock('../services/api', () => ({
   adminDisputeAPI: { getAllDisputes: jest.fn() },
 }));
 
-jest.mock('../../Admin_Styles/AdminDisputes.css', () => ({}));
+jest.mock('../components/AdminDashboard/Admin_Styles/AdminDisputes.css', () => ({}));
 
 describe('AdminDisputes', () => {
   const disputes = [

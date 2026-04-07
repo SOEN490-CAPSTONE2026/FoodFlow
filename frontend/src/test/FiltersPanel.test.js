@@ -36,7 +36,7 @@ jest.mock('@react-google-maps/api', () => {
   };
 });
 
-jest.mock('../../Receiver_Styles/FiltersPanel.css', () => ({}));
+jest.mock('../components/ReceiverDashboard/Receiver_Styles/FiltersPanel.css', () => ({}));
 
 describe('FiltersPanel', () => {
   const accountLocation = {

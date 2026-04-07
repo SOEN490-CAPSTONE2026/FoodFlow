@@ -48,7 +48,7 @@ jest.mock('../services/api', () => ({
   },
 }));
 
-const mockAPI = require('../../../services/api');
+const mockAPI = require('../services/api');
 
 describe('AdminHome', () => {
   const mockAuthContext = {
