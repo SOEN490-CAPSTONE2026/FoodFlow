@@ -1,5 +1,4 @@
 package com.example.foodflow.model.types;
-
 /**
  * Enum representing packaging types for food safety compliance.
  */
@@ -13,15 +12,11 @@ public enum PackagingType {
     WRAPPED("Wrapped"),
     BULK("Bulk"),
     OTHER("Other");
-
     private final String displayName;
-
     PackagingType(String displayName) {
         this.displayName = displayName;
     }
-
     public String getDisplayName() {
         return displayName;
     }
 }
-

@@ -1,12 +1,10 @@
 
 package com.example.foodflow.model.entity;
-
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Entity
 @Table(name = "audit_log")
 @Data //for getters and setters
@@ -22,13 +20,10 @@ public class AuditLog {
     private String entityId;
     private String ipAddress;
     private LocalDateTime timestamp = LocalDateTime.now();
-
     @Column(columnDefinition = "TEXT")
     private String oldValue;
-
     @Column(columnDefinition = "TEXT")
     private String newValue;
-
     public AuditLog(String username, String action, String entityType,
                     String entityId, String ipAddress,
                     String oldValue, String newValue) {

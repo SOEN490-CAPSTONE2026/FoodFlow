@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
@@ -8,22 +7,16 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class BusinessMetricsServiceTest {
-
     private MeterRegistry meterRegistry;
     private BusinessMetricsService businessMetricsService;
-
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
         businessMetricsService = new BusinessMetricsService(meterRegistry);
     }
-
     // --- Payment counters (pre-existing) ---
-
     @Test
     void incrementPaymentCreated_Success() {
         businessMetricsService.incrementPaymentCreated();
@@ -31,7 +24,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementPaymentSucceeded_Success() {
         businessMetricsService.incrementPaymentSucceeded();
@@ -39,7 +31,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementPaymentFailed_Success() {
         businessMetricsService.incrementPaymentFailed();
@@ -47,7 +38,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementRefundProcessed_Success() {
         businessMetricsService.incrementRefundProcessed();
@@ -55,7 +45,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementPaymentByType_Success() {
         businessMetricsService.incrementPaymentByType("ONE_TIME");
@@ -63,7 +52,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementPaymentByCurrency_Success() {
         businessMetricsService.incrementPaymentByCurrency("USD");
@@ -71,7 +59,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void multipleIncrements_AccumulateCorrectly() {
         businessMetricsService.incrementPaymentCreated();
@@ -81,9 +68,7 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(3.0);
     }
-
     // --- Release 3: Donation counters ---
-
     @Test
     void incrementDonationsCreated_RegistersAndIncrements() {
         businessMetricsService.incrementDonationsCreated();
@@ -91,7 +76,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementDonationsClaimed_RegistersAndIncrements() {
         businessMetricsService.incrementDonationsClaimed();
@@ -99,7 +83,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementDonationsCompleted_RegistersAndIncrements() {
         businessMetricsService.incrementDonationsCompleted();
@@ -107,7 +90,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void recordFoodRescued_AccumulatesKg() {
         businessMetricsService.recordFoodRescued(2.5);
@@ -116,7 +98,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(4.0);
     }
-
     @Test
     void recordDonationQuantity_RecordsInDistributionSummary() {
         businessMetricsService.recordDonationQuantity(3.0);
@@ -126,9 +107,7 @@ class BusinessMetricsServiceTest {
         assertThat(summary.count()).isEqualTo(2);
         assertThat(summary.totalAmount()).isEqualTo(10.0);
     }
-
     // --- Release 3: Gauges ---
-
     @Test
     void setActiveUsers_UpdatesGauge() {
         businessMetricsService.setActiveUsers(42);
@@ -136,7 +115,6 @@ class BusinessMetricsServiceTest {
         assertThat(gauge).isNotNull();
         assertThat(gauge.value()).isEqualTo(42.0);
     }
-
     @Test
     void setAvailableDonations_UpdatesGauge() {
         businessMetricsService.setAvailableDonations(15);
@@ -144,7 +122,6 @@ class BusinessMetricsServiceTest {
         assertThat(gauge).isNotNull();
         assertThat(gauge.value()).isEqualTo(15.0);
     }
-
     @Test
     void setPendingClaims_UpdatesGauge() {
         businessMetricsService.setPendingClaims(7);
@@ -152,9 +129,7 @@ class BusinessMetricsServiceTest {
         assertThat(gauge).isNotNull();
         assertThat(gauge.value()).isEqualTo(7.0);
     }
-
     // --- Release 3: SMS counters ---
-
     @Test
     void incrementSmsSent_RegistersAndIncrements() {
         businessMetricsService.incrementSmsSent();
@@ -162,7 +137,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementSmsFailed_RegistersAndIncrements() {
         businessMetricsService.incrementSmsFailed();
@@ -170,9 +144,7 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     // --- Release 3: Slow query counter ---
-
     @Test
     void incrementSlowQuery_RegistersWithContextTag() {
         businessMetricsService.incrementSlowQuery("getUserById");
@@ -181,9 +153,7 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     // --- Release 3: OpenAI counters ---
-
     @Test
     void incrementOpenAiCalls_RegistersSuccessTag() {
         businessMetricsService.incrementOpenAiCalls("chat_completion");
@@ -192,7 +162,6 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     @Test
     void incrementOpenAiCallsFailed_RegistersFailedTag() {
         businessMetricsService.incrementOpenAiCallsFailed("chat_completion");
@@ -201,9 +170,7 @@ class BusinessMetricsServiceTest {
         assertThat(counter).isNotNull();
         assertThat(counter.count()).isEqualTo(1.0);
     }
-
     // --- Release 3: Timers ---
-
     @Test
     void recordDonationCreationDuration_RecordsTimer() {
         Timer.Sample sample = businessMetricsService.startTimer();
@@ -212,7 +179,6 @@ class BusinessMetricsServiceTest {
         assertThat(timer).isNotNull();
         assertThat(timer.count()).isEqualTo(1);
     }
-
     @Test
     void recordClaimProcessingDuration_RecordsTimer() {
         Timer.Sample sample = businessMetricsService.startTimer();
@@ -221,7 +187,6 @@ class BusinessMetricsServiceTest {
         assertThat(timer).isNotNull();
         assertThat(timer.count()).isEqualTo(1);
     }
-
     @Test
     void recordEmailDeliveryDuration_RecordsTimer() {
         Timer.Sample sample = businessMetricsService.startTimer();
@@ -230,7 +195,6 @@ class BusinessMetricsServiceTest {
         assertThat(timer).isNotNull();
         assertThat(timer.count()).isEqualTo(1);
     }
-
     @Test
     void recordSmsDeliveryDuration_RecordsTimer() {
         Timer.Sample sample = businessMetricsService.startTimer();
@@ -239,7 +203,6 @@ class BusinessMetricsServiceTest {
         assertThat(timer).isNotNull();
         assertThat(timer.count()).isEqualTo(1);
     }
-
     @Test
     void recordOpenAiDuration_RecordsTimerWithOperationTag() {
         Timer.Sample sample = businessMetricsService.startTimer();

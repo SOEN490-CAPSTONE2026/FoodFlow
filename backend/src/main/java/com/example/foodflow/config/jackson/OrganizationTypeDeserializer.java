@@ -1,13 +1,10 @@
 package com.example.foodflow.config.jackson;
-
 import com.example.foodflow.model.entity.OrganizationType;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
-
 public class OrganizationTypeDeserializer extends JsonDeserializer<OrganizationType> {
-
     @Override
     public OrganizationType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         String value = p.getValueAsString();

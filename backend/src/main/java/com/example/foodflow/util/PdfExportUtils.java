@@ -1,5 +1,6 @@
 package com.example.foodflow.util;
 
+import com.example.foodflow.model.dto.ImpactMetricsDTO;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
@@ -11,36 +12,26 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
-import com.itextpdf.layout.properties.VerticalAlignment;
-import com.example.foodflow.model.dto.ImpactMetricsDTO;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
- * Utility class for generating professional PDF exports with FoodFlow branding
+ * Utility class for generating professional PDF exports with FoodFlow branding.
  */
 public class PdfExportUtils {
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-            .ofPattern("MMM d yyyy 'at' h:mm a");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d yyyy");
-
-    // Brand colors
-    private static final Color PRIMARY_COLOR = new DeviceRgb(52, 152, 219); // #3498db
-    private static final Color DARK_GRAY = new DeviceRgb(51, 65, 85); // #334155
-    private static final Color LIGHT_GRAY = new DeviceRgb(241, 245, 249); // #f1f5f9
+    private static final Color PRIMARY_COLOR = new DeviceRgb(52, 152, 219);
+    private static final Color DARK_GRAY = new DeviceRgb(51, 65, 85);
+    private static final Color LIGHT_GRAY = new DeviceRgb(241, 245, 249);
     private static final Color WHITE = new DeviceRgb(255, 255, 255);
-    private static final Color SUCCESS_COLOR = new DeviceRgb(34, 197, 94); // #22c55e
+    private static final Color SUCCESS_COLOR = new DeviceRgb(34, 197, 94);
 
-    /**
-     * Generate professional PDF from impact metrics
-     */
+    private PdfExportUtils() {}
+
     public static byte[] generatePdf(ImpactMetricsDTO metrics) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfWriter writer = new PdfWriter(outputStream);
@@ -49,32 +40,20 @@ public class PdfExportUtils {
         document.setMargins(36, 36, 36, 36);
 
         try {
-            // Setup fonts
-            PdfFont titleFont = PdfFontFactory.createFont();
-            PdfFont headingFont = PdfFontFactory.createFont();
             PdfFont regularFont = PdfFontFactory.createFont();
 
-            // Add header/branding
-            addHeader(document, metrics, regularFont);
+            addHeader(document, metrics);
+            addMetadata(document, metrics);
+            addEnvironmentalImpactSection(document, metrics);
+            addOperationalEfficiencySection(document, metrics);
+            addTimeLogisticsSection(document, metrics);
+            addEngagementSection(document, metrics);
 
-            // Add metadata
-            addMetadata(document, metrics, regularFont);
-
-            // Add metrics sections
-            addEnvironmentalImpactSection(document, metrics, headingFont, regularFont);
-            addOperationalEfficiencySection(document, metrics, headingFont, regularFont);
-            addTimeLogisticsSection(document, metrics, headingFont, regularFont);
-            addEngagementSection(document, metrics, headingFont, regularFont);
-
-            // Admin-specific sections
             if ("ADMIN".equals(metrics.getRole())) {
-                addUserEngagementSection(document, metrics, headingFont, regularFont);
+                addUserEngagementSection(document, metrics);
             }
 
-            // Methodology section
-            addMethodologySection(document, metrics, headingFont, regularFont);
-
-            // Footer
+            addMethodologySection(document, metrics);
             addFooter(document, regularFont);
 
             document.close();
@@ -85,10 +64,7 @@ public class PdfExportUtils {
         }
     }
 
-    /**
-     * Add branded header to PDF
-     */
-    private static void addHeader(Document document, ImpactMetricsDTO metrics, PdfFont font) throws IOException {
+    private static void addHeader(Document document, ImpactMetricsDTO metrics) throws IOException {
         Paragraph brand = new Paragraph("FoodFlow");
         brand.setFont(PdfFontFactory.createFont());
         brand.setFontSize(28);
@@ -97,8 +73,7 @@ public class PdfExportUtils {
         brand.setMarginBottom(2);
         document.add(brand);
 
-        String reportTitle = generateReportTitle(metrics.getRole());
-        Paragraph title = new Paragraph(reportTitle);
+        Paragraph title = new Paragraph(generateReportTitle(metrics.getRole()));
         title.setFont(PdfFontFactory.createFont());
         title.setFontSize(18);
         title.setFontColor(DARK_GRAY);
@@ -109,10 +84,7 @@ public class PdfExportUtils {
         document.add(new Paragraph("").setMarginBottom(8));
     }
 
-    /**
-     * Add metadata section
-     */
-    private static void addMetadata(Document document, ImpactMetricsDTO metrics, PdfFont font) throws IOException {
+    private static void addMetadata(Document document, ImpactMetricsDTO metrics) {
         String dateRange = CsvExportUtils.formatDateRangeLabel(
                 metrics.getDateRange(), metrics.getStartDate(), metrics.getEndDate());
 
@@ -128,9 +100,6 @@ public class PdfExportUtils {
         document.add(new Paragraph("").setMarginBottom(12));
     }
 
-    /**
-     * Add a metadata row to the table
-     */
     private static void addMetadataRow(Table table, String key, String value) {
         Cell keyCell = new Cell().add(new Paragraph(key).setBold());
         keyCell.setBackgroundColor(LIGHT_GRAY);
@@ -145,13 +114,8 @@ public class PdfExportUtils {
         table.addCell(valueCell);
     }
 
-    /**
-     * Add Environmental Impact section
-     */
-    private static void addEnvironmentalImpactSection(Document document, ImpactMetricsDTO metrics,
-            PdfFont headingFont, PdfFont regularFont) throws IOException {
+    private static void addEnvironmentalImpactSection(Document document, ImpactMetricsDTO metrics) {
         addSectionHeader(document, "Environmental Impact");
-
         Table table = createMetricsTable();
 
         if (metrics.getTotalFoodWeightKg() != null) {
@@ -175,21 +139,15 @@ public class PdfExportUtils {
                     CsvExportUtils.formatNumber(metrics.getWaterSavedLiters()) + " liters");
         }
         if (metrics.getPeopleFedEstimate() != null) {
-            addMetricRow(table, "Estimated People Fed",
-                    metrics.getPeopleFedEstimate() + " people");
+            addMetricRow(table, "Estimated People Fed", metrics.getPeopleFedEstimate() + " people");
         }
 
         document.add(table);
         document.add(new Paragraph("").setMarginBottom(12));
     }
 
-    /**
-     * Add Operational Efficiency section
-     */
-    private static void addOperationalEfficiencySection(Document document, ImpactMetricsDTO metrics,
-            PdfFont headingFont, PdfFont regularFont) throws IOException {
+    private static void addOperationalEfficiencySection(Document document, ImpactMetricsDTO metrics) {
         addSectionHeader(document, "Operational Efficiency");
-
         Table table = createMetricsTable();
 
         if (metrics.getTotalPostsCreated() != null) {
@@ -214,13 +172,8 @@ public class PdfExportUtils {
         document.add(new Paragraph("").setMarginBottom(12));
     }
 
-    /**
-     * Add Time & Logistics section
-     */
-    private static void addTimeLogisticsSection(Document document, ImpactMetricsDTO metrics,
-            PdfFont headingFont, PdfFont regularFont) throws IOException {
+    private static void addTimeLogisticsSection(Document document, ImpactMetricsDTO metrics) {
         addSectionHeader(document, "Time & Logistics");
-
         Table table = createMetricsTable();
 
         if (metrics.getMedianClaimTimeHours() != null) {
@@ -240,14 +193,9 @@ public class PdfExportUtils {
         document.add(new Paragraph("").setMarginBottom(12));
     }
 
-    /**
-     * Add Engagement section
-     */
-    private static void addEngagementSection(Document document, ImpactMetricsDTO metrics,
-            PdfFont headingFont, PdfFont regularFont) throws IOException {
+    private static void addEngagementSection(Document document, ImpactMetricsDTO metrics) {
         if (metrics.getActiveDonationDays() != null) {
             addSectionHeader(document, "Engagement");
-
             Table table = createMetricsTable();
             addMetricRow(table, "Active Days with Donations", metrics.getActiveDonationDays() + " days");
             document.add(table);
@@ -255,13 +203,8 @@ public class PdfExportUtils {
         }
     }
 
-    /**
-     * Add User Engagement section (Admin only)
-     */
-    private static void addUserEngagementSection(Document document, ImpactMetricsDTO metrics,
-            PdfFont headingFont, PdfFont regularFont) throws IOException {
+    private static void addUserEngagementSection(Document document, ImpactMetricsDTO metrics) {
         addSectionHeader(document, "User Engagement (Platform-wide)");
-
         Table table = createMetricsTable();
 
         if (metrics.getActiveDonors() != null) {
@@ -281,13 +224,8 @@ public class PdfExportUtils {
         document.add(new Paragraph("").setMarginBottom(12));
     }
 
-    /**
-     * Add Methodology section
-     */
-    private static void addMethodologySection(Document document, ImpactMetricsDTO metrics,
-            PdfFont headingFont, PdfFont regularFont) throws IOException {
+    private static void addMethodologySection(Document document, ImpactMetricsDTO metrics) {
         addSectionHeader(document, "Calculation Methodology");
-
         Table table = createMetricsTable();
 
         if (metrics.getFactorVersion() != null) {
@@ -301,22 +239,16 @@ public class PdfExportUtils {
         document.add(new Paragraph("").setMarginBottom(12));
     }
 
-    /**
-     * Add footer with attribution
-     */
-    private static void addFooter(Document document, PdfFont font) throws IOException {
+    private static void addFooter(Document document, PdfFont font) {
         document.add(new Paragraph("").setMarginBottom(20));
 
         Paragraph footer = new Paragraph("Generated by FoodFlow");
         footer.setFontSize(9);
-        footer.setFontColor(new DeviceRgb(148, 163, 184)); // #94a3b8
+        footer.setFontColor(new DeviceRgb(148, 163, 184));
         footer.setTextAlignment(TextAlignment.CENTER);
         document.add(footer);
     }
 
-    /**
-     * Create a standard metrics table
-     */
     private static Table createMetricsTable() {
         Table table = new Table(2);
         table.setWidth(UnitValue.createPercentValue(100));
@@ -340,9 +272,6 @@ public class PdfExportUtils {
         return table;
     }
 
-    /**
-     * Add a metric row to the table
-     */
     private static void addMetricRow(Table table, String metric, String value) {
         Cell metricCell = new Cell().add(new Paragraph(metric));
         metricCell.setPadding(8);
@@ -357,10 +286,7 @@ public class PdfExportUtils {
         table.addCell(valueCell);
     }
 
-    /**
-     * Add section header
-     */
-    private static void addSectionHeader(Document document, String sectionName) throws IOException {
+    private static void addSectionHeader(Document document, String sectionName) {
         Paragraph header = new Paragraph(sectionName);
         header.setFontSize(14);
         header.setBold();
@@ -370,9 +296,6 @@ public class PdfExportUtils {
         document.add(header);
     }
 
-    /**
-     * Generate a descriptive report title based on user role
-     */
     private static String generateReportTitle(String role) {
         if (role == null) {
             return "FoodFlow - Impact Report";

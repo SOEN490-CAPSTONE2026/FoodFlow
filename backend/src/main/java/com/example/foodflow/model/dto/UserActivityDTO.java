@@ -1,11 +1,8 @@
 package com.example.foodflow.model.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
-
 /**
  * DTO for representing a user's recent activity
  */

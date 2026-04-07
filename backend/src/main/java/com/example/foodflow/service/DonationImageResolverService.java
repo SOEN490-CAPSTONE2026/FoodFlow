@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.DonationImage;
 import com.example.foodflow.model.entity.DonorPhotoPreferences;
 import com.example.foodflow.model.entity.InternalImageLibrary;
@@ -14,18 +13,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.Map;
-
 @Service
 public class DonationImageResolverService {
-
     private final DonorPhotoPreferencesRepository donorPhotoPreferencesRepository;
     private final DonationImageRepository donationImageRepository;
     private final InternalImageLibraryRepository internalImageLibraryRepository;
     private final ObjectMapper objectMapper;
-
     public DonationImageResolverService(DonorPhotoPreferencesRepository donorPhotoPreferencesRepository,
                                         DonationImageRepository donationImageRepository,
                                         InternalImageLibraryRepository internalImageLibraryRepository,
@@ -35,12 +30,10 @@ public class DonationImageResolverService {
         this.internalImageLibraryRepository = internalImageLibraryRepository;
         this.objectMapper = objectMapper;
     }
-
     @Transactional(readOnly = true)
     public String resolveDonationImageUrl(User donor, FoodType foodType) {
         return resolveDonationImageUrl(donor, foodType, null);
     }
-
     @Transactional(readOnly = true)
     public String resolveDonationImageUrl(User donor, FoodType foodType, Long donationId) {
         if (donationId != null) {
@@ -52,16 +45,13 @@ public class DonationImageResolverService {
                 return donationSpecific;
             }
         }
-
         if (donor == null) {
             return resolveFallback(foodType);
         }
-
         DonorPhotoPreferences preferences = donorPhotoPreferencesRepository.findByDonorId(donor.getId()).orElse(null);
         if (preferences == null) {
             return resolveFallback(foodType);
         }
-
         if (preferences.getDisplayType() == PhotoDisplayType.SINGLE) {
             String single = resolveDonationImage(preferences.getSingleImage());
             if (single != null) {
@@ -72,7 +62,6 @@ public class DonationImageResolverService {
             }
             return resolveFallback(foodType);
         }
-
         Map<String, Long> perFoodMap = parseMap(preferences.getPerFoodTypeMap());
         Long mappedImageId = foodType == null ? null : perFoodMap.get(foodType.name());
         if (mappedImageId != null) {
@@ -83,7 +72,6 @@ public class DonationImageResolverService {
                 return mappedUrl;
             }
         }
-
         Map<String, Long> perFoodLibraryMap = parseMap(preferences.getPerFoodTypeLibraryMap());
         Long mappedLibraryId = foodType == null ? null : perFoodLibraryMap.get(foodType.name());
         if (mappedLibraryId != null) {
@@ -92,26 +80,21 @@ public class DonationImageResolverService {
                 return libraryImage.getUrl();
             }
         }
-
         String singleFallback = resolveDonationImage(preferences.getSingleImage());
         if (singleFallback != null) {
             return singleFallback;
         }
-
         if (preferences.getSingleLibraryImage() != null && Boolean.TRUE.equals(preferences.getSingleLibraryImage().getActive())) {
             return preferences.getSingleLibraryImage().getUrl();
         }
-
         return resolveFallback(foodType);
     }
-
     private String resolveDonationImage(DonationImage image) {
         if (image == null) {
             return null;
         }
         return image.getStatus() == DonationImageStatus.APPROVED ? image.getUrl() : null;
     }
-
     private String resolveFallback(FoodType foodType) {
         if (foodType != null) {
             String byType = internalImageLibraryRepository
@@ -127,7 +110,6 @@ public class DonationImageResolverService {
                 .map(InternalImageLibrary::getUrl)
                 .orElse(null);
     }
-
     private Map<String, Long> parseMap(String json) {
         if (json == null || json.isBlank()) {
             return Collections.emptyMap();

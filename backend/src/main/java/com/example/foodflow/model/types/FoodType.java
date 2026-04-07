@@ -1,5 +1,4 @@
 package com.example.foodflow.model.types;
-
 public enum FoodType {
     PREPARED,
     PRODUCE,

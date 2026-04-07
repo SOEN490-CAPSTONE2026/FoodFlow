@@ -1,12 +1,10 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.model.types.PackagingType;
 import com.example.foodflow.model.types.TemperatureCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,26 +12,20 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
-
 @Service
 public class ExpiryPredictionService {
-
     public static final String VERSION = "rules_v1";
     @Autowired
     private Clock clock = Clock.systemUTC();
-
     public PredictionResult predict(SurplusPost post) {
         FoodType foodType = post.getFoodType();
         TemperatureCategory temperatureCategory = post.getTemperatureCategory();
         PackagingType packagingType = post.getPackagingType();
-
         Instant baseInstant = resolveBaseTimestamp(post);
         Duration shelfLife = resolveBaseShelfLife(foodType, temperatureCategory);
         shelfLife = applyTemperatureAdjustments(shelfLife, temperatureCategory);
         shelfLife = applyPackagingAdjustments(shelfLife, packagingType);
-
         Instant predictedExpiry = baseInstant.plus(shelfLife);
-
         double confidence = 0.55d;
         if (post.getFabricationDate() != null) {
             confidence += 0.15d;
@@ -48,7 +40,6 @@ public class ExpiryPredictionService {
             confidence += 0.10d;
         }
         confidence = Math.min(confidence, 0.95d);
-
         Map<String, Object> inputs = new HashMap<>();
         inputs.put("foodType", foodType != null ? foodType.name() : null);
         inputs.put("temperatureCategory", temperatureCategory != null ? temperatureCategory.name() : null);
@@ -58,10 +49,8 @@ public class ExpiryPredictionService {
         inputs.put("titlePresent", post.getTitle() != null && !post.getTitle().isBlank());
         inputs.put("descriptionPresent", post.getDescription() != null && !post.getDescription().isBlank());
         inputs.put("version", VERSION);
-
         return new PredictionResult(predictedExpiry, confidence, VERSION, inputs);
     }
-
     private Instant resolveBaseTimestamp(SurplusPost post) {
         if (post.getFabricationDate() != null) {
             return post.getFabricationDate().atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -71,11 +60,9 @@ public class ExpiryPredictionService {
         }
         return Instant.now(clock);
     }
-
     private Duration resolveBaseShelfLife(FoodType foodType, TemperatureCategory temperatureCategory) {
         TemperatureCategory temp = temperatureCategory != null ? temperatureCategory : TemperatureCategory.ROOM_TEMPERATURE;
         FoodType type = foodType != null ? foodType : FoodType.PANTRY;
-
         return switch (type) {
             case PREPARED -> isAmbient(temp) ? Duration.ofHours(6) : Duration.ofDays(1);
             case PRODUCE -> isAmbient(temp) ? Duration.ofDays(1) : Duration.ofDays(3);
@@ -87,7 +74,6 @@ public class ExpiryPredictionService {
             case BEVERAGES -> isAmbient(temp) ? Duration.ofDays(30) : Duration.ofDays(7);
         };
     }
-
     private Duration applyTemperatureAdjustments(Duration baseShelfLife, TemperatureCategory temperatureCategory) {
         if (temperatureCategory == TemperatureCategory.FROZEN) {
             Duration extended = baseShelfLife.plus(Duration.ofDays(30));
@@ -96,29 +82,23 @@ public class ExpiryPredictionService {
         }
         return baseShelfLife;
     }
-
     private Duration applyPackagingAdjustments(Duration baseShelfLife, PackagingType packagingType) {
         if (packagingType == null) {
             return baseShelfLife;
         }
-
         if (packagingType == PackagingType.SEALED || packagingType == PackagingType.VACUUM_PACKED) {
             return baseShelfLife.plusMinutes((long) (baseShelfLife.toMinutes() * 0.20d));
         }
-
         if (packagingType == PackagingType.LOOSE || packagingType == PackagingType.BULK || packagingType == PackagingType.OTHER) {
             long reducedMinutes = (long) (baseShelfLife.toMinutes() * 0.70d);
             return Duration.ofMinutes(Math.max(reducedMinutes, 60));
         }
-
         return baseShelfLife;
     }
-
     private boolean isAmbient(TemperatureCategory temperatureCategory) {
         return temperatureCategory == TemperatureCategory.ROOM_TEMPERATURE
                 || temperatureCategory == TemperatureCategory.HOT_COOKED;
     }
-
     public record PredictionResult(
             Instant predictedExpiry,
             double confidence,

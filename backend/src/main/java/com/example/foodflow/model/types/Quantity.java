@@ -1,65 +1,50 @@
 package com.example.foodflow.model.types;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Positive;
-
 import java.util.Objects;
-
 @Embeddable
 public class Quantity {
-
     @Column(name = "quantity_value")
     @Positive(message = "Quantity must be positive")
     private Double value;
-
     @Enumerated(EnumType.STRING)
     private Unit unit;
-
     public Quantity() {} // Required by JPA
-
     public Quantity(Double value, Unit unit) {
         this.value = Objects.requireNonNull(value, "Quantity value cannot be null");
         this.unit = Objects.requireNonNull(unit, "Quantity unit cannot be null");
         validate();
     }
-
     private void validate() {
         if (value == null || unit == null){
             return;
         }
-
         // Example validation: integer-only units
         if (unit.isIntegerOnly() && Math.abs(value - Math.round(value)) > 1e-9) {
             throw new IllegalArgumentException("Unit " + unit + " only accepts integer values");
         }
     }
-
     public Double getValue() {
         return value;
     }
-
     public Unit getUnit() {
         return unit;
     }
-
     public void setValue(Double value) {
         this.value = Objects.requireNonNull(value);
         validate();
     }
-
     public void setUnit(Unit unit) {
         this.unit = Objects.requireNonNull(unit);
         validate();
     }
-
     @Override
     public String toString() {
         return value + " " + unit.getLabel();
     }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -68,13 +53,10 @@ public class Quantity {
         return Double.compare(that.value, value) == 0 &&
                Objects.equals(unit, that.unit);
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(value, unit);
     }
-
-
     public enum Unit {
         // Weight units
         KILOGRAM("kg", false),
@@ -82,7 +64,6 @@ public class Quantity {
         POUND("lb", false),
         OUNCE("oz", false),
         TON("t", false),
-        
         // Volume units
         LITER("L", false),
         MILLILITER("mL", false),
@@ -91,7 +72,6 @@ public class Quantity {
         PINT("pt", false),
         FLUID_OUNCE("fl oz", false),
         CUP("cups", false),
-
         // Count units (integer only)
         PIECE("pieces", true),
         ITEM("items", true),
@@ -111,29 +91,23 @@ public class Quantity {
         LOAF("loaves", true),
         BUNCH("bunches", true),
         HEAD("heads", true);
-        
         private final String label;
         private final boolean integerOnly;
-        
         Unit(String label, boolean integerOnly) {
             this.label = label;
             this.integerOnly = integerOnly;
         }
-        
         public boolean isIntegerOnly() {
             return integerOnly;
         }
-
         public String getLabel(){
             return label;
         }
-        
         public String getFullName() {
             // Convert enum name to readable format: KILOGRAM -> kilogram
             String name = this.name();
             return name.toLowerCase().replace('_', ' ');
         }
-        
         public String getPlural() {
             String full = getFullName();
             // Handle special cases
@@ -144,7 +118,6 @@ public class Quantity {
             // Default: add 's'
             return full + "s";
         }
-        
         public String getDisplayName(double quantity) {
             return quantity == 1.0 ? getFullName() : getPlural();
         }

@@ -1,10 +1,8 @@
 package com.example.foodflow.health;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
-
 /**
  * Reports whether the Twilio SMS service is configured.
  * Visible at /actuator/health under the "smsService" component.
@@ -16,22 +14,17 @@ import org.springframework.stereotype.Component;
  */
 @Component("smsServiceHealth")
 public class SmsServiceHealthIndicator implements HealthIndicator {
-
     @Value("${twilio.account.sid:}")
     private String accountSid;
-
     @Value("${twilio.auth.token:}")
     private String authToken;
-
     @Value("${twilio.phone.number:}")
     private String phoneNumber;
-
     @Override
     public Health health() {
         boolean sidPresent   = accountSid != null && !accountSid.isBlank();
         boolean tokenPresent = authToken != null && !authToken.isBlank();
         boolean phonePresent = phoneNumber != null && !phoneNumber.isBlank();
-
         if (!sidPresent) {
             return Health.down()
                     .withDetail("reason", "twilio.account.sid is not configured")
@@ -47,7 +40,6 @@ public class SmsServiceHealthIndicator implements HealthIndicator {
                     .withDetail("reason", "twilio.phone.number is not configured")
                     .build();
         }
-
         return Health.up()
                 .withDetail("provider", "Twilio")
                 .withDetail("accountSidConfigured", true)

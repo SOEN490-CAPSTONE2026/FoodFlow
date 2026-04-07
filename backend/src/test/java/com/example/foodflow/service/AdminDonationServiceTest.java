@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.AdminDonationResponse;
 import com.example.foodflow.model.entity.*;
 import com.example.foodflow.model.types.ClaimStatus;
@@ -27,37 +26,26 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class AdminDonationServiceTest {
-
     @Mock
     private SurplusPostRepository surplusPostRepository;
-
     @Mock
     private ClaimRepository claimRepository;
-
     @Mock
     private DonationTimelineRepository timelineRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private TimelineService timelineService;
-
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
-
     @Mock
     private EmailNotificationService emailService;
-
     @Mock
     private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
-
     @InjectMocks
     private AdminDonationService adminDonationService;
-
     private SurplusPost testPost;
     private User testDonor;
     private User testReceiver;
@@ -65,7 +53,6 @@ class AdminDonationServiceTest {
     private Organization testReceiverOrg;
     private Claim testClaim;
     private DonationTimeline testTimeline;
-
     @BeforeEach
     void setUp() {
         // Setup test donor
@@ -73,23 +60,19 @@ class AdminDonationServiceTest {
         testDonorOrg.setId(1L);
         testDonorOrg.setName("Test Donor Organization");
         testDonorOrg.setContactPerson("John Donor");
-
         testDonor = new User();
         testDonor.setId(1L);
         testDonor.setEmail("donor@test.com");
         testDonor.setOrganization(testDonorOrg);
-
         // Setup test receiver
         testReceiverOrg = new Organization();
         testReceiverOrg.setId(2L);
         testReceiverOrg.setName("Test Receiver Organization");
         testReceiverOrg.setContactPerson("Jane Receiver");
-
         testReceiver = new User();
         testReceiver.setId(2L);
         testReceiver.setEmail("receiver@test.com");
         testReceiver.setOrganization(testReceiverOrg);
-
         // Setup test surplus post
         testPost = new SurplusPost();
         testPost.setId(1L);
@@ -100,14 +83,12 @@ class AdminDonationServiceTest {
         testPost.setFlagged(false);
         testPost.setQuantity(new Quantity(50.0, Quantity.Unit.KILOGRAM));
         // Note: createdAt and updatedAt are set automatically by JPA @PrePersist/@PreUpdate
-
         // Setup test claim
         testClaim = new Claim();
         testClaim.setId(1L);
         testClaim.setSurplusPost(testPost);
         testClaim.setReceiver(testReceiver);
         testClaim.setStatus(ClaimStatus.ACTIVE);
-
         // Setup test timeline
         testTimeline = new DonationTimeline();
         testTimeline.setId(1L);
@@ -117,25 +98,21 @@ class AdminDonationServiceTest {
         testTimeline.setActor("donor");
         testTimeline.setVisibleToUsers(true);
     }
-
     @Test
     void getAllDonations_WithNoFilters_ReturnsAllDonations() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -145,82 +122,69 @@ class AdminDonationServiceTest {
         assertEquals("receiver@test.com", response.getReceiverEmail());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithStatusFilter_ReturnsFilteredDonations() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             "CLAIMED", null, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(PostStatus.CLAIMED, result.getContent().get(0).getStatus());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithSearchByNumericId_ReturnsMatchingDonation() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, "1", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1L, result.getContent().get(0).getId());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithSearchByTitle_ReturnsMatchingDonations() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, "Test", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertTrue(result.getContent().get(0).getTitle().contains("Test"));
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithDateRange_ReturnsFilteredDonations() {
         // Arrange
@@ -228,25 +192,21 @@ class AdminDonationServiceTest {
         Page<SurplusPost> postPage = new PageImpl<>(posts);
         LocalDate fromDate = LocalDate.now().minusDays(7);
         LocalDate toDate = LocalDate.now();
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, fromDate, toDate, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithFlaggedFilter_ReturnsOnlyFlaggedDonations() {
         // Arrange
@@ -254,19 +214,16 @@ class AdminDonationServiceTest {
         testPost.setFlagReason("Test flag reason");
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, true, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -274,7 +231,6 @@ class AdminDonationServiceTest {
         assertEquals("Test flag reason", result.getContent().get(0).getFlagReason());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getDonationById_WithValidId_ReturnsDonationDetails() {
         // Arrange
@@ -283,10 +239,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -299,12 +253,10 @@ class AdminDonationServiceTest {
         assertEquals(1, result.getTimeline().size());
         verify(surplusPostRepository).findById(1L);
     }
-
     @Test
     void getDonationById_WithInvalidId_ThrowsException() {
         // Arrange
         when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
-
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
             adminDonationService.getDonationById(999L)
@@ -312,7 +264,6 @@ class AdminDonationServiceTest {
         assertTrue(exception.getMessage().contains("Donation not found"));
         verify(surplusPostRepository).findById(999L);
     }
-
     @Test
     void getDonationById_WithNoClaim_ReturnsNullReceiverInfo() {
         // Arrange
@@ -325,10 +276,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.empty());
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertNull(result.getReceiverId());
@@ -338,7 +287,6 @@ class AdminDonationServiceTest {
         verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
         verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
     }
-
     @Test
     void getDonationById_WithCompletedClaimAndNoActiveClaim_ReturnsReceiverInfo() {
         // Arrange: no ACTIVE claim, but a COMPLETED claim exists
@@ -347,7 +295,6 @@ class AdminDonationServiceTest {
         completedClaim.setSurplusPost(testPost);
         completedClaim.setReceiver(testReceiver);
         completedClaim.setStatus(ClaimStatus.COMPLETED);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.empty());
@@ -355,10 +302,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(completedClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals(2L, result.getReceiverId());
@@ -367,7 +312,6 @@ class AdminDonationServiceTest {
         // NOT_COMPLETED should not be queried once COMPLETED is found
         verify(claimRepository, never()).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
     }
-
     @Test
     void getDonationById_WithNotCompletedClaimAndNoActiveOrCompletedClaim_ReturnsReceiverInfo() {
         // Arrange: no ACTIVE or COMPLETED claim, but a NOT_COMPLETED claim exists
@@ -376,7 +320,6 @@ class AdminDonationServiceTest {
         notCompletedClaim.setSurplusPost(testPost);
         notCompletedClaim.setReceiver(testReceiver);
         notCompletedClaim.setStatus(ClaimStatus.NOT_COMPLETED);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.empty());
@@ -386,10 +329,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(notCompletedClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals(2L, result.getReceiverId()); // testReceiver.getId() == 2L
@@ -399,7 +340,6 @@ class AdminDonationServiceTest {
         verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
         verify(claimRepository).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
     }
-
     @Test
     void getDonationById_ActiveClaimTakesPriorityOverCompletedClaim_ReturnsActiveClaim() {
         // Arrange: both ACTIVE and COMPLETED claims exist; ACTIVE should be used
@@ -408,10 +348,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals(1L, result.getClaimId());
@@ -420,7 +358,6 @@ class AdminDonationServiceTest {
         verify(claimRepository, never()).findBySurplusPostIdAndStatus(1L, ClaimStatus.COMPLETED);
         verify(claimRepository, never()).findBySurplusPostIdAndStatus(1L, ClaimStatus.NOT_COMPLETED);
     }
-
     @Test
     void overrideStatus_WithValidRequest_UpdatesStatusAndCreatesTimeline() {
         // Arrange
@@ -432,20 +369,16 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.overrideStatus(
             1L, "COMPLETED", "Admin completed manually", adminUserId
         );
-
         // Assert
         assertNotNull(result);
-        
         // Verify status was updated
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
         assertEquals(PostStatus.COMPLETED, postCaptor.getValue().getStatus());
-        
         // Verify timeline event was created
         ArgumentCaptor<DonationTimeline> timelineCaptor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(timelineCaptor.capture());
@@ -458,12 +391,10 @@ class AdminDonationServiceTest {
         assertEquals("Admin completed manually", savedTimeline.getDetails());
         assertFalse(savedTimeline.getVisibleToUsers()); // Admin overrides should be hidden from users
     }
-
     @Test
     void overrideStatus_WithInvalidStatus_ThrowsException() {
         // Arrange
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
-
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
             adminDonationService.overrideStatus(1L, "INVALID_STATUS", "Test reason", 999L)
@@ -472,12 +403,10 @@ class AdminDonationServiceTest {
         verify(surplusPostRepository, never()).save(any());
         verify(timelineRepository, never()).save(any());
     }
-
     @Test
     void overrideStatus_WithInvalidDonationId_ThrowsException() {
         // Arrange
         when(surplusPostRepository.findById(999L)).thenReturn(Optional.empty());
-
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
             adminDonationService.overrideStatus(999L, "COMPLETED", "Test reason", 999L)
@@ -486,7 +415,6 @@ class AdminDonationServiceTest {
         verify(surplusPostRepository).findById(999L);
         verify(surplusPostRepository, never()).save(any());
     }
-
     @Test
     void overrideStatus_WithNullReason_UsesDefaultMessage() {
         // Arrange
@@ -498,31 +426,25 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         adminDonationService.overrideStatus(1L, "COMPLETED", null, adminUserId);
-
         // Assert
         ArgumentCaptor<DonationTimeline> timelineCaptor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(timelineCaptor.capture());
         assertEquals("Admin manual override", timelineCaptor.getValue().getDetails());
     }
-
     @Test
     void mapToAdminResponse_WithNoOrganization_UsesEmailAsName() {
         // Arrange
         testDonor.setOrganization(null);
         testReceiver.setOrganization(null);
-        
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals("donor@test.com", result.getDonorName());
@@ -530,7 +452,6 @@ class AdminDonationServiceTest {
         assertNull(result.getDonorOrganization());
         assertNull(result.getReceiverOrganization());
     }
-
     @Test
     void getAllDonations_WithMultipleFilters_AppliesAllCorrectly() {
         // Arrange
@@ -539,19 +460,16 @@ class AdminDonationServiceTest {
         Page<SurplusPost> postPage = new PageImpl<>(posts);
         LocalDate fromDate = LocalDate.now().minusDays(7);
         LocalDate toDate = LocalDate.now();
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             "CLAIMED", 1L, null, true, fromDate, toDate, "Test", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -561,13 +479,11 @@ class AdminDonationServiceTest {
         assertEquals(1L, response.getDonorId());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void overrideStatus_FromAvailableToExpired_UpdatesCorrectly() {
         // Arrange
         testPost.setStatus(PostStatus.AVAILABLE);
         Long adminUserId = 999L;
-        
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
@@ -575,10 +491,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.empty());
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         adminDonationService.overrideStatus(1L, "EXPIRED", "Food expired", adminUserId);
-
         // Assert
         ArgumentCaptor<DonationTimeline> timelineCaptor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(timelineCaptor.capture());
@@ -586,7 +500,6 @@ class AdminDonationServiceTest {
         assertEquals("AVAILABLE", savedTimeline.getOldStatus());
         assertEquals("EXPIRED", savedTimeline.getNewStatus());
     }
-
     @Test
     void getDonationById_WithQuantity_ReturnsQuantityDetails() {
         // Arrange
@@ -595,156 +508,130 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertNotNull(result.getQuantity());
         assertEquals(50.0, result.getQuantity().getValue());
         assertEquals(Quantity.Unit.KILOGRAM, result.getQuantity().getUnit());
     }
-
     @Test
     void getAllDonations_WithInvalidStatusFilter_IgnoresFilter() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act - Should not throw exception, just log warning
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             "INVALID_STATUS", null, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithLowercaseStatus_ParsesCorrectly() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             "claimed", null, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithDonorIdFilter_ReturnsCorrectDonations() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, 1L, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1L, result.getContent().get(0).getDonorId());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithReceiverIdFilter_ReturnsCorrectDonations() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, 2L, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(2L, result.getContent().get(0).getReceiverId());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithEmptySearch_ReturnsAllDonations() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, "", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithPagination_ReturnsCorrectPage() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts, PageRequest.of(1, 10), 25);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, null, 1, 10
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(25, result.getTotalElements());
@@ -752,27 +639,22 @@ class AdminDonationServiceTest {
         assertEquals(10, result.getSize());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithEmptyResult_ReturnsEmptyPage() {
         // Arrange
         Page<SurplusPost> emptyPage = new PageImpl<>(Collections.emptyList());
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(emptyPage);
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(0, result.getTotalElements());
         assertTrue(result.getContent().isEmpty());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getDonationById_WithEmptyTimeline_ReturnsEmptyList() {
         // Arrange
@@ -781,17 +663,14 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Collections.emptyList());
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertNotNull(result.getTimeline());
         assertTrue(result.getTimeline().isEmpty());
         verify(timelineRepository).findBySurplusPostIdOrderByTimestampDesc(1L);
     }
-
     @Test
     void getDonationById_WithMultipleTimelineEvents_ReturnsAllEvents() {
         // Arrange
@@ -802,23 +681,19 @@ class AdminDonationServiceTest {
         timeline2.setTimestamp(LocalDateTime.now());
         timeline2.setActor("receiver");
         timeline2.setVisibleToUsers(true);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(timeline2, testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals(2, result.getTimeline().size());
         assertEquals("DONATION_CLAIMED", result.getTimeline().get(0).getEventType());
         assertEquals("DONATION_CREATED", result.getTimeline().get(1).getEventType());
     }
-
     @Test
     void overrideStatus_WithMixedCaseStatus_ParsesCorrectly() {
         // Arrange
@@ -830,19 +705,16 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.overrideStatus(
             1L, "CoMpLeTeD", "Test reason", adminUserId
         );
-
         // Assert
         assertNotNull(result);
         ArgumentCaptor<SurplusPost> postCaptor = ArgumentCaptor.forClass(SurplusPost.class);
         verify(surplusPostRepository).save(postCaptor.capture());
         assertEquals(PostStatus.COMPLETED, postCaptor.getValue().getStatus());
     }
-
     @Test
     void overrideStatus_ToAllPossibleStatuses_UpdatesCorrectly() {
         // Test all valid status transitions
@@ -854,9 +726,7 @@ class AdminDonationServiceTest {
             PostStatus.NOT_COMPLETED,
             PostStatus.READY_FOR_PICKUP
         };
-
         Long adminUserId = 999L;
-
         for (PostStatus status : statuses) {
             // Arrange
             testPost.setStatus(PostStatus.AVAILABLE); // Reset to a starting state
@@ -867,10 +737,8 @@ class AdminDonationServiceTest {
                 .thenReturn(Optional.empty());
             when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
                 .thenReturn(Arrays.asList(testTimeline));
-
             // Act
             adminDonationService.overrideStatus(1L, status.name(), "Test override", adminUserId);
-
             // Assert
             ArgumentCaptor<DonationTimeline> timelineCaptor = ArgumentCaptor.forClass(DonationTimeline.class);
             verify(timelineRepository, atLeast(1)).save(timelineCaptor.capture());
@@ -878,33 +746,28 @@ class AdminDonationServiceTest {
             assertEquals(status.name(), savedTimeline.getNewStatus());
         }
     }
-
     @Test
     void getAllDonations_WithNonFlaggedFilter_ReturnsOnlyNonFlagged() {
         // Arrange
         testPost.setFlagged(false);
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, false, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertFalse(result.getContent().get(0).getFlagged());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getDonationById_MapsAllTimelineFields() {
         // Arrange
@@ -922,16 +785,13 @@ class AdminDonationServiceTest {
         detailedTimeline.setTemperature(4.5);
         detailedTimeline.setPackagingCondition("GOOD");
         detailedTimeline.setPickupEvidenceUrl("https://example.com/evidence.jpg");
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(detailedTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTimeline().size());
@@ -947,63 +807,53 @@ class AdminDonationServiceTest {
         assertEquals("GOOD", timelineDTO.getPackagingCondition());
         assertEquals("https://example.com/evidence.jpg", timelineDTO.getPickupEvidenceUrl());
     }
-
     @Test
     void getAllDonations_WithSearchByDonorEmail_ReturnsMatching() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, "donor@test", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertTrue(result.getContent().get(0).getDonorEmail().contains("donor@test"));
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithSearchByOrganizationName_ReturnsMatching() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, "Donor Organization", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertTrue(result.getContent().get(0).getDonorOrganization().contains("Donor Organization"));
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void overrideStatus_CreatesTimelineWithCorrectTimestamp() {
         // Arrange
         Long adminUserId = 999L;
         LocalDateTime beforeCall = LocalDateTime.now().minusSeconds(1);
-        
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(surplusPostRepository.save(any(SurplusPost.class))).thenReturn(testPost);
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(testTimeline);
@@ -1011,86 +861,71 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         adminDonationService.overrideStatus(1L, "COMPLETED", "Test", adminUserId);
-
         // Assert
         ArgumentCaptor<DonationTimeline> timelineCaptor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(timelineCaptor.capture());
         DonationTimeline savedTimeline = timelineCaptor.getValue();
-        
         assertNotNull(savedTimeline.getTimestamp());
         assertTrue(savedTimeline.getTimestamp().isAfter(beforeCall));
         assertTrue(savedTimeline.getTimestamp().isBefore(LocalDateTime.now().plusSeconds(1)));
     }
-
     @Test
     void getAllDonations_WithFromDateOnly_FiltersCorrectly() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
         LocalDate fromDate = LocalDate.now().minusDays(7);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, fromDate, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithToDateOnly_FiltersCorrectly() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
         LocalDate toDate = LocalDate.now();
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, toDate, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getDonationById_WithClaimHavingConfirmedPickupDetails_MapsAllFields() {
         // Arrange
         testClaim.setConfirmedPickupDate(LocalDate.now());
         testClaim.setConfirmedPickupStartTime(LocalDateTime.now().toLocalTime());
         testClaim.setConfirmedPickupEndTime(LocalDateTime.now().plusHours(2).toLocalTime());
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertNotNull(result.getClaimId());
@@ -1099,7 +934,6 @@ class AdminDonationServiceTest {
         assertNotNull(result.getConfirmedPickupEndTime());
         assertEquals(1L, result.getClaimId());
     }
-
     @Test
     void overrideStatus_SendsNotificationsToDonor_WhenEmailEnabled() {
         // Arrange
@@ -1114,10 +948,8 @@ class AdminDonationServiceTest {
             .thenReturn(true);
         when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "websocket"))
             .thenReturn(false);
-
         // Act
         adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
-
         // Assert
         verify(emailService).sendDonationStatusUpdateNotification(
             eq("donor@test.com"),
@@ -1125,7 +957,6 @@ class AdminDonationServiceTest {
             any(Map.class)
         );
     }
-
     @Test
     void overrideStatus_SendsNotificationsToDonor_WhenWebsocketEnabled() {
         // Arrange
@@ -1140,10 +971,8 @@ class AdminDonationServiceTest {
             .thenReturn(false);
         when(notificationPreferenceService.shouldSendNotification(testDonor, "donationStatusUpdated", "websocket"))
             .thenReturn(true);
-
         // Act
         adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
-
         // Assert
         verify(messagingTemplate).convertAndSendToUser(
             eq("1"),
@@ -1151,7 +980,6 @@ class AdminDonationServiceTest {
             any(Map.class)
         );
     }
-
     @Test
     void overrideStatus_SendsNotificationsToReceiver_WhenClaimExists() {
         // Arrange
@@ -1170,10 +998,8 @@ class AdminDonationServiceTest {
             .thenReturn(true);
         when(notificationPreferenceService.shouldSendNotification(testReceiver, "donationStatusChanged", "websocket"))
             .thenReturn(true);
-
         // Act
         adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
-
         // Assert
         verify(emailService).sendDonationStatusUpdateNotification(
             eq("receiver@test.com"),
@@ -1186,7 +1012,6 @@ class AdminDonationServiceTest {
             any(Map.class)
         );
     }
-
     @Test
     void overrideStatus_HandlesEmailError_Gracefully() {
         // Arrange
@@ -1201,13 +1026,11 @@ class AdminDonationServiceTest {
             .thenReturn(true);
         doThrow(new RuntimeException("Email service error"))
             .when(emailService).sendDonationStatusUpdateNotification(anyString(), anyString(), any(Map.class));
-
         // Act & Assert - should not throw exception
         assertDoesNotThrow(() -> {
             adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
         });
     }
-
     @Test
     void overrideStatus_HandlesWebSocketError_Gracefully() {
         // Arrange
@@ -1222,13 +1045,11 @@ class AdminDonationServiceTest {
             .thenReturn(true);
         doThrow(new RuntimeException("WebSocket error"))
             .when(messagingTemplate).convertAndSendToUser(anyString(), anyString(), any(Map.class));
-
         // Act & Assert - should not throw exception
         assertDoesNotThrow(() -> {
             adminDonationService.overrideStatus(1L, "COMPLETED", "Admin approval", 999L);
         });
     }
-
     @Test
     void getDonationById_WithNoClaim_ReturnsResponseWithoutClaimInfo() {
         // Arrange
@@ -1237,10 +1058,8 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.empty());
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertNull(result.getClaimId());
@@ -1248,7 +1067,6 @@ class AdminDonationServiceTest {
         assertNull(result.getReceiverName());
         assertNull(result.getReceiverEmail());
     }
-
     @Test
     void getDonationById_WithDonorWithoutOrganization_UsesDonorEmail() {
         // Arrange
@@ -1256,24 +1074,19 @@ class AdminDonationServiceTest {
         donorWithoutOrg.setId(1L);
         donorWithoutOrg.setEmail("individual@test.com");
         donorWithoutOrg.setOrganization(null);
-        
         testPost.setDonor(donorWithoutOrg);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.empty());
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals("individual@test.com", result.getDonorName());
         assertNull(result.getDonorOrganization());
     }
-
     @Test
     void getDonationById_WithReceiverWithoutOrganization_UsesReceiverEmail() {
         // Arrange
@@ -1281,71 +1094,58 @@ class AdminDonationServiceTest {
         receiverWithoutOrg.setId(2L);
         receiverWithoutOrg.setEmail("individual-receiver@test.com");
         receiverWithoutOrg.setOrganization(null);
-        
         testClaim.setReceiver(receiverWithoutOrg);
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertEquals("individual-receiver@test.com", result.getReceiverName());
         assertNull(result.getReceiverOrganization());
     }
-
     @Test
     void getAllDonations_WithNumericSearch_SearchesById() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, null, null, "1", 0, 20
         );
-
         // Assert
         assertNotNull(result);
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithInvalidStatus_IgnoresStatusFilter() {
         // Arrange
         List<SurplusPost> posts = Arrays.asList(testPost);
         Page<SurplusPost> postPage = new PageImpl<>(posts);
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             "INVALID_STATUS", null, null, null, null, null, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void getAllDonations_WithDateRange_FiltersCorrectly() {
         // Arrange
@@ -1353,25 +1153,21 @@ class AdminDonationServiceTest {
         Page<SurplusPost> postPage = new PageImpl<>(posts);
         LocalDate fromDate = LocalDate.now().minusDays(7);
         LocalDate toDate = LocalDate.now();
-        
         when(surplusPostRepository.findAll(any(Specification.class), any(Pageable.class)))
             .thenReturn(postPage);
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         Page<AdminDonationResponse> result = adminDonationService.getAllDonations(
             null, null, null, null, fromDate, toDate, null, 0, 20
         );
-
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(surplusPostRepository).findAll(any(Specification.class), any(Pageable.class));
     }
-
     @Test
     void overrideStatus_WithNullReason_UsesDefaultReason() {
         // Arrange
@@ -1382,17 +1178,14 @@ class AdminDonationServiceTest {
             .thenReturn(Optional.empty());
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(testTimeline));
-
         // Act
         adminDonationService.overrideStatus(1L, "COMPLETED", null, 999L);
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
         DonationTimeline saved = captor.getValue();
         assertEquals("Admin manual override", saved.getDetails());
     }
-
     @Test
     void getDonationById_WithDetailedTimeline_MapsTemperatureAndEvidence() {
         // Arrange
@@ -1410,16 +1203,13 @@ class AdminDonationServiceTest {
         detailedTimeline.setTemperature(4.5);
         detailedTimeline.setPackagingCondition("Good");
         detailedTimeline.setPickupEvidenceUrl("https://example.com/evidence.jpg");
-
         when(surplusPostRepository.findById(1L)).thenReturn(Optional.of(testPost));
         when(claimRepository.findBySurplusPostIdAndStatus(1L, ClaimStatus.ACTIVE))
             .thenReturn(Optional.of(testClaim));
         when(timelineRepository.findBySurplusPostIdOrderByTimestampDesc(1L))
             .thenReturn(Arrays.asList(detailedTimeline));
-
         // Act
         AdminDonationResponse result = adminDonationService.getDonationById(1L);
-
         // Assert
         assertNotNull(result);
         assertNotNull(result.getTimeline());
@@ -1430,4 +1220,3 @@ class AdminDonationServiceTest {
         assertEquals("https://example.com/evidence.jpg", result.getTimeline().get(0).getPickupEvidenceUrl());
     }
 }
-

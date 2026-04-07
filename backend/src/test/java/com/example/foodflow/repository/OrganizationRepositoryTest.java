@@ -1,5 +1,4 @@
 package com.example.foodflow.repository;
-
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.VerificationStatus;
@@ -12,17 +11,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
-
 @DataJpaTest
 @ActiveProfiles("test")
 class OrganizationRepositoryTest {
-
     @Autowired
     private TestEntityManager entityManager;
-
     @Autowired
     private OrganizationRepository organizationRepository;
-
     @Test
     void findByUserId_ExistingUser_ReturnsOrganization() {
         // Given
@@ -31,7 +26,6 @@ class OrganizationRepositoryTest {
         user.setPassword("password");
         user.setRole(UserRole.DONOR);
         User savedUser = entityManager.persistAndFlush(user);
-
         Organization org = new Organization();
         org.setName("Test Restaurant");
         org.setOrganizationType(OrganizationType.RESTAURANT);
@@ -41,26 +35,21 @@ class OrganizationRepositoryTest {
         org.setVerificationStatus(VerificationStatus.PENDING);
         org.setUser(savedUser);
         entityManager.persistAndFlush(org);
-
         // When
         Optional<Organization> found = organizationRepository.findByUserId(savedUser.getId());
-
         // Then
         assertTrue(found.isPresent());
         assertEquals("Test Restaurant", found.get().getName());
         assertEquals(OrganizationType.RESTAURANT, found.get().getOrganizationType());
         assertEquals(savedUser.getId(), found.get().getUser().getId());
     }
-
     @Test
     void findByUserId_NonExistingUser_ReturnsEmpty() {
         // When
         Optional<Organization> found = organizationRepository.findByUserId(999L);
-
         // Then
         assertFalse(found.isPresent());
     }
-
     @Test
     void save_NewOrganization_Success() {
         // Given
@@ -69,7 +58,6 @@ class OrganizationRepositoryTest {
         user.setPassword("password");
         user.setRole(UserRole.DONOR);
         User savedUser = entityManager.persistAndFlush(user);
-
         Organization org = new Organization();
         org.setName("New Organization");
         org.setOrganizationType(OrganizationType.GROCERY_STORE);
@@ -78,10 +66,8 @@ class OrganizationRepositoryTest {
         org.setAddress("123 Address St");
         org.setVerificationStatus(VerificationStatus.PENDING);
         org.setUser(savedUser);
-
         // When
         Organization saved = organizationRepository.save(org);
-
         // Then
         assertNotNull(saved.getId());
         assertEquals("New Organization", saved.getName());
@@ -89,7 +75,6 @@ class OrganizationRepositoryTest {
         assertEquals(VerificationStatus.PENDING, saved.getVerificationStatus());
         assertEquals(savedUser.getId(), saved.getUser().getId());
     }
-
     @Test
     void save_UpdateExistingOrganization_Success() {
         // Given
@@ -98,7 +83,6 @@ class OrganizationRepositoryTest {
         user.setPassword("password");
         user.setRole(UserRole.DONOR);
         User savedUser = entityManager.persistAndFlush(user);
-
         Organization org = new Organization();
         org.setName("Original Name");
         org.setOrganizationType(OrganizationType.RESTAURANT);
@@ -108,12 +92,10 @@ class OrganizationRepositoryTest {
         org.setVerificationStatus(VerificationStatus.PENDING);
         org.setUser(savedUser);
         Organization savedOrg = entityManager.persistAndFlush(org);
-
         // When
         savedOrg.setName("Updated Name");
         savedOrg.setVerificationStatus(VerificationStatus.VERIFIED);
         Organization updated = organizationRepository.save(savedOrg);
-
         // Then
         assertEquals("Updated Name", updated.getName());
         assertEquals(VerificationStatus.VERIFIED, updated.getVerificationStatus());

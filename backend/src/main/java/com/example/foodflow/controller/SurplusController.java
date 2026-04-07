@@ -15,6 +15,8 @@ import com.example.foodflow.model.types.FoodTaxonomyContract;
 import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.service.SurplusService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +28,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/api/surplus")
 public class SurplusController {
-
+    private static final Logger logger = LoggerFactory.getLogger(SurplusController.class);
     private final SurplusService surplusService;
 
     public SurplusController(SurplusService surplusService) {
@@ -42,7 +43,6 @@ public class SurplusController {
     public ResponseEntity<SurplusResponse> createSurplusPost(
             @Valid @RequestBody CreateSurplusRequest request,
             @AuthenticationPrincipal User donor) {
-
         SurplusResponse response = surplusService.createSurplusPost(request, donor);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -51,7 +51,6 @@ public class SurplusController {
     @PreAuthorize("hasAuthority('DONOR')")
     public ResponseEntity<List<SurplusResponse>> getMyPosts(
             @AuthenticationPrincipal User user) {
-
         List<SurplusResponse> myPosts = surplusService.getUserSurplusPosts(user);
         return ResponseEntity.ok(myPosts);
     }
@@ -61,7 +60,6 @@ public class SurplusController {
     public ResponseEntity<SurplusResponse> getSurplusPostById(
             @PathVariable Long id,
             @AuthenticationPrincipal User donor) {
-
         SurplusResponse post = surplusService.getSurplusPostByIdForDonor(id, donor);
         return ResponseEntity.ok(post);
     }
@@ -72,7 +70,6 @@ public class SurplusController {
             @PathVariable Long id,
             @Valid @RequestBody CreateSurplusRequest request,
             @AuthenticationPrincipal User donor) {
-
         SurplusResponse response = surplusService.updateSurplusPost(id, request, donor);
         return ResponseEntity.ok(response);
     }
@@ -108,7 +105,6 @@ public class SurplusController {
             @AuthenticationPrincipal User receiver) {
         List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
-
     }
 
     /**
@@ -127,7 +123,6 @@ public class SurplusController {
             @RequestParam(required = false) String expiryBefore,
             @RequestParam(required = false) String status,
             @AuthenticationPrincipal User receiver) {
-
         // Create filter request from query parameters
         SurplusFilterRequest filterRequest = new SurplusFilterRequest();
         filterRequest.setFoodCategories(foodCategories);
@@ -136,29 +131,22 @@ public class SurplusController {
         filterRequest.setDietaryMatch(parseDietaryMatch(dietaryMatch));
         filterRequest.setSort(sort);
         filterRequest.setStatus(status != null ? status : "AVAILABLE");
-
         if (expiryBefore != null && !expiryBefore.trim().isEmpty()) {
-
             try {
-
                 filterRequest.setExpiryBefore(java.time.LocalDate.parse(expiryBefore));
-
             } catch (Exception e) {
                 // Log the error and continue without expiry filter
-                System.err.println("Invalid expiryBefore format: " + expiryBefore);
+                logger.warn("Invalid expiryBefore format: {}", expiryBefore, e);
             }
-
         }
         List<SurplusResponse> filteredPosts = surplusService.searchSurplusPostsForReceiver(filterRequest, receiver);
         return ResponseEntity.ok(filteredPosts);
-
     }
 
     private List<FoodType> parseFoodTypes(String rawFoodType) {
         if (rawFoodType == null || rawFoodType.isBlank()) {
             return null;
         }
-
         String[] parts = rawFoodType.split(",");
         List<FoodType> values = new ArrayList<>();
         for (String part : parts) {
@@ -170,7 +158,8 @@ public class SurplusController {
                 values.add(FoodType.valueOf(normalized));
             } catch (IllegalArgumentException ex) {
                 throw new IllegalArgumentException(
-                        "Invalid foodType '" + normalized + "'. Allowed values: [" + FoodTaxonomyContract.allowedFoodTypes()
+                        "Invalid foodType '" + normalized + "'. Allowed values: ["
+                                + FoodTaxonomyContract.allowedFoodTypes()
                                 + "]");
             }
         }
@@ -181,7 +170,6 @@ public class SurplusController {
         if (rawDietaryTags == null || rawDietaryTags.isBlank()) {
             return null;
         }
-
         String[] parts = rawDietaryTags.split(",");
         List<DietaryTag> values = new ArrayList<>();
         for (String part : parts) {
@@ -205,7 +193,6 @@ public class SurplusController {
         if (rawDietaryMatch == null || rawDietaryMatch.isBlank()) {
             return DietaryMatchMode.ANY;
         }
-
         try {
             return DietaryMatchMode.valueOf(rawDietaryMatch.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
@@ -220,7 +207,6 @@ public class SurplusController {
             @PathVariable Long id,
             @Valid @RequestBody CompleteSurplusRequest request,
             @AuthenticationPrincipal User donor) {
-
         SurplusResponse response = surplusService.completeSurplusPost(id, request.getOtpCode(), donor);
         return ResponseEntity.ok(response);
     }
@@ -229,12 +215,10 @@ public class SurplusController {
     public ResponseEntity<SurplusResponse> confirmPickup(
             @RequestBody ConfirmPickupRequest request,
             @AuthenticationPrincipal User donor) {
-
         SurplusResponse response = surplusService.confirmPickup(
                 request.getPostId(),
                 request.getOtpCode(),
-                donor
-        );
+                donor);
         return ResponseEntity.ok(response);
     }
 
@@ -242,7 +226,6 @@ public class SurplusController {
     public ResponseEntity<List<DonationTimelineDTO>> getTimeline(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-
         List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(id, user);
         return ResponseEntity.ok(timeline);
     }
@@ -252,7 +235,6 @@ public class SurplusController {
     public ResponseEntity<Void> deleteSurplusPost(
             @PathVariable Long id,
             @AuthenticationPrincipal User donor) {
-
         surplusService.deleteSurplusPost(id, donor);
         return ResponseEntity.noContent().build(); // 204
     }
@@ -263,7 +245,8 @@ public class SurplusController {
             @PathVariable Long id,
             @Valid @RequestBody ExpiryOverrideRequest request,
             @AuthenticationPrincipal User actor) {
-        SurplusResponse response = surplusService.overrideExpiry(id, request.getExpiryDate(), request.getReason(), actor);
+        SurplusResponse response = surplusService.overrideExpiry(id, request.getExpiryDate(), request.getReason(),
+                actor);
         return ResponseEntity.ok(response);
     }
 
@@ -286,19 +269,15 @@ public class SurplusController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal User donor) {
-
         try {
             UploadEvidenceResponse response = surplusService.uploadPickupEvidence(id, file, donor);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
-                new UploadEvidenceResponse(null, e.getMessage(), false)
-            );
+                    new UploadEvidenceResponse(null, e.getMessage(), false));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                new UploadEvidenceResponse(null, "Failed to upload file", false)
-            );
+                    new UploadEvidenceResponse(null, "Failed to upload file", false));
         }
     }
-
 }

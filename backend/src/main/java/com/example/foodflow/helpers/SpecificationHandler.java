@@ -1,25 +1,20 @@
 package com.example.foodflow.helpers;
-
 import org.springframework.data.jpa.domain.Specification;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 /**
  * Utility class for combining and manipulating JPA Specifications.
  * Provides static methods for common specification operations.
  */
 public class SpecificationHandler {
-
     private SpecificationHandler() {
         // Utility class - prevent instantiation
         throw new UnsupportedOperationException("SpecificationHandler is a utility class and cannot be instantiated");
     }
-
     // ---------------- AND Operations ----------------
-
     /**
      * Combines multiple specifications using AND logic (varargs).
      * Returns a specification that matches entities satisfying ALL provided specifications.
@@ -32,7 +27,6 @@ public class SpecificationHandler {
     public static <T> Specification<T> and(Specification<T>... specifications) {
         return and(Arrays.asList(specifications));
     }
-
     /**
      * Combines multiple specifications using AND logic (collection).
      * Returns a specification that matches entities satisfying ALL provided specifications.
@@ -45,22 +39,17 @@ public class SpecificationHandler {
         if (specifications == null || specifications.isEmpty()) {
             return null;
         }
-
         List<Specification<T>> nonNullSpecs = specifications.stream()
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-
         if (nonNullSpecs.isEmpty()) {
             return null;
         }
-
         return nonNullSpecs.stream()
             .reduce(Specification::and)
             .orElse(null);
     }
-
     // ---------------- OR Operations ----------------
-
     /**
      * Combines multiple specifications using OR logic (varargs).
      * Returns a specification that matches entities satisfying ANY of the provided specifications.
@@ -73,7 +62,6 @@ public class SpecificationHandler {
     public static <T> Specification<T> or(Specification<T>... specifications) {
         return or(Arrays.asList(specifications));
     }
-
     /**
      * Combines multiple specifications using OR logic (collection).
      * Returns a specification that matches entities satisfying ANY of the provided specifications.
@@ -86,22 +74,17 @@ public class SpecificationHandler {
         if (specifications == null || specifications.isEmpty()) {
             return null;
         }
-
         List<Specification<T>> nonNullSpecs = specifications.stream()
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-
         if (nonNullSpecs.isEmpty()) {
             return null;
         }
-
         return nonNullSpecs.stream()
             .reduce(Specification::or)
             .orElse(null);
     }
-
     // ---------------- NOT Operations ----------------
-
     /**
      * Negates a specification using NOT logic.
      * Returns a specification that matches entities NOT satisfying the provided specification.
@@ -116,9 +99,7 @@ public class SpecificationHandler {
         }
         return Specification.not(specification);
     }
-
     // ---------------- Complex Combinations ----------------
-
     /**
      * Combines specifications with mixed AND/OR logic.
      * First combines each group with OR, then combines all groups with AND.
@@ -134,15 +115,12 @@ public class SpecificationHandler {
         if (specificationGroups == null || specificationGroups.length == 0) {
             return null;
         }
-
         List<Specification<T>> orSpecs = Arrays.stream(specificationGroups)
             .map(SpecificationHandler::or)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-
         return and(orSpecs);
     }
-
     /**
      * Combines specifications with mixed OR/AND logic.
      * First combines each group with AND, then combines all groups with OR.
@@ -158,17 +136,13 @@ public class SpecificationHandler {
         if (specificationGroups == null || specificationGroups.length == 0) {
             return null;
         }
-
         List<Specification<T>> andSpecs = Arrays.stream(specificationGroups)
             .map(SpecificationHandler::and)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-
         return or(andSpecs);
     }
-
     // ---------------- Conditional Operations ----------------
-
     /**
      * Conditionally adds a specification to an existing one using AND logic.
      * 
@@ -184,7 +158,6 @@ public class SpecificationHandler {
         }
         return baseSpec == null ? specToAdd : baseSpec.and(specToAdd);
     }
-
     /**
      * Conditionally adds a specification to an existing one using OR logic.
      * 
@@ -200,9 +173,7 @@ public class SpecificationHandler {
         }
         return baseSpec == null ? specToAdd : baseSpec.or(specToAdd);
     }
-
     // ---------------- Utility Operations ----------------
-
     /**
      * Creates a specification that always returns true (matches all entities).
      * 
@@ -212,7 +183,6 @@ public class SpecificationHandler {
     public static <T> Specification<T> alwaysTrue() {
         return (root, query, cb) -> cb.conjunction();
     }
-
     /**
      * Creates a specification that always returns false (matches no entities).
      * 
@@ -222,7 +192,6 @@ public class SpecificationHandler {
     public static <T> Specification<T> alwaysFalse() {
         return (root, query, cb) -> cb.disjunction();
     }
-
     /**
      * Checks if a specification is effectively null or empty.
      * 
@@ -232,7 +201,6 @@ public class SpecificationHandler {
     public static boolean isEmpty(Specification<?> specification) {
         return specification == null;
     }
-
     /**
      * Returns the first non-null specification from the provided specifications.
      * 
@@ -245,15 +213,12 @@ public class SpecificationHandler {
         if (specifications == null) {
             return null;
         }
-        
         return Arrays.stream(specifications)
             .filter(Objects::nonNull)
             .findFirst()
             .orElse(null);
     }
-
     // ---------------- Building Operations ----------------
-
     /**
      * Builder pattern for incrementally building complex specifications.
      * 
@@ -263,7 +228,6 @@ public class SpecificationHandler {
     public static <T> SpecificationBuilder<T> builder() {
         return new SpecificationBuilder<>();
     }
-
     /**
      * Builder class for incrementally constructing complex specifications.
      * 
@@ -271,11 +235,9 @@ public class SpecificationHandler {
      */
     public static class SpecificationBuilder<T> {
         private Specification<T> specification;
-
         private SpecificationBuilder() {
             this.specification = null;
         }
-
         /**
          * Adds a specification using AND logic.
          * 
@@ -288,7 +250,6 @@ public class SpecificationHandler {
             }
             return this;
         }
-
         /**
          * Adds a specification using OR logic.
          * 
@@ -301,7 +262,6 @@ public class SpecificationHandler {
             }
             return this;
         }
-
         /**
          * Conditionally adds a specification using AND logic.
          * 
@@ -315,7 +275,6 @@ public class SpecificationHandler {
             }
             return this;
         }
-
         /**
          * Conditionally adds a specification using OR logic.
          * 
@@ -329,7 +288,6 @@ public class SpecificationHandler {
             }
             return this;
         }
-
         /**
          * Builds and returns the final specification.
          * 
@@ -338,7 +296,6 @@ public class SpecificationHandler {
         public Specification<T> build() {
             return this.specification;
         }
-
         /**
          * Builds and returns the final specification, or a default if none were added.
          * 

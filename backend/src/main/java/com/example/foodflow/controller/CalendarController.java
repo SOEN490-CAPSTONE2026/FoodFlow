@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.ApiResponse;
 import com.example.foodflow.model.dto.calendar.CalendarConnectionRequest;
 import com.example.foodflow.model.dto.calendar.CalendarConnectionResponse;
@@ -21,22 +20,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 /**
  * REST Controller for calendar integration endpoints
  */
 @RestController
 @RequestMapping("/api/calendar")
 public class CalendarController {
-
     private static final Logger logger = LoggerFactory.getLogger(CalendarController.class);
-
     private final CalendarIntegrationService calendarIntegrationService;
     private final CalendarEventService calendarEventService;
     private final CalendarSyncService calendarSyncService;
@@ -44,10 +39,8 @@ public class CalendarController {
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
-
     @Value("${frontend.url}")
     private String frontendUrl;
-
     public CalendarController(
             CalendarIntegrationService calendarIntegrationService,
             CalendarEventService calendarEventService,
@@ -64,7 +57,6 @@ public class CalendarController {
         this.userRepository = userRepository;
         this.calendarSyncPreferenceRepository = calendarSyncPreferenceRepository;
     }
-
     /**
      * Get calendar integration status for current user
      */
@@ -74,9 +66,7 @@ public class CalendarController {
         try {
             // Verify connection status before returning (checks if user revoked permissions)
             calendarIntegrationService.verifyAndUpdateConnectionStatus(currentUser);
-            
             Optional<CalendarIntegration> integration = calendarIntegrationService.getUserIntegration(currentUser);
-
             CalendarConnectionResponse response = new CalendarConnectionResponse();
             if (integration.isPresent()) {
                 CalendarIntegration cal = integration.get();
@@ -84,7 +74,6 @@ public class CalendarController {
                 response.setCalendarProvider(cal.getCalendarProvider());
                 response.setMessage(cal.getIsConnected() ? 
                     "Calendar is connected" : "Calendar is disconnected");
-                
                 // Add connection details
                 response.setConnectedSince(cal.getCreatedAt());
                 response.setGoogleAccountEmail(cal.getGoogleAccountEmail());
@@ -97,7 +86,6 @@ public class CalendarController {
                 response.setIsConnected(false);
                 response.setMessage("No calendar integration found");
             }
-
             return ResponseEntity.ok(new ApiResponse<>(true, "Calendar status retrieved", response));
         } catch (Exception e) {
             logger.error("Error retrieving calendar status", e);
@@ -105,7 +93,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error retrieving calendar status: " + e.getMessage(), null));
         }
     }
-
     /**
      * Start OAuth flow for calendar connection
      */
@@ -118,22 +105,17 @@ public class CalendarController {
                 return ResponseEntity.badRequest()
                     .body(new ApiResponse<>(false, "Calendar provider is required", null));
             }
-
             logger.info("Initiating calendar connection for user {} with provider {}", 
                        currentUser.getId(), request.getCalendarProvider());
-
             String provider = request.getCalendarProvider().toUpperCase();
-
             if ("GOOGLE".equals(provider)) {
                 // Generate OAuth URL for Google
                 String state = generateStateToken(currentUser.getId());
                 String authorizationUrl = googleOAuthService.getAuthorizationUrl(state);
-                
                 Map<String, String> response = new HashMap<>();
                 response.put("authorizationUrl", authorizationUrl);
                 response.put("provider", "GOOGLE");
                 response.put("state", state);
-
                 return ResponseEntity.ok(new ApiResponse<>(true, 
                     "OAuth flow initiated. Redirect to provider login.", response));
             } else {
@@ -146,7 +128,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error initiating connection: " + e.getMessage(), null));
         }
     }
-
     /**
      * Handle OAuth callback from Google Calendar
      * This endpoint is PUBLIC - called by Google's OAuth redirect
@@ -163,10 +144,8 @@ public class CalendarController {
                 return ResponseEntity.badRequest()
                     .body("<html><body><h2>Invalid authentication state</h2><p>Please close this window and try again.</p></body></html>");
             }
-
             Long userId = Long.parseLong(stateParts[1]);
             logger.info("Google OAuth callback received for user ID {}", userId);
-
             // Fetch the user from database
             Optional<User> userOpt = userRepository.findById(userId);
             if (!userOpt.isPresent()) {
@@ -174,16 +153,12 @@ public class CalendarController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("<html><body><h2>User not found</h2><p>Please close this window and try again.</p></body></html>");
             }
-
             User user = userOpt.get();
-
             // Exchange the authorization code for tokens
             GoogleOAuthService.GoogleTokenResponse tokenResponse = 
                 googleOAuthService.exchangeCodeForTokens(authCode);
-
             // Store the tokens in the database
             calendarIntegrationService.storeOAuthTokens(user, "GOOGLE", tokenResponse);
-
             // Redirect to frontend success page
             String redirectUrl = frontendUrl + "/calendar/oauth-success";
             return ResponseEntity.status(HttpStatus.FOUND)
@@ -199,7 +174,6 @@ public class CalendarController {
                 .body("<html><body><h2>Connection Failed</h2><p>Error: " + e.getMessage() + "</p><p>Please close this window and try again.</p></body></html>");
         }
     }
-
     /**
      * Disconnect calendar
      */
@@ -213,21 +187,16 @@ public class CalendarController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(false, "User not authenticated", null));
             }
-            
             if (calendarProvider == null || calendarProvider.isBlank()) {
                 logger.error("Calendar provider is null or empty");
                 return ResponseEntity.badRequest()
                     .body(new ApiResponse<>(false, "Calendar provider is required", null));
             }
-
             logger.info("Attempting to disconnect calendar for user {} from provider {}", 
                        currentUser.getId(), calendarProvider);
-
             calendarIntegrationService.disconnectCalendar(currentUser, calendarProvider);
-
             logger.info("Calendar disconnected for user {} from provider {}", 
                        currentUser.getId(), calendarProvider);
-
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Calendar disconnected successfully", null));
         } catch (Exception e) {
@@ -239,7 +208,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error disconnecting: " + e.getMessage(), null));
         }
     }
-
     /**
      * Get user's calendar sync preferences
      * Auto-creates default preferences if they don't exist
@@ -250,7 +218,6 @@ public class CalendarController {
         try {
             Optional<CalendarSyncPreference> preferences = 
                 calendarEventService.getUserSyncPreferences(currentUser.getId());
-
             CalendarSyncPreference pref;
             if (preferences.isPresent()) {
                 pref = preferences.get();
@@ -259,7 +226,6 @@ public class CalendarController {
                 logger.info("Creating default sync preferences for user {}", currentUser.getId());
                 pref = calendarIntegrationService.createDefaultSyncPreferencesIfNeeded(currentUser);
             }
-
             // Map to DTO for response
             CalendarSyncPreferenceDto dto = new CalendarSyncPreferenceDto();
             dto.setSyncEnabled(pref.getSyncEnabled());
@@ -269,7 +235,6 @@ public class CalendarController {
             dto.setEventColor(pref.getEventColor());
             dto.setEventVisibility(pref.getEventVisibility());
             dto.setEventDuration(pref.getEventDuration());
-
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Sync preferences retrieved", dto));
         } catch (Exception e) {
@@ -278,7 +243,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error retrieving preferences: " + e.getMessage(), null));
         }
     }
-
     /**
      * Update user's calendar sync preferences
      */
@@ -289,14 +253,12 @@ public class CalendarController {
         try {
             Optional<CalendarSyncPreference> preferences = 
                 calendarEventService.getUserSyncPreferences(currentUser.getId());
-
             CalendarSyncPreference pref;
             if (preferences.isPresent()) {
                 pref = preferences.get();
             } else {
                 pref = new CalendarSyncPreference(currentUser);
             }
-
             // Update fields from request
             if (request.getSyncEnabled() != null) pref.setSyncEnabled(request.getSyncEnabled());
             if (request.getAutoCreateReminders() != null) pref.setAutoCreateReminders(request.getAutoCreateReminders());
@@ -305,11 +267,9 @@ public class CalendarController {
             if (request.getEventColor() != null) pref.setEventColor(request.getEventColor());
             if (request.getEventVisibility() != null) pref.setEventVisibility(request.getEventVisibility());
             if (request.getEventDuration() != null) pref.setEventDuration(request.getEventDuration());
-
             // Save to database
             CalendarSyncPreference savedPref = calendarSyncPreferenceRepository.save(pref);
             logger.info("Sync preferences saved for user {}", currentUser.getId());
-
             // Map back to DTO for response
             CalendarSyncPreferenceDto responseDto = new CalendarSyncPreferenceDto();
             responseDto.setSyncEnabled(savedPref.getSyncEnabled());
@@ -319,7 +279,6 @@ public class CalendarController {
             responseDto.setEventColor(savedPref.getEventColor());
             responseDto.setEventVisibility(savedPref.getEventVisibility());
             responseDto.setEventDuration(savedPref.getEventDuration());
-
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Sync preferences updated", responseDto));
         } catch (Exception e) {
@@ -328,7 +287,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error updating preferences: " + e.getMessage(), null));
         }
     }
-
     /**
      * Get all synced calendar events for current user
      */
@@ -338,11 +296,9 @@ public class CalendarController {
         try {
             List<SyncedCalendarEvent> events = 
                 calendarEventService.getUserSyncedEvents(currentUser.getId());
-
             List<CalendarEventDto> dtos = events.stream()
                 .map(e -> modelMapper.map(e, CalendarEventDto.class))
                 .collect(Collectors.toList());
-
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Synced events retrieved", dtos));
         } catch (Exception e) {
@@ -351,7 +307,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error retrieving events: " + e.getMessage(), null));
         }
     }
-
     /**
      * Trigger manual sync of all upcoming pickups and pending events
      * Creates calendar events for active claims that don't have them yet
@@ -362,16 +317,12 @@ public class CalendarController {
         try {
             // First, create calendar events for any active claims that don't have them
             int eventsCreated = calendarSyncService.syncAllUpcomingPickups(currentUser);
-            
             // Then sync all pending events (including newly created ones)
             calendarSyncService.syncUserPendingEvents(currentUser);
-
             String message = eventsCreated > 0 
                 ? String.format("Sync triggered successfully. Created %d new calendar event(s) for upcoming pickups.", eventsCreated)
                 : "Sync triggered successfully. All pickups already have calendar events.";
-
             logger.info("Manual sync triggered for user {} - created {} events", currentUser.getId(), eventsCreated);
-
             return ResponseEntity.ok(new ApiResponse<>(true, message, null));
         } catch (Exception e) {
             logger.error("Error during manual sync", e);
@@ -379,7 +330,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, "Error during sync: " + e.getMessage(), null));
         }
     }
-
     /**
      * Test calendar connection
      */
@@ -389,7 +339,6 @@ public class CalendarController {
             @AuthenticationPrincipal User currentUser) {
         try {
             calendarSyncService.testCalendarConnection(currentUser, provider);
-
             return ResponseEntity.ok(new ApiResponse<>(true, 
                 "Calendar connection test successful", null));
         } catch (Exception e) {
@@ -399,7 +348,6 @@ public class CalendarController {
                 .body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-
     /**
      * Generate a state token for OAuth flow (anti-CSRF)
      */

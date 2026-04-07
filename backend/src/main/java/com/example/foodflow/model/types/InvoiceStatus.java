@@ -1,5 +1,4 @@
 package com.example.foodflow.model.types;
-
 /**
  * Status of an invoice
  */

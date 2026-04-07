@@ -12,7 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -109,9 +113,6 @@ public class ImpactDashboardController {
         return exportMetrics(currentUser, dateRange, "csv");
     }
 
-    /**
-     * Export metrics as CSV format
-     */
     private ResponseEntity<byte[]> exportAsCsv(ImpactMetricsDTO metrics, String dateRange) throws Exception {
         byte[] csvData = generateCsv(metrics);
 
@@ -125,9 +126,6 @@ public class ImpactDashboardController {
                 .body(csvData);
     }
 
-    /**
-     * Export metrics as PDF format
-     */
     private ResponseEntity<byte[]> exportAsPdf(ImpactMetricsDTO metrics, String dateRange) throws Exception {
         byte[] pdfData = PdfExportUtils.generatePdf(metrics);
 
@@ -148,19 +146,13 @@ public class ImpactDashboardController {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
 
-        // Write CSV column header
         writer.println("Metric,Value");
-
-        // Generate report title based on role
         String reportTitle = generateReportTitle(metrics.getRole());
         String dateRangeLabel = CsvExportUtils.formatDateRangeLabel(
                 metrics.getDateRange(), metrics.getStartDate(), metrics.getEndDate());
 
-        // Write professional header with branding
         CsvExportUtils.writeHeader(writer, reportTitle, LocalDateTime.now(),
                 metrics.getRole(), dateRangeLabel);
-
-        // Environmental Impact Section
         CsvExportUtils.writeSectionHeader(writer, "Environmental Impact");
         CsvExportUtils.writeNumericMetric(writer, "Total Food Saved",
                 metrics.getTotalFoodWeightKg(), "kg");
@@ -175,7 +167,6 @@ public class ImpactDashboardController {
         CsvExportUtils.writeNumericMetric(writer, "Estimated People Fed",
                 metrics.getPeopleFedEstimate(), "people");
 
-        // Operational Efficiency Section
         CsvExportUtils.writeSectionHeader(writer, "Operational Efficiency");
         if (metrics.getTotalPostsCreated() != null) {
             CsvExportUtils.writeNumericMetric(writer, "Total Posts Created",
@@ -198,7 +189,6 @@ public class ImpactDashboardController {
                     metrics.getWasteDiversionEfficiencyPercent());
         }
 
-        // Time & Logistics Section
         CsvExportUtils.writeSectionHeader(writer, "Time & Logistics");
         if (metrics.getMedianClaimTimeHours() != null) {
             CsvExportUtils.writeNumericMetric(writer, "Median Time to Claim",
@@ -213,14 +203,12 @@ public class ImpactDashboardController {
                     metrics.getPickupTimelinessRate());
         }
 
-        // Engagement Section
         CsvExportUtils.writeSectionHeader(writer, "Engagement");
         if (metrics.getActiveDonationDays() != null) {
             CsvExportUtils.writeNumericMetric(writer, "Active Days with Donations",
                     metrics.getActiveDonationDays(), "days");
         }
 
-        // Admin-only User Engagement Section
         if ("ADMIN".equals(metrics.getRole())) {
             CsvExportUtils.writeSectionHeader(writer, "User Engagement (Platform-wide)");
             CsvExportUtils.writeNumericMetric(writer, "Active Donors",
@@ -233,20 +221,14 @@ public class ImpactDashboardController {
                     metrics.getRepeatReceivers(), "");
         }
 
-        // Calculation Methodology Section
         CsvExportUtils.writeMetadataDisclosure(writer,
                 metrics.getFactorVersion(), metrics.getFactorDisclosure());
-
-        // Footer
         CsvExportUtils.writeFooter(writer);
 
         writer.flush();
         return outputStream.toByteArray();
     }
 
-    /**
-     * Generate a descriptive report title based on user role
-     */
     private String generateReportTitle(String role) {
         if (role == null) {
             return "FoodFlow - Impact Report";

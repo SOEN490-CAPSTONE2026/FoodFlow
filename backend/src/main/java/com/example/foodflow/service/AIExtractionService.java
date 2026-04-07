@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -23,7 +24,14 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Service for AI-powered food label image analysis using OpenAI Vision API.
@@ -31,52 +39,38 @@ import java.util.*;
  */
 @Service
 public class AIExtractionService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(AIExtractionService.class);
-    
+
     @Value("${app.openai.api-key}")
     private String openaiApiKey;
-    
+
     private static final String VISION_API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024;
     private static final Set<String> ALLOWED_FORMATS = Set.of("image/jpeg", "image/jpg", "image/png", "image/heic");
     private static final int API_TIMEOUT_SECONDS = 30;
     private static final Set<String> GENERIC_TITLE_TERMS = Set.of(
             "food", "food item", "donation", "surplus food", "meal", "product", "item", "groceries"
     );
-    
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
             .build();
-    
-    /**
-     * Analyze food label image and extract donation-related fields
-     * @param image The uploaded image file
-     * @return AIExtractionResponse with extracted data and confidence scores
-     */
+
     public AIExtractionResponse analyzeFoodLabel(MultipartFile image) {
         log.info("Starting AI food label analysis for image: {}", image.getOriginalFilename());
-        
+
         try {
-            // Step 1: Validate image
             validateImage(image);
-            
-            // Step 2: Convert image to base64
             String base64Image = encodeImageToBase64(image);
-            
-            // Step 3: Build extraction prompt
             String prompt = buildExtractionPrompt();
-            
-            // Step 4: Call OpenAI Vision API
             String apiResponse = callOpenAIVision(base64Image, prompt);
-            
-            // Step 5: Parse response to AIExtractionResponse
             AIExtractionResponse result = parseAIResponse(apiResponse);
-            
+
             log.info("AI extraction completed successfully. Food: {}", result.getFoodName());
             return result;
-            
+
         } catch (InvalidImageException e) {
             log.error("Invalid image: {}", e.getMessage());
             throw e;
@@ -89,32 +83,24 @@ public class AIExtractionService {
             return errorResponse;
         }
     }
-    
-    /**
-     * Validate the uploaded image file
-     */
+
     private void validateImage(MultipartFile image) {
         if (image == null || image.isEmpty()) {
             throw new InvalidImageException("Image file is required");
         }
-        
+
         if (image.getSize() > MAX_IMAGE_SIZE) {
             throw new InvalidImageException(
-                String.format("Image size exceeds maximum allowed size of %d MB", MAX_IMAGE_SIZE / (1024 * 1024))
+                    String.format("Image size exceeds maximum allowed size of %d MB", MAX_IMAGE_SIZE / (1024 * 1024))
             );
         }
-        
+
         String contentType = image.getContentType();
         if (contentType == null || !ALLOWED_FORMATS.contains(contentType.toLowerCase())) {
-            throw new InvalidImageException(
-                "Invalid image format. Allowed formats: JPG, JPEG, PNG, HEIC"
-            );
+            throw new InvalidImageException("Invalid image format. Allowed formats: JPG, JPEG, PNG, HEIC");
         }
     }
-    
-    /**
-     * Encode image to base64 string
-     */
+
     private String encodeImageToBase64(MultipartFile image) {
         try {
             byte[] imageBytes = image.getBytes();
@@ -123,15 +109,12 @@ public class AIExtractionService {
             throw new InvalidImageException("Failed to read image file", e);
         }
     }
-    
-    /**
-     * Build the prompt for OpenAI Vision API
-     */
+
     private String buildExtractionPrompt() {
         return """
             Analyze this food product label image carefully and extract the following information.
             Return ONLY a valid JSON object with these exact fields:
-            
+
             {
               "foodName": "short donor-friendly title, 3 to 8 words, specific and concise",
               "foodCategories": ["PREPARED_MEALS", "BAKERY_PASTRY"],
@@ -155,7 +138,7 @@ public class AIExtractionService {
                 "description": 0.80
               }
             }
-            
+
             Important instructions:
             - If a field cannot be determined confidently, use null for that field
             - Confidence scores should be between 0.0 and 1.0
@@ -172,10 +155,7 @@ public class AIExtractionService {
             - Return ONLY the JSON, no additional text or explanation
             """;
     }
-    
-    /**
-     * Call OpenAI Vision API
-     */
+
     private String callOpenAIVision(String base64Image, String prompt) {
         try {
             String requestBody = String.format("""
@@ -202,7 +182,7 @@ public class AIExtractionService {
                   "max_tokens": 1000
                 }
                 """, prompt.replace("\"", "\\\"").replace("\n", "\\n"), base64Image);
-            
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(VISION_API_URL))
                     .header("Content-Type", "application/json")
@@ -210,15 +190,14 @@ public class AIExtractionService {
                     .timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
-            
+
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            
+
             if (response.statusCode() != 200) {
                 log.error("OpenAI API error: Status {}, Body: {}", response.statusCode(), response.body());
                 throw new AIServiceException("OpenAI API returned status: " + response.statusCode());
             }
-            
-            // Extract content from response
+
             JsonNode jsonResponse = objectMapper.readTree(response.body());
             String content = jsonResponse
                     .path("choices")
@@ -226,24 +205,20 @@ public class AIExtractionService {
                     .path("message")
                     .path("content")
                     .asText();
-            
+
             log.debug("OpenAI API response content: {}", content);
             return content;
-            
+
         } catch (IOException | InterruptedException e) {
             throw new AIServiceException("Failed to communicate with OpenAI API", e);
         }
     }
-    
-    /**
-     * Parse AI response JSON to AIExtractionResponse object
-     */
+
     private AIExtractionResponse parseAIResponse(String aiResponse) {
         AIExtractionResponse response = new AIExtractionResponse();
         response.setRawAIResponse(aiResponse);
-        
+
         try {
-            // Clean response (remove markdown code blocks if present)
             String cleanedResponse = aiResponse.trim();
             if (cleanedResponse.startsWith("```json")) {
                 cleanedResponse = cleanedResponse.substring(7);
@@ -256,9 +231,9 @@ public class AIExtractionService {
             }
             cleanedResponse = cleanedResponse.trim();
             cleanedResponse = extractJsonObject(cleanedResponse);
-            
+
             JsonNode root = objectMapper.readTree(cleanedResponse);
-            
+
             PackagingType packagingType = normalizePackagingType(root.path("packagingType").asText(null));
             Set<FoodCategory> categories = normalizeFoodCategories(root.path("foodCategories"));
             TemperatureCategory temperatureCategory = normalizeTemperatureCategory(
@@ -292,21 +267,19 @@ public class AIExtractionService {
             }
             response.setQuantityValue(quantityValue);
             response.setQuantityUnit(quantityUnit != null ? quantityUnit.name() : null);
-            
-            // Extract allergens
+
             if (root.has("allergens") && root.get("allergens").isArray()) {
                 List<String> allergens = new ArrayList<>();
                 root.get("allergens").forEach(allergen -> allergens.add(allergen.asText()));
                 response.setAllergens(allergens);
             }
-            
+
             String description = root.has("description") && !root.get("description").isNull()
                     ? root.get("description").asText()
                     : null;
             response.setDescription(normalizeDescription(description, categories));
             response.setFoodName(normalizeFoodName(root.path("foodName").asText(null), categories, response.getDescription()));
-            
-            // Extract confidence scores
+
             if (root.has("confidence") && root.get("confidence").isObject()) {
                 Map<String, Double> confidenceScores = new HashMap<>();
                 root.get("confidence").fields().forEachRemaining(entry -> {
@@ -314,22 +287,18 @@ public class AIExtractionService {
                 });
                 response.setConfidenceScores(confidenceScores);
             }
-            
+
             response.setSuccess(true);
-            
+
         } catch (Exception e) {
             log.error("Failed to parse AI response", e);
             response.setSuccess(false);
             response.setErrorMessage("Failed to parse AI response: " + e.getMessage());
         }
-        
+
         return response;
     }
 
-    /**
-     * Extract the first valid JSON object from a string response.
-     * This guards against occasional model prefaces/suffixes around JSON payloads.
-     */
     private String extractJsonObject(String raw) {
         if (raw == null || raw.isBlank()) {
             throw new IllegalArgumentException("Empty AI response");
@@ -383,15 +352,12 @@ public class AIExtractionService {
 
         throw new IllegalArgumentException("Unclosed JSON object in AI response");
     }
-    
-    /**
-     * Parse date from JSON node
-     */
+
     private LocalDate parseDate(JsonNode dateNode) {
         if (dateNode == null || dateNode.isNull()) {
             return null;
         }
-        
+
         try {
             String dateStr = dateNode.asText();
             return LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE);

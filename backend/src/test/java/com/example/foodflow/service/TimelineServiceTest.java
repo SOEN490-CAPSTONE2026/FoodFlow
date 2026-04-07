@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.PostStatus;
@@ -10,29 +9,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class TimelineServiceTest {
-
     @Mock
     private DonationTimelineRepository timelineRepository;
-
     @Mock 
     private BusinessMetricsService businessMetricsService;
-
     private TimelineService timelineService;
-
     private SurplusPost testPost;
-
     @BeforeEach
     void setUp() {
         timelineService = new TimelineService(timelineRepository, businessMetricsService, Clock.systemUTC());
@@ -40,14 +31,12 @@ class TimelineServiceTest {
         testPost.setId(1L);
         testPost.setTitle("Test Surplus Post");
     }
-
     @Test
     void createTimelineEvent_WithAllParameters_SavesCorrectly() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         savedTimeline.setId(1L);
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         DonationTimeline result = timelineService.createTimelineEvent(
                 testPost,
@@ -59,14 +48,11 @@ class TimelineServiceTest {
                 "Claimed by Test Organization",
                 true
         );
-
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository, times(1)).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getSurplusPost()).isEqualTo(testPost);
         assertThat(captured.getEventType()).isEqualTo("DONATION_CLAIMED");
@@ -81,14 +67,12 @@ class TimelineServiceTest {
         assertThat(captured.getTimestamp()).isBefore(nowUtc.plusSeconds(1));
         assertThat(captured.getTimestamp()).isAfter(nowUtc.minusSeconds(5));
     }
-
     @Test
     void createTimelineEvent_WithNullOldStatus_SavesWithNullOldStatus() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         savedTimeline.setId(2L);
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         DonationTimeline result = timelineService.createTimelineEvent(
                 testPost,
@@ -100,23 +84,19 @@ class TimelineServiceTest {
                 "Donation created",
                 true
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getOldStatus()).isNull();
         assertThat(captured.getNewStatus()).isEqualTo("AVAILABLE");
         assertThat(captured.getEventType()).isEqualTo("DONATION_POSTED");
     }
-
     @Test
     void createTimelineEvent_WithNullNewStatus_SavesWithNullNewStatus() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createTimelineEvent(
                 testPost,
@@ -128,23 +108,19 @@ class TimelineServiceTest {
                 "Admin added a note",
                 false
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getOldStatus()).isEqualTo("AVAILABLE");
         assertThat(captured.getNewStatus()).isNull();
         assertThat(captured.getVisibleToUsers()).isFalse();
     }
-
     @Test
     void createTimelineEvent_WithAdminEvent_SetsVisibleToUsersFalse() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createTimelineEvent(
                 testPost,
@@ -156,23 +132,19 @@ class TimelineServiceTest {
                 "Admin forced completion",
                 false
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getVisibleToUsers()).isFalse();
         assertThat(captured.getActor()).isEqualTo("admin");
         assertThat(captured.getEventType()).isEqualTo("ADMIN_STATUS_OVERRIDE");
     }
-
     @Test
     void createTimelineEvent_WithSystemEvent_SavesWithSystemActor() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createTimelineEvent(
                 testPost,
@@ -184,23 +156,19 @@ class TimelineServiceTest {
                 "Post automatically expired",
                 true
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getActor()).isEqualTo("system");
         assertThat(captured.getActorUserId()).isNull();
         assertThat(captured.getEventType()).isEqualTo("AUTO_EXPIRED");
     }
-
     @Test
     void createTimelineEvent_WithNullVisibleToUsers_DefaultsToTrue() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createTimelineEvent(
                 testPost,
@@ -212,23 +180,18 @@ class TimelineServiceTest {
                 "Ready for pickup",
                 null
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getVisibleToUsers()).isTrue();
     }
-
     @Test
     void createTimelineEvent_GeneratesUTCTimestamp() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         LocalDateTime beforeCreation = LocalDateTime.now(Clock.systemUTC());
-
         // Act
         timelineService.createTimelineEvent(
                 testPost,
@@ -240,26 +203,21 @@ class TimelineServiceTest {
                 "Test event",
                 true
         );
-
         LocalDateTime afterCreation = LocalDateTime.now(Clock.systemUTC());
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getTimestamp()).isNotNull();
         assertThat(captured.getTimestamp()).isAfterOrEqualTo(beforeCreation);
         assertThat(captured.getTimestamp()).isBeforeOrEqualTo(afterCreation);
     }
-
     @Test
     void createTimelineEvent_UsesInjectedClock() {
         // Arrange
         Clock fixedClock = Clock.fixed(Instant.parse("2026-03-10T12:34:56Z"), ZoneOffset.UTC);
         timelineService = new TimelineService(timelineRepository, businessMetricsService, fixedClock);
         when(timelineRepository.save(any(DonationTimeline.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         // Act
         DonationTimeline result = timelineService.createTimelineEvent(
                 testPost,
@@ -271,18 +229,15 @@ class TimelineServiceTest {
                 "clock test",
                 true
         );
-
         // Assert
         assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2026, 3, 10, 12, 34, 56));
     }
-
     @Test
     void createSimpleTimelineEvent_WithoutStatusChange_SavesCorrectly() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         savedTimeline.setId(3L);
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         DonationTimeline result = timelineService.createSimpleTimelineEvent(
                 testPost,
@@ -292,14 +247,11 @@ class TimelineServiceTest {
                 "Receiver viewed the donation",
                 true
         );
-
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(3L);
-
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getSurplusPost()).isEqualTo(testPost);
         assertThat(captured.getEventType()).isEqualTo("RECEIVER_VIEWED");
@@ -310,13 +262,11 @@ class TimelineServiceTest {
         assertThat(captured.getDetails()).isEqualTo("Receiver viewed the donation");
         assertThat(captured.getVisibleToUsers()).isTrue();
     }
-
     @Test
     void createSimpleTimelineEvent_WithNullDetails_SavesWithNullDetails() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createSimpleTimelineEvent(
                 testPost,
@@ -326,22 +276,18 @@ class TimelineServiceTest {
                 null,
                 true
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getDetails()).isNull();
         assertThat(captured.getEventType()).isEqualTo("NOTIFICATION_SENT");
     }
-
     @Test
     void createSimpleTimelineEvent_WithAdminOnlyEvent_SetsVisibleToUsersFalse() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createSimpleTimelineEvent(
                 testPost,
@@ -351,16 +297,13 @@ class TimelineServiceTest {
                 "Admin reviewed the donation",
                 false
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getVisibleToUsers()).isFalse();
         assertThat(captured.getActor()).isEqualTo("admin");
     }
-
     @Test
     void createTimelineEvent_WithMultipleEvents_SavesEachIndependently() {
         // Arrange
@@ -368,11 +311,9 @@ class TimelineServiceTest {
         savedTimeline1.setId(1L);
         DonationTimeline savedTimeline2 = new DonationTimeline();
         savedTimeline2.setId(2L);
-
         when(timelineRepository.save(any(DonationTimeline.class)))
                 .thenReturn(savedTimeline1)
                 .thenReturn(savedTimeline2);
-
         // Act
         DonationTimeline result1 = timelineService.createTimelineEvent(
                 testPost, "EVENT_1", "donor", 1L, null, PostStatus.AVAILABLE, "Details 1", true
@@ -380,19 +321,16 @@ class TimelineServiceTest {
         DonationTimeline result2 = timelineService.createTimelineEvent(
                 testPost, "EVENT_2", "receiver", 2L, PostStatus.AVAILABLE, PostStatus.CLAIMED, "Details 2", true
         );
-
         // Assert
         assertThat(result1.getId()).isEqualTo(1L);
         assertThat(result2.getId()).isEqualTo(2L);
         verify(timelineRepository, times(2)).save(any(DonationTimeline.class));
     }
-
     @Test
     void createTimelineEvent_WithEmptyDetails_SavesEmptyString() {
         // Arrange
         DonationTimeline savedTimeline = new DonationTimeline();
         when(timelineRepository.save(any(DonationTimeline.class))).thenReturn(savedTimeline);
-
         // Act
         timelineService.createTimelineEvent(
                 testPost,
@@ -404,11 +342,9 @@ class TimelineServiceTest {
                 "",
                 true
         );
-
         // Assert
         ArgumentCaptor<DonationTimeline> captor = ArgumentCaptor.forClass(DonationTimeline.class);
         verify(timelineRepository).save(captor.capture());
-
         DonationTimeline captured = captor.getValue();
         assertThat(captured.getDetails()).isEqualTo("");
     }

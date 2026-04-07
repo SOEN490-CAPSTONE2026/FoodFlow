@@ -1,5 +1,4 @@
 package com.example.foodflow.filter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
@@ -14,18 +13,13 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class RequestCorrelationFilterTest {
-
     private RequestCorrelationFilter filter;
-
     @Mock
     private FilterChain filterChain;
-
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
-
     @BeforeEach
     void setUp() {
         filter = new RequestCorrelationFilter();
@@ -33,22 +27,18 @@ class RequestCorrelationFilterTest {
         response = new MockHttpServletResponse();
         MDC.clear();
     }
-
     @AfterEach
     void tearDown() {
         MDC.clear();
     }
-
     @Test
     void shouldGenerateCorrelationIdWhenNotPresent() throws ServletException, IOException {
         // Given
         request.setMethod("GET");
         request.setRequestURI("/api/surplus");
         request.setRemoteAddr("192.168.1.100");
-
         // When
         filter.doFilterInternal(request, response, filterChain);
-
         // Then
         String correlationId = response.getHeader("X-Correlation-ID");
         assertNotNull(correlationId, "Correlation ID should be generated");
@@ -56,7 +46,6 @@ class RequestCorrelationFilterTest {
                 "Correlation ID should be a valid UUID");
         verify(filterChain).doFilter(request, response);
     }
-
     @Test
     void shouldUseExistingCorrelationIdFromHeader() throws ServletException, IOException {
         // Given
@@ -65,24 +54,20 @@ class RequestCorrelationFilterTest {
         request.setMethod("POST");
         request.setRequestURI("/api/auth/login");
         request.setRemoteAddr("10.0.0.1");
-
         // When
         filter.doFilterInternal(request, response, filterChain);
-
         // Then
         String responseCorrelationId = response.getHeader("X-Correlation-ID");
         assertEquals(existingCorrelationId, responseCorrelationId,
                 "Should use existing correlation ID from request header");
         verify(filterChain).doFilter(request, response);
     }
-
     @Test
     void shouldSetMdcValuesCorrectly() throws ServletException, IOException {
         // Given
         request.setMethod("PUT");
         request.setRequestURI("/api/surplus/123");
         request.setRemoteAddr("172.16.0.50");
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -95,21 +80,17 @@ class RequestCorrelationFilterTest {
                 assertEquals("PUT", MDC.get("requestMethod"), "Request method should be in MDC");
             }
         });
-
         // Then - verify filterChain was called
         // (verification is done inside the mock FilterChain above)
     }
-
     @Test
     void shouldClearMdcAfterRequest() throws ServletException, IOException {
         // Given
         request.setMethod("DELETE");
         request.setRequestURI("/api/surplus/456");
         request.setRemoteAddr("192.168.1.200");
-
         // When
         filter.doFilterInternal(request, response, filterChain);
-
         // Then - MDC should be cleared after request
         assertNull(MDC.get("correlationId"), "Correlation ID should be cleared from MDC");
         assertNull(MDC.get("ipAddress"), "IP address should be cleared from MDC");
@@ -118,7 +99,6 @@ class RequestCorrelationFilterTest {
         assertNull(MDC.get("userId"), "User ID should be cleared from MDC");
         verify(filterChain).doFilter(request, response);
     }
-
     @Test
     void shouldUseXForwardedForHeaderWhenPresent() throws ServletException, IOException {
         // Given
@@ -127,7 +107,6 @@ class RequestCorrelationFilterTest {
         request.setMethod("GET");
         request.setRequestURI("/api/claims");
         request.setRemoteAddr("10.0.0.1"); // This should be ignored
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -138,11 +117,9 @@ class RequestCorrelationFilterTest {
                         "Should use X-Forwarded-For header when present");
             }
         });
-
         // Then - verification done in mock FilterChain above
         verify(filterChain, never()).doFilter(request, response); // It was called in the mock above
     }
-
     @Test
     void shouldHandleXForwardedForWithMultipleIps() throws ServletException, IOException {
         // Given - X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2)
@@ -151,7 +128,6 @@ class RequestCorrelationFilterTest {
         request.setMethod("GET");
         request.setRequestURI("/api/surplus");
         request.setRemoteAddr("10.0.0.1");
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -163,7 +139,6 @@ class RequestCorrelationFilterTest {
             }
         });
     }
-
     @Test
     void shouldHandleEmptyXForwardedForHeader() throws ServletException, IOException {
         // Given
@@ -171,7 +146,6 @@ class RequestCorrelationFilterTest {
         request.setMethod("GET");
         request.setRequestURI("/api/surplus");
         request.setRemoteAddr("192.168.1.100");
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -183,51 +157,42 @@ class RequestCorrelationFilterTest {
             }
         });
     }
-
     @Test
     void shouldLogRequestStartAndCompletion() throws ServletException, IOException {
         // Given
         request.setMethod("POST");
         request.setRequestURI("/api/auth/register");
         request.setRemoteAddr("192.168.1.150");
-
         // When
         filter.doFilterInternal(request, response, filterChain);
-
         // Then
         verify(filterChain).doFilter(request, response);
         // Note: We can't easily verify log statements without a logging framework mock,
         // but we can verify the filter executed without errors
         assertNotNull(response.getHeader("X-Correlation-ID"));
     }
-
     @Test
     void shouldHandleFilterChainException() throws ServletException, IOException {
         // Given
         request.setMethod("GET");
         request.setRequestURI("/api/surplus");
         request.setRemoteAddr("192.168.1.100");
-
         ServletException expectedException = new ServletException("Filter chain error");
         doThrow(expectedException).when(filterChain).doFilter(request, response);
-
         // When/Then
         assertThrows(ServletException.class, () -> {
             filter.doFilterInternal(request, response, filterChain);
         });
-
         // MDC should still be cleared even after exception
         assertNull(MDC.get("correlationId"), "MDC should be cleared even after exception");
         assertNull(MDC.get("ipAddress"), "MDC should be cleared even after exception");
     }
-
     @Test
     void shouldHandleNullRemoteAddr() throws ServletException, IOException {
         // Given
         request.setMethod("GET");
         request.setRequestURI("/api/surplus");
         request.setRemoteAddr(null);
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -240,14 +205,12 @@ class RequestCorrelationFilterTest {
             }
         });
     }
-
     @Test
     void shouldSetResponseHeaderBeforeFilterChain() throws ServletException, IOException {
         // Given
         request.setMethod("GET");
         request.setRequestURI("/api/surplus");
         request.setRemoteAddr("192.168.1.100");
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -260,42 +223,31 @@ class RequestCorrelationFilterTest {
             }
         });
     }
-
     @Test
     void shouldHandleDifferentRequestMethods() throws ServletException, IOException {
         // Test GET
         testRequestMethod("GET", "/api/surplus");
-
         // Reset
         setUp();
-
         // Test POST
         testRequestMethod("POST", "/api/auth/login");
-
         // Reset
         setUp();
-
         // Test PUT
         testRequestMethod("PUT", "/api/surplus/123");
-
         // Reset
         setUp();
-
         // Test DELETE
         testRequestMethod("DELETE", "/api/surplus/123");
-
         // Reset
         setUp();
-
         // Test PATCH
         testRequestMethod("PATCH", "/api/surplus/123");
     }
-
     private void testRequestMethod(String method, String uri) throws ServletException, IOException {
         request.setMethod(method);
         request.setRequestURI(uri);
         request.setRemoteAddr("192.168.1.100");
-
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
             public void doFilter(jakarta.servlet.ServletRequest servletRequest,
@@ -307,7 +259,6 @@ class RequestCorrelationFilterTest {
             }
         });
     }
-
     @Test
     void shouldHandleLongRequestPaths() throws ServletException, IOException {
         // Given
@@ -315,7 +266,6 @@ class RequestCorrelationFilterTest {
         request.setMethod("GET");
         request.setRequestURI(longPath);
         request.setRemoteAddr("192.168.1.100");
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override
@@ -326,7 +276,6 @@ class RequestCorrelationFilterTest {
             }
         });
     }
-
     @Test
     void shouldHandleSpecialCharactersInPath() throws ServletException, IOException {
         // Given
@@ -334,7 +283,6 @@ class RequestCorrelationFilterTest {
         request.setMethod("GET");
         request.setRequestURI(pathWithSpecialChars);
         request.setRemoteAddr("192.168.1.100");
-
         // When
         filter.doFilterInternal(request, response, new FilterChain() {
             @Override

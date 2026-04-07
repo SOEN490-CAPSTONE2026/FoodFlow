@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.FoodType;
 import com.example.foodflow.model.types.Quantity;
@@ -7,33 +6,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 @Service
 public class FoodTypeImpactService {
-
     private static final String FACTOR_VERSION = "impact_v1";
-
     private final Map<FoodType, ImpactFactor> factorsByFoodType;
     private final ObjectMapper objectMapper;
     @Autowired
     private Clock clock = Clock.systemUTC();
-
     @Autowired
     public FoodTypeImpactService(ObjectMapper objectMapper) {
         this(defaultFactors(), objectMapper);
     }
-
     FoodTypeImpactService(Map<FoodType, ImpactFactor> factorsByFoodType, ObjectMapper objectMapper) {
         this.factorsByFoodType = new EnumMap<>(factorsByFoodType);
         this.objectMapper = objectMapper;
     }
-
     public ImpactSnapshot compute(SurplusPost post) {
         if (post == null) {
             throw new IllegalArgumentException("Surplus post is required for impact computation");
@@ -41,22 +33,18 @@ public class FoodTypeImpactService {
         if (post.getQuantity() == null || post.getQuantity().getValue() == null || post.getQuantity().getUnit() == null) {
             throw new IllegalArgumentException("Quantity is required to compute impact");
         }
-
         FoodType foodType = post.getFoodType() != null ? post.getFoodType() : FoodType.PANTRY;
         ImpactFactor factor = factorsByFoodType.get(foodType);
         if (factor == null) {
             throw new IllegalStateException("No impact factor configured for foodType=" + foodType);
         }
-
         double weightKg = convertToKg(post.getQuantity());
         if (weightKg <= 0) {
             throw new IllegalArgumentException("Computed weight must be positive to compute impact");
         }
-
         double co2eAvoided = weightKg * factor.co2eKgPerKg();
         double waterSaved = weightKg * factor.waterLitersPerKg();
         LocalDateTime computedAt = LocalDateTime.now(clock);
-
         Map<String, Object> inputs = new LinkedHashMap<>();
         inputs.put("foodType", foodType.name());
         inputs.put("quantityValue", post.getQuantity().getValue());
@@ -65,7 +53,6 @@ public class FoodTypeImpactService {
         inputs.put("co2eKgPerKg", factor.co2eKgPerKg());
         inputs.put("waterLitersPerKg", factor.waterLitersPerKg());
         inputs.put("factorVersion", FACTOR_VERSION);
-
         return new ImpactSnapshot(
                 co2eAvoided,
                 waterSaved,
@@ -73,7 +60,6 @@ public class FoodTypeImpactService {
                 computedAt,
                 serialize(inputs));
     }
-
     public void applyImpactSnapshot(SurplusPost post) {
         ImpactSnapshot snapshot = compute(post);
         post.setImpactCo2eKg(snapshot.co2eAvoidedKg());
@@ -82,11 +68,9 @@ public class FoodTypeImpactService {
         post.setImpactComputedAt(snapshot.computedAt());
         post.setImpactInputs(snapshot.inputsJson());
     }
-
     public String getFactorVersion() {
         return FACTOR_VERSION;
     }
-
     private String serialize(Map<String, Object> payload) {
         try {
             return objectMapper.writeValueAsString(payload);
@@ -94,7 +78,6 @@ public class FoodTypeImpactService {
             return "{\"serializationError\":true}";
         }
     }
-
     private double convertToKg(Quantity quantity) {
         double value = quantity.getValue();
         return switch (quantity.getUnit()) {
@@ -114,7 +97,6 @@ public class FoodTypeImpactService {
                     PORTION, LOAF, BUNCH, HEAD -> value * 0.5;
         };
     }
-
     private static Map<FoodType, ImpactFactor> defaultFactors() {
         Map<FoodType, ImpactFactor> factors = new EnumMap<>(FoodType.class);
         factors.put(FoodType.PREPARED, new ImpactFactor(2.2, 900.0));
@@ -127,10 +109,8 @@ public class FoodTypeImpactService {
         factors.put(FoodType.BEVERAGES, new ImpactFactor(0.7, 250.0));
         return factors;
     }
-
     record ImpactFactor(double co2eKgPerKg, double waterLitersPerKg) {
     }
-
     public record ImpactSnapshot(
             double co2eAvoidedKg,
             double waterSavedLiters,

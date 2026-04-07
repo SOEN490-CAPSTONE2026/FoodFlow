@@ -1,12 +1,9 @@
 package com.example.foodflow.model.dto;
-
 import com.example.foodflow.model.entity.Conversation;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
 import java.time.LocalDateTime;
-
 public class ConversationResponse {
-    
     private Long id;
     private Long otherUserId;
     private String otherUserName;
@@ -17,7 +14,6 @@ public class ConversationResponse {
     private String lastMessagePreview;
     private long unreadCount;
     private boolean alreadyExists;
-
     // Donation-anchored thread fields
     private Long donationId;
     private String donationTitle;
@@ -27,10 +23,8 @@ public class ConversationResponse {
     private String status;
     private Long donorId;
     private Long receiverId;
-
     // Constructors
     public ConversationResponse() {}
-
     public ConversationResponse(Conversation conversation, User currentUser,
                                 String lastMessagePreview, long unreadCount,
                                 boolean conversationAlreadyExists) {
@@ -39,7 +33,6 @@ public class ConversationResponse {
         this.lastMessageAt = conversation.getLastMessageAt();
         this.lastMessagePreview = lastMessagePreview;
         this.unreadCount = unreadCount;
-
         // Get the other participant
         User otherUser = conversation.getOtherParticipant(currentUser.getId());
         this.otherUserId = otherUser.getId();
@@ -48,9 +41,7 @@ public class ConversationResponse {
                               otherUser.getEmail();
         this.otherUserEmail = otherUser.getEmail();
         this.otherUserProfilePhoto = otherUser.getProfilePhoto();
-
         this.alreadyExists = conversationAlreadyExists;
-
         // Populate donation-anchored fields if present.
         // Prefer live surplus post details so chat metadata stays aligned with the current donation card.
         this.status = conversation.getStatus();
@@ -82,148 +73,112 @@ public class ConversationResponse {
             this.donationDescription = conversation.getDonationDescription();
         }
     }
-    
     // Getters and Setters
     public Long getId() {
         return id;
     }
-    
     public void setId(Long id) {
         this.id = id;
     }
-    
     public Long getOtherUserId() {
         return otherUserId;
     }
-    
     public void setOtherUserId(Long otherUserId) {
         this.otherUserId = otherUserId;
     }
-    
     public String getOtherUserName() {
         return otherUserName;
     }
-    
     public void setOtherUserName(String otherUserName) {
         this.otherUserName = otherUserName;
     }
-    
     public String getOtherUserEmail() {
         return otherUserEmail;
     }
-    
     public void setOtherUserEmail(String otherUserEmail) {
         this.otherUserEmail = otherUserEmail;
     }
-
     public String getOtherUserProfilePhoto() {
         return otherUserProfilePhoto;
     }
-
     public void setOtherUserProfilePhoto(String otherUserProfilePhoto) {
         this.otherUserProfilePhoto = otherUserProfilePhoto;
     }
-    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-    
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-    
     public LocalDateTime getLastMessageAt() {
         return lastMessageAt;
     }
-    
     public void setLastMessageAt(LocalDateTime lastMessageAt) {
         this.lastMessageAt = lastMessageAt;
     }
-    
     public String getLastMessagePreview() {
         return lastMessagePreview;
     }
-    
     public void setLastMessagePreview(String lastMessagePreview) {
         this.lastMessagePreview = lastMessagePreview;
     }
-    
     public long getUnreadCount() {
         return unreadCount;
     }
-    
     public void setUnreadCount(long unreadCount) {
         this.unreadCount = unreadCount;
     }
-
     public boolean getAlreadyExists() {
         return alreadyExists;
     }
-
     public void setAlreadyExists(boolean conversationAlreadyExists) {
         this.alreadyExists = conversationAlreadyExists;
     }
-
     public Long getDonationId() {
         return donationId;
     }
-
     public void setDonationId(Long donationId) {
         this.donationId = donationId;
     }
-
     public String getDonationTitle() {
         return donationTitle;
     }
-
     public void setDonationTitle(String donationTitle) {
         this.donationTitle = donationTitle;
     }
-
     public String getDonationPhoto() {
         return donationPhoto;
     }
-
     public void setDonationPhoto(String donationPhoto) {
         this.donationPhoto = donationPhoto;
     }
-
     public String getDonationDescription() {
         return donationDescription;
     }
-
     public void setDonationDescription(String donationDescription) {
         this.donationDescription = donationDescription;
     }
-
     public String getResolvedDonationImageUrl() {
         return resolvedDonationImageUrl;
     }
-
     public void setResolvedDonationImageUrl(String resolvedDonationImageUrl) {
         this.resolvedDonationImageUrl = resolvedDonationImageUrl;
     }
-
     public String getStatus() {
         return status;
     }
-
     public void setStatus(String status) {
         this.status = status;
     }
-
     public Long getDonorId() {
         return donorId;
     }
-
     public void setDonorId(Long donorId) {
         this.donorId = donorId;
     }
-
     public Long getReceiverId() {
         return receiverId;
     }
-
     public void setReceiverId(Long receiverId) {
         this.receiverId = receiverId;
     }

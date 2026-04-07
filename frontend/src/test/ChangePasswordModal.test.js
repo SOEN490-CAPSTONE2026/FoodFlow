@@ -1,219 +1,222 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+  cleanup,
+} from '@testing-library/react';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import { authAPI } from '../services/api';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: key => key }),
+  useTranslation: () => ({
+    t: key => key,
+  }),
 }));
 
 jest.mock('../services/api', () => ({
-  authAPI: { changePassword: jest.fn() },
+  authAPI: {
+    changePassword: jest.fn(),
+  },
+}));
+
+jest.mock('lucide-react', () => ({
+  Eye: () => <span data-testid="eye-icon">eye</span>,
+  EyeOff: () => <span data-testid="eye-off-icon">eye-off</span>,
+  X: () => <span data-testid="close-icon">close</span>,
 }));
 
 describe('ChangePasswordModal', () => {
-  const mockOnClose = jest.fn();
-  const fillValidForm = () => {
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.currentPassword'),
-      { target: { value: 'OldPass123!' } }
-    );
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.newPassword'),
-      { target: { value: 'NewPass123!' } }
-    );
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.confirmNewPassword'),
-      { target: { value: 'NewPass123!' } }
-    );
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
   });
 
-  test('renders key-based labels and actions', () => {
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
-
-    expect(
-      screen.getByRole('heading', { name: 'changePasswordModal.title' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText('changePasswordModal.fields.currentPassword')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'common.confirm' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'common.cancel' })
-    ).toBeInTheDocument();
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
-  test('shows required validation key', async () => {
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
+  const renderModal = props =>
+    render(<ChangePasswordModal isOpen onClose={jest.fn()} {...props} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('changePasswordModal.errors.currentPasswordRequired')
-      ).toBeInTheDocument();
+  const fillForm = ({
+    currentPassword = 'current-pass',
+    newPassword = 'new-password',
+    confirmPassword = 'new-password',
+  } = {}) => {
+    fireEvent.change(screen.getByLabelText(/fields.currentPassword/i), {
+      target: { value: currentPassword, name: 'currentPassword' },
     });
-  });
+    fireEvent.change(screen.getByLabelText(/fields.newPassword/i), {
+      target: { value: newPassword, name: 'newPassword' },
+    });
+    fireEvent.change(screen.getByLabelText(/fields.confirmNewPassword/i), {
+      target: { value: confirmPassword, name: 'confirmPassword' },
+    });
+  };
 
   test('does not render when closed', () => {
-    const { container } = render(
-      <ChangePasswordModal isOpen={false} onClose={mockOnClose} />
-    );
-
-    expect(container).toBeEmptyDOMElement();
+    render(<ChangePasswordModal isOpen={false} onClose={jest.fn()} />);
+    expect(
+      screen.queryByText('changePasswordModal.title')
+    ).not.toBeInTheDocument();
   });
 
-  test('toggles password visibility for all password fields', () => {
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
+  test('validates required fields and clears a field error when typing', async () => {
+    renderModal();
 
-    const currentPassword = screen.getByLabelText(
-      'changePasswordModal.fields.currentPassword'
-    );
-    const newPassword = screen.getByLabelText(
-      'changePasswordModal.fields.newPassword'
-    );
-    const confirmPassword = screen.getByLabelText(
-      'changePasswordModal.fields.confirmNewPassword'
-    );
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
+    expect(
+      screen.getByText('changePasswordModal.errors.currentPasswordRequired')
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/fields.currentPassword/i), {
+      target: { value: 'updated-current', name: 'currentPassword' },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('changePasswordModal.errors.currentPasswordRequired')
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  test('validates minimum length, same password, missing confirm password, and mismatch', () => {
+    renderModal();
+
+    fillForm({ newPassword: 'short', confirmPassword: 'short' });
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
+    expect(
+      screen.getByText('changePasswordModal.errors.newPasswordMinLength')
+    ).toBeInTheDocument();
+
+    fillForm({
+      currentPassword: 'same-password',
+      newPassword: 'same-password',
+      confirmPassword: 'same-password',
+    });
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
+    expect(
+      screen.getByText('changePasswordModal.errors.newPasswordDifferent')
+    ).toBeInTheDocument();
+
+    fillForm({
+      currentPassword: 'current-pass',
+      newPassword: 'new-password',
+      confirmPassword: '',
+    });
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
+    expect(
+      screen.getByText('changePasswordModal.errors.confirmPasswordRequired')
+    ).toBeInTheDocument();
+
+    fillForm({
+      currentPassword: 'current-pass',
+      newPassword: 'new-password',
+      confirmPassword: 'other-password',
+    });
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
+    expect(
+      screen.getByText('changePasswordModal.errors.passwordsDoNotMatch')
+    ).toBeInTheDocument();
+  });
+
+  test('submits successfully, toggles visibility, and closes after the timeout', async () => {
+    const onClose = jest.fn();
+    authAPI.changePassword.mockResolvedValue({
+      data: { message: 'Password updated' },
+    });
+    renderModal({ onClose });
+
+    const currentInput = screen.getByLabelText(/fields.currentPassword/i);
     const toggleButtons = screen.getAllByRole('button', {
-      name: 'changePasswordModal.aria.togglePasswordVisibility',
+      name: /aria.togglePasswordVisibility/i,
     });
 
-    expect(currentPassword).toHaveAttribute('type', 'password');
-    expect(newPassword).toHaveAttribute('type', 'password');
-    expect(confirmPassword).toHaveAttribute('type', 'password');
+    expect(currentInput).toHaveAttribute('type', 'password');
+    fireEvent.click(toggleButtons[0]);
+    expect(currentInput).toHaveAttribute('type', 'text');
 
-    toggleButtons.forEach(button => fireEvent.click(button));
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
 
-    expect(currentPassword).toHaveAttribute('type', 'text');
-    expect(newPassword).toHaveAttribute('type', 'text');
-    expect(confirmPassword).toHaveAttribute('type', 'text');
+    await waitFor(() => {
+      expect(authAPI.changePassword).toHaveBeenCalledWith({
+        currentPassword: 'current-pass',
+        newPassword: 'new-password',
+        confirmPassword: 'new-password',
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Password updated')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(currentInput).toHaveValue('');
   });
 
-  test('validates password rules and matching confirmation', async () => {
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
-
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.currentPassword'),
-      { target: { value: 'SamePass1!' } }
-    );
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.newPassword'),
-      { target: { value: 'short' } }
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('changePasswordModal.errors.newPasswordMinLength')
-      ).toBeInTheDocument();
+  test.each([
+    [
+      'Incorrect current password',
+      /fields.currentPassword/i,
+      'Incorrect current password',
+    ],
+    [
+      'Passwords do not match',
+      /fields.confirmNewPassword/i,
+      'Passwords do not match',
+    ],
+    [
+      'New password same as current',
+      /fields.newPassword/i,
+      'New password same as current',
+    ],
+    ['Unexpected failure', null, 'Unexpected failure'],
+  ])('maps backend errors for "%s"', async (message, fieldLabel, expected) => {
+    authAPI.changePassword.mockRejectedValueOnce({
+      response: { data: { message } },
     });
 
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.newPassword'),
-      { target: { value: 'SamePass1!' } }
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('changePasswordModal.errors.newPasswordDifferent')
-      ).toBeInTheDocument();
-    });
-
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.newPassword'),
-      { target: { value: 'Different1!' } }
-    );
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.confirmNewPassword'),
-      { target: { value: 'Mismatch1!' } }
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('changePasswordModal.errors.passwordsDoNotMatch')
-      ).toBeInTheDocument();
-    });
-  });
-
-  test('submits valid form', async () => {
-    authAPI.changePassword.mockResolvedValue({ data: { message: 'ok' } });
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
-
-    fillValidForm();
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
+    renderModal();
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: /common.confirm/i }));
 
     await waitFor(() => {
       expect(authAPI.changePassword).toHaveBeenCalled();
     });
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeInTheDocument();
+    });
+    if (fieldLabel) {
+      expect(screen.getByLabelText(fieldLabel)).toHaveClass('error');
+    }
+
+    cleanup();
   });
 
-  test('maps backend field errors to the correct inputs', async () => {
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
+  test('cancels from the overlay and reset button', () => {
+    const onClose = jest.fn();
+    const { container } = renderModal({ onClose });
 
-    fillValidForm();
-
-    authAPI.changePassword.mockRejectedValueOnce({
-      response: { data: { message: 'Incorrect current password' } },
+    fillForm({
+      currentPassword: 'filled-current',
+      newPassword: 'filled-password',
+      confirmPassword: 'filled-password',
     });
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-    expect(
-      await screen.findByText('Incorrect current password')
-    ).toBeInTheDocument();
 
-    authAPI.changePassword.mockRejectedValueOnce({
-      response: { data: { message: 'Passwords do not match' } },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-    expect(
-      await screen.findByText('Passwords do not match')
-    ).toBeInTheDocument();
+    fireEvent.click(container.querySelector('.modal-overlay'));
+    expect(onClose).toHaveBeenCalledTimes(1);
 
-    authAPI.changePassword.mockRejectedValueOnce({
-      response: { data: { message: 'New password same as current password' } },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-    expect(
-      await screen.findByText('New password same as current password')
-    ).toBeInTheDocument();
-
-    authAPI.changePassword.mockRejectedValueOnce({
-      response: { data: { message: 'Unexpected failure' } },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-    expect(await screen.findByText('Unexpected failure')).toBeInTheDocument();
-  });
-
-  test('resets form state and closes when cancelled', async () => {
-    render(<ChangePasswordModal isOpen={true} onClose={mockOnClose} />);
-
-    fireEvent.change(
-      screen.getByLabelText('changePasswordModal.fields.currentPassword'),
-      { target: { value: 'OldPass123!' } }
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'common.confirm' }));
-
-    expect(
-      await screen.findByText('changePasswordModal.errors.newPasswordRequired')
-    ).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'common.cancel' }));
-
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
-    expect(
-      screen.getByLabelText('changePasswordModal.fields.currentPassword')
-    ).toHaveValue('');
-    expect(
-      screen.queryByText('changePasswordModal.errors.newPasswordRequired')
-    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /aria.closeModal/i }));
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 });

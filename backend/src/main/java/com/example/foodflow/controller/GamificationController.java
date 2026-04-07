@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.AchievementResponse;
 import com.example.foodflow.model.dto.GamificationStatsResponse;
 import com.example.foodflow.model.dto.LeaderboardResponse;
@@ -10,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
 /**
  * REST controller for gamification features including points and achievements.
  * Provides endpoints to view user stats and browse available achievements.
@@ -18,15 +16,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/gamification")
 public class GamificationController {
-    
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GamificationController.class);
-
     private final GamificationService gamificationService;
-    
     public GamificationController(GamificationService gamificationService) {
         this.gamificationService = gamificationService;
     }
-    
     /**
      * GET /api/gamification/users/{id}/stats
      * Retrieves comprehensive gamification statistics for a user.
@@ -40,17 +34,14 @@ public class GamificationController {
     public ResponseEntity<GamificationStatsResponse> getUserStats(
             @PathVariable Long id,
             @AuthenticationPrincipal User currentUser) {
-        
         // Security check: users can only view their own stats
         if (!currentUser.getId().equals(id)) {
             log.warn("User {} attempted to view stats for user {}", currentUser.getId(), id);
             return ResponseEntity.status(403).build();
         }
-        
         GamificationStatsResponse stats = gamificationService.getUserGamificationStats(id);
         return ResponseEntity.ok(stats);
     }
-    
     /**
      * GET /api/gamification/achievements
      * Retrieves all available achievements in the system.
@@ -62,7 +53,6 @@ public class GamificationController {
         List<AchievementResponse> achievements = gamificationService.getAllAchievements();
         return ResponseEntity.ok(achievements);
     }
-    
     /**
      * GET /api/gamification/leaderboard/{role}
      * Retrieves the leaderboard for a specific role (DONOR or RECEIVER).
@@ -77,15 +67,12 @@ public class GamificationController {
     public ResponseEntity<LeaderboardResponse> getLeaderboard(
             @PathVariable String role,
             @AuthenticationPrincipal User currentUser) {
-        
         try {
             // Parse and validate role
             UserRole userRole = UserRole.valueOf(role.toUpperCase());
-            
             // Get leaderboard
             LeaderboardResponse leaderboard = gamificationService.getLeaderboard(userRole, currentUser.getId());
             return ResponseEntity.ok(leaderboard);
-            
         } catch (IllegalArgumentException e) {
             log.warn("Invalid role parameter: {}", role);
             return ResponseEntity.badRequest().build();

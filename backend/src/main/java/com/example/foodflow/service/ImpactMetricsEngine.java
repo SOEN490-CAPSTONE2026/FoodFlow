@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.types.FoodType;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
@@ -10,15 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 @Component
 public class ImpactMetricsEngine {
-
     private static final double KG_PER_MEAL = 0.544d;
-
     private static final Map<FoodType, Double> CO2_KG_PER_KG_BY_FOOD_TYPE;
     private static final Map<FoodType, Double> WATER_L_PER_KG_BY_FOOD_TYPE;
-
     static {
         Map<FoodType, Double> co2 = new EnumMap<>(FoodType.class);
         co2.put(FoodType.PREPARED, 2.5d);
@@ -30,7 +25,6 @@ public class ImpactMetricsEngine {
         co2.put(FoodType.PANTRY, 1.2d);
         co2.put(FoodType.BEVERAGES, 0.7d);
         CO2_KG_PER_KG_BY_FOOD_TYPE = Collections.unmodifiableMap(co2);
-
         Map<FoodType, Double> water = new EnumMap<>(FoodType.class);
         water.put(FoodType.MEAT_POULTRY, 15000d);
         water.put(FoodType.SEAFOOD, 9000d);
@@ -42,14 +36,12 @@ public class ImpactMetricsEngine {
         water.put(FoodType.BEVERAGES, 250d);
         WATER_L_PER_KG_BY_FOOD_TYPE = Collections.unmodifiableMap(water);
     }
-
     public ImpactComputationResult computeImpactMetrics(
             List<DonationImpactRecord> donations,
             LocalDateTime periodStart,
             LocalDateTime periodEnd,
             LocalDateTime previousPeriodStart,
             LocalDateTime previousPeriodEnd) {
-
         List<DonationImpactRecord> safeDonations = donations == null ? List.of() : donations;
         List<DonationImpactRecord> currentWindow = safeDonations.stream()
                 .filter(record -> isWithinRange(record.eventTime(), periodStart, periodEnd))
@@ -57,11 +49,9 @@ public class ImpactMetricsEngine {
         List<DonationImpactRecord> previousWindow = safeDonations.stream()
                 .filter(record -> isWithinRange(record.eventTime(), previousPeriodStart, previousPeriodEnd))
                 .collect(Collectors.toList());
-
         List<ExcludedDonation> excluded = new ArrayList<>();
         ImpactTotals currentTotals = aggregate(currentWindow, excluded);
         ImpactTotals previousTotals = aggregate(previousWindow, excluded);
-
         ImpactDelta delta = new ImpactDelta(
                 currentTotals.weightKg() - previousTotals.weightKg(),
                 currentTotals.co2Kg() - previousTotals.co2Kg(),
@@ -71,46 +61,38 @@ public class ImpactMetricsEngine {
                 toPercent(currentTotals.co2Kg(), previousTotals.co2Kg()),
                 toPercent((double) currentTotals.meals(), (double) previousTotals.meals()),
                 toPercent(currentTotals.waterLiters(), previousTotals.waterLiters()));
-
         ImpactAudit audit = new ImpactAudit(
                 currentTotals.includedDonationIds(),
                 excluded,
                 new FactorSet(CO2_KG_PER_KG_BY_FOOD_TYPE, WATER_L_PER_KG_BY_FOOD_TYPE, KG_PER_MEAL));
-
         return new ImpactComputationResult(currentTotals, previousTotals, delta, audit);
     }
-
     private ImpactTotals aggregate(List<DonationImpactRecord> records, List<ExcludedDonation> excluded) {
         List<String> includedIds = new ArrayList<>();
         double totalWeight = 0d;
         double totalCo2 = 0d;
         double totalWater = 0d;
-
         for (DonationImpactRecord record : records) {
             String exclusionReason = getExclusionReason(record);
             if (exclusionReason != null) {
                 excluded.add(new ExcludedDonation(record.id(), exclusionReason));
                 continue;
             }
-
             FoodType foodType = record.foodType() == null ? FoodType.PANTRY : record.foodType();
             Double co2Factor = CO2_KG_PER_KG_BY_FOOD_TYPE.get(foodType);
             Double waterFactor = WATER_L_PER_KG_BY_FOOD_TYPE.get(foodType);
             if (co2Factor == null || waterFactor == null) {
                 throw new IllegalStateException("Missing impact factor for foodType=" + foodType);
             }
-
             double weightKg = record.weightKg();
             totalWeight += weightKg;
             totalCo2 += weightKg * co2Factor;
             totalWater += weightKg * waterFactor;
             includedIds.add(record.id());
         }
-
         int meals = (int) Math.round(totalWeight / KG_PER_MEAL);
         return new ImpactTotals(totalWeight, totalCo2, meals, totalWater, includedIds);
     }
-
     private String getExclusionReason(DonationImpactRecord record) {
         if (record == null) {
             return "invalid_record";
@@ -132,18 +114,15 @@ public class ImpactMetricsEngine {
         }
         return null;
     }
-
     public boolean isEligibleForImpact(DonationImpactRecord record) {
         return getExclusionReason(record) == null;
     }
-
     private boolean isWithinRange(LocalDateTime value, LocalDateTime start, LocalDateTime end) {
         if (value == null || start == null || end == null) {
             return false;
         }
         return !value.isBefore(start) && !value.isAfter(end);
     }
-
     private Double toPercent(double current, double previous) {
         if (previous == 0d) {
             return null;
@@ -151,19 +130,15 @@ public class ImpactMetricsEngine {
         double pct = ((current - previous) / previous) * 100d;
         return Math.round(pct * 10d) / 10d;
     }
-
     public Map<FoodType, Double> getCo2KgPerKgByFoodType() {
         return CO2_KG_PER_KG_BY_FOOD_TYPE;
     }
-
     public Map<FoodType, Double> getWaterLPerKgByFoodType() {
         return WATER_L_PER_KG_BY_FOOD_TYPE;
     }
-
     public double getKgPerMeal() {
         return KG_PER_MEAL;
     }
-
     public record DonationImpactRecord(
             String id,
             String status,
@@ -173,14 +148,12 @@ public class ImpactMetricsEngine {
             LocalDateTime expirationTime,
             LocalDateTime eventTime) {
     }
-
     public record ImpactComputationResult(
             ImpactTotals current,
             ImpactTotals previous,
             ImpactDelta deltas,
             ImpactAudit audit) {
     }
-
     public record ImpactTotals(
             double weightKg,
             double co2Kg,
@@ -188,7 +161,6 @@ public class ImpactMetricsEngine {
             double waterLiters,
             List<String> includedDonationIds) {
     }
-
     public record ImpactDelta(
             double weightAbs,
             double co2Abs,
@@ -199,16 +171,13 @@ public class ImpactMetricsEngine {
             Double mealsPct,
             Double waterPct) {
     }
-
     public record ExcludedDonation(String id, String reason) {
     }
-
     public record FactorSet(
             Map<FoodType, Double> co2KgPerKgByFoodType,
             Map<FoodType, Double> waterLPerKgByFoodType,
             double kgPerMeal) {
     }
-
     public record ImpactAudit(
             List<String> includedDonationIds,
             List<ExcludedDonation> excludedDonationIds,

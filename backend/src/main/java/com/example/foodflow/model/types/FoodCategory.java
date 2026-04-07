@@ -1,5 +1,4 @@
 package com.example.foodflow.model.types;
-
 public enum FoodCategory {
     // Fruits & Vegetables (more specific)
     FRUITS_VEGETABLES("Fruits & Vegetables"),
@@ -8,7 +7,6 @@ public enum FoodCategory {
     BERRIES,
     CITRUS_FRUITS,
     TROPICAL_FRUITS,
-    
     // Grains & Breads
     BREAD,
     BAKERY_PASTRY("Bakery & Pastry"),
@@ -19,7 +17,6 @@ public enum FoodCategory {
     PASTA,
     RICE,
     FLOUR_BAKING_MIXES,
-    
     // Proteins
     FRESH_MEAT,
     GROUND_MEAT,
@@ -33,7 +30,6 @@ public enum FoodCategory {
     CHICKPEAS,
     TOFU_TEMPEH,
     PLANT_BASED_PROTEIN,
-    
     // Dairy & Alternatives
     MILK,
     CHEESE,
@@ -42,7 +38,6 @@ public enum FoodCategory {
     CREAM,
     MILK_ALTERNATIVES,
     PLANT_BASED_DAIRY,
-    
     // Canned & Jarred
     CANNED_VEGETABLES,
     CANNED_FRUITS,
@@ -54,7 +49,6 @@ public enum FoodCategory {
     PRESERVES_JAMS,
     PEANUT_BUTTER,
     NUT_BUTTERS,
-    
     // Frozen Foods
     FROZEN,
     FROZEN_FOOD("Frozen Food"),
@@ -65,14 +59,12 @@ public enum FoodCategory {
     FROZEN_SEAFOOD,
     FROZEN_DESSERTS,
     ICE_CREAM,
-    
     // Dried & Shelf-Stable
     DRIED_FRUITS,
     DRIED_VEGETABLES,
     DRIED_HERBS,
     DRIED_PASTA,
     INSTANT_NOODLES,
-    
     // Prepared & Ready-to-Eat
     PREPARED_MEALS("Prepared Meals"),
     READY_TO_EAT,
@@ -82,7 +74,6 @@ public enum FoodCategory {
     STEWS,
     CASSEROLES,
     LEFTOVERS,
-    
     // Snacks & Sweets
     CHIPS_CRACKERS,
     COOKIES,
@@ -95,7 +86,6 @@ public enum FoodCategory {
     TRAIL_MIX,
     DESSERTS,
     CAKES_PASTRIES,
-    
     // Beverages
     BEVERAGES,
     WATER,
@@ -107,7 +97,6 @@ public enum FoodCategory {
     HOT_CHOCOLATE,
     PROTEIN_SHAKES,
     SMOOTHIES,
-    
     // Condiments & Sauces
     CONDIMENTS,
     SAUCES,
@@ -120,7 +109,6 @@ public enum FoodCategory {
     HOT_SAUCE,
     SOY_SAUCE,
     VINEGAR,
-    
     // Cooking Essentials
     COOKING_OIL,
     OLIVE_OIL,
@@ -135,7 +123,6 @@ public enum FoodCategory {
     BAKING_POWDER_SODA,
     YEAST,
     VANILLA_EXTRACT,
-    
     // Nuts & Seeds
     NUTS,
     SEEDS,
@@ -145,13 +132,11 @@ public enum FoodCategory {
     PEANUTS,
     SUNFLOWER_SEEDS,
     CHIA_SEEDS,
-    
     // Baby & Infant
     BABY_FOOD,
     INFANT_FORMULA,
     BABY_CEREAL,
     BABY_SNACKS,
-    
     // Special Dietary Products
     GLUTEN_FREE_PRODUCTS,
     DIABETIC_FRIENDLY,
@@ -161,7 +146,6 @@ public enum FoodCategory {
     PROTEIN_SUPPLEMENTS,
     NUTRITIONAL_SHAKES,
     MEAL_REPLACEMENT,
-    
     // Dietary Labels
     VEGETARIAN,
     DAIRY,
@@ -178,18 +162,15 @@ public enum FoodCategory {
     NON_GMO,
     FAIR_TRADE,
     LOCAL,
-    
     // Perishability
     PERISHABLE,
     NON_PERISHABLE,
     REFRIGERATED,
     SHELF_STABLE,
-    
     // Meal Types
     BREAKFAST_ITEMS,
     LUNCH_ITEMS,
     DINNER_ITEMS,
-    
     // Other
     MIXED_ITEMS,
     ASSORTED,
@@ -200,39 +181,30 @@ public enum FoodCategory {
     MRE_MILITARY_RATIONS,
     PET_FOOD,
     OTHER;
-
     private String label;
-
     FoodCategory(String label){
         this.label = label;
     }
-
     FoodCategory(){
         this.label = getDisplayName();
     }
-
     public String getLabel(){
         return label;
     }
-    
     public String getDisplayName() {
         String[] words = this.name().split("_");
         StringBuilder result = new StringBuilder();
-        
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
             // Capitalize first letter, lowercase the rest
             result.append(word.charAt(0))
                   .append(word.substring(1).toLowerCase());
-            
             if (i < words.length - 1) {
                 result.append(" ");
             }
         }
-        
         return result.toString();
     }
-    
     public boolean isDietaryLabel() {
         return this == VEGETARIAN || this == VEGAN || this == GLUTEN_FREE || 
                this == DAIRY_FREE || this == NUT_FREE || this == SOY_FREE ||
@@ -240,17 +212,14 @@ public enum FoodCategory {
                this == ORGANIC || this == NON_GMO || this == FAIR_TRADE || 
                this == LOCAL;
     }
-    
     public boolean isPerishabilityLabel() {
         return this == PERISHABLE || this == NON_PERISHABLE || 
                this == REFRIGERATED || this == SHELF_STABLE;
     }
-    
     public boolean isAllergenLabel() {
         return this == NUT_FREE || this == DAIRY_FREE || this == GLUTEN_FREE ||
                this == SOY_FREE || this == EGG_FREE;
     }
-    
     public boolean isFoodType() {
         return !isDietaryLabel() && !isPerishabilityLabel();
     }
