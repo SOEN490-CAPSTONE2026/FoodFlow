@@ -1199,11 +1199,12 @@ describe('DonorListFood', () => {
 
   describe('Utility functions', () => {
     test('formatPickupTime should return Flexible when date is missing', () => {
-      const result = require('../DonorListFood').formatPickupTime?.(
-        null,
-        '10:00',
-        '12:00'
-      );
+      const result =
+        require('../components/DonorDashboard/DonorListFood').formatPickupTime?.(
+          null,
+          '10:00',
+          '12:00'
+        );
       // Function is not exported, tested through component rendering
       expect(result).toBeUndefined(); // formatPickupTime is not exported
     });

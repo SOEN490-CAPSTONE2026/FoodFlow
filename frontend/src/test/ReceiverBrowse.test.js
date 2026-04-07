@@ -170,7 +170,8 @@ describe('ReceiverBrowse Component', () => {
     recommendationAPI.getRecommendationForPost.mockResolvedValue(null);
     recommendationAPI.getTopRecommendations.mockResolvedValue([]);
 
-    ReceiverBrowse = require('../ReceiverBrowse').default;
+    ReceiverBrowse =
+      require('../components/ReceiverDashboard/ReceiverBrowse').default;
   });
 
   describe('Basic Rendering', () => {

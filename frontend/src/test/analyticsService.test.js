@@ -123,7 +123,9 @@ describe('AnalyticsService', () => {
         post: jest.fn(() => Promise.resolve({ data: { success: true } })),
       }));
       const freshAxios = require('axios');
-      const { default: NewAnalyticsService } = require('../analyticsService');
+      const {
+        default: NewAnalyticsService,
+      } = require('../services/analyticsService');
       await NewAnalyticsService.trackEvent('test_action', 'test_component');
       expect(freshAxios.post).toHaveBeenCalledWith(
         'https://api.example.com/api/analytics/track',

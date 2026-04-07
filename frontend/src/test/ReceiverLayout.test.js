@@ -16,7 +16,10 @@ jest.mock('../services/socket', () => ({
   connectToUserQueue: jest.fn(),
   disconnect: jest.fn(),
 }));
-jest.mock('../components/MessagingDashboard/MessageNotification', () => () => null);
+jest.mock(
+  '../components/MessagingDashboard/MessageNotification',
+  () => () => null
+);
 jest.mock('./ReceiverPreferences', () => () => null);
 jest.mock('../components/AdminApprovalBanner', () => () => (
   <div data-testid="admin-approval-banner">Approval banner</div>

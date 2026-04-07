@@ -187,7 +187,6 @@ describe('API service', () => {
 
   // authAPI tests
   test('authAPI.registerDonor with FormData', async () => {
-    const mockPut = jest.fn();
     mockPost.mockResolvedValue({ data: { success: true } });
 
     const formData = new FormData();
@@ -393,22 +392,7 @@ describe('API service', () => {
   });
 
   test('surplusAPI.update', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { id: 1 } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { id: 1 } });
 
     const data = { title: 'Updated' };
     const resp = await surplusAPI.update(1, data);
@@ -711,7 +695,6 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getBrowseRecommendations with empty array', async () => {
-
     const result = await recommendationAPI.getBrowseRecommendations([]);
 
     expect(mockGet).not.toHaveBeenCalled();
@@ -719,7 +702,6 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getBrowseRecommendations with null', async () => {
-
     const result = await recommendationAPI.getBrowseRecommendations(null);
 
     expect(mockGet).not.toHaveBeenCalled();
@@ -795,7 +777,6 @@ describe('API service', () => {
   });
 
   test('recommendationAPI.getTopRecommendations with empty postIds', async () => {
-
     const result = await recommendationAPI.getTopRecommendations([]);
 
     expect(mockGet).not.toHaveBeenCalled();
@@ -804,7 +785,6 @@ describe('API service', () => {
 
   // userAPI tests
   test('userAPI.getProfile', async () => {
-    const mockPut = jest.fn();
     mockGet.mockResolvedValue({ data: { id: 1, name: 'John' } });
 
     const resp = await userAPI.getProfile(123);
@@ -814,22 +794,7 @@ describe('API service', () => {
   });
 
   test('userAPI.updateProfile', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { id: 1 } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { id: 1 } });
 
     const formData = new FormData();
     const resp = await userAPI.updateProfile(formData);
@@ -841,22 +806,7 @@ describe('API service', () => {
   });
 
   test('userAPI.updatePassword', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { success: true } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { success: true } });
 
     const data = { oldPassword: 'old', newPassword: 'new' };
     const resp = await userAPI.updatePassword(data);
@@ -876,22 +826,7 @@ describe('API service', () => {
   });
 
   test('profileAPI.update', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { id: 1 } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { id: 1 } });
 
     const data = { name: 'Updated' };
     const resp = await profileAPI.update(data);
@@ -901,24 +836,7 @@ describe('API service', () => {
   });
 
   test('profileAPI.updateOnboarding', async () => {
-    const mockPut = jest
-      .fn()
-      .mockResolvedValue({ data: { onboardingCompleted: true } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { onboardingCompleted: true } });
 
     const data = { onboardingCompleted: true };
     const resp = await profileAPI.updateOnboarding(data);
@@ -1051,22 +969,7 @@ describe('API service', () => {
   });
 
   test('adminDisputeAPI.updateDisputeStatus', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { id: 1 } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { id: 1 } });
 
     const resp = await adminDisputeAPI.updateDisputeStatus(
       123,
@@ -1238,22 +1141,7 @@ describe('API service', () => {
   });
 
   test('conversationAPI.markAsRead', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { success: true } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { success: true } });
     const resp = await conversationAPI.markAsRead(91);
 
     expect(mockPut).toHaveBeenCalledWith('/conversations/91/read');
@@ -1271,22 +1159,7 @@ describe('API service', () => {
   });
 
   test('notificationPreferencesAPI.updatePreferences', async () => {
-    const mockPut = jest.fn().mockResolvedValue({ data: { success: true } });
-    jest.doMock('axios', () => ({
-      create: jest.fn(() => ({
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: mockPost,
-        get: mockGet,
-        put: mockPut,
-        patch: mockPatch,
-        delete: mockDelete,
-      })),
-    }));
-
-    jest.resetModules();
+    mockPut.mockResolvedValue({ data: { success: true } });
 
     const data = { email: false };
     const resp = await notificationPreferencesAPI.updatePreferences(data);

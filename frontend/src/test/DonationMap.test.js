@@ -25,11 +25,14 @@ jest.mock('@react-google-maps/api', () => ({
 }));
 
 // Mock DonationMapCard
-jest.mock('../components/ReceiverDashboard/DonationsMap/DonationMapCard', () => {
-  return function DonationMapCard() {
-    return <div data-testid="donation-card">Card</div>;
-  };
-});
+jest.mock(
+  '../components/ReceiverDashboard/DonationsMap/DonationMapCard',
+  () => {
+    return function DonationMapCard() {
+      return <div data-testid="donation-card">Card</div>;
+    };
+  }
+);
 
 // Import component AFTER mocks
 const DonationMap = require('../DonationsMap/DonationMap').default;
