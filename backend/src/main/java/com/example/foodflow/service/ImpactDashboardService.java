@@ -68,7 +68,10 @@ public class ImpactDashboardService {
         LocalDateTime endDate = dateRangeBounds[1];
         LocalDateTime[] previousRangeBounds = calculatePreviousDateRange(startDate, endDate);
         // Get all posts by donor within date range (optimized query)
-        List<SurplusPost> allPosts = surplusPostRepository.findByDonorAndCreatedDateRange(donorId, startDate, endDate);
+        List<SurplusPost> allPosts = surplusPostRepository.findByDonorAndCreatedDateRange(donorId, startDate, endDate)
+                .stream()
+                .filter(post -> post.getCreatedAt() != null)
+                .toList();
         // Get completed posts only for impact calculation
         List<SurplusPost> completedPosts = allPosts.stream()
                 .filter(post -> post.getStatus() == PostStatus.COMPLETED)
@@ -118,7 +121,9 @@ public class ImpactDashboardService {
         }
         // Calculate active donation days
         long activeDays = allPosts.stream()
-                .map(post -> post.getCreatedAt().toLocalDate())
+                .map(SurplusPost::getCreatedAt)
+                .filter(java.util.Objects::nonNull)
+                .map(LocalDateTime::toLocalDate)
                 .distinct()
                 .count();
         metrics.setActiveDonationDays((int) activeDays);

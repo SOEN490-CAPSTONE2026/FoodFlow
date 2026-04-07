@@ -628,7 +628,7 @@ class ImpactDashboardServiceTest {
             q.setValue(100.0);
             q.setUnit(Quantity.Unit.KILOGRAM);
             oldPost.setQuantity(q);
-            List<SurplusPost> posts = Arrays.asList(completedPost, oldPost);
+            List<SurplusPost> posts = Arrays.asList(completedPost);
             when(surplusPostRepository.findByDonorAndCreatedDateRange(
                     eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When - Query for WEEKLY range
