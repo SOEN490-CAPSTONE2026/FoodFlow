@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -143,6 +144,22 @@ public class GlobalExceptionHandler {
                                 request.getRequestURI());
                 log.warn("Unsupported media type on {}: {}", request.getRequestURI(), ex.getMessage());
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(errorResponse);
+        }
+        /**
+         * Handle framework AccessDeniedException as 403 instead of falling through to
+         * the generic runtime-exception handler.
+         */
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+                        AccessDeniedException ex,
+                        HttpServletRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(
+                                HttpStatus.FORBIDDEN.value(),
+                                "Forbidden",
+                                ex.getMessage(),
+                                request.getRequestURI());
+                log.warn("Access denied on {}: {}", request.getRequestURI(), ex.getMessage());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
         }
         /**
          * Handle validation errors from @Valid annotations.

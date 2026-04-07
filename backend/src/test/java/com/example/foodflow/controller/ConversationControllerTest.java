@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -131,13 +132,14 @@ class ConversationControllerTest {
         MessageResponse msg = new MessageResponse();
         msg.setId(1L);
         messages.add(msg);
-        when(messageService.getConversationMessages(eq(1L), any(User.class)))
-            .thenReturn(messages);
+        when(messageService.getConversationMessages(eq(1L), any(User.class), eq(0), eq(20)))
+            .thenReturn(new PageImpl<>(messages));
         // When & Then
         mockMvc.perform(get("/api/conversations/1/messages")
                 .with(authentication(auth)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1));
     }
     @Test
     void markConversationAsRead_ShouldReturn200() throws Exception {

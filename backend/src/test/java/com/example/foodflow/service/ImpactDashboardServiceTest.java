@@ -249,7 +249,8 @@ class ImpactDashboardServiceTest {
         void shouldCalculateDonorMetricsForWeekly() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost, pendingPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "WEEKLY");
             // Then
@@ -268,7 +269,8 @@ class ImpactDashboardServiceTest {
         void shouldCalculateDonorMetricsForMonthly() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "MONTHLY");
             // Then
@@ -284,7 +286,8 @@ class ImpactDashboardServiceTest {
         @DisplayName("Should handle donor with no posts")
         void shouldHandleDonorWithNoPosts() {
             // Given
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(Collections.emptyList());
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.emptyList());
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then
@@ -301,7 +304,8 @@ class ImpactDashboardServiceTest {
         void shouldCalculateWasteDiversionEfficiency() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost, pendingPost, expiredPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then
@@ -316,7 +320,8 @@ class ImpactDashboardServiceTest {
         void shouldCalculateActiveDonationDays() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost, pendingPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then
@@ -331,7 +336,8 @@ class ImpactDashboardServiceTest {
         void shouldCalculateTimeBasedMetrics() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             when(claimRepository.findBySurplusPost(completedPost)).thenReturn(Optional.of(completedClaim));
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
@@ -346,7 +352,8 @@ class ImpactDashboardServiceTest {
         void shouldCalculatePeopleFedEstimate() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then
@@ -364,7 +371,7 @@ class ImpactDashboardServiceTest {
         void shouldCalculateReceiverMetricsForAllTime() {
             // Given
             List<Claim> claims = Arrays.asList(completedClaim);
-            when(claimRepository.findAll()).thenReturn(claims);
+            when(claimRepository.findAllByReceiverId(2L)).thenReturn(claims);
             // When
             ImpactMetricsDTO metrics = service.getReceiverMetrics(2L, "ALL_TIME");
             // Then
@@ -390,7 +397,7 @@ class ImpactDashboardServiceTest {
         @DisplayName("Should handle receiver with no claims")
         void shouldHandleReceiverWithNoClaims() {
             // Given
-            when(claimRepository.findAll()).thenReturn(Collections.emptyList());
+            when(claimRepository.findAllByReceiverId(2L)).thenReturn(Collections.emptyList());
             // When
             ImpactMetricsDTO metrics = service.getReceiverMetrics(2L, "ALL_TIME");
             // Then
@@ -411,7 +418,7 @@ class ImpactDashboardServiceTest {
             setClaimedAt(oldClaim, LocalDateTime.now().minusMonths(2)); // Old claim
             oldClaim.setStatus(ClaimStatus.COMPLETED);
             List<Claim> claims = Arrays.asList(completedClaim, oldClaim);
-            when(claimRepository.findAll()).thenReturn(claims);
+            when(claimRepository.findAllByReceiverId(2L)).thenReturn(claims);
             // When
             ImpactMetricsDTO metrics = service.getReceiverMetrics(2L, "MONTHLY");
             // Then
@@ -431,7 +438,7 @@ class ImpactDashboardServiceTest {
             setClaimedAt(claim2, LocalDateTime.now().minusDays(1));
             claim2.setStatus(ClaimStatus.COMPLETED);
             List<Claim> claims = Arrays.asList(completedClaim, claim2);
-            when(claimRepository.findAll()).thenReturn(claims);
+            when(claimRepository.findAllByReceiverId(2L)).thenReturn(claims);
             // When
             ImpactMetricsDTO metrics = service.getReceiverMetrics(2L, "ALL_TIME");
             // Then
@@ -461,7 +468,8 @@ class ImpactDashboardServiceTest {
             q.setUnit(Quantity.Unit.KILOGRAM);
             post2.setQuantity(q);
             List<SurplusPost> allPosts = Arrays.asList(completedPost, pendingPost, post2);
-            when(surplusPostRepository.findAll()).thenReturn(allPosts);
+            when(surplusPostRepository.findByCreatedDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(allPosts);
             Claim claim2 = new Claim();
             claim2.setId(2L);
             claim2.setSurplusPost(post2);
@@ -505,7 +513,8 @@ class ImpactDashboardServiceTest {
             q.setUnit(Quantity.Unit.KILOGRAM);
             post2.setQuantity(q);
             List<SurplusPost> posts = Arrays.asList(completedPost, post2);
-            when(surplusPostRepository.findAll()).thenReturn(posts);
+            when(surplusPostRepository.findByCreatedDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(posts);
             User receiver2 = new User();
             receiver2.setId(4L);
             Claim claim2 = new Claim();
@@ -541,7 +550,8 @@ class ImpactDashboardServiceTest {
             q.setUnit(Quantity.Unit.KILOGRAM);
             post2.setQuantity(q);
             List<SurplusPost> posts = Arrays.asList(completedPost, post2);
-            when(surplusPostRepository.findAll()).thenReturn(posts);
+            when(surplusPostRepository.findByCreatedDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(posts);
             // Create multiple claims from same receiver
             Claim claim2 = new Claim();
             claim2.setId(2L);
@@ -571,7 +581,8 @@ class ImpactDashboardServiceTest {
                     pendingPost, // AVAILABLE
                     expiredPost // EXPIRED
             );
-            when(surplusPostRepository.findAll()).thenReturn(posts);
+            when(surplusPostRepository.findByCreatedDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(posts);
             when(claimRepository.findAll()).thenReturn(Collections.emptyList());
             // When
             ImpactMetricsDTO metrics = service.getAdminMetrics("ALL_TIME");
@@ -586,7 +597,8 @@ class ImpactDashboardServiceTest {
         @DisplayName("Should handle empty platform")
         void shouldHandleEmptyPlatform() {
             // Given
-            when(surplusPostRepository.findAll()).thenReturn(Collections.emptyList());
+            when(surplusPostRepository.findByCreatedDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(Collections.emptyList());
             when(claimRepository.findAll()).thenReturn(Collections.emptyList());
             // When
             ImpactMetricsDTO metrics = service.getAdminMetrics("ALL_TIME");
@@ -617,7 +629,8 @@ class ImpactDashboardServiceTest {
             q.setUnit(Quantity.Unit.KILOGRAM);
             oldPost.setQuantity(q);
             List<SurplusPost> posts = Arrays.asList(completedPost, oldPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When - Query for WEEKLY range
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "WEEKLY");
             // Then - Should only include recent post
@@ -639,7 +652,8 @@ class ImpactDashboardServiceTest {
             q.setUnit(Quantity.Unit.KILOGRAM);
             postWithNullDate.setQuantity(q);
             List<SurplusPost> posts = Arrays.asList(completedPost, postWithNullDate);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then - Should not crash, should exclude null date post
@@ -662,8 +676,8 @@ class ImpactDashboardServiceTest {
             setCreatedAt(postWithNullQuantity, LocalDateTime.now());
             postWithNullQuantity.setQuantity(null);
             List<SurplusPost> posts = Arrays.asList(postWithNullQuantity);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
-            when(calculationService.convertToKg(null)).thenReturn(0.0);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then
@@ -685,7 +699,8 @@ class ImpactDashboardServiceTest {
             hugeQuantity.setUnit(Quantity.Unit.KILOGRAM);
             massivePost.setQuantity(hugeQuantity);
             List<SurplusPost> posts = Arrays.asList(massivePost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then
@@ -709,7 +724,8 @@ class ImpactDashboardServiceTest {
             q.setUnit(Quantity.Unit.KILOGRAM);
             post2.setQuantity(q);
             List<SurplusPost> posts = Arrays.asList(completedPost, post2, pendingPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
+            when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(posts);
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then

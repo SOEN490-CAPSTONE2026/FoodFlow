@@ -526,19 +526,13 @@ class GamificationServiceTest {
     @Test
     void testGetCurrentValueForCriteria_MessageCount() {
         // Given
-        Message msg1 = new Message();
-        msg1.setSender(donor);
-        Message msg2 = new Message();
-        msg2.setSender(donor);
-        Message msg3 = new Message();
-        msg3.setSender(receiver);
         socialAchievement.setCriteriaValue(2);
         when(userRepository.findById(1L)).thenReturn(Optional.of(donor));
         when(achievementRepository.findByIsActiveTrue())
                 .thenReturn(Arrays.asList(socialAchievement));
         when(userAchievementRepository.findByUserIdOrderByEarnedAtDesc(1L))
                 .thenReturn(Collections.emptyList());
-        when(messageRepository.findAll()).thenReturn(Arrays.asList(msg1, msg2, msg3));
+        when(messageRepository.countBySenderId(1L)).thenReturn(2L);
         when(userAchievementRepository.save(any(UserAchievement.class)))
                 .thenReturn(new UserAchievement(donor, socialAchievement));
         when(userRepository.save(any(User.class))).thenReturn(donor);
