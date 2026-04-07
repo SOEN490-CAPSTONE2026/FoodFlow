@@ -59,7 +59,7 @@ jest.mock(
 
 // Mock CSS
 jest.mock('../components/ReceiverDashboard/ReceiverBrowse.css', () => ({}));
-jest.mock('../../ReceiverBrowseModal.css', () => ({}));
+jest.mock('../components/ReceiverDashboard/ReceiverBrowseModal.css', () => ({}));
 
 // Mock useLoadScript hook
 jest.mock('@react-google-maps/api', () => ({
