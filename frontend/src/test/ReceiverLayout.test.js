@@ -20,17 +20,25 @@ jest.mock(
   '../components/MessagingDashboard/MessageNotification',
   () => () => null
 );
-jest.mock('../components/ReceiverDashboard/ReceiverPreferences', () => () => null);
+jest.mock(
+  '../components/ReceiverDashboard/ReceiverPreferences',
+  () => () => null
+);
 jest.mock('../components/AdminApprovalBanner', () => () => (
   <div data-testid="admin-approval-banner">Approval banner</div>
 ));
-jest.mock('../components/ReceiverDashboard/Receiver_Styles/ReceiverLayout.css', () => ({}), {
-  virtual: true,
-});
+jest.mock(
+  '../components/ReceiverDashboard/Receiver_Styles/ReceiverLayout.css',
+  () => ({}),
+  {
+    virtual: true,
+  }
+);
 jest.mock('../assets/Logo.png', () => 'logo.png');
 jest.mock('../components/ReceiverDashboard/pfp.png', () => 'pfp.png');
 
-const ReceiverLayoutContent = require('../components/ReceiverDashboard/ReceiverLayout').default;
+const ReceiverLayoutContent =
+  require('../components/ReceiverDashboard/ReceiverLayout').default;
 
 // We only test the banner rendering logic. Render the component with a mocked AuthContext
 

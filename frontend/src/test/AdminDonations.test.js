@@ -101,7 +101,10 @@ jest.mock('lucide-react', () => ({
   Star: () => <span>Star</span>,
 }));
 
-jest.mock('../components/AdminDashboard/Admin_Styles/AdminDonations.css', () => ({}));
+jest.mock(
+  '../components/AdminDashboard/Admin_Styles/AdminDonations.css',
+  () => ({})
+);
 
 describe('AdminDonations Component', () => {
   const mockDonations = {

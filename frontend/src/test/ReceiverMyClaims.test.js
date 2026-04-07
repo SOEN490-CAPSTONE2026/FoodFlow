@@ -15,10 +15,7 @@ import { TimezoneProvider } from '../contexts/TimezoneContext';
 
 // Mock images
 jest.mock('../assets/foodtypes/Pastry&Bakery.jpg', () => 'bakery.jpg');
-jest.mock(
-  '../assets/foodtypes/Fruits&Vegetables.jpg',
-  () => 'fruits.jpg'
-);
+jest.mock('../assets/foodtypes/Fruits&Vegetables.jpg', () => 'fruits.jpg');
 jest.mock('../assets/foodtypes/PackagedItems.jpg', () => 'packaged.jpg');
 jest.mock('../assets/foodtypes/Dairy.jpg', () => 'dairy.jpg');
 jest.mock('../assets/foodtypes/FrozenFood.jpg', () => 'frozen.jpg');

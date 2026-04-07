@@ -16,7 +16,10 @@ jest.mock('../services/api', () => ({
   },
 }));
 
-jest.mock('../components/AdminDashboard/Admin_Styles/AdminDisputeDetail.css', () => ({}));
+jest.mock(
+  '../components/AdminDashboard/Admin_Styles/AdminDisputeDetail.css',
+  () => ({})
+);
 
 describe('AdminDisputeDetail', () => {
   const mockDispute = {

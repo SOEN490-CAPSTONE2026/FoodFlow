@@ -38,28 +38,22 @@ const renderWithProviders = (ui, options = {}) => {
 };
 
 // Mock images
-jest.mock(
-  '../assets/foodtypes/Pastry&Bakery.jpg',
-  () => 'bakery-image.jpg'
-);
+jest.mock('../assets/foodtypes/Pastry&Bakery.jpg', () => 'bakery-image.jpg');
 jest.mock(
   '../assets/foodtypes/Fruits&Vegetables.jpg',
   () => 'fruits-image.jpg'
 );
-jest.mock(
-  '../assets/foodtypes/PackagedItems.jpg',
-  () => 'packaged-image.jpg'
-);
+jest.mock('../assets/foodtypes/PackagedItems.jpg', () => 'packaged-image.jpg');
 jest.mock('../assets/foodtypes/Dairy.jpg', () => 'dairy-image.jpg');
 jest.mock('../assets/foodtypes/FrozenFood.jpg', () => 'frozen-image.jpg');
-jest.mock(
-  '../assets/foodtypes/PreparedFood.jpg',
-  () => 'prepared-image.jpg'
-);
+jest.mock('../assets/foodtypes/PreparedFood.jpg', () => 'prepared-image.jpg');
 
 // Mock CSS
 jest.mock('../components/ReceiverDashboard/ReceiverBrowse.css', () => ({}));
-jest.mock('../components/ReceiverDashboard/ReceiverBrowseModal.css', () => ({}));
+jest.mock(
+  '../components/ReceiverDashboard/ReceiverBrowseModal.css',
+  () => ({})
+);
 
 // Mock useLoadScript hook
 jest.mock('@react-google-maps/api', () => ({
