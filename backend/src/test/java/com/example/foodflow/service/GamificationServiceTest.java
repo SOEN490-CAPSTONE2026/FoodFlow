@@ -1,4 +1,5 @@
 package com.example.foodflow.service;
+
 import com.example.foodflow.model.dto.AchievementProgress;
 import com.example.foodflow.model.dto.AchievementResponse;
 import com.example.foodflow.model.dto.GamificationStatsResponse;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 class GamificationServiceTest {
     @Mock
@@ -43,6 +45,7 @@ class GamificationServiceTest {
     private Achievement donationAchievement;
     private Achievement claimAchievement;
     private Achievement socialAchievement;
+
     @BeforeEach
     void setUp() {
         // Create donor user
@@ -88,6 +91,7 @@ class GamificationServiceTest {
         socialAchievement.setPointsValue(20);
         socialAchievement.setIsActive(true);
     }
+
     // ==================== Tests for awardPoints ====================
     @Test
     void testAwardPoints_Success() {
@@ -102,6 +106,7 @@ class GamificationServiceTest {
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getTotalPoints()).isEqualTo(150); // 100 + 50
     }
+
     @Test
     void testAwardPoints_UserNotFound_ThrowsException() {
         // Given
@@ -112,6 +117,7 @@ class GamificationServiceTest {
                 .hasMessageContaining("User not found");
         verify(userRepository, never()).save(any(User.class));
     }
+
     @Test
     void testAwardPoints_NullCurrentPoints_StartsFromZero() {
         // Given
@@ -125,6 +131,7 @@ class GamificationServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getTotalPoints()).isEqualTo(25);
     }
+
     @Test
     void testAwardPoints_NegativePoints_DecreasesTotal() {
         // Given
@@ -137,6 +144,7 @@ class GamificationServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getTotalPoints()).isEqualTo(70); // 100 - 30
     }
+
     @Test
     void testAwardPoints_ZeroPoints_NoChange() {
         // Given
@@ -149,7 +157,9 @@ class GamificationServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getTotalPoints()).isEqualTo(100);
     }
-    // ==================== Tests for checkAndUnlockAchievements ====================
+
+    // ==================== Tests for checkAndUnlockAchievements
+    // ====================
     @Test
     void testCheckAndUnlockAchievements_UnlocksDonationAchievement() {
         // Given
@@ -170,6 +180,7 @@ class GamificationServiceTest {
         verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
         verify(userRepository, times(1)).save(any(User.class));
     }
+
     @Test
     void testCheckAndUnlockAchievements_DoesNotUnlockIfCriteriaNotMet() {
         // Given
@@ -185,6 +196,7 @@ class GamificationServiceTest {
         assertThat(result).isEmpty();
         verify(userAchievementRepository, never()).save(any(UserAchievement.class));
     }
+
     @Test
     void testCheckAndUnlockAchievements_SkipsAlreadyEarned() {
         // Given
@@ -194,13 +206,15 @@ class GamificationServiceTest {
                 .thenReturn(Arrays.asList(donationAchievement));
         when(userAchievementRepository.findByUserIdOrderByEarnedAtDesc(1L))
                 .thenReturn(Arrays.asList(existingAchievement));
-        // Don't stub countByDonorId since it won't be called if achievement is already earned
+        // Don't stub countByDonorId since it won't be called if achievement is already
+        // earned
         // When
         List<UserAchievement> result = gamificationService.checkAndUnlockAchievements(1L);
         // Then
         assertThat(result).isEmpty();
         verify(userAchievementRepository, never()).save(any(UserAchievement.class));
     }
+
     @Test
     void testCheckAndUnlockAchievements_UnlocksMultiple() {
         // Given
@@ -227,6 +241,7 @@ class GamificationServiceTest {
         assertThat(result).hasSize(2);
         verify(userAchievementRepository, times(4)).save(any(UserAchievement.class));
     }
+
     @Test
     void testCheckAndUnlockAchievements_UserNotFound_ThrowsException() {
         // Given
@@ -236,6 +251,7 @@ class GamificationServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("User not found");
     }
+
     @Test
     void testCheckAndUnlockAchievements_AwardsAchievementPoints() {
         // Given
@@ -256,6 +272,7 @@ class GamificationServiceTest {
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getTotalPoints()).isEqualTo(110); // 100 + 10 (achievement points)
     }
+
     @Test
     void testCheckAndUnlockAchievements_OnlyRelevantForUserRole() {
         // Given - Donor trying to unlock receiver-only achievement
@@ -271,6 +288,7 @@ class GamificationServiceTest {
         assertThat(result).isEmpty();
         verify(userAchievementRepository, never()).save(any(UserAchievement.class));
     }
+
     @Test
     void testCheckAndUnlockAchievements_SocialAchievementForBothRoles() {
         // Given
@@ -286,6 +304,7 @@ class GamificationServiceTest {
         // Then - Should check social achievements for any role
         assertThat(result).isEmpty(); // Not enough messages (need 10)
     }
+
     // ==================== Tests for getUserGamificationStats ====================
     @Test
     void testGetUserGamificationStats_Success() {
@@ -319,6 +338,7 @@ class GamificationServiceTest {
         assertThat(result.getUnlockedAchievements()).hasSize(1);
         assertThat(result.getProgressToNext()).isNotEmpty(); // Should have progress towards the next achievement
     }
+
     @Test
     void testGetUserGamificationStats_UserNotFound_ThrowsException() {
         // Given
@@ -328,6 +348,7 @@ class GamificationServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("User not found");
     }
+
     @Test
     void testGetUserGamificationStats_NullPoints_ReturnsZero() {
         // Given
@@ -342,6 +363,7 @@ class GamificationServiceTest {
         // Then
         assertThat(result.getTotalPoints()).isEqualTo(0);
     }
+
     @Test
     void testGetUserGamificationStats_NoAchievements_ReturnsEmpty() {
         // Given
@@ -356,6 +378,7 @@ class GamificationServiceTest {
         assertThat(result.getUnlockedAchievements()).isEmpty();
         assertThat(result.getProgressToNext()).isEmpty();
     }
+
     @Test
     void testGetUserGamificationStats_CalculatesProgress() {
         // Given
@@ -374,6 +397,7 @@ class GamificationServiceTest {
         assertThat(progress.getCurrentValue()).isEqualTo(0);
         assertThat(progress.getTargetValue()).isEqualTo(1);
     }
+
     @Test
     void testGetUserGamificationStats_FiltersByUserRole() {
         // Given - Donor should not see receiver achievements
@@ -390,6 +414,7 @@ class GamificationServiceTest {
         assertThat(result.getProgressToNext()).hasSize(1);
         assertThat(result.getProgressToNext().get(0).getAchievementName()).isEqualTo("First Donation");
     }
+
     @Test
     void testGetUserGamificationStats_IncludesSocialAchievements() {
         // Given
@@ -407,6 +432,7 @@ class GamificationServiceTest {
         assertThat(result.getProgressToNext()).hasSize(1);
         assertThat(result.getProgressToNext().get(0).getAchievementName()).isEqualTo("Conversationalist");
     }
+
     // ==================== Tests for getAllAchievements ====================
     @Test
     void testGetAllAchievements_Success() {
@@ -420,6 +446,7 @@ class GamificationServiceTest {
         assertThat(result).extracting("name")
                 .containsExactlyInAnyOrder("First Donation", "First Claim", "Conversationalist");
     }
+
     @Test
     void testGetAllAchievements_EmptyList() {
         // Given
@@ -429,6 +456,7 @@ class GamificationServiceTest {
         // Then
         assertThat(result).isEmpty();
     }
+
     @Test
     void testGetAllAchievements_OnlyActive() {
         // Given - Should only return active achievements
@@ -442,6 +470,7 @@ class GamificationServiceTest {
         assertThat(result).hasSize(1);
         verify(achievementRepository).findByIsActiveTrue();
     }
+
     // ==================== Tests for Criteria Type Logic ====================
     @Test
     void testGetCurrentValueForCriteria_ClaimCount() {
@@ -462,6 +491,7 @@ class GamificationServiceTest {
         verify(claimRepository).countByReceiverId(2L);
         verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
+
     @Test
     void testGetCurrentValueForCriteria_PickupCount() {
         // Given
@@ -482,8 +512,7 @@ class GamificationServiceTest {
                 .thenReturn(Collections.emptyList());
         when(claimRepository.findReceiverClaimsWithDetails(
                 eq(2L),
-                eq(List.of(ClaimStatus.COMPLETED))
-        )).thenReturn(Arrays.asList(completedClaim));
+                eq(List.of(ClaimStatus.COMPLETED)))).thenReturn(Arrays.asList(completedClaim));
         when(userAchievementRepository.save(any(UserAchievement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(userRepository.save(any(User.class))).thenReturn(receiver);
@@ -493,6 +522,7 @@ class GamificationServiceTest {
         assertThat(result).hasSize(1);
         verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
+
     @Test
     void testGetCurrentValueForCriteria_MessageCount() {
         // Given
@@ -517,6 +547,7 @@ class GamificationServiceTest {
         // Then
         assertThat(result).hasSize(1); // Donor sent 2 messages
     }
+
     @Test
     void testAwardPoints_LargeAmount() {
         // Given
@@ -529,6 +560,7 @@ class GamificationServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getTotalPoints()).isEqualTo(10100);
     }
+
     @Test
     void testCheckAndUnlockAchievements_ReceiverGetsClaimAchievement() {
         // Given
@@ -547,20 +579,20 @@ class GamificationServiceTest {
         assertThat(result).hasSize(1);
         verify(userAchievementRepository, times(2)).save(any(UserAchievement.class));
     }
+
     // ==================== Tests for getLeaderboard ====================
     @Test
     void testGetLeaderboard_DonorRole_ReturnsTop10() {
         // Given
         List<User> topDonors = createMockUsers(UserRole.DONOR, 10);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(topDonors);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(topDonors);
         when(userRepository.findByRole(eq(UserRole.DONOR), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(10L);
         // Don't stub findById - user is in top 10 so it won't be called
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                1L);
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getTopUsers()).hasSize(10);
@@ -569,31 +601,31 @@ class GamificationServiceTest {
         assertThat(result.getTopUsers().get(0).getIsCurrentUser()).isTrue();
         assertThat(result.getCurrentUserEntry()).isNull(); // User is in top 10
     }
+
     @Test
     void testGetLeaderboard_ReceiverRole_ReturnsTop10() {
         // Given
         List<User> topReceivers = createMockUsers(UserRole.RECEIVER, 10);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(topReceivers);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(topReceivers);
         when(userRepository.findByRole(eq(UserRole.RECEIVER), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.RECEIVER)).thenReturn(10L);
         // Don't stub findById - user is in top 10 so it won't be called
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.RECEIVER, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService
+                .getLeaderboard(UserRole.RECEIVER, 1L);
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getTopUsers()).hasSize(10);
         assertThat(result.getTotalUsers()).isEqualTo(10);
         assertThat(result.getTopUsers().get(0).getRank()).isEqualTo(1);
     }
+
     @Test
     void testGetLeaderboard_CurrentUserOutsideTop10_IncludesUserEntry() {
         // Given
         List<User> topDonors = createMockUsers(UserRole.DONOR, 10);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(topDonors);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(topDonors);
         User currentUser = new User();
         currentUser.setId(99L);
         currentUser.setEmail("outside@test.com");
@@ -606,8 +638,8 @@ class GamificationServiceTest {
         when(userRepository.countByRoleAndTotalPointsGreaterThan(UserRole.DONOR, 50))
                 .thenReturn(10L); // 10 users have more points, so user is rank 11
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 99L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                99L);
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getTopUsers()).hasSize(10);
@@ -617,24 +649,26 @@ class GamificationServiceTest {
         assertThat(result.getCurrentUserEntry().getIsCurrentUser()).isTrue();
         assertThat(result.getCurrentUserEntry().getTotalPoints()).isEqualTo(50);
     }
+
     @Test
     void testGetLeaderboard_EmptyLeaderboard_ReturnsEmptyList() {
         // Given
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(Collections.emptyList());
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(
+                Collections.emptyList());
         when(userRepository.findByRole(eq(UserRole.DONOR), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(0L);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                1L);
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getTopUsers()).isEmpty();
         assertThat(result.getTotalUsers()).isEqualTo(0);
         assertThat(result.getCurrentUserEntry()).isNull();
     }
+
     @Test
     void testGetLeaderboard_DisplayNameLogic_UsesOrganizationName() {
         // Given - User with organization
@@ -647,19 +681,20 @@ class GamificationServiceTest {
         Organization org = new Organization();
         org.setName("Test Organization");
         userWithOrg.setOrganization(org);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithOrg));
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(
+                Arrays.asList(userWithOrg));
         when(userRepository.findByRole(eq(UserRole.DONOR), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(1L);
         // Don't stub findById - user is in top list
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                1L);
         // Then
         assertThat(result.getTopUsers().get(0).getDisplayName())
                 .isEqualTo("Test Organization");
     }
+
     @Test
     void testGetLeaderboard_DisplayNameLogic_UsesFullNameIfNoOrg() {
         // Given - User with full name but no organization
@@ -669,19 +704,20 @@ class GamificationServiceTest {
         userWithName.setFullName("Jane Smith");
         userWithName.setRole(UserRole.RECEIVER);
         userWithName.setTotalPoints(500);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithName));
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(
+                Arrays.asList(userWithName));
         when(userRepository.findByRole(eq(UserRole.RECEIVER), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.RECEIVER)).thenReturn(1L);
         // Don't stub findById - user is in top list
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.RECEIVER, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService
+                .getLeaderboard(UserRole.RECEIVER, 1L);
         // Then
         assertThat(result.getTopUsers().get(0).getDisplayName())
                 .isEqualTo("Jane Smith");
     }
+
     @Test
     void testGetLeaderboard_DisplayNameLogic_UsesEmailAsFallback() {
         // Given - User with only email
@@ -690,19 +726,20 @@ class GamificationServiceTest {
         userWithEmail.setEmail("fallback@test.com");
         userWithEmail.setRole(UserRole.DONOR);
         userWithEmail.setTotalPoints(250);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithEmail));
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(
+                Arrays.asList(userWithEmail));
         when(userRepository.findByRole(eq(UserRole.DONOR), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(1L);
         // Don't stub findById - user is in top list
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                1L);
         // Then
         assertThat(result.getTopUsers().get(0).getDisplayName())
                 .isEqualTo("fallback@test.com");
     }
+
     @Test
     void testGetLeaderboard_NullPoints_TreatsAsZero() {
         // Given
@@ -711,43 +748,43 @@ class GamificationServiceTest {
         userWithNullPoints.setEmail("nopoints@test.com");
         userWithNullPoints.setRole(UserRole.DONOR);
         userWithNullPoints.setTotalPoints(null);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(Arrays.asList(userWithNullPoints));
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(
+                Arrays.asList(userWithNullPoints));
         when(userRepository.findByRole(eq(UserRole.DONOR), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(1L);
         // Don't stub findById - user is in top list
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                1L);
         // Then
         assertThat(result.getTopUsers().get(0).getTotalPoints()).isEqualTo(0);
     }
+
     @Test
     void testGetLeaderboard_RankingIsCorrect() {
         // Given
         List<User> topDonors = createMockUsers(UserRole.DONOR, 5);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(topDonors);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(topDonors);
         when(userRepository.findByRole(eq(UserRole.DONOR), any()))
                 .thenReturn(page);
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(5L);
         // Don't stub findById - user is in top list
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 1L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                1L);
         // Then
         assertThat(result.getTopUsers()).hasSize(5);
         for (int i = 0; i < 5; i++) {
             assertThat(result.getTopUsers().get(i).getRank()).isEqualTo(i + 1);
         }
     }
+
     @Test
     void testGetLeaderboard_CurrentUserDifferentRole_NoCurrentEntry() {
         // Given
         List<User> topDonors = createMockUsers(UserRole.DONOR, 10);
-        org.springframework.data.domain.Page<User> page = 
-            new org.springframework.data.domain.PageImpl<>(topDonors);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(topDonors);
         User receiverUser = new User();
         receiverUser.setId(99L);
         receiverUser.setEmail("receiver@test.com");
@@ -758,12 +795,13 @@ class GamificationServiceTest {
         when(userRepository.countByRole(UserRole.DONOR)).thenReturn(10L);
         when(userRepository.findById(99L)).thenReturn(Optional.of(receiverUser));
         // When
-        com.example.foodflow.model.dto.LeaderboardResponse result = 
-            gamificationService.getLeaderboard(UserRole.DONOR, 99L);
+        com.example.foodflow.model.dto.LeaderboardResponse result = gamificationService.getLeaderboard(UserRole.DONOR,
+                99L);
         // Then - Current user entry should be null since they're a different role
         assertThat(result.getTopUsers()).hasSize(10);
         assertThat(result.getCurrentUserEntry()).isNull();
     }
+
     // Helper method to create mock users
     private List<User> createMockUsers(UserRole role, int count) {
         List<User> users = new ArrayList<>();
