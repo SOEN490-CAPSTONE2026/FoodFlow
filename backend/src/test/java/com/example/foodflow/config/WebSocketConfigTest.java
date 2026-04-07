@@ -228,7 +228,7 @@ class WebSocketConfigTest {
         // Arrange
         reset(stompEndpointRegistry, endpointRegistration, sockJsServiceRegistration);
         when(stompEndpointRegistry.addEndpoint(anyString())).thenReturn(endpointRegistration);
-        when(endpointRegistration.setAllowedOriginPatterns(anyString())).thenReturn(endpointRegistration);
+        when(endpointRegistration.setAllowedOrigins(any(String[].class))).thenReturn(endpointRegistration);
         when(endpointRegistration.setHandshakeHandler(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.addInterceptors(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.withSockJS()).thenReturn(sockJsServiceRegistration);
@@ -236,7 +236,7 @@ class WebSocketConfigTest {
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
         // Assert - verify all configuration methods are called
         verify(stompEndpointRegistry, times(1)).addEndpoint(anyString());
-        verify(endpointRegistration, times(1)).setAllowedOriginPatterns(anyString());
+        verify(endpointRegistration, times(1)).setAllowedOrigins(any(String[].class));
         verify(endpointRegistration, times(1)).setHandshakeHandler(any());
         verify(endpointRegistration, times(1)).addInterceptors(any());
         verify(endpointRegistration, times(1)).withSockJS();

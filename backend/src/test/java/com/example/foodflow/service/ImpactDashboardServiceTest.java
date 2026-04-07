@@ -197,8 +197,11 @@ class ImpactDashboardServiceTest {
         void shouldCalculateDonorMetricsForAllTime() {
             // Given
             List<SurplusPost> posts = Arrays.asList(completedPost, pendingPost);
-            when(surplusPostRepository.findByDonorId(1L)).thenReturn(posts);
-            when(claimRepository.findBySurplusPost(completedPost)).thenReturn(Optional.of(completedClaim));
+            lenient().when(surplusPostRepository.findByDonorAndCreatedDateRange(
+                    eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(posts);
+            lenient().when(claimRepository.findByDonorId(1L)).thenReturn(Arrays.asList(completedClaim));
+            lenient().when(claimRepository.findBySurplusPost(completedPost)).thenReturn(Optional.of(completedClaim));
             // When
             ImpactMetricsDTO metrics = service.getDonorMetrics(1L, "ALL_TIME");
             // Then

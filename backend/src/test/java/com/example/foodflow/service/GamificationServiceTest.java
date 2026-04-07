@@ -279,11 +279,8 @@ class GamificationServiceTest {
                 .thenReturn(Arrays.asList(socialAchievement));
         when(userAchievementRepository.findByUserIdOrderByEarnedAtDesc(1L))
                 .thenReturn(Collections.emptyList());
-        Message message1 = new Message();
-        message1.setSender(donor);
-        Message message2 = new Message();
-        message2.setSender(donor);
-        when(messageRepository.findAll()).thenReturn(Arrays.asList(message1, message2));
+        // Social achievement requires 10 messages via MESSAGE_COUNT criteria
+        when(messageRepository.countBySenderId(1L)).thenReturn(2L);
         // When
         List<UserAchievement> result = gamificationService.checkAndUnlockAchievements(1L);
         // Then - Should check social achievements for any role
@@ -402,9 +399,8 @@ class GamificationServiceTest {
                 .thenReturn(Collections.emptyList());
         when(achievementRepository.findByIsActiveTrue())
                 .thenReturn(Arrays.asList(socialAchievement));
-        Message message = new Message();
-        message.setSender(donor);
-        when(messageRepository.findAll()).thenReturn(Arrays.asList(message));
+        // Social achievement requires 10 messages via MESSAGE_COUNT criteria
+        when(messageRepository.countBySenderId(1L)).thenReturn(1L);
         // When
         GamificationStatsResponse result = gamificationService.getUserGamificationStats(1L);
         // Then - Social achievements should be included
