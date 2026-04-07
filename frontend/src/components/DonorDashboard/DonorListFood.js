@@ -941,6 +941,7 @@ export default function DonorListFood() {
         <div className="header-actions">
           <button
             className="donor-ai-button"
+            data-tour="donor-ai-donation-entry"
             onClick={() => navigate('/donor/ai-donation')}
           >
             <Sparkles size={18} />

@@ -606,6 +606,9 @@ const AdminUsers = () => {
     { value: 'DEACTIVATED', label: t('adminUsers.status.deactivated') },
   ];
 
+  const hasActiveSearch = Boolean(debouncedSearchTerm.trim());
+  const displayedUsers = hasActiveSearch ? filteredUsers : users;
+
   // Custom styles for React Select
   const selectStyles = {
     control: base => ({
@@ -726,9 +729,9 @@ const AdminUsers = () => {
         <div className="users-section-header">
           <h2>{t('adminUsers.title')}</h2>
           <div className="pagination-info">
-            {filteredUsers.length > 0 && (
+            {displayedUsers.length > 0 && (
               <span>
-                1 - {filteredUsers.length} of {stats.totalUsers}
+                1 - {displayedUsers.length} of {stats.totalUsers}
               </span>
             )}
           </div>
@@ -795,14 +798,14 @@ const AdminUsers = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length === 0 ? (
+            {displayedUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan="8" className="no-users">
                   {t('adminUsers.empty')}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredUsers.map(user => (
+              displayedUsers.map(user => (
                 <React.Fragment key={user.id}>
                   <TableRow
                     className={expandedRows.has(user.id) ? 'expanded' : ''}

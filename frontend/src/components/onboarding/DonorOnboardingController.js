@@ -72,9 +72,12 @@ function OnboardingOverlay({
   canGoBack,
   isSaving,
   error,
+  skipConfirmationActive,
   onNext,
   onBack,
   onSkip,
+  onCancelSkip,
+  onConfirmSkip,
 }) {
   if (!active || !step) {
     return null;
@@ -121,6 +124,17 @@ function OnboardingOverlay({
 
         {error && <div className="onboarding-tour__error">{error}</div>}
 
+        {skipConfirmationActive && (
+          <div className="onboarding-tour__skip-confirmation">
+            <h3 className="onboarding-tour__skip-title">
+              {t('onboarding.skipConfirmation.title')}
+            </h3>
+            <p className="onboarding-tour__skip-text">
+              {t('onboarding.skipConfirmation.text')}
+            </p>
+          </div>
+        )}
+
         <div className="onboarding-tour__footer">
           <div className="onboarding-tour__progress">
             {t('onboarding.stepProgress', {
@@ -129,19 +143,40 @@ function OnboardingOverlay({
             })}
           </div>
           <div className="onboarding-tour__actions">
-            <button
-              type="button"
-              className="onboarding-tour__button onboarding-tour__button--link"
-              onClick={onSkip}
-              disabled={isSaving}
-            >
-              {t('onboarding.actions.skip')}
-            </button>
+            {skipConfirmationActive ? (
+              <>
+                <button
+                  type="button"
+                  className="onboarding-tour__button onboarding-tour__button--ghost"
+                  onClick={onCancelSkip}
+                  disabled={isSaving}
+                >
+                  {t('onboarding.actions.cancelSkip')}
+                </button>
+                <button
+                  type="button"
+                  className="onboarding-tour__button onboarding-tour__button--danger"
+                  onClick={onConfirmSkip}
+                  disabled={isSaving}
+                >
+                  {t('onboarding.actions.confirmSkip')}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="onboarding-tour__button onboarding-tour__button--link"
+                onClick={onSkip}
+                disabled={isSaving}
+              >
+                {t('onboarding.actions.skip')}
+              </button>
+            )}
             <button
               type="button"
               className="onboarding-tour__button onboarding-tour__button--ghost"
               onClick={onBack}
-              disabled={!canGoBack || isSaving}
+              disabled={!canGoBack || isSaving || skipConfirmationActive}
             >
               {t('onboarding.actions.back')}
             </button>
@@ -149,7 +184,7 @@ function OnboardingOverlay({
               type="button"
               className="onboarding-tour__button onboarding-tour__button--primary"
               onClick={onNext}
-              disabled={isSaving}
+              disabled={isSaving || skipConfirmationActive}
             >
               {stepIndex === totalSteps - 1
                 ? t('onboarding.actions.finish')
@@ -174,6 +209,7 @@ export default function DonorOnboardingController({ children, role }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [targetRect, setTargetRect] = useState(null);
+  const [skipConfirmationActive, setSkipConfirmationActive] = useState(false);
   const syncFrameRef = useRef(null);
   const syncTimeoutRef = useRef(null);
   const tutorialRole = role === 'DONOR' || role === 'RECEIVER' ? role : null;
@@ -222,6 +258,7 @@ export default function DonorOnboardingController({ children, role }) {
         if (!completed) {
           setMode('auto');
           setStepIndex(0);
+          setSkipConfirmationActive(false);
           setActive(true);
         }
       } catch (loadError) {
@@ -332,6 +369,7 @@ export default function DonorOnboardingController({ children, role }) {
     setTargetRect(null);
     setError('');
     setIsSaving(false);
+    setSkipConfirmationActive(false);
   }, [clearSync]);
 
   const persistCompletion = useCallback(async () => {
@@ -358,16 +396,27 @@ export default function DonorOnboardingController({ children, role }) {
       persistCompletion();
       return;
     }
+    setSkipConfirmationActive(false);
     setError('');
     setStepIndex(current => current + 1);
   }, [closeTutorial, mode, persistCompletion, stepIndex, steps.length]);
 
   const handleBack = useCallback(() => {
+    setSkipConfirmationActive(false);
     setError('');
     setStepIndex(current => Math.max(current - 1, 0));
   }, []);
 
   const handleSkip = useCallback(() => {
+    setError('');
+    setSkipConfirmationActive(true);
+  }, []);
+
+  const handleCancelSkip = useCallback(() => {
+    setSkipConfirmationActive(false);
+  }, []);
+
+  const handleConfirmSkip = useCallback(() => {
     if (mode === 'replay') {
       closeTutorial();
       return;
@@ -381,6 +430,7 @@ export default function DonorOnboardingController({ children, role }) {
     }
     setMode('replay');
     setStepIndex(0);
+    setSkipConfirmationActive(false);
     setError('');
     setActive(true);
   }, [profileLoaded, tutorialRole]);
@@ -391,6 +441,7 @@ export default function DonorOnboardingController({ children, role }) {
     }
     setMode('replay');
     setStepIndex(0);
+    setSkipConfirmationActive(false);
     setError('');
     setActive(true);
   }, [profileLoaded, tutorialRole]);
@@ -433,9 +484,12 @@ export default function DonorOnboardingController({ children, role }) {
         canGoBack={stepIndex > 0}
         isSaving={isSaving}
         error={error}
+        skipConfirmationActive={skipConfirmationActive}
         onNext={handleNext}
         onBack={handleBack}
         onSkip={handleSkip}
+        onCancelSkip={handleCancelSkip}
+        onConfirmSkip={handleConfirmSkip}
       />
     </OnboardingContext.Provider>
   );

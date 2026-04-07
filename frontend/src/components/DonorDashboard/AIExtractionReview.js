@@ -26,6 +26,32 @@ import ApprovalRequiredModal from '../ApprovalRequiredModal';
 import './Donor_Styles/AIDonation.css';
 import 'react-datepicker/dist/react-datepicker.css';
 
+function mapFoodCategories(categories) {
+  if (!categories || categories.length === 0) {
+    return [];
+  }
+
+  return categories.map(cat => {
+    const option = foodTypeOptions.find(
+      opt => opt.value === mapLegacyCategoryToFoodType(cat)
+    );
+    return option || { value: cat, label: cat };
+  });
+}
+
+const buildInitialFormData = data => ({
+  title: data.foodName || '',
+  quantityValue: data.quantityValue?.toString() || '',
+  quantityUnit: data.quantityUnit || '',
+  foodCategories: mapFoodCategories(data.foodCategories),
+  fabricationDate: data.fabricationDate ? new Date(data.fabricationDate) : '',
+  expiryDate: data.expiryDate ? new Date(data.expiryDate) : '',
+  pickupLocation: { latitude: '', longitude: '', address: '' },
+  description: data.description || '',
+  temperatureCategory: data.temperatureCategory || '',
+  packagingType: data.packagingType || '',
+});
+
 /**
  * Component to review and edit AI-extracted donation data before submission
  */
@@ -36,6 +62,9 @@ export default function AIExtractionReview({
   onCancel,
   onSubmitStart,
   onSubmitError,
+  draft,
+  submitError,
+  onDraftChange,
 }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -43,24 +72,16 @@ export default function AIExtractionReview({
   const { userTimezone } = useTimezone();
   const autocompleteRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [expiryTouched, setExpiryTouched] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [expiryTouched, setExpiryTouched] = useState(
+    () => draft?.expiryTouched || false
+  );
+  const [currentStep, setCurrentStep] = useState(() => draft?.currentStep || 1);
   const [showApprovalRequiredModal, setShowApprovalRequiredModal] =
     useState(false);
 
-  // Parse AI-extracted data into form state
-  const [formData, setFormData] = useState({
-    title: data.foodName || '',
-    quantityValue: data.quantityValue?.toString() || '',
-    quantityUnit: data.quantityUnit || 'KILOGRAM',
-    foodCategories: mapFoodCategories(data.foodCategories),
-    fabricationDate: data.fabricationDate ? new Date(data.fabricationDate) : '',
-    expiryDate: data.expiryDate ? new Date(data.expiryDate) : '',
-    pickupLocation: { latitude: '', longitude: '', address: '' },
-    description: data.description || '',
-    temperatureCategory: data.temperatureCategory || '',
-    packagingType: data.packagingType || '',
-  });
+  const [formData, setFormData] = useState(
+    () => draft?.formData || buildInitialFormData(data)
+  );
 
   const selectedFoodType = formData.foodCategories?.[0]?.value || '';
   const expirySuggestion = useMemo(
@@ -97,14 +118,17 @@ export default function AIExtractionReview({
     formData.expiryDate,
   ]);
 
-  const [pickupSlots, setPickupSlots] = useState([
-    {
-      pickupDate: '',
-      startTime: '',
-      endTime: '',
-      notes: '',
-    },
-  ]);
+  const [pickupSlots, setPickupSlots] = useState(
+    () =>
+      draft?.pickupSlots || [
+        {
+          pickupDate: '',
+          startTime: '',
+          endTime: '',
+          notes: '',
+        },
+      ]
+  );
 
   const stepMeta = [
     { id: 1, label: 'Product Information' },
@@ -114,21 +138,14 @@ export default function AIExtractionReview({
     { id: 5, label: t('aiDonation.steps.reviewSubmit') },
   ];
 
-  /**
-   * Map backend food categories to react-select format
-   */
-  function mapFoodCategories(categories) {
-    if (!categories || categories.length === 0) {
-      return [];
-    }
-
-    return categories.map(cat => {
-      const option = foodTypeOptions.find(
-        opt => opt.value === mapLegacyCategoryToFoodType(cat)
-      );
-      return option || { value: cat, label: cat };
+  useEffect(() => {
+    onDraftChange?.({
+      formData,
+      pickupSlots,
+      currentStep,
+      expiryTouched,
     });
-  }
+  }, [currentStep, expiryTouched, formData, onDraftChange, pickupSlots]);
 
   /**
    * Get confidence level badge
@@ -469,8 +486,11 @@ export default function AIExtractionReview({
         setShowApprovalRequiredModal(true);
         return;
       }
-      onSubmitError?.();
-      toast.error(err.response?.data?.message || 'Failed to create donation');
+      const errorMessage =
+        err.response?.data?.message ||
+        'We could not submit your donation. Your changes are still here, so you can fix the issue and try again.';
+      onSubmitError?.(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -480,8 +500,11 @@ export default function AIExtractionReview({
     <div className="ai-extraction-review ai-review-shell">
       <div className="ai-review-topbar">
         <div>
-          <h3>Create Donation with AI</h3>
-          <p>Upload a label photo to automatically extract product details</p>
+          <h3>Donate with AI</h3>
+          <p>
+            Upload a label photo to generate a donation draft you can review and
+            submit.
+          </p>
         </div>
         <button
           className="ai-review-reupload"
@@ -525,6 +548,11 @@ export default function AIExtractionReview({
       </div>
 
       <form onSubmit={handleSubmit} className="review-form ai-review-form">
+        {submitError && (
+          <div className="error-message" role="alert">
+            {submitError}
+          </div>
+        )}
         {currentStep === 1 && (
           <section className="ai-review-card">
             <div className="ai-review-card-head">
@@ -1076,4 +1104,12 @@ AIExtractionReview.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onSubmitStart: PropTypes.func,
   onSubmitError: PropTypes.func,
+  draft: PropTypes.shape({
+    formData: PropTypes.object,
+    pickupSlots: PropTypes.array,
+    currentStep: PropTypes.number,
+    expiryTouched: PropTypes.bool,
+  }),
+  submitError: PropTypes.string,
+  onDraftChange: PropTypes.func,
 };

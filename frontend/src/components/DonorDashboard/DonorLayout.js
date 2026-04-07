@@ -426,6 +426,7 @@ export default function DonorLayout() {
           <Link
             to="/donor/achievements"
             className={`donor-nav-link ${isActive('/donor/achievements') ? 'active' : ''}`}
+            data-tour="donor-nav-achievements"
             data-tooltip={t('donorLayout.achievements', 'Achievements')}
           >
             <span className="nav-icon" aria-hidden>

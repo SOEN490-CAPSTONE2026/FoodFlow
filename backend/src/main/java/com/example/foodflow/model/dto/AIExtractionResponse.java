@@ -33,6 +33,7 @@ public class AIExtractionResponse {
     // Success flag
     private boolean success = true;
     private String errorMessage;
+    private String errorCode;
     
     // Constructors
     public AIExtractionResponse() {}
@@ -148,6 +149,14 @@ public class AIExtractionResponse {
     
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
     
     /**

@@ -6,7 +6,8 @@ import { impactDashboardAPI } from '../services/api';
 jest.mock('../services/api', () => ({
   impactDashboardAPI: {
     getMetrics: jest.fn(),
-    exportMetrics: jest.fn(),
+    exportMetricsCSV: jest.fn(),
+    exportMetricsPDF: jest.fn(),
   },
 }));
 
@@ -48,12 +49,19 @@ const renderLoadedDashboard = async () => {
   await screen.findByText('Customize Metrics');
 };
 
+const openExportMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+};
+
 describe('DonorImpactDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
-    impactDashboardAPI.exportMetrics.mockResolvedValue({
+    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({
       data: 'metric,value\nFood Saved,20 kg',
+    });
+    impactDashboardAPI.exportMetricsPDF.mockResolvedValue({
+      data: 'mock-pdf',
     });
     global.URL.createObjectURL = jest.fn(() => 'mock-url');
     global.URL.revokeObjectURL = jest.fn();
@@ -63,7 +71,7 @@ describe('DonorImpactDashboard', () => {
     await renderLoadedDashboard();
 
     expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
-    expect(screen.getByText('Export CSV')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument();
     expect(screen.getByText('Food Saved')).toBeInTheDocument();
     expect(screen.getByText('CO₂ Reduced')).toBeInTheDocument();
     expect(screen.getByText('Meals Donated')).toBeInTheDocument();
@@ -93,10 +101,13 @@ describe('DonorImpactDashboard', () => {
       .mockImplementation(() => {});
 
     await renderLoadedDashboard();
-    fireEvent.click(screen.getByText('Export CSV'));
+    openExportMenu();
+    fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
     await waitFor(() => {
-      expect(impactDashboardAPI.exportMetrics).toHaveBeenCalledWith('DAYS_30');
+      expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith(
+        'DAYS_30'
+      );
     });
     expect(global.URL.createObjectURL).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();

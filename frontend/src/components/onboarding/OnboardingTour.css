@@ -40,13 +40,13 @@
 
 .onboarding-tour__tooltip {
   position: fixed;
-  width: min(360px, calc(100vw - 32px));
-  max-height: min(420px, calc(100vh - 32px));
-  border-radius: 24px;
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(520px, calc(100vh - 32px));
+  border-radius: 28px;
   background: linear-gradient(180deg, #ffffff 0%, #f6fbf8 100%);
   color: #10211a;
   box-shadow: 0 24px 60px rgba(7, 19, 14, 0.26);
-  padding: 20px 20px 16px;
+  padding: 28px 28px 24px;
   pointer-events: auto;
   overflow-y: auto;
   transition:
@@ -63,8 +63,8 @@
 }
 
 .onboarding-tour__eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.72rem;
+  margin: 0 0 10px;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -73,14 +73,36 @@
 
 .onboarding-tour__title {
   margin: 0;
-  font-size: 1.3rem;
-  line-height: 1.2;
+  font-size: 1.65rem;
+  line-height: 1.18;
 }
 
 .onboarding-tour__text {
-  margin: 10px 0 0;
+  margin: 14px 0 0;
+  font-size: 1rem;
   color: #3f5148;
-  line-height: 1.55;
+  line-height: 1.72;
+}
+
+.onboarding-tour__skip-confirmation {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(248, 228, 228, 0.7);
+  border: 1px solid rgba(193, 93, 93, 0.2);
+}
+
+.onboarding-tour__skip-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.onboarding-tour__skip-text {
+  margin: 8px 0 0;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: #5d3b3b;
 }
 
 .onboarding-tour__footer {
@@ -92,7 +114,7 @@
 }
 
 .onboarding-tour__progress {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: #5a6f64;
 }
 
@@ -105,7 +127,8 @@
 .onboarding-tour__button {
   border: none;
   border-radius: 999px;
-  padding: 10px 16px;
+  min-height: 46px;
+  padding: 11px 18px;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -132,6 +155,11 @@
 
 .onboarding-tour__button--primary {
   background: #5f9678;
+  color: #fff;
+}
+
+.onboarding-tour__button--danger {
+  background: #c55353;
   color: #fff;
 }
 
@@ -171,10 +199,18 @@
     bottom: 12px;
     width: auto;
     max-width: none;
-    padding: 18px 18px 14px;
+    padding: 22px 20px 18px;
     transform: none !important;
-    max-height: min(58vh, 420px);
+    max-height: min(66vh, 520px);
     overflow-y: auto;
+  }
+
+  .onboarding-tour__title {
+    font-size: 1.4rem;
+  }
+
+  .onboarding-tour__text {
+    font-size: 0.98rem;
   }
 
   .onboarding-tour__footer {
@@ -183,6 +219,7 @@
   }
 
   .onboarding-tour__actions {
+    flex-wrap: wrap;
     justify-content: space-between;
   }
 

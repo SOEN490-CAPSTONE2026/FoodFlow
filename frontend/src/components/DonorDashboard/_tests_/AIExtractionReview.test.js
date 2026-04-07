@@ -202,7 +202,7 @@ describe('AIExtractionReview', () => {
   test('renders initial step content', () => {
     renderComponent();
 
-    expect(screen.getByText('Create Donation with AI')).toBeInTheDocument();
+    expect(screen.getByText('Donate with AI')).toBeInTheDocument();
     expect(screen.getAllByText('Product Information').length).toBeGreaterThan(
       0
     );
@@ -302,9 +302,39 @@ describe('AIExtractionReview', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit Donation' }));
 
     await waitFor(() => {
-      expect(mockOnSubmitError).toHaveBeenCalled();
+      expect(mockOnSubmitError).toHaveBeenCalledWith(
+        'Database connection failed'
+      );
       expect(toast.error).toHaveBeenCalledWith('Database connection failed');
     });
+  });
+
+  test('preserves edited values after submission failure', async () => {
+    surplusAPI.create.mockRejectedValue({
+      response: { data: { message: 'Database connection failed' } },
+    });
+
+    renderComponent();
+
+    fireEvent.change(screen.getByPlaceholderText(/enter food name/i), {
+      target: { value: 'Fresh Apple Boxes' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    completePickupStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Donation' }));
+
+    await waitFor(() => {
+      expect(mockOnSubmitError).toHaveBeenCalled();
+    });
+
+    expect(mockOnSubmitError).toHaveBeenCalledWith(
+      'Database connection failed'
+    );
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+    expect(screen.getByDisplayValue('Fresh Apple Boxes')).toBeInTheDocument();
   });
 
   test('shows approval modal and skips AI donation submission when account is not approved', async () => {

@@ -77,12 +77,20 @@ function TutorialHarness() {
       <button type="button" data-tour="donor-nav-donate">
         Donor donate
       </button>
+      <button type="button" data-tour="donor-ai-donation-entry">
+        Donor AI donate entry
+      </button>
+      <button type="button" data-tour="donor-nav-achievements">
+        Donor achievements
+      </button>
       <button type="button" data-tour="donor-nav-messages">
         Donor messages
       </button>
       <button type="button" data-tour="donor-nav-settings">
         Donor settings
       </button>
+      <main data-tour="donor-ai-donation-main">AI donation</main>
+      <main data-tour="receiver-browse-main">Receiver browse main</main>
       <button type="button" data-tour="receiver-nav-browse">
         Receiver browse
       </button>
@@ -92,6 +100,9 @@ function TutorialHarness() {
       <button type="button" data-tour="receiver-nav-claims">
         Receiver claims
       </button>
+      <button type="button" data-tour="receiver-nav-achievements">
+        Receiver achievements
+      </button>
       <button type="button" data-tour="receiver-nav-messages">
         Receiver messages
       </button>
@@ -100,6 +111,9 @@ function TutorialHarness() {
       </button>
       <button type="button" data-tour="receiver-preferences-entry">
         Receiver preferences
+      </button>
+      <button type="button" data-tour="receiver-account-menu">
+        Receiver account menu
       </button>
       <button type="button" data-tour="receiver-settings-entry">
         Receiver settings
@@ -177,11 +191,11 @@ describe('DonorOnboardingController', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(
-      screen.getByText('onboarding.donor.steps.dashboard.title')
+      screen.getByText('onboarding.donor.steps.welcome.title')
     ).toBeInTheDocument();
     expect(screen.getByTestId('active-flag')).toHaveTextContent('true');
     expect(screen.getByTestId('role-flag')).toHaveTextContent('DONOR');
-    expect(screen.getByTestId('step-flag')).toHaveTextContent('dashboard');
+    expect(screen.getByTestId('step-flag')).toHaveTextContent('welcome');
     expect(mockNavigate).toHaveBeenCalledWith('/donor');
   });
 
@@ -199,14 +213,12 @@ describe('DonorOnboardingController', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('onboarding.donor.steps.impact.title')
+        screen.getByText('onboarding.donor.steps.dashboard.title')
       ).toBeInTheDocument();
     });
-    expect(screen.getByTestId('step-flag')).toHaveTextContent(
-      'impact-dashboard'
-    );
-    expect(mockNavigate).toHaveBeenCalledWith('/donor/impact');
-    expect(screen.getByText('step 2 of 6')).toBeInTheDocument();
+    expect(screen.getByTestId('step-flag')).toHaveTextContent('dashboard');
+    expect(mockNavigate).toHaveBeenLastCalledWith('/donor');
+    expect(screen.getByText('step 2 of 9')).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.back' })
@@ -214,10 +226,10 @@ describe('DonorOnboardingController', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('onboarding.donor.steps.dashboard.title')
+        screen.getByText('onboarding.donor.steps.welcome.title')
       ).toBeInTheDocument();
     });
-    expect(screen.getByTestId('step-flag')).toHaveTextContent('dashboard');
+    expect(screen.getByTestId('step-flag')).toHaveTextContent('welcome');
   });
 
   test('persists onboarding completion when donor skips the first-run tutorial', async () => {
@@ -230,6 +242,13 @@ describe('DonorOnboardingController', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
+    expect(
+      screen.getByText('onboarding.skipConfirmation.title')
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.confirmSkip' })
     );
 
     await waitFor(() => {
@@ -257,6 +276,9 @@ describe('DonorOnboardingController', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.skip' })
     );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.confirmSkip' })
+    );
 
     expect(
       await screen.findByText('onboarding.errors.saveFailed')
@@ -278,14 +300,14 @@ describe('DonorOnboardingController', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
-    for (let index = 0; index < 5; index += 1) {
+    for (let index = 0; index < 8; index += 1) {
       fireEvent.click(
         screen.getByRole('button', { name: 'onboarding.actions.next' })
       );
     }
 
     expect(
-      await screen.findByText('onboarding.donor.steps.setup.title')
+      await screen.findByText('onboarding.donor.steps.achievements.title')
     ).toBeInTheDocument();
 
     fireEvent.click(
@@ -307,16 +329,17 @@ describe('DonorOnboardingController', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(
-      screen.getByText('onboarding.receiver.steps.browse.title')
+      screen.getByText('onboarding.receiver.steps.welcome.title')
     ).toBeInTheDocument();
     expect(screen.getByTestId('role-flag')).toHaveTextContent('RECEIVER');
-    expect(screen.getByTestId('step-flag')).toHaveTextContent(
-      'browse-donations'
-    );
+    expect(screen.getByTestId('step-flag')).toHaveTextContent('welcome');
     expect(mockNavigate).toHaveBeenCalledWith('/receiver');
 
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.confirmSkip' })
     );
 
     await waitFor(() => {
@@ -332,6 +355,9 @@ describe('DonorOnboardingController', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.confirmSkip' })
     );
 
     await waitFor(() => {
@@ -367,11 +393,48 @@ describe('DonorOnboardingController', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'onboarding.actions.skip' })
     );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.confirmSkip' })
+    );
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
     expect(document.body.style.overflow).toBe('');
+  });
+
+  test('cancels skip confirmation and resumes the tutorial flow', async () => {
+    mockProfileGet.mockResolvedValueOnce({
+      data: { onboardingCompleted: false },
+    });
+
+    renderController('DONOR');
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.skip' })
+    );
+
+    expect(
+      screen.getByText('onboarding.skipConfirmation.title')
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.cancelSkip' })
+    );
+
+    expect(
+      screen.queryByText('onboarding.skipConfirmation.title')
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'onboarding.actions.next' })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('onboarding.donor.steps.dashboard.title')
+      ).toBeInTheDocument();
+    });
   });
 
   test('clears the target highlight for centered steps without selectors', async () => {
@@ -385,18 +448,31 @@ describe('DonorOnboardingController', () => {
 
     fireEvent.click(screen.getByText('replay receiver'));
 
-    for (let index = 0; index < 7; index += 1) {
+    expect(
+      document.querySelector('.onboarding-tour__highlight')
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toHaveClass('is-centered');
+  });
+
+  test('navigates receiver replay through the shortened workflow', async () => {
+    renderController('RECEIVER');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('receiver-replay-flag')).toHaveTextContent(
+        'true'
+      );
+    });
+
+    fireEvent.click(screen.getByText('replay receiver'));
+
+    for (let index = 0; index < 6; index += 1) {
       fireEvent.click(
         screen.getByRole('button', { name: 'onboarding.actions.next' })
       );
     }
 
     expect(
-      await screen.findByText('onboarding.receiver.steps.done.title')
+      await screen.findByText('onboarding.receiver.steps.achievements.title')
     ).toBeInTheDocument();
-    expect(
-      document.querySelector('.onboarding-tour__highlight')
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toHaveClass('is-centered');
   });
 });
