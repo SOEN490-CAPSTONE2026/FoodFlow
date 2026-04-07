@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import LeaderboardEntry from '../LeaderboardEntry';
+import LeaderboardEntry from '../components/shared/LeaderboardEntry';
 
 describe('LeaderboardEntry Component', () => {
   const mockEntry = {

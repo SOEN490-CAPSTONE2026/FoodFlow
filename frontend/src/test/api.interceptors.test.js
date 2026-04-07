@@ -1,5 +1,5 @@
 // Unmock setup-level API mock and test the real module behavior.
-jest.unmock('../api');
+jest.unmock('../services/api');
 
 const mockPost = jest.fn();
 const mockGet = jest.fn();

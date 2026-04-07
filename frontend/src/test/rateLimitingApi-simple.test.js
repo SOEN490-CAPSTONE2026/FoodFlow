@@ -1,5 +1,5 @@
 // Mock the API service
-jest.mock('../api', () => ({
+jest.mock('../services/api', () => ({
   __esModule: true,
   default: {
     post: jest.fn(),

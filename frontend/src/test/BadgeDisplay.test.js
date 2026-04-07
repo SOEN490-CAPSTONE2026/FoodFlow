@@ -5,7 +5,7 @@ import BadgeDisplay from '../BadgeDisplay';
 import * as gamificationHook from '../../../hooks/useGamification';
 
 // Mock the hook
-jest.mock('../../../hooks/useGamification');
+jest.mock('../hooks/useGamification');
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({

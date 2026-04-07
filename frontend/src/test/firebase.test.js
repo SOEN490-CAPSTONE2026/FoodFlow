@@ -28,7 +28,7 @@ jest.mock('firebase/auth', () => ({
 }));
 
 // Unmock the firebase.js module to test the actual code
-jest.unmock('../firebase');
+jest.unmock('../services/firebase');
 
 describe('Firebase Configuration', () => {
   let firebaseModule;

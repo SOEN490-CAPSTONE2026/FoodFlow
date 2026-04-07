@@ -1,4 +1,4 @@
-import { onUnauthorized, emitUnauthorized } from '../authEvents';
+import { onUnauthorized, emitUnauthorized } from '../services/authEvents';
 
 describe('authEvents', () => {
   describe('onUnauthorized', () => {

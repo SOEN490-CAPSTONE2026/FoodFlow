@@ -1,4 +1,4 @@
-import AnalyticsService from '../analyticsService';
+import AnalyticsService from '../services/analyticsService';
 
 jest.mock('axios', () => ({
   post: jest.fn(() => Promise.resolve({ data: { success: true } })),

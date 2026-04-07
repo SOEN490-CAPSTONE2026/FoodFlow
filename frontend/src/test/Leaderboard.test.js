@@ -5,7 +5,7 @@ import Leaderboard from '../Leaderboard';
 import useLeaderboard from '../../../hooks/useLeaderboard';
 
 // Mock the hooks
-jest.mock('../../../hooks/useLeaderboard');
+jest.mock('../hooks/useLeaderboard');
 jest.mock('@tanstack/react-query');
 
 // Mock LeaderboardEntry component

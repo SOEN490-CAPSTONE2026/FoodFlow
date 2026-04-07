@@ -23,7 +23,7 @@ jest.mock('firebase/analytics', () => ({
     mockSetAnalyticsCollectionEnabled(...args),
 }));
 
-jest.mock('../firebase', () => ({
+jest.mock('../services/firebase', () => ({
   getAnalyticsInstance: () => mockGetAnalyticsInstance(),
   isAnalyticsInitialized: () => mockIsAnalyticsInitialized(),
 }));

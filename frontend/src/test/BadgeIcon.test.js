@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import BadgeIcon from '../BadgeIcon';
+import BadgeIcon from '../components/shared/BadgeIcon';
 
 jest.mock('lucide-react', () => ({
   Gift: () => <div data-testid="icon-gift" />,

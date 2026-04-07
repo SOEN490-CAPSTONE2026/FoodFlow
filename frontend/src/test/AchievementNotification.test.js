@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import AchievementNotification from '../AchievementNotification';
 
-jest.mock('../BadgeIcon', () => {
+jest.mock('../components/shared/BadgeIcon', () => {
   return function BadgeIconMock() {
     return <div data-testid="badge-icon" />;
   };

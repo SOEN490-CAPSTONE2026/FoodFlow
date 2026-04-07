@@ -1,5 +1,5 @@
 // Unmock the global API mock from setupTests.js so we can test the real implementation
-jest.unmock('../api');
+jest.unmock('../services/api');
 
 const mockPost = jest.fn();
 const mockGet = jest.fn();

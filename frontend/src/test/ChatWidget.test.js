@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ChatWidget from '../ChatWidget';
-import api from '../../../services/api';
+import ChatWidget from '../components/ChatWidget';
+import api from '../services/api';
 
 // Mock the API service
-jest.mock('../../../services/api', () => ({
+jest.mock('../services/api', () => ({
   __esModule: true,
   default: {
     post: jest.fn(),
