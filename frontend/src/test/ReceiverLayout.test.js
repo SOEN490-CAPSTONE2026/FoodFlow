@@ -28,7 +28,7 @@ jest.mock('./Receiver_Styles/ReceiverLayout.css', () => ({}), {
   virtual: true,
 });
 jest.mock('../assets/Logo.png', () => 'logo.png');
-jest.mock('./pfp.png', () => 'pfp.png');
+jest.mock('../components/ReceiverDashboard/pfp.png', () => 'pfp.png');
 
 const ReceiverLayoutContent = require('./ReceiverLayout').default;
 

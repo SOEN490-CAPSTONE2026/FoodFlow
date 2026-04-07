@@ -58,7 +58,7 @@ jest.mock(
 );
 
 // Mock CSS
-jest.mock('../../ReceiverBrowse.css', () => ({}));
+jest.mock('../components/ReceiverDashboard/ReceiverBrowse.css', () => ({}));
 jest.mock('../../ReceiverBrowseModal.css', () => ({}));
 
 // Mock useLoadScript hook
