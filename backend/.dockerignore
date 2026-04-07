@@ -1,0 +1,42 @@
+# Build outputs
+target/
+*.jar
+*.war
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor configs
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# Dependency cache
+.m2/
+node_modules/
+
+# Logs and temp files
+*.log
+logs/
+
+# Environment variables (use Docker secrets instead)
+.env
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+*.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+src/test/
+*.test.java
