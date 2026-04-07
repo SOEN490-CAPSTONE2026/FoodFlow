@@ -69,28 +69,28 @@ describe('api interceptors and endpoint wrappers', () => {
   });
 
   test('request interceptor attaches token from localStorage', () => {
-    require('../api');
+    require('../services/api');
     localStorage.setItem('jwtToken', 'token-local');
     const next = requestOnFulfilled({ headers: {} });
     expect(next.headers.Authorization).toBe('Bearer token-local');
   });
 
   test('request interceptor falls back to sessionStorage token', () => {
-    require('../api');
+    require('../services/api');
     sessionStorage.setItem('jwtToken', 'token-session');
     const next = requestOnFulfilled({ headers: {} });
     expect(next.headers.Authorization).toBe('Bearer token-session');
   });
 
   test('request error handler rejects', async () => {
-    require('../api');
+    require('../services/api');
     await expect(requestOnRejected(new Error('request fail'))).rejects.toThrow(
       'request fail'
     );
   });
 
   test('response interceptor appends rate limit metadata', () => {
-    require('../api');
+    require('../services/api');
     const response = {
       headers: {
         'x-ratelimit-limit': '100',
@@ -108,7 +108,7 @@ describe('api interceptors and endpoint wrappers', () => {
   });
 
   test('response error marks 429 with retry metadata', async () => {
-    require('../api');
+    require('../services/api');
     const error = { response: { status: 429, headers: { 'retry-after': 9 } } };
     await expect(responseOnRejected(error)).rejects.toBe(error);
     expect(error.rateLimited).toBe(true);
@@ -116,7 +116,7 @@ describe('api interceptors and endpoint wrappers', () => {
   });
 
   test('response error on 401 clears auth and redirects to login', async () => {
-    require('../api');
+    require('../services/api');
     const authKeys = [
       'jwtToken',
       'userRole',
@@ -150,7 +150,7 @@ describe('api interceptors and endpoint wrappers', () => {
   });
 
   test('response error on 401 does not redirect when already on login', async () => {
-    require('../api');
+    require('../services/api');
     mockGetNavigationLocation.mockReturnValue({ pathname: '/login' });
     const error = { response: { status: 401 } };
     await expect(responseOnRejected(error)).rejects.toBe(error);
@@ -180,7 +180,7 @@ describe('api interceptors and endpoint wrappers', () => {
       .mockResolvedValueOnce({ data: { deleted: true } }); // deleteUpload
     mockPut.mockResolvedValueOnce({ data: { saved: true } }); // updatePrefs
 
-    const { adminImageAPI, calendarAPI } = require('../api');
+    const { adminImageAPI, calendarAPI } = require('../services/api');
     await adminImageAPI.getLibrary(true);
     await adminImageAPI.addLibraryItem({
       imageUrl: 'https://cdn.example.com/default.jpg',
@@ -257,7 +257,7 @@ describe('api interceptors and endpoint wrappers', () => {
     mockDelete.mockResolvedValueOnce({ data: { ok: true } });
     mockPatch.mockResolvedValueOnce({ data: { ok: true } });
 
-    const apiModule = require('../api');
+    const apiModule = require('../services/api');
     await apiModule.post('/x', { a: 1 });
     await apiModule.get('/x');
     await apiModule.put('/x', { b: 2 });
