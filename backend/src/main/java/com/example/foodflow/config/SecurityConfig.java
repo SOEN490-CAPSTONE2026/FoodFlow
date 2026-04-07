@@ -106,8 +106,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/claims/**").hasAuthority("RECEIVER")
 
                         // User profile and preferences (all authenticated users)
-                        .requestMatchers(HttpMethod.GET, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/profile/**").hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/profile/**")
+                        .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/profile/**")
+                        .hasAnyAuthority("RECEIVER", "DONOR", "ADMIN")
 
                         // Receiver-specific preferences and saved items
                         .requestMatchers("/api/receiver/preferences/**").hasAuthority("RECEIVER")
@@ -118,7 +120,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/donations/stats/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/badge/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
                         .requestMatchers("/api/donations/privacy/**").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
-                        .requestMatchers("/api/donations/profile/*/public").hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
+                        .requestMatchers("/api/donations/profile/*/public")
+                        .hasAnyAuthority("DONOR", "RECEIVER", "ADMIN")
 
                         // Feed and requests (user-specific endpoints)
                         .requestMatchers("/api/feed/**").hasAuthority("RECEIVER")
