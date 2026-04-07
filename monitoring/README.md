@@ -18,7 +18,7 @@ This directory contains configuration files for monitoring the FoodFlow applicat
 - **Directory**: `grafana/`
 - **Purpose**: Metrics visualization and alerting dashboard
 - **Provisioning**: Automatic dashboard and datasource provisioning via provisioning files
-- **Default access**: http://localhost:3000 (admin/admin)
+- **Default access**: http://localhost:3001 (admin/admin)
 - **Provisioned dashboards**:
   - Application metrics (JVM, HTTP, business metrics)
   - Container performance (CPU, memory, network)
@@ -38,7 +38,7 @@ This directory contains configuration files for monitoring the FoodFlow applicat
 - **File**: `docker-compose.monitoring.yml`
 - **Services**:
   - Prometheus container (port 9090)
-  - Grafana container (port 3000)
+  - Grafana container (port 3001 external, 3000 internal)
   - Cadvisor for container metrics (port 8080 - not exposed to avoid conflict)
 
 ## Usage
@@ -50,7 +50,7 @@ This directory contains configuration files for monitoring the FoodFlow applicat
 docker compose -f monitoring/docker-compose.monitoring.yml up -d
 
 # Access Grafana
-open http://localhost:3000
+open http://localhost:3001
 
 # Access Prometheus
 open http://localhost:9090
