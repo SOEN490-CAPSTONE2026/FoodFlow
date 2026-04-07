@@ -21,7 +21,7 @@ jest.mock('../components/RegionSelector', () => ({ onChange }) => (
   </div>
 ));
 jest.mock(
-  '../../ChangePasswordModal',
+  '../components/ChangePasswordModal',
   () =>
     ({ isOpen, onClose }) =>
       isOpen ? <div data-testid="change-password-modal" /> : null

@@ -20,14 +20,14 @@ jest.mock(
   '../components/MessagingDashboard/MessageNotification',
   () => () => null
 );
-jest.mock('./ReceiverPreferences', () => () => null);
+jest.mock('../components/ReceiverDashboard/ReceiverPreferences', () => () => null);
 jest.mock('../components/AdminApprovalBanner', () => () => (
   <div data-testid="admin-approval-banner">Approval banner</div>
 ));
 jest.mock('./Receiver_Styles/ReceiverLayout.css', () => ({}), {
   virtual: true,
 });
-jest.mock('../../assets/Logo.png', () => 'logo.png');
+jest.mock('../assets/Logo.png', () => 'logo.png');
 jest.mock('./pfp.png', () => 'pfp.png');
 
 const ReceiverLayoutContent = require('./ReceiverLayout').default;

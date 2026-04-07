@@ -17,7 +17,7 @@ import {
 } from '../utils/formatUtils';
 
 // Mock i18n
-jest.mock('../../locales/i18n', () => ({
+jest.mock('../locales/i18n', () => ({
   language: 'en-US',
 }));
 

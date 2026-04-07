@@ -39,21 +39,21 @@ const renderWithProviders = (ui, options = {}) => {
 
 // Mock images
 jest.mock(
-  '../../../assets/foodtypes/Pastry&Bakery.jpg',
+  '../assets/foodtypes/Pastry&Bakery.jpg',
   () => 'bakery-image.jpg'
 );
 jest.mock(
-  '../../../assets/foodtypes/Fruits&Vegetables.jpg',
+  '../assets/foodtypes/Fruits&Vegetables.jpg',
   () => 'fruits-image.jpg'
 );
 jest.mock(
-  '../../../assets/foodtypes/PackagedItems.jpg',
+  '../assets/foodtypes/PackagedItems.jpg',
   () => 'packaged-image.jpg'
 );
-jest.mock('../../../assets/foodtypes/Dairy.jpg', () => 'dairy-image.jpg');
-jest.mock('../../../assets/foodtypes/FrozenFood.jpg', () => 'frozen-image.jpg');
+jest.mock('../assets/foodtypes/Dairy.jpg', () => 'dairy-image.jpg');
+jest.mock('../assets/foodtypes/FrozenFood.jpg', () => 'frozen-image.jpg');
 jest.mock(
-  '../../../assets/foodtypes/PreparedFood.jpg',
+  '../assets/foodtypes/PreparedFood.jpg',
   () => 'prepared-image.jpg'
 );
 
