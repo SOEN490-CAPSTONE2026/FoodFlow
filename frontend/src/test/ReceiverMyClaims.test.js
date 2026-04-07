@@ -14,15 +14,15 @@ import { NotificationProvider } from '../contexts/NotificationContext';
 import { TimezoneProvider } from '../contexts/TimezoneContext';
 
 // Mock images
-jest.mock('../../../assets/foodtypes/Pastry&Bakery.jpg', () => 'bakery.jpg');
+jest.mock('../assets/foodtypes/Pastry&Bakery.jpg', () => 'bakery.jpg');
 jest.mock(
-  '../../../assets/foodtypes/Fruits&Vegetables.jpg',
+  '../assets/foodtypes/Fruits&Vegetables.jpg',
   () => 'fruits.jpg'
 );
-jest.mock('../../../assets/foodtypes/PackagedItems.jpg', () => 'packaged.jpg');
-jest.mock('../../../assets/foodtypes/Dairy.jpg', () => 'dairy.jpg');
-jest.mock('../../../assets/foodtypes/FrozenFood.jpg', () => 'frozen.jpg');
-jest.mock('../../../assets/foodtypes/PreparedFood.jpg', () => 'prepared.jpg');
+jest.mock('../assets/foodtypes/PackagedItems.jpg', () => 'packaged.jpg');
+jest.mock('../assets/foodtypes/Dairy.jpg', () => 'dairy.jpg');
+jest.mock('../assets/foodtypes/FrozenFood.jpg', () => 'frozen.jpg');
+jest.mock('../assets/foodtypes/PreparedFood.jpg', () => 'prepared.jpg');
 
 // Mock ClaimDetailModal
 jest.mock('../components/ReceiverDashboard/ClaimDetailModal', () => {

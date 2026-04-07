@@ -10,7 +10,7 @@ import { AuthContext } from '../contexts/AuthContext';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => {
-    const en = require('../../../locales/en.json');
+    const en = require('../locales/en.json');
     const getValue = (obj, key) =>
       key.split('.').reduce((acc, part) => acc?.[part], obj);
 
@@ -1230,8 +1230,8 @@ describe('DonorListFood', () => {
   });
 
   describe('Photo upload functionality', () => {
-    const mockClaimsAPI = require('../../../services/api').claimsAPI;
-    const mockFeedbackAPI = require('../../../services/api').feedbackAPI;
+    const mockClaimsAPI = require('../services/api').claimsAPI;
+    const mockFeedbackAPI = require('../services/api').feedbackAPI;
 
     beforeEach(() => {
       mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
@@ -1351,8 +1351,8 @@ describe('DonorListFood', () => {
   });
 
   describe('Feedback and reporting', () => {
-    const mockClaimsAPI = require('../../../services/api').claimsAPI;
-    const mockReportAPI = require('../../../services/api').reportAPI;
+    const mockClaimsAPI = require('../services/api').claimsAPI;
+    const mockReportAPI = require('../services/api').reportAPI;
 
     beforeEach(() => {
       mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
@@ -1457,7 +1457,7 @@ describe('DonorListFood', () => {
   });
 
   describe('Contact receiver functionality', () => {
-    const mockClaimsAPI = require('../../../services/api').claimsAPI;
+    const mockClaimsAPI = require('../services/api').claimsAPI;
 
     beforeEach(() => {
       mockClaimsAPI.getClaimForSurplusPost.mockResolvedValue({
