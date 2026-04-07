@@ -67,7 +67,6 @@ public class AIController {
             errorResponse.setSuccess(false);
             errorResponse.setErrorMessage(e.getMessage());
             errorResponse.setErrorCode("INVALID_IMAGE");
-
             return ResponseEntity.badRequest().body(errorResponse);
 
         } catch (AIServiceException e) {
@@ -77,7 +76,6 @@ public class AIController {
             errorResponse.setSuccess(false);
             errorResponse.setErrorMessage("AI service is currently unavailable. Please try again later.");
             errorResponse.setErrorCode("AI_UNAVAILABLE");
-
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
 
         } catch (Exception e) {
@@ -87,7 +85,6 @@ public class AIController {
             errorResponse.setSuccess(false);
             errorResponse.setErrorMessage("An unexpected error occurred. Please try again.");
             errorResponse.setErrorCode("UNEXPECTED_ERROR");
-
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }

@@ -18,15 +18,11 @@ import com.itextpdf.layout.properties.UnitValue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Utility class for generating professional PDF exports with FoodFlow branding.
  */
 public class PdfExportUtils {
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-            .ofPattern("MMM d yyyy 'at' h:mm a");
 
     private static final Color PRIMARY_COLOR = new DeviceRgb(52, 152, 219);
     private static final Color DARK_GRAY = new DeviceRgb(51, 65, 85);

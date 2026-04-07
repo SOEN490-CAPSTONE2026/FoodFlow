@@ -6,7 +6,8 @@ import { impactDashboardAPI } from '../services/api';
 jest.mock('../services/api', () => ({
   impactDashboardAPI: {
     getMetrics: jest.fn(),
-    exportMetrics: jest.fn(),
+    exportMetricsCSV: jest.fn(),
+    exportMetricsPDF: jest.fn(),
   },
 }));
 
@@ -56,12 +57,19 @@ const renderLoadedDashboard = async () => {
   await screen.findByText('Customize Metrics');
 };
 
+const openExportMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+};
+
 describe('ReceiverImpactDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     impactDashboardAPI.getMetrics.mockResolvedValue({ data: mockMetrics });
-    impactDashboardAPI.exportMetrics.mockResolvedValue({
+    impactDashboardAPI.exportMetricsCSV.mockResolvedValue({
       data: 'metric,value\nFood Claimed,58.73 kg',
+    });
+    impactDashboardAPI.exportMetricsPDF.mockResolvedValue({
+      data: 'mock-pdf',
     });
     global.URL.createObjectURL = jest.fn(() => 'mock-url');
     global.URL.revokeObjectURL = jest.fn();
@@ -91,7 +99,7 @@ describe('ReceiverImpactDashboard', () => {
     await renderLoadedDashboard();
 
     expect(screen.getByText('Customize Metrics')).toBeInTheDocument();
-    expect(screen.getByText('Export CSV')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument();
     expect(screen.getByText('Food Claimed')).toBeInTheDocument();
 
     const co2Elements = screen.getAllByText('CO₂ Avoided');
@@ -143,10 +151,13 @@ describe('ReceiverImpactDashboard', () => {
       .mockImplementation(() => {});
 
     await renderLoadedDashboard();
-    fireEvent.click(screen.getByText('Export CSV'));
+    openExportMenu();
+    fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
     await waitFor(() => {
-      expect(impactDashboardAPI.exportMetrics).toHaveBeenCalledWith('DAYS_30');
+      expect(impactDashboardAPI.exportMetricsCSV).toHaveBeenCalledWith(
+        'DAYS_30'
+      );
     });
     expect(global.URL.createObjectURL).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
@@ -156,16 +167,17 @@ describe('ReceiverImpactDashboard', () => {
   });
 
   test('shows error when export fails', async () => {
-    impactDashboardAPI.exportMetrics.mockRejectedValueOnce(
+    impactDashboardAPI.exportMetricsCSV.mockRejectedValueOnce(
       new Error('Export failed')
     );
 
     await renderLoadedDashboard();
-    fireEvent.click(screen.getByText('Export CSV'));
+    openExportMenu();
+    fireEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
 
     await waitFor(() => {
       expect(
-        screen.getByText('Unable to export metrics right now.')
+        screen.getByText('Unable to export CSV right now.')
       ).toBeInTheDocument();
     });
   });

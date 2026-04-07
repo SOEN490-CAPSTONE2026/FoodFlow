@@ -147,14 +147,12 @@ public class ImpactDashboardController {
         PrintWriter writer = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
 
         writer.println("Metric,Value");
-
         String reportTitle = generateReportTitle(metrics.getRole());
         String dateRangeLabel = CsvExportUtils.formatDateRangeLabel(
                 metrics.getDateRange(), metrics.getStartDate(), metrics.getEndDate());
 
         CsvExportUtils.writeHeader(writer, reportTitle, LocalDateTime.now(),
                 metrics.getRole(), dateRangeLabel);
-
         CsvExportUtils.writeSectionHeader(writer, "Environmental Impact");
         CsvExportUtils.writeNumericMetric(writer, "Total Food Saved",
                 metrics.getTotalFoodWeightKg(), "kg");

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertCircle,
@@ -11,7 +11,12 @@ import {
 } from 'lucide-react';
 import './Donor_Styles/AIDonation.css';
 
-export default function AIImageUpload({ onImageSelect, onManualEntry }) {
+export default function AIImageUpload({
+  onImageSelect,
+  onManualEntry,
+  initialFile = null,
+  externalError = '',
+}) {
   const { t } = useTranslation();
   const [preview, setPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -20,6 +25,18 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic'];
+
+  useEffect(() => {
+    if (!initialFile) {
+      return;
+    }
+
+    setSelectedFile(initialFile);
+
+    const reader = new FileReader();
+    reader.onloadend = () => setPreview(reader.result);
+    reader.readAsDataURL(initialFile);
+  }, [initialFile]);
 
   const validateFile = file => {
     setError(null);
@@ -185,12 +202,12 @@ export default function AIImageUpload({ onImageSelect, onManualEntry }) {
         </div>
       )}
 
-      {error && (
+      {(error || externalError) && (
         <div className="error-message">
           <span className="error-icon">
             <AlertCircle size={16} />
           </span>
-          {error}
+          {error || externalError}
         </div>
       )}
 

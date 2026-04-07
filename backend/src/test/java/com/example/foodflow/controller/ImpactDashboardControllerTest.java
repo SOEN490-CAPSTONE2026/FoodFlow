@@ -427,7 +427,6 @@ class ImpactDashboardControllerTest {
                     .thenReturn(testMetrics);
 
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME", "pdf");
-
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertTrue(response.getBody().length > 0);
@@ -449,7 +448,6 @@ class ImpactDashboardControllerTest {
                     .thenReturn(receiverMetrics);
 
             ResponseEntity<byte[]> response = controller.exportMetrics(receiverUser, "MONTHLY", "pdf");
-
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertTrue(response.getBody().length > 0);
@@ -463,7 +461,6 @@ class ImpactDashboardControllerTest {
                     .thenReturn(testMetrics);
 
             ResponseEntity<byte[]> response = controller.exportMetrics(donorUser, "ALL_TIME");
-
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(MediaType.parseMediaType("text/csv"), response.getHeaders().getContentType());
             String csvContent = new String(response.getBody());
@@ -497,7 +494,6 @@ class ImpactDashboardControllerTest {
                     .thenReturn(adminMetrics);
 
             ResponseEntity<byte[]> response = controller.exportMetrics(adminUser, "WEEKLY", "pdf");
-
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertTrue(response.getBody().length > 0);

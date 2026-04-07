@@ -1,0 +1,132 @@
+/* Export Dropdown Styles */
+.export-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.export-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.export-dropdown-btn:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.export-dropdown-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.export-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: #334155;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.export-menu-item:last-child {
+  border-bottom: none;
+}
+
+.export-menu-item:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  color: #3498db;
+}
+
+.export-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-menu-item span:first-of-type {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.export-menu-hint {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+  margin-left: 1.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .export-dropdown-menu {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 12px 12px 0 0;
+    min-width: unset;
+    width: 100vw;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .export-menu-item {
+    padding: 1rem;
+  }
+}
