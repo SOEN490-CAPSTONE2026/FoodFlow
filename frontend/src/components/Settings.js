@@ -268,6 +268,7 @@ const Settings = () => {
     address: '',
   });
 
+  const [profileData, setProfileData] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
@@ -500,6 +501,7 @@ const Settings = () => {
       const profileResp = await profileAPI.get();
       if (profileResp.data) {
         const p = profileResp.data;
+        setProfileData(p);
         const profileAddress = p.organizationAddress || p.address || '';
         setFormData(prev => ({
           ...prev,
@@ -775,6 +777,7 @@ const Settings = () => {
 
       // Update local state with returned data
       if (resp.data) {
+        setProfileData(resp.data);
         setFormData(prev => ({
           ...prev,
           fullName: resp.data.fullName || prev.fullName,
@@ -857,7 +860,13 @@ const Settings = () => {
 
         setLastResolvedAddress(currentAddress);
 
-        setSuccessMessage(t('settings.account.profileUpdated'));
+        if (resp.data.organizationChangePending) {
+          setSuccessMessage(
+            'Your organization change is pending admin approval.'
+          );
+        } else {
+          setSuccessMessage(t('settings.account.profileUpdated'));
+        }
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -1127,16 +1136,59 @@ const Settings = () => {
                     <label className="field-label">
                       {t('settings.account.organization')}
                     </label>
-                    <input
-                      type="text"
-                      name="organization"
-                      className="field-input"
-                      placeholder={t(
-                        'settings.account.organizationPlaceholder'
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        name="organization"
+                        className="field-input"
+                        placeholder={t(
+                          'settings.account.organizationPlaceholder'
+                        )}
+                        value={formData.organization}
+                        onChange={handleInputChange}
+                      />
+                      {profileData?.pendingOrganizationName && (
+                        <span
+                          style={{
+                            backgroundColor: '#ffcc00',
+                            color: '#000',
+                            padding: '2px 8px',
+                            marginLeft: '10px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Pending
+                        </span>
                       )}
-                      value={formData.organization}
-                      onChange={handleInputChange}
-                    />
+                    </div>
+                    {profileData?.pendingOrganizationName && (
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: '#888',
+                          marginTop: '4px',
+                        }}
+                      >
+                        Requested:{' '}
+                        {profileData.pendingOrganizationName.newValue}
+                      </div>
+                    )}
+                    {!profileData?.pendingOrganizationName &&
+                      profileData?.lastRejectedOrganizationName && (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'red',
+                            marginTop: '4px',
+                          }}
+                        >
+                          Rejected:{' '}
+                          {profileData.lastRejectedOrganizationName.newValue}
+                        </div>
+                      )}
                   </div>
                   <div className="form-field">
                     <label className="field-label">
@@ -1198,6 +1250,51 @@ const Settings = () => {
                     {errors.address && (
                       <span className="field-error">{errors.address}</span>
                     )}
+                    {profileData?.pendingOrganizationAddress && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginTop: '4px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            backgroundColor: '#ffcc00',
+                            color: '#000',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Pending
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: '#888',
+                            marginLeft: '8px',
+                          }}
+                        >
+                          Requested:{' '}
+                          {profileData.pendingOrganizationAddress.newValue}
+                        </span>
+                      </div>
+                    )}
+                    {!profileData?.pendingOrganizationAddress &&
+                      profileData?.lastRejectedOrganizationAddress && (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'red',
+                            marginTop: '4px',
+                          }}
+                        >
+                          Rejected:{' '}
+                          {profileData.lastRejectedOrganizationAddress.newValue}
+                        </div>
+                      )}
                   </div>
                 </div>
 
