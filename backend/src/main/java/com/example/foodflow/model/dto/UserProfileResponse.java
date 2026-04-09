@@ -13,6 +13,13 @@ public class UserProfileResponse {
     private String organizationAddress;
     private Boolean onboardingCompleted;
 
+    // ===== Sensitive field pending/rejected state =====
+    private boolean organizationChangePending;
+    private PendingChangeDTO pendingOrganizationName;
+    private PendingChangeDTO pendingOrganizationAddress;
+    private PendingChangeDTO lastRejectedOrganizationName;
+    private PendingChangeDTO lastRejectedOrganizationAddress;
+
     // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,4 +51,19 @@ public class UserProfileResponse {
 
     public String getAddress() { return organizationAddress; }
     public void setAddress(String address) { this.organizationAddress = address; }
+
+    public boolean isOrganizationChangePending() { return organizationChangePending; }
+    public void setOrganizationChangePending(boolean organizationChangePending) { this.organizationChangePending = organizationChangePending; }
+
+    public PendingChangeDTO getPendingOrganizationName() { return pendingOrganizationName; }
+    public void setPendingOrganizationName(PendingChangeDTO pendingOrganizationName) { this.pendingOrganizationName = pendingOrganizationName; }
+
+    public PendingChangeDTO getPendingOrganizationAddress() { return pendingOrganizationAddress; }
+    public void setPendingOrganizationAddress(PendingChangeDTO pendingOrganizationAddress) { this.pendingOrganizationAddress = pendingOrganizationAddress; }
+
+    public PendingChangeDTO getLastRejectedOrganizationName() { return lastRejectedOrganizationName; }
+    public void setLastRejectedOrganizationName(PendingChangeDTO lastRejectedOrganizationName) { this.lastRejectedOrganizationName = lastRejectedOrganizationName; }
+
+    public PendingChangeDTO getLastRejectedOrganizationAddress() { return lastRejectedOrganizationAddress; }
+    public void setLastRejectedOrganizationAddress(PendingChangeDTO lastRejectedOrganizationAddress) { this.lastRejectedOrganizationAddress = lastRejectedOrganizationAddress; }
 }
