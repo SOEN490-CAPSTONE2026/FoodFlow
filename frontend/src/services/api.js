@@ -739,6 +739,32 @@ export const adminVerificationAPI = {
       reason,
       message,
     }),
+
+    /**
+   * Get all pending profile change requests
+   * @returns {Promise} List of pending profile changes
+   */
+  getPendingProfileChanges: () => api.get('/admin/profile-change/pending'),
+
+  /**
+   * Approve a pending profile change request
+   * @param {number} id - Profile change request ID
+   * @returns {Promise} Response data
+   */
+  approveProfileChange: id => api.post(`/admin/profile-change/${id}/approve`),
+
+  /**
+   * Reject a pending profile change request
+   * @param {number} id - Profile change request ID
+   * @param {string} reason - Rejection reason
+   * @param {string} message - Optional custom message to send to user
+   * @returns {Promise} Response data
+   */
+  rejectProfileChange: (id, reason, message) =>
+    api.post(`/admin/profile-change/${id}/reject`, {
+      reason,
+      message,
+    }),
 };
 
 export const adminImageAPI = {
