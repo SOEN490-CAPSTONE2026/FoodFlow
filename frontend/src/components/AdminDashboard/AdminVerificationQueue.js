@@ -341,6 +341,101 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
   );
 };
 
+  const ProfileChangeRejectionModal = ({ change, onClose, onConfirm, loading }) => {
+  const [reason, setReason] = useState('');
+  const [customMessage, setCustomMessage] = useState('');
+  const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
+
+  const rejectionReasons = [
+    { value: 'incorrect_information', label: 'Incorrect Information' },
+    { value: 'inappropriate_content', label: 'Inappropriate Content' },
+    { value: 'duplicate_entry', label: 'Duplicate Entry' },
+    { value: 'does_not_meet_policy', label: 'Does Not Meet Policy' },
+    { value: 'other', label: 'Other' },
+  ];
+
+  const handleBackdropClick = e => {
+    if (!mouseDownInsideModal && e.target.classList.contains('modal-backdrop')) {
+      onClose();
+    }
+    setMouseDownInsideModal(false);
+  };
+
+  const handleSubmit = () => {
+    if (!reason) {
+      alert('Please select a rejection reason');
+      return;
+    }
+    onConfirm(reason, customMessage);
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      onClick={handleBackdropClick}
+      onMouseDown={e => {
+        if (e.target.classList.contains('modal-backdrop')) {
+          setMouseDownInsideModal(false);
+        }
+      }}
+    >
+      <div
+        className="modal-content verification-modal"
+        onMouseDown={() => setMouseDownInsideModal(true)}
+      >
+        <div className="modal-header">
+          <XCircle size={24} color="#ef4444" />
+          <h3>Reject Profile Change</h3>
+        </div>
+        <div className="modal-body">
+          <p>Please provide a reason for rejecting this profile change.</p>
+          <div className="user-info-summary">
+            <p><strong>User:</strong> {change.userName}</p>
+            <p><strong>Field:</strong> {change.fieldName}</p>
+            <p><strong>Current Value:</strong> {change.oldValue || 'N/A'}</p>
+            <p><strong>Requested Value:</strong> {change.newValue}</p>
+          </div>
+
+          <div className="form-group">
+            <label>Reason *</label>
+            <Select
+              options={rejectionReasons}
+              value={rejectionReasons.find(r => r.value === reason)}
+              onChange={option => setReason(option.value)}
+              placeholder="Select a reason..."
+              className="rejection-reason-select"
+              classNamePrefix="select"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Custom Message (optional)</label>
+            <textarea
+              value={customMessage}
+              onChange={e => setCustomMessage(e.target.value)}
+              placeholder="Add a message to send to the user..."
+              rows={4}
+              className="rejection-message-input"
+            />
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button className="btn-secondary" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
+          <button
+            className="btn-reject"
+            onClick={handleSubmit}
+            disabled={loading || !reason}
+          >
+            {loading ? 'Rejecting...' : 'Reject Change'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Component
 const AdminVerificationQueue = () => {
   const { t } = useTranslation();
@@ -383,6 +478,11 @@ const AdminVerificationQueue = () => {
 
   // Expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set());
+
+  // Profile change state
+  const [pendingProfileChanges, setPendingProfileChanges] = useState([]);
+  const [selectedChange, setSelectedChange] = useState(null);
+  const [rejectingChange, setRejectingChange] = useState(false);
 
   // Fetch pending users
   const fetchPendingUsers = async () => {
@@ -455,6 +555,49 @@ const AdminVerificationQueue = () => {
     }
   };
 
+  // Fetch pending profile changes
+  const fetchPendingProfileChanges = async () => {
+    try {
+      const res = await adminVerificationAPI.getPendingProfileChanges();
+      setPendingProfileChanges(res.data || []);
+    } catch (err) {
+      console.error('Error fetching profile changes:', err);
+    }
+  };
+
+  const handleApproveChange = async id => {
+    try {
+      await adminVerificationAPI.approveProfileChange(id);
+      setPendingProfileChanges(prev => prev.filter(change => change.id !== id));
+      showToast('Profile change approved');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to approve change', 'error');
+    }
+  };
+
+  const handleRejectChange = async (reason, customMessage) => {
+    if (!selectedChange) return;
+    try {
+      setRejectingChange(true);
+      await adminVerificationAPI.rejectProfileChange(
+        selectedChange.id,
+        reason,
+        customMessage
+      );
+      setPendingProfileChanges(prev =>
+        prev.filter(change => change.id !== selectedChange.id)
+      );
+      showToast('Profile change rejected');
+      setSelectedChange(null);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to reject change', 'error');
+    } finally {
+      setRejectingChange(false);
+    }
+  };
+
   // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -482,6 +625,11 @@ const AdminVerificationQueue = () => {
     fetchPendingUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, userTypeFilter, debouncedSearchTerm, sortBy, sortOrder]);
+
+  // Fetch pending profile changes on mount
+  useEffect(() => {
+    fetchPendingProfileChanges();
+  }, []);
 
   // Toggle row expansion
   const toggleRowExpansion = userId => {
@@ -1328,6 +1476,62 @@ const AdminVerificationQueue = () => {
         )}
       </div>
 
+      {/* Pending Profile Changes Section */}
+      <div className="users-section">
+        <div className="users-section-header">
+          <h2>Pending Profile Changes</h2>
+        </div>
+        {pendingProfileChanges.length === 0 ? (
+          <div className="empty-state">
+            <UserCheck size={48} color="#9ca3af" />
+            <h3>No Pending Profile Changes</h3>
+            <p>All profile updates have been reviewed.</p>
+          </div>
+        ) : (
+          <div className="users-table-container">
+            <Table className="users-table verification-table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Field</TableHead>
+                  <TableHead>Current Value</TableHead>
+                  <TableHead>Requested Value</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingProfileChanges.map(change => (
+                  <TableRow key={change.id}>
+                    <TableCell>{change.userName}</TableCell>
+                    <TableCell>{change.fieldName}</TableCell>
+                    <TableCell>{change.oldValue || 'N/A'}</TableCell>
+                    <TableCell>{change.newValue}</TableCell>
+                    <TableCell>
+                      <div className="action-buttons">
+                        <button
+                          className="btn-approve-small"
+                          onClick={() => handleApproveChange(change.id)}
+                          title="Approve"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                        <button
+                          className="btn-reject-small"
+                          onClick={() => setSelectedChange(change)}
+                          title="Reject"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+
       {/* Modals */}
       {showApprovalModal && selectedUser && (
         <ApprovalModal
@@ -1362,6 +1566,15 @@ const AdminVerificationQueue = () => {
           }}
           onConfirm={handleManualVerify}
           loading={actionLoading}
+        />
+      )}
+
+      {selectedChange && (
+        <ProfileChangeRejectionModal
+          change={selectedChange}
+          onClose={() => setSelectedChange(null)}
+          onConfirm={handleRejectChange}
+          loading={rejectingChange}
         />
       )}
 
