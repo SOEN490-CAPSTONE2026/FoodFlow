@@ -1,11 +1,15 @@
-Product Demo: [https://drive.google.com/file/d/1nEElLNKFA6pm4d5NZZG9k_GQtKXwSGws/view?usp=sharing](https://drive.google.com/file/d/1CU44bG2VqstZmIIO1301CaJXIrd5j8sn/view?usp=sharing)
+Product Demo: [Video](https://drive.google.com/file/d/1CU44bG2VqstZmIIO1301CaJXIrd5j8sn/view?usp=sharing) 
+
 Deployment link: https://foodflow-app.com/
 
 # FoodFlow
 
-![Build Status](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/workflows/CI/badge.svg)
+![Build Status](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/actions/workflows/ci-cd.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+
+> **Note:** The CI pipeline enforces a strict **minimum code coverage of 80%**.  
+> Some pipeline runs may appear as failed because the build intentionally stops when coverage drops below this threshold. These failures are expected and help maintain code quality.
 
 ## 🎬 Release Demos
 - Release 1 Demo: [Video](https://drive.google.com/file/d/1QMPNL1EYaqpbYQZB4Q4PgDAAiZX4eoUZ/view?usp=sharing) [Slideshow](https://docs.google.com/presentation/d/1XW-psvClrD1vm02NoNI0VIn4971Y4OIbMR2bVWhAyp8/edit?usp=sharing)
