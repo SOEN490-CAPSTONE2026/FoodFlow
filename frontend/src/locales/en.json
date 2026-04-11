@@ -102,6 +102,19 @@
     "infoPrefix": "You are reporting",
     "thisUser": "this user",
     "donationLinked": "This report will be linked to the donation.",
+    "quickOptionsLabel": "Quick report options",
+    "predefinedMessages": {
+      "noShow": {
+        "title": "Missed pickup / no-show",
+        "body": "Use this when the donor did not show up at the agreed time.",
+        "text": "The user did not show up for the scheduled pickup time."
+      },
+      "unsafeBehavior": {
+        "title": "Unsafe or inappropriate behavior",
+        "body": "Use this when the interaction felt unsafe, threatening, or inappropriate.",
+        "text": "The user displayed unsafe or inappropriate behavior during our interaction."
+      }
+    },
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Please describe what happened...",
     "photoLabel": "Photo Evidence (Optional)",
