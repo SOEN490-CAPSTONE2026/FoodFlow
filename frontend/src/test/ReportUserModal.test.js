@@ -63,6 +63,32 @@ describe('ReportUserModal', () => {
     expect(screen.getByText('reportUserModal.title')).toBeInTheDocument();
     expect(screen.getByText(/reportUserModal\.infoPrefix/)).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(
+      screen.getByText('reportUserModal.predefinedMessages.noShow.title')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('reportUserModal.predefinedMessages.unsafeBehavior.title')
+    ).toBeInTheDocument();
+  });
+
+  test('fills the description with a predefined message when a quick option is clicked', () => {
+    render(
+      <ReportUserModal
+        isOpen={true}
+        onClose={mockOnClose}
+        reportedUser={mockReportedUser}
+        donationId={mockDonationId}
+        onSubmit={mockOnSubmit}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByText('reportUserModal.predefinedMessages.noShow.title')
+    );
+
+    expect(
+      screen.getByPlaceholderText('reportUserModal.descriptionPlaceholder')
+    ).toHaveValue('reportUserModal.predefinedMessages.noShow.text');
   });
 
   test('displays donation link message when donationId is provided', () => {
