@@ -17,6 +17,28 @@ const ReportUserModal = ({
   const [photoPreview, setPhotoPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+
+  const predefinedMessages = [
+    {
+      key: 'noShow',
+      title: t('reportUserModal.predefinedMessages.noShow.title'),
+      body: t('reportUserModal.predefinedMessages.noShow.body'),
+      text: t('reportUserModal.predefinedMessages.noShow.text'),
+    },
+    {
+      key: 'unsafeBehavior',
+      title: t('reportUserModal.predefinedMessages.unsafeBehavior.title'),
+      body: t('reportUserModal.predefinedMessages.unsafeBehavior.body'),
+      text: t('reportUserModal.predefinedMessages.unsafeBehavior.text'),
+    },
+  ];
+
+  const handleTemplateSelect = template => {
+    setSelectedTemplate(template.key);
+    setDescription(template.text);
+    setError('');
+  };
 
   const handlePhotoChange = e => {
     const file = e.target.files[0];
@@ -110,6 +132,27 @@ const ReportUserModal = ({
           </div>
 
           <form onSubmit={handleSubmit}>
+            <div className="report-form-group">
+              <label>{t('reportUserModal.quickOptionsLabel')}</label>
+              <div className="report-template-grid">
+                {predefinedMessages.map(template => (
+                  <button
+                    key={template.key}
+                    type="button"
+                    className={`report-template-card ${selectedTemplate === template.key ? 'selected' : ''}`}
+                    onClick={() => handleTemplateSelect(template)}
+                  >
+                    <span className="report-template-title">
+                      {template.title}
+                    </span>
+                    <span className="report-template-body">
+                      {template.body}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="report-form-group">
               <label htmlFor="description">
                 {t('reportUserModal.descriptionLabel')}{' '}
