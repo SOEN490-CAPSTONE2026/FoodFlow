@@ -153,7 +153,7 @@ const FeedbackModal = ({
 
             <textarea
               className="feedback-textarea"
-              placeholder="Optional short review"
+              placeholder="Example: Pickup was smooth, communication was clear, and the food was in great condition."
               maxLength={500}
               value={review}
               onChange={e => setReview(e.target.value)}
