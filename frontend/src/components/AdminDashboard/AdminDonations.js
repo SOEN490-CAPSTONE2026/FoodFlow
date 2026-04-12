@@ -10,6 +10,7 @@ import {
   Users,
   Flag,
   Eye,
+  RefreshCw,
   Sparkles,
   Calendar,
   Clock,
@@ -648,12 +649,30 @@ const AdminDonations = () => {
                         <div className="action-buttons">
                           <button
                             className="action-btn"
+                            type="button"
                             onClick={() => openDetailModal(donation)}
                             title={t('adminDonations.actions.viewDetails')}
                           >
                             <Eye size={16} />
                             <span className="mobile-action-label">
                               {t('adminDonations.actions.viewDetails')}
+                            </span>
+                          </button>
+                          <button
+                            className="action-btn action-btn-override"
+                            type="button"
+                            onClick={() => {}}
+                            title={t(
+                              'adminDonations.actions.overrideStatus',
+                              'Override Status'
+                            )}
+                          >
+                            <RefreshCw size={16} />
+                            <span className="mobile-action-label">
+                              {t(
+                                'adminDonations.actions.overrideStatus',
+                                'Override Status'
+                              )}
                             </span>
                           </button>
                         </div>

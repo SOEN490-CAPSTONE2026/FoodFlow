@@ -6,7 +6,7 @@ import {
   getPackagingTypeLabel,
 } from '../../constants/foodConstants';
 import { Package, Thermometer } from 'lucide-react';
-import './AdminAnalytics.css';
+import './Admin_Styles/AdminAnalytics.css';
 
 export default function AdminAnalytics() {
   const { t } = useTranslation();
