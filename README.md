@@ -72,6 +72,23 @@ Our team values diversity and collaboration, creating an environment of mutual r
    REACT_APP_GOOGLE_MAPS_API_KEY=
 
    FRONTEND_URL=
+
+   OPENAI_API_KEY=
+   
+   GOOGLE_CALENDAR_CLIENT_ID=
+   GOOGLE_CALENDAR_CLIENT_SECRET=
+   GOOGLE_CALENDAR_REDIRECT_URI=
+   
+   SUPPORT_EMAIL=
+   SUPPORT_PHONE=
+   RATE_LIMIT_ENABLED=false
+   TWILIO_ACCOUNT_SID=
+   TWILIO_AUTH_TOKEN=
+   TWILIO_PHONE_NUMBER=
+   
+   STRIPE_API_KEY=
+   REACT_APP_STRIPE_PUBLISHABLE_KEY=
+   STRIPE_WEBHOOK_SECRET=
    ```
 
    Ask a team member for the necessary values for the .env file
