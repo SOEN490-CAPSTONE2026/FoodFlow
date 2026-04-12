@@ -14,18 +14,13 @@ jest.mock('../services/api', () => ({
 jest.mock('lucide-react', () => ({
   X: () => <div data-testid="x-icon">X</div>,
   Star: () => <div data-testid="star-icon">Star</div>,
+  CheckCircle2: () => <div data-testid="success-icon">Check</div>,
 }));
 
 describe('FeedbackModal', () => {
-  const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
   beforeEach(() => {
     jest.clearAllMocks();
     feedbackAPI.getFeedbackForClaim.mockResolvedValue({ data: [] });
-  });
-
-  afterAll(() => {
-    alertSpy.mockRestore();
   });
 
   const renderModal = (props = {}, authValue = { userId: 1 }) => {
@@ -76,9 +71,14 @@ describe('FeedbackModal', () => {
     fireEvent.click(
       starButtons.find(button => button.className.includes('star-btn'))
     );
-    fireEvent.change(screen.getByPlaceholderText('Optional short review'), {
-      target: { value: '  helpful pickup  ' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'Example: Pickup was smooth, communication was clear, and the food was in great condition.'
+      ),
+      {
+        target: { value: '  helpful pickup  ' },
+      }
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Submit Feedback' }));
 
     await waitFor(() => {
@@ -89,9 +89,11 @@ describe('FeedbackModal', () => {
       });
     });
 
-    expect(alertSpy).toHaveBeenCalledWith('Thank you for your feedback!');
+    expect(
+      await screen.findByText('Thank you for helping the FoodFlow community.')
+    ).toBeInTheDocument();
     expect(onSubmitted).toHaveBeenCalledTimes(1);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   test('does not submit when no rating is selected', () => {
@@ -124,11 +126,31 @@ describe('FeedbackModal', () => {
       expect(feedbackAPI.submitFeedback).toHaveBeenCalled();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith('Feedback failed');
-    expect(alertSpy).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(screen.getByText('Feedback failed')).toBeInTheDocument();
+    });
 
     fireEvent.click(container.querySelector('.feedback-overlay'));
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  test('does not close when clicking overlay and preserves feedback text', () => {
+    const onClose = jest.fn();
+    const { container } = renderModal({ onClose });
+
+    const starButtons = screen.getAllByRole('button');
+    fireEvent.click(
+      starButtons.find(button => button.className.includes('star-btn'))
+    );
+    const textarea = screen.getByPlaceholderText(
+      'Example: Pickup was smooth, communication was clear, and the food was in great condition.'
+    );
+    fireEvent.change(textarea, { target: { value: 'Keep this feedback' } });
+
+    fireEvent.click(container.querySelector('.feedback-overlay'));
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(textarea).toHaveValue('Keep this feedback');
   });
 
   test('resets and skips the lookup when claimId or userId is missing', async () => {

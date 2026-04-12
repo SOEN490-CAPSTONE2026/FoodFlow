@@ -67,7 +67,9 @@ describe('ReportUserModal', () => {
       screen.getByText('reportUserModal.predefinedMessages.noShow.title')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('reportUserModal.predefinedMessages.unsafeBehavior.title')
+      screen.getByText(
+        'reportUserModal.predefinedMessages.unsafeBehavior.title'
+      )
     ).toBeInTheDocument();
   });
 
@@ -398,7 +400,10 @@ describe('ReportUserModal', () => {
       });
     });
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(
+      await screen.findByText('reportUserModal.successHeading')
+    ).toBeInTheDocument();
+    expect(mockOnClose).not.toHaveBeenCalled();
   });
 
   test('displays error message on submission failure', async () => {
@@ -518,7 +523,7 @@ describe('ReportUserModal', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  test('closes modal when clicking overlay', () => {
+  test('does not close modal when clicking overlay and preserves data', () => {
     render(
       <ReportUserModal
         isOpen={true}
@@ -529,10 +534,16 @@ describe('ReportUserModal', () => {
       />
     );
 
+    const textarea = screen.getByPlaceholderText(
+      'reportUserModal.descriptionPlaceholder'
+    );
+    fireEvent.change(textarea, { target: { value: 'Keep this text' } });
+
     const overlay = document.querySelector('.report-modal-overlay');
     fireEvent.click(overlay);
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+    expect(textarea).toHaveValue('Keep this text');
   });
 
   test('does not close modal when clicking modal content', () => {
@@ -574,8 +585,12 @@ describe('ReportUserModal', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(
+        screen.getByText('reportUserModal.successHeading')
+      ).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText('reportUserModal.done'));
 
     // Reopen modal
     rerender(
