@@ -123,6 +123,10 @@
     "evidencePreviewAlt": "Evidence preview",
     "removePhoto": "Remove",
     "cancel": "Cancel",
+    "successTitle": "Report Submitted",
+    "successHeading": "Thanks for reporting this issue.",
+    "successCopy": "Your report was sent successfully. The FoodFlow team will review it and follow up if more details are needed.",
+    "done": "Done",
     "submitting": "Submitting...",
     "submit": "Submit Report"
   },
