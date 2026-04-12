@@ -138,7 +138,7 @@
 
 .donations-table th {
   padding: 16px 12px;
-  text-align: left;
+  text-align: center;
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
@@ -159,7 +159,7 @@
   color: #374151;
   vertical-align: middle;
   background: white;
-  text-align: left;
+  text-align: center;
 }
 
 .donations-table tbody tr {
@@ -255,6 +255,12 @@
   margin: 0 auto;
 }
 
+.donations-table td .table-muted,
+.donations-table td .flagged-cell,
+.donations-table td [class^='pill-status-'] {
+  margin: 0 auto;
+}
+
 .id-cell {
   font-family: 'Courier New', monospace;
   font-weight: 500;
@@ -340,8 +346,42 @@
 
 .action-buttons {
   display: flex;
-  gap: 2px;
+  gap: 8px;
   align-items: center;
+  justify-content: center;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1b4965;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #f8fbfd;
+  border-color: #62b6cb;
+  transform: translateY(-1px);
+}
+
+.action-btn-override {
+  background: #eff8fb;
+}
+
+.action-btn-override:hover {
+  background: #dff3f8;
 }
 
 .donation-admin-modal-overlay {
@@ -1150,13 +1190,14 @@
 .rating-cell {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 6px;
   font-size: 14px;
   font-weight: 500;
   color: #374151;
   white-space: nowrap;
   vertical-align: middle;
+  margin: 0 auto;
 }
 
 .pill-status-flagged {
