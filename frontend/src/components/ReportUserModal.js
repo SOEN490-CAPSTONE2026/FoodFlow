@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { X, Upload, AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Upload, X } from 'lucide-react';
 import './ReportUserModal.css';
 
 const ReportUserModal = ({
@@ -18,6 +18,7 @@ const ReportUserModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [showSuccessState, setShowSuccessState] = useState(false);
 
   const predefinedMessages = [
     {
@@ -34,6 +35,16 @@ const ReportUserModal = ({
     },
   ];
 
+  const resetForm = () => {
+    setDescription('');
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setError('');
+    setSelectedTemplate('');
+    setShowSuccessState(false);
+    setIsSubmitting(false);
+  };
+
   const handleTemplateSelect = template => {
     setSelectedTemplate(template.key);
     setDescription(template.text);
@@ -44,7 +55,6 @@ const ReportUserModal = ({
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
         setError(t('reportUserModal.photoTooLarge'));
         return;
       }
@@ -70,26 +80,20 @@ const ReportUserModal = ({
     setError('');
 
     try {
-      // Mock photo upload - replace with actual API when backend is ready
       let photoUrl = null;
       if (photoFile) {
-        // Simulate upload delay
         await new Promise(resolve => setTimeout(resolve, 500));
         photoUrl = URL.createObjectURL(photoFile);
       }
 
       await onSubmit({
         reportedUserId: reportedUser.id,
-        donationId: donationId,
+        donationId,
         description: description.trim(),
         photoEvidenceUrl: photoUrl,
       });
 
-      // Reset form and close - parent will handle success message
-      setDescription('');
-      setPhotoFile(null);
-      setPhotoPreview(null);
-      onClose();
+      setShowSuccessState(true);
     } catch (err) {
       setError(err.message || t('reportUserModal.submitFailed'));
     } finally {
@@ -98,10 +102,7 @@ const ReportUserModal = ({
   };
 
   const handleClose = () => {
-    setDescription('');
-    setPhotoFile(null);
-    setPhotoPreview(null);
-    setError('');
+    resetForm();
     onClose();
   };
 
@@ -110,132 +111,164 @@ const ReportUserModal = ({
   }
 
   return (
-    <div className="report-modal-overlay" onClick={handleClose}>
+    <div className="report-modal-overlay">
       <div className="report-modal-content" onClick={e => e.stopPropagation()}>
         <div className="report-modal-header">
-          <h2>{t('reportUserModal.title')}</h2>
+          <h2>
+            {showSuccessState
+              ? t('reportUserModal.successTitle')
+              : t('reportUserModal.title')}
+          </h2>
           <button className="report-modal-close" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
 
         <div className="report-modal-body">
-          <div className="report-info-card">
-            <AlertCircle size={20} />
-            <p>
-              {t('reportUserModal.infoPrefix')}{' '}
-              <strong>
-                {reportedUser?.name || t('reportUserModal.thisUser')}
-              </strong>
-              .{donationId && ` ${t('reportUserModal.donationLinked')}`}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            <div className="report-form-group">
-              <label>{t('reportUserModal.quickOptionsLabel')}</label>
-              <div className="report-template-grid">
-                {predefinedMessages.map(template => (
-                  <button
-                    key={template.key}
-                    type="button"
-                    className={`report-template-card ${selectedTemplate === template.key ? 'selected' : ''}`}
-                    onClick={() => handleTemplateSelect(template)}
-                  >
-                    <span className="report-template-title">
-                      {template.title}
-                    </span>
-                    <span className="report-template-body">
-                      {template.body}
-                    </span>
-                  </button>
-                ))}
+          {showSuccessState ? (
+            <div className="report-success-state">
+              <div className="report-success-icon">
+                <CheckCircle2 size={40} />
               </div>
-            </div>
-
-            <div className="report-form-group">
-              <label htmlFor="description">
-                {t('reportUserModal.descriptionLabel')}{' '}
-                <span className="required">*</span>
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder={t('reportUserModal.descriptionPlaceholder')}
-                rows={5}
-                required
-                maxLength={1000}
-              />
-              <span className="char-count">{description.length}/1000</span>
-            </div>
-
-            <div className="report-form-group">
-              <label htmlFor="photo">{t('reportUserModal.photoLabel')}</label>
-              <div className="photo-upload-area">
-                {!photoPreview ? (
-                  <label htmlFor="photo-input" className="photo-upload-label">
-                    <Upload size={32} />
-                    <span>{t('reportUserModal.uploadPrompt')}</span>
-                    <span className="upload-hint">
-                      {t('reportUserModal.maxSize')}
-                    </span>
-                  </label>
-                ) : (
-                  <div className="photo-preview">
-                    <img
-                      src={photoPreview}
-                      alt={t('reportUserModal.evidencePreviewAlt')}
-                    />
-                    <button
-                      type="button"
-                      className="remove-photo-btn"
-                      onClick={() => {
-                        setPhotoFile(null);
-                        setPhotoPreview(null);
-                      }}
-                    >
-                      <X size={16} /> {t('reportUserModal.removePhoto')}
-                    </button>
-                  </div>
-                )}
-                <input
-                  id="photo-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  style={{ display: 'none' }}
-                />
-              </div>
-            </div>
-
-            {error && (
-              <div className="report-error-message">
-                <AlertCircle size={16} />
-                {error}
-              </div>
-            )}
-
-            <div className="report-modal-actions">
+              <p className="report-success-heading">
+                {t('reportUserModal.successHeading')}
+              </p>
+              <p className="report-success-copy">
+                {t('reportUserModal.successCopy')}
+              </p>
               <button
                 type="button"
-                className="report-btn-cancel"
+                className="report-btn-submit report-success-button"
                 onClick={handleClose}
-                disabled={isSubmitting}
               >
-                {t('reportUserModal.cancel')}
-              </button>
-              <button
-                type="submit"
-                className="report-btn-submit"
-                disabled={isSubmitting || !description.trim()}
-              >
-                {isSubmitting
-                  ? t('reportUserModal.submitting')
-                  : t('reportUserModal.submit')}
+                {t('reportUserModal.done')}
               </button>
             </div>
-          </form>
+          ) : (
+            <>
+              <div className="report-info-card">
+                <AlertCircle size={20} />
+                <p>
+                  {t('reportUserModal.infoPrefix')}{' '}
+                  <strong>
+                    {reportedUser?.name || t('reportUserModal.thisUser')}
+                  </strong>
+                  .{donationId && ` ${t('reportUserModal.donationLinked')}`}
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="report-form-group">
+                  <label>{t('reportUserModal.quickOptionsLabel')}</label>
+                  <div className="report-template-grid">
+                    {predefinedMessages.map(template => (
+                      <button
+                        key={template.key}
+                        type="button"
+                        className={`report-template-card ${selectedTemplate === template.key ? 'selected' : ''}`}
+                        onClick={() => handleTemplateSelect(template)}
+                      >
+                        <span className="report-template-title">
+                          {template.title}
+                        </span>
+                        <span className="report-template-body">
+                          {template.body}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="report-form-group">
+                  <label htmlFor="description">
+                    {t('reportUserModal.descriptionLabel')}{' '}
+                    <span className="required">*</span>
+                  </label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder={t('reportUserModal.descriptionPlaceholder')}
+                    rows={5}
+                    required
+                    maxLength={1000}
+                  />
+                  <span className="char-count">{description.length}/1000</span>
+                </div>
+
+                <div className="report-form-group">
+                  <label htmlFor="photo">
+                    {t('reportUserModal.photoLabel')}
+                  </label>
+                  <div className="photo-upload-area">
+                    {!photoPreview ? (
+                      <label
+                        htmlFor="photo-input"
+                        className="photo-upload-label"
+                      >
+                        <Upload size={32} />
+                        <span>{t('reportUserModal.uploadPrompt')}</span>
+                        <span className="upload-hint">
+                          {t('reportUserModal.maxSize')}
+                        </span>
+                      </label>
+                    ) : (
+                      <div className="photo-preview">
+                        <img
+                          src={photoPreview}
+                          alt={t('reportUserModal.evidencePreviewAlt')}
+                        />
+                        <button
+                          type="button"
+                          className="remove-photo-btn"
+                          onClick={() => {
+                            setPhotoFile(null);
+                            setPhotoPreview(null);
+                          }}
+                        >
+                          <X size={16} /> {t('reportUserModal.removePhoto')}
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      id="photo-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="report-error-message">
+                    <AlertCircle size={16} />
+                    {error}
+                  </div>
+                )}
+
+                <div className="report-modal-actions">
+                  <button
+                    type="button"
+                    className="report-btn-cancel"
+                    onClick={handleClose}
+                    disabled={isSubmitting}
+                  >
+                    {t('reportUserModal.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    className="report-btn-submit"
+                    disabled={isSubmitting || !description.trim()}
+                  >
+                    {isSubmitting
+                      ? t('reportUserModal.submitting')
+                      : t('reportUserModal.submit')}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
