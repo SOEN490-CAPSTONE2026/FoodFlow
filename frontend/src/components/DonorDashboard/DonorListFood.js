@@ -668,13 +668,9 @@ export default function DonorListFood() {
   const handleReportSubmit = async reportData => {
     try {
       await reportAPI.createReport(reportData);
-      alert(t('donorListFood.reportSubmittedSuccessfully'));
-      setShowReportModal(false);
-      setReportTargetUser(null);
-      setCompletedDonationId(null);
     } catch (err) {
       console.error('Failed to submit report', err);
-      alert(t('donorListFood.failedSubmitReport'));
+      throw new Error(t('donorListFood.failedSubmitReport'));
     }
   };
 
