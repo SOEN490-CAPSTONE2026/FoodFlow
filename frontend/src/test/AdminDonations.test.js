@@ -97,6 +97,7 @@ jest.mock('lucide-react', () => ({
   CheckCircle: () => <span>CheckCircle</span>,
   AlertCircle: () => <span>AlertCircle</span>,
   Info: () => <span>Info</span>,
+  Shield: () => <span>Shield</span>,
   ShieldAlert: () => <span>ShieldAlert</span>,
   Star: () => <span>Star</span>,
 }));
@@ -292,7 +293,7 @@ describe('AdminDonations Component', () => {
       screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
     );
 
-    await screen.findByText('Page 1 of 3');
+    await screen.findByText('Page 1 of 2');
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() => {
@@ -309,13 +310,8 @@ describe('AdminDonations Component', () => {
 
     await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
-      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+      screen.getAllByTitle('adminDonations.actions.overrideStatus')[0]
     );
-
-    await screen.findByText('Page 1 of 3');
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await screen.findByText('Page 2 of 3');
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
     await screen.findByText('Donation Details - Override Status');
 
@@ -341,13 +337,8 @@ describe('AdminDonations Component', () => {
 
     await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
-      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+      screen.getAllByTitle('adminDonations.actions.overrideStatus')[0]
     );
-
-    await screen.findByText('Page 1 of 3');
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await screen.findByText('Page 2 of 3');
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
     await screen.findByText('Donation Details - Override Status');
 
@@ -546,10 +537,9 @@ describe('AdminDonations Component', () => {
 
     await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
-      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+      screen.getAllByTitle('adminDonations.actions.overrideStatus')[0]
     );
-    fireEvent.click(await screen.findByRole('button', { name: /next/i }));
-    fireEvent.click(await screen.findByRole('button', { name: /next/i }));
+    await screen.findByText('Donation Details - Override Status');
 
     const selects = screen.getAllByTestId('react-select');
     fireEvent.change(selects[selects.length - 1], {
@@ -684,11 +674,9 @@ describe('AdminDonations Component', () => {
 
     await screen.findByText('Vegetable Lasagna');
     fireEvent.click(
-      screen.getAllByTitle('adminDonations.actions.viewDetails')[0]
+      screen.getAllByTitle('adminDonations.actions.overrideStatus')[0]
     );
-    await screen.findByText('Donation Details - Basic Info & Participants');
-    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
-    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    await screen.findByText('Donation Details - Override Status');
 
     const scopedOverrideForm = document.querySelector(
       '.donation-admin-override-form'
