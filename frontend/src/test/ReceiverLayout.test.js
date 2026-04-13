@@ -87,4 +87,178 @@ describe('ReceiverLayout admin approval banner', () => {
     const results = screen.queryByTestId('admin-approval-banner');
     expect(results).toBeNull();
   });
+
+  it('renders with different account statuses', () => {
+    const statuses = ['PENDING_ADMIN_APPROVAL', 'PENDING_VERIFICATION', 'ACTIVE', 'SUSPENDED'];
+
+    statuses.forEach(status => {
+      const { unmount } = render(
+        <MemoryRouter>
+          <AuthContext.Provider
+            value={{ role: 'RECEIVER', accountStatus: status }}
+          >
+            <ReceiverLayoutContent />
+          </AuthContext.Provider>
+        </MemoryRouter>
+      );
+      
+      // Component should render without crashing
+      if (status === 'PENDING_ADMIN_APPROVAL') {
+        expect(screen.getByTestId('admin-approval-banner')).toBeInTheDocument();
+      } else {
+        expect(screen.queryByTestId('admin-approval-banner')).not.toBeInTheDocument();
+      }
+      unmount();
+    });
+  });
+
+  it('handles context without accountStatus gracefully', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    // Should render without throwing error when banner is not shown
+    expect(screen.queryByTestId('admin-approval-banner')).not.toBeInTheDocument();
+  });
+
+  it('maintains banner visibility for PENDING_ADMIN_APPROVAL status', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'PENDING_ADMIN_APPROVAL' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    let banner = screen.getByTestId('admin-approval-banner');
+    expect(banner).toBeInTheDocument();
+
+    // Verify it's still present after rerender
+    rerender(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'PENDING_ADMIN_APPROVAL' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    banner = screen.getByTestId('admin-approval-banner');
+    expect(banner).toBeInTheDocument();
+  });
+
+  it('handles transition from PENDING_ADMIN_APPROVAL to ACTIVE', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'PENDING_ADMIN_APPROVAL' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    let banner = screen.queryByTestId('admin-approval-banner');
+    expect(banner).toBeInTheDocument();
+
+    // Update to ACTIVE status
+    rerender(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    banner = screen.queryByTestId('admin-approval-banner');
+    expect(banner).not.toBeInTheDocument();
+  });
+});
+
+describe('ReceiverLayout Navigation', () => {
+  it('renders navigation links', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Donations')).toBeInTheDocument();
+    expect(screen.getByText('My Claims')).toBeInTheDocument();
+  });
+
+  it('renders user menu button', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    const avatarButton = screen.getByRole('button', { name: 'Account menu' });
+    expect(avatarButton).toBeInTheDocument();
+  });
+
+  it('renders menu toggle button', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    const menuToggle = screen.getByRole('button', { name: 'Toggle menu' });
+    expect(menuToggle).toBeInTheDocument();
+  });
+
+  it('renders inbox button for messages', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    const inboxButton = screen.getByRole('button', { name: 'Messages' });
+    expect(inboxButton).toBeInTheDocument();
+  });
+
+  it('renders sidebar with logo', () => {
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ role: 'RECEIVER', accountStatus: 'ACTIVE' }}
+        >
+          <ReceiverLayoutContent />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    const logo = screen.getByAltText('FoodFlow');
+    expect(logo).toBeInTheDocument();
+  });
 });
