@@ -1,11 +1,9 @@
 package com.example.foodflow.service;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,16 +12,13 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 /**
  * Service for handling file uploads.
  * Currently stores files locally; can be extended for cloud storage (S3, etc.)
  */
 @Service
 public class FileStorageService {
-
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
         "image/jpeg",
         "image/jpg",
@@ -31,15 +26,11 @@ public class FileStorageService {
         "application/pdf",
         "image/webp"
     );
-
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
     @Value("${file.upload.dir:uploads}")
     private String uploadDir;
-
     @Value("${file.upload.base-url:/api/files}")
     private String baseUrl;
-
     /**
      * Stores an uploaded file and returns the URL to access it.
      *
@@ -51,11 +42,9 @@ public class FileStorageService {
      */
     public String storeFile(MultipartFile file, String subfolder) throws IOException {
         validateFile(file);
-
         // Generate unique filename
         String extension = getFileExtensionFromContentType(file.getContentType());
         String uniqueFilename = UUID.randomUUID().toString() + extension;
-
         // Create target directory using absolute path
         // If uploadDir is relative, resolve it against user.dir (project root)
         Path uploadPath = Paths.get(uploadDir);
@@ -63,26 +52,20 @@ public class FileStorageService {
             String userDir = System.getProperty("user.dir");
             uploadPath = Paths.get(userDir, uploadDir);
         }
-
         Path targetDir = uploadPath.resolve(subfolder).toAbsolutePath().normalize();
         logger.info("Creating directory: {}", targetDir);
         Files.createDirectories(targetDir);
-
         // Save file
         Path targetPath = targetDir.resolve(uniqueFilename);
         Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
         logger.info("File saved to: {}", targetPath);
-
         // Return URL to access the file - MUST start with /api/files
         // baseUrl should be /api/files from config
         String effectiveBaseUrl = baseUrl != null && baseUrl.startsWith("/api/files") ? baseUrl : "/api/files";
         String fileUrl = effectiveBaseUrl + "/" + subfolder + "/" + uniqueFilename;
         logger.info("Generated file URL: {} (baseUrl from config: {})", fileUrl, baseUrl);
-
         return fileUrl;
     }
-
     /**
      * Stores pickup evidence photo for a donation.
      *
@@ -94,7 +77,6 @@ public class FileStorageService {
     public String storePickupEvidence(MultipartFile file, Long donationId) throws IOException {
         return storeFile(file, "evidence/donation-" + donationId);
     }
-
     /**
      * Validates the uploaded file.
      *
@@ -105,17 +87,14 @@ public class FileStorageService {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is empty or missing");
         }
-
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new IllegalArgumentException("File size exceeds maximum allowed size of 10MB");
         }
-
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
             throw new IllegalArgumentException("Invalid file type. Only JPEG, PNG, PDF and WEBP images are allowed");
         }
     }
-
     /**
      * Gets the file extension from a filename.
      */
@@ -130,7 +109,6 @@ public class FileStorageService {
             default -> ".jpg";
         };
     }
-
     /**
      * Deletes a file by its URL.
      *
@@ -141,7 +119,6 @@ public class FileStorageService {
         if (fileUrl == null || !fileUrl.startsWith(baseUrl)) {
             return false;
         }
-
         try {
             String relativePath = fileUrl.substring(baseUrl.length() + 1);
             Path filePath = Paths.get(uploadDir, relativePath);

@@ -451,6 +451,7 @@ function ReceiverLayoutContent() {
           <Link
             to="/receiver/achievements"
             className={`receiver-nav-link ${isActive('/receiver/achievements') ? 'active' : ''}`}
+            data-tour="receiver-nav-achievements"
             onClick={() => setIsMenuOpen(false)}
           >
             {t('receiverLayout.achievements', 'Achievements')}
@@ -504,6 +505,7 @@ function ReceiverLayoutContent() {
             <button
               className="avatar-btn"
               type="button"
+              data-tour="receiver-account-menu"
               aria-label="Account menu"
               onClick={toggleDropdown}
               title={t('receiverLayout.account')}

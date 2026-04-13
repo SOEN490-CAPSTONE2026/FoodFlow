@@ -18,6 +18,7 @@ import {
   CheckCircle,
   AlertCircle,
   Info,
+  Shield,
   ShieldAlert,
   Star,
 } from 'lucide-react';
@@ -65,6 +66,7 @@ const AdminDonations = () => {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [modalMode, setModalMode] = useState('details');
   const [overrideStatus, setOverrideStatus] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
   const [overrideLoading, setOverrideLoading] = useState(false);
@@ -266,7 +268,21 @@ const AdminDonations = () => {
     );
   };
 
-  const openDetailModal = async donation => {
+  const resetModalState = () => {
+    setModalPage(1);
+    setModalMode('details');
+    setOverrideStatus('');
+    setOverrideReason('');
+    setOverrideError('');
+    setOverrideSuccess('');
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    resetModalState();
+  };
+
+  const openDonationModal = async (donation, mode = 'details') => {
     try {
       // Fetch full details including timeline
       const response = await adminDonationAPI.getDonationById(donation.id);
@@ -298,7 +314,8 @@ const AdminDonations = () => {
 
       setSelectedDonation(donationData);
       setShowDetailModal(true);
-      setModalPage(1); // Reset to first page
+      setModalMode(mode);
+      setModalPage(1);
       setOverrideStatus('');
       setOverrideReason('');
       setOverrideError('');
@@ -308,6 +325,10 @@ const AdminDonations = () => {
       setError('Failed to load donation details');
     }
   };
+
+  const openDetailModal = donation => openDonationModal(donation, 'details');
+
+  const openOverrideModal = donation => openDonationModal(donation, 'override');
 
   const handleOverrideStatus = async () => {
     if (!overrideStatus) {
@@ -336,7 +357,7 @@ const AdminDonations = () => {
       // Refresh the donations list
       setTimeout(() => {
         fetchDonations();
-        setShowDetailModal(false);
+        closeDetailModal();
       }, 1500);
     } catch (err) {
       console.error('Error overriding status:', err);
@@ -648,12 +669,30 @@ const AdminDonations = () => {
                         <div className="action-buttons">
                           <button
                             className="action-btn"
+                            type="button"
                             onClick={() => openDetailModal(donation)}
                             title={t('adminDonations.actions.viewDetails')}
                           >
                             <Eye size={16} />
                             <span className="mobile-action-label">
                               {t('adminDonations.actions.viewDetails')}
+                            </span>
+                          </button>
+                          <button
+                            className="action-btn action-btn-override"
+                            type="button"
+                            onClick={() => openOverrideModal(donation)}
+                            title={t(
+                              'adminDonations.actions.overrideStatus',
+                              'Override Status'
+                            )}
+                          >
+                            <Shield size={16} />
+                            <span className="mobile-action-label">
+                              {t(
+                                'adminDonations.actions.overrideStatus',
+                                'Override Status'
+                              )}
                             </span>
                           </button>
                         </div>
@@ -921,7 +960,7 @@ const AdminDonations = () => {
       {showDetailModal && selectedDonation && (
         <div
           className="modal-overlay donation-admin-modal-overlay"
-          onClick={() => setShowDetailModal(false)}
+          onClick={closeDetailModal}
         >
           <div
             className="modal-content modal-user-detail donation-admin-modal-content donation-admin-modal-detail"
@@ -929,7 +968,7 @@ const AdminDonations = () => {
           >
             <button
               className="modal-close donation-admin-modal-close"
-              onClick={() => setShowDetailModal(false)}
+              onClick={closeDetailModal}
             >
               x
             </button>
@@ -937,18 +976,20 @@ const AdminDonations = () => {
             <div className="modal-header donation-admin-modal-header">
               <h2 className="donation-admin-modal-title">
                 {t('adminDonations.detailsModal.title')}{' '}
-                {modalPage === 1 &&
+                {modalMode === 'details' &&
+                  modalPage === 1 &&
                   `- ${t('adminDonations.detailsModal.pageTitles.basicInfoParticipants')}`}
-                {modalPage === 2 &&
+                {modalMode === 'details' &&
+                  modalPage === 2 &&
                   `- ${t('adminDonations.detailsModal.pageTitles.timeline')}`}
-                {modalPage === 3 &&
+                {modalMode === 'override' &&
                   `- ${t('adminDonations.detailsModal.pageTitles.overrideStatus')}`}
               </h2>
             </div>
 
             <div className="modal-body donation-admin-modal-body">
               {/* Page 1: Basic Information and Participants */}
-              {modalPage === 1 && (
+              {modalMode === 'details' && modalPage === 1 && (
                 <div className="donation-admin-page-one-layout">
                   <div className="info-card donation-admin-info-card donation-admin-info-card-basic">
                     <div className="info-card-header donation-admin-info-card-header donation-admin-page-one-header">
@@ -1132,7 +1173,7 @@ const AdminDonations = () => {
               )}
 
               {/* Page 2: Timeline */}
-              {modalPage === 2 && (
+              {modalMode === 'details' && modalPage === 2 && (
                 <div className="donation-admin-info-card donation-admin-timeline-card">
                   <div className="donation-admin-info-card-header">
                     <Clock size={20} />
@@ -1197,8 +1238,8 @@ const AdminDonations = () => {
                 </div>
               )}
 
-              {/* Page 3: Override Status */}
-              {modalPage === 3 && (
+              {/* Override Status */}
+              {modalMode === 'override' && (
                 <div className="donation-admin-info-card donation-admin-override-card">
                   <div className="donation-admin-info-card-header donation-admin-override-header">
                     <AlertCircle size={20} />
@@ -1276,32 +1317,34 @@ const AdminDonations = () => {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="donation-admin-modal-footer">
-              <button
-                className="donation-admin-modal-nav-btn"
-                onClick={() => setModalPage(modalPage - 1)}
-                disabled={modalPage === 1}
-              >
-                <ChevronLeft size={18} />
-                <span>{t('adminDonations.detailsModal.back')}</span>
-              </button>
+            {modalMode === 'details' && (
+              <div className="donation-admin-modal-footer">
+                <button
+                  className="donation-admin-modal-nav-btn"
+                  onClick={() => setModalPage(modalPage - 1)}
+                  disabled={modalPage === 1}
+                >
+                  <ChevronLeft size={18} />
+                  <span>{t('adminDonations.detailsModal.back')}</span>
+                </button>
 
-              <div className="donation-admin-modal-page-indicator">
-                {t('adminDonations.detailsModal.pageOf', {
-                  page: modalPage,
-                  total: 3,
-                })}
+                <div className="donation-admin-modal-page-indicator">
+                  {t('adminDonations.detailsModal.pageOf', {
+                    page: modalPage,
+                    total: 2,
+                  })}
+                </div>
+
+                <button
+                  className="donation-admin-modal-nav-btn"
+                  onClick={() => setModalPage(modalPage + 1)}
+                  disabled={modalPage === 2}
+                >
+                  <span>{t('adminDonations.detailsModal.next')}</span>
+                  <ChevronRight size={18} />
+                </button>
               </div>
-
-              <button
-                className="donation-admin-modal-nav-btn"
-                onClick={() => setModalPage(modalPage + 1)}
-                disabled={modalPage === 3}
-              >
-                <span>{t('adminDonations.detailsModal.next')}</span>
-                <ChevronRight size={18} />
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}

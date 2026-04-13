@@ -13,7 +13,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('../assets/illustrations/donor-illustration.jpg', () => 'donor.jpg');
-jest.mock('../style/Registration.css', () => ({}), { virtual: true });
+jest.mock('../../style/Registration.css', () => ({}), { virtual: true });
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {

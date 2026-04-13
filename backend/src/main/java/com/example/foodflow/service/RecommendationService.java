@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -7,11 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import io.micrometer.core.annotation.Timed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.example.foodflow.model.dto.RecommendationDTO;
 import com.example.foodflow.model.entity.PickupSlot;
 import com.example.foodflow.model.entity.ReceiverPreferences;
@@ -22,18 +19,15 @@ import com.example.foodflow.model.types.Quantity;
 import com.example.foodflow.model.types.TemperatureCategory;
 import com.example.foodflow.repository.ReceiverPreferencesRepository;
 import com.example.foodflow.repository.SurplusPostRepository;
-
 /**
  * Service for generating food donation recommendations based on receiver
  * preferences
  */
 @Service
 public class RecommendationService {
-
     private final ReceiverPreferencesRepository preferencesRepository;
     private final SurplusPostRepository surplusPostRepository;
     private final BusinessMetricsService businessMetricsService;
-
     public RecommendationService(ReceiverPreferencesRepository preferencesRepository,
             SurplusPostRepository surplusPostRepository,
             BusinessMetricsService businessMetricsService) {
@@ -41,34 +35,27 @@ public class RecommendationService {
         this.surplusPostRepository = surplusPostRepository;
         this.businessMetricsService = businessMetricsService;
     }
-
     /**
      * Get recommendation data for a specific post and user
      */
     @Timed(value = "recommendation.service.getRecommendationData", description = "Time taken to get recommendation data")
     public RecommendationDTO getRecommendationData(Long postId, User user) {
         businessMetricsService.incrementRecommendationsCalculated();
-
         SurplusPost post = surplusPostRepository.findById(postId).orElse(null);
         if (post == null) {
             return new RecommendationDTO(postId, 0, List.of("Post not found"));
         }
-
         ReceiverPreferences preferences = preferencesRepository.findByUser(user).orElse(null);
         if (preferences == null) {
             return new RecommendationDTO(postId, 0, List.of("No preferences set"));
         }
-
         RecommendationDTO result = calculateRecommendation(post, preferences);
-
         // Track high-scoring recommendations
         if (result.getScore() > 80) {
             businessMetricsService.incrementRecommendationsHighScore();
         }
-
         return result;
     }
-
     /**
      * Get recommendation data for multiple posts for a user
      */
@@ -80,7 +67,6 @@ public class RecommendationService {
                     id -> id,
                     id -> new RecommendationDTO(id, 0, List.of("No preferences set"))));
         }
-
         List<SurplusPost> posts = surplusPostRepository.findAllById(postIds);
         return posts.stream().collect(Collectors.toMap(
                 SurplusPost::getId,
@@ -93,7 +79,6 @@ public class RecommendationService {
                     return result;
                 }));
     }
-
     /**
      * Get all recommended posts for a user above a certain threshold
      */
@@ -103,7 +88,6 @@ public class RecommendationService {
         if (preferences == null) {
             return Map.of();
         }
-
         List<SurplusPost> posts = (postIds != null && !postIds.isEmpty()) ? surplusPostRepository.findAllById(postIds)
                 : surplusPostRepository.findByStatus(com.example.foodflow.model.types.PostStatus.AVAILABLE);
         return posts.stream()
@@ -123,7 +107,6 @@ public class RecommendationService {
                         Map.Entry::getKey,
                         Map.Entry::getValue));
     }
-
     /**
      * Get all recommended posts above threshold (convenience method for backward
      * compatibility)
@@ -131,67 +114,52 @@ public class RecommendationService {
     public Map<Long, RecommendationDTO> getRecommendedPosts(User user, int minScore) {
         return getRecommendedPosts(user, null, minScore);
     }
-
     /**
      * Calculate recommendation based on user-configurable preferences
      */
     private RecommendationDTO calculateRecommendation(SurplusPost post, ReceiverPreferences preferences) {
         List<String> reasons = new ArrayList<>();
         int score = 0;
-
         // 1. Food Category Matching (35 points) - Most important user setting
         score += calculateFoodCategoryScore(post, preferences, reasons);
-
         // 2. Donation Size Matching (25 points) - User sets SMALL/MEDIUM/LARGE/BULK
         // preferences
         score += calculateDonationSizeScore(post, preferences, reasons);
-
         // 3. Pickup Window Matching (20 points) - User sets MORNING/AFTERNOON/EVENING
         // availability
         score += calculatePickupWindowScore(post, preferences, reasons);
-
         // 4. Storage Requirements (10 points) - User sets refrigerated/frozen
         // acceptance
         score += calculateStorageScore(post, preferences, reasons);
-
         // 5. Expiry/Freshness (10 points) - Always relevant
         score += calculateExpiryScore(post, preferences, reasons);
-
         // 6. Smart Bonuses (up to 5 points additional) - Makes algorithm more
         // intelligent
         score += calculateSmartBonuses(post, preferences, reasons);
-
         // Cap score at 100
         score = Math.min(score, 100);
-
         // Limit to 4 reasons max
         List<String> limitedReasons = reasons.stream().limit(4).collect(Collectors.toList());
-
         return new RecommendationDTO(post.getId(), score, limitedReasons);
     }
-
     /**
      * Food category matching - checks if user wants this type or has "no strict
      * preferences"
      */
     private int calculateFoodCategoryScore(SurplusPost post, ReceiverPreferences preferences, List<String> reasons) {
         List<String> preferredTypes = preferences.getPreferredFoodTypes();
-
         // If empty list = "no strict preferences" (accepts all)
         if (preferredTypes == null || preferredTypes.isEmpty()) {
             reasons.add("Accepts all food types");
             return 30; // High score for flexibility
         }
-
         // Check if post categories match user preferences
         List<String> postCategories = post.getFoodCategories().stream()
                 .map(FoodCategory::name)
                 .collect(Collectors.toList());
-
         List<String> matches = postCategories.stream()
                 .filter(preferredTypes::contains)
                 .collect(Collectors.toList());
-
         if (!matches.isEmpty()) {
             if (matches.size() > 1) {
                 reasons.add("Matches " + matches.size() + " preferred categories");
@@ -205,22 +173,18 @@ public class RecommendationService {
             return 5; // Very low score for type mismatch
         }
     }
-
     /**
      * Donation size matching based on user's size preferences
      * (SMALL/MEDIUM/LARGE/BULK)
      */
     private int calculateDonationSizeScore(SurplusPost post, ReceiverPreferences preferences, List<String> reasons) {
         List<String> preferredSizes = preferences.getPreferredDonationSizes();
-
         // If no size preferences set, give neutral score
         if (preferredSizes == null || preferredSizes.isEmpty()) {
             return 12; // Neutral - don't add reason
         }
-
         // Determine post size based on quantity (rough estimation)
         String postSize = determinePostSize(post);
-
         if (preferredSizes.contains(postSize)) {
             reasons.add("Preferred size: " + postSize.toLowerCase() + " donation");
             return 25; // Perfect size match
@@ -234,7 +198,6 @@ public class RecommendationService {
             }
         }
     }
-
     /**
      * Determine donation size category from post quantity
      */
@@ -242,16 +205,13 @@ public class RecommendationService {
         if (post.getQuantity() == null) {
             return "MEDIUM"; // Default assumption
         }
-
         Quantity.Unit unit = post.getQuantity().getUnit();
         double quantity = post.getQuantity().getValue();
-
         // Based on frontend size definitions:
         // SMALL: 1-5 portions OR <3kg
         // MEDIUM: 5-20 portions OR 3-10kg
         // LARGE: 20-50 portions OR 10-25kg
         // BULK: 50+ portions OR >25kg
-
         switch (unit) {
             case KILOGRAM, LITER, POUND, FLUID_OUNCE, GALLON, PINT, OUNCE -> {
                 if (quantity < 3) {
@@ -264,7 +224,6 @@ public class RecommendationService {
                     return "BULK";
                 }
             }
-
             case GRAM, MILLILITER -> {
                 if (quantity < 3000) {
                     return "SMALL";
@@ -276,7 +235,6 @@ public class RecommendationService {
                     return "BULK";
                 }
             }
-
             case PORTION, CASE, ITEM, PIECE, BOTTLE, BAG, BOX, LOAF, JAR, CONTAINER, PACKAGE, CAN, HEAD, BUNCH,
                     SERVING, CUP, CARTON, UNIT -> {
                 if (quantity < 5) {
@@ -289,14 +247,11 @@ public class RecommendationService {
                     return "BULK";
                 }
             }
-
             default -> {
                 return "MEDIUM";
             }
-
         }
     }
-
     /**
      * Check if post size is adjacent to preferred sizes
      */
@@ -312,32 +267,26 @@ public class RecommendationService {
             return true;
         return false;
     }
-
     /**
      * Pickup window matching based on user's availability
      * (MORNING/AFTERNOON/EVENING)
      */
     private int calculatePickupWindowScore(SurplusPost post, ReceiverPreferences preferences, List<String> reasons) {
         List<String> userAvailability = preferences.getPreferredPickupWindows();
-
         // If no pickup preferences set, assume flexible (neutral score)
         if (userAvailability == null || userAvailability.isEmpty()) {
             return 10; // Neutral - don't add reason
         }
-
         // Check if ANY pickup slot matches user's availability
         if (post.getPickupSlots() == null || post.getPickupSlots().isEmpty()) {
             return 5; // No pickup info available
         }
-
         boolean hasMatchingSlot = false;
         List<String> availableWindows = new ArrayList<>();
-
         for (PickupSlot slot : post.getPickupSlots()) {
             LocalTime startTime = slot.getStartTime();
             if (startTime == null)
                 continue;
-
             String slotWindow;
             if (startTime.isBefore(LocalTime.of(12, 0))) {
                 slotWindow = "MORNING";
@@ -346,22 +295,18 @@ public class RecommendationService {
             } else {
                 slotWindow = "EVENING";
             }
-
             if (!availableWindows.contains(slotWindow)) {
                 availableWindows.add(slotWindow);
             }
-
             if (userAvailability.contains(slotWindow)) {
                 hasMatchingSlot = true;
             }
         }
-
         if (hasMatchingSlot) {
             // Find which window(s) match
             List<String> matchingWindows = availableWindows.stream()
                     .filter(userAvailability::contains)
                     .collect(Collectors.toList());
-
             if (matchingWindows.size() > 1) {
                 reasons.add("Multiple pickup windows available");
                 return 20; // Perfect flexibility
@@ -378,7 +323,6 @@ public class RecommendationService {
             return 0; // Complete timing conflict
         }
     }
-
     /**
      * Get user-friendly pickup window label
      */
@@ -394,7 +338,6 @@ public class RecommendationService {
                 return window;
         }
     }
-
     /**
      * Expiry date scoring - explicit about timeframe
      */
@@ -403,10 +346,8 @@ public class RecommendationService {
         if (expiryDate == null) {
             return 5; // Neutral score
         }
-
         LocalDate today = LocalDate.now();
         long daysUntilExpiry = ChronoUnit.DAYS.between(today, expiryDate);
-
         if (daysUntilExpiry >= 7) {
             reasons.add("Fresh - expires in " + daysUntilExpiry + " days");
             return 10;
@@ -422,7 +363,6 @@ public class RecommendationService {
             return 0;
         }
     }
-
     /**
      * Storage requirements based on post's temperature category vs user's storage
      * acceptance
@@ -431,15 +371,12 @@ public class RecommendationService {
         boolean acceptsRefrigerated = preferences.getAcceptRefrigerated() != null ? preferences.getAcceptRefrigerated()
                 : true;
         boolean acceptsFrozen = preferences.getAcceptFrozen() != null ? preferences.getAcceptFrozen() : true;
-
         // Check post's actual temperature requirements
         TemperatureCategory postTemp = post.getTemperatureCategory();
-
         if (postTemp == null) {
             // No specific temperature requirements - assume room temperature/flexible
             return 5; // Neutral score
         }
-
         switch (postTemp) {
             case FROZEN:
                 if (acceptsFrozen) {
@@ -448,7 +385,6 @@ public class RecommendationService {
                 } else {
                     return 0; // Cannot handle frozen
                 }
-
             case REFRIGERATED:
                 if (acceptsRefrigerated) {
                     reasons.add("Accepts refrigerated storage");
@@ -456,20 +392,17 @@ public class RecommendationService {
                 } else {
                     return 0; // Cannot handle refrigerated
                 }
-
             default:
                 // Room temperature or other - most users can handle this
                 return 5; // Good compatibility
         }
     }
-
     /**
      * Smart bonuses to make recommendations more intelligent
      * Considers: location proximity, donor reliability, and recency
      */
     private int calculateSmartBonuses(SurplusPost post, ReceiverPreferences preferences, List<String> reasons) {
         int bonus = 0;
-
         // 1. Recency Bonus (up to 3 points)
         // Fresher posts (posted within last hour) might be more relevant and available
         if (post.getCreatedAt() != null) {
@@ -481,7 +414,6 @@ public class RecommendationService {
                 bonus += 1;
             }
         }
-
         // 2. Quantity Flexibility Bonus (up to 2 points)
         // If donation meets receiver's quantity needs
         if (post.getQuantity() != null && preferences.getMinQuantity() != null
@@ -491,8 +423,6 @@ public class RecommendationService {
                 bonus += 2;
             }
         }
-
         return bonus;
     }
-
 }

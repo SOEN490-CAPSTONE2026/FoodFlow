@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import HowItWorks from '../components/LandingPage/HowItWorks.js';
+import HowItWorks from '../components/LandingPage/HowItWorks';
 
 // Mock react-icons
 jest.mock('react-icons/fa', () => ({

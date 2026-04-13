@@ -2,127 +2,135 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Footer from '../components/Footer';
 
-// Mock the logo import
-jest.mock('../assets/Logo.png', () => 'mock-logo.png');
+// Mock react-i18next
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: key => {
+      const translations = {
+        'footer.description':
+          'Connecting those with extra food to those in need.',
+        'footer.company': 'Company',
+        'footer.home': 'Home',
+        'footer.howItWorks': 'How It Works',
+        'footer.about': 'About',
+        'footer.faqs': 'FAQs',
+        'footer.contact': 'Contact',
+        'footer.email': 'foodflow.group@gmail.com',
+        'footer.phone': '1-800-122-4567',
+        'footer.copyright': '© 2024 FoodFlow. All rights reserved.',
+        'footer.privacyPolicy': 'Privacy Policy',
+        'footer.termsConditions': 'Terms & Conditions',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
 
-describe('Footer Component', () => {
-  test('renders footer without crashing', () => {
+// Mock react-icons
+jest.mock('react-icons/fa', () => ({
+  FaEnvelope: () => <div data-testid="envelope-icon">Envelope</div>,
+  FaPhone: () => <div data-testid="phone-icon">Phone</div>,
+}));
+
+describe('Footer', () => {
+  test('renders footer component', () => {
     render(<Footer />);
+
     const footerElement = screen.getByRole('contentinfo');
     expect(footerElement).toBeInTheDocument();
   });
 
-  test('displays the logo with correct alt text', () => {
+  test('displays company logo', () => {
     render(<Footer />);
+
     const logo = screen.getByAltText('FoodFlow Logo');
     expect(logo).toBeInTheDocument();
-    expect(logo).toHaveAttribute('src', 'mock-logo.png');
+    expect(logo).toHaveClass('footer-logo');
   });
 
-  test('displays company description', () => {
+  test('displays footer description', () => {
     render(<Footer />);
+
     const description = screen.getByText(
-      /Discover a charity shop platform designed to revolutionize food distribution/i
+      'Connecting those with extra food to those in need.'
     );
     expect(description).toBeInTheDocument();
+    expect(description).toHaveClass('footer-description');
   });
 
-  test('renders all navigation links', () => {
+  test('displays company navigation links', () => {
     render(<Footer />);
 
-    const homeLink = screen.getByText('Home');
-    const howItWorksLink = screen.getByText('How it works');
-    const aboutLink = screen.getByText('About Us');
-    const faqsLink = screen.getByText('FAQs');
-
-    expect(homeLink).toBeInTheDocument();
-    expect(howItWorksLink).toBeInTheDocument();
-    expect(aboutLink).toBeInTheDocument();
-    expect(faqsLink).toBeInTheDocument();
+    expect(screen.getByText('Company')).toBeInTheDocument();
+    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('How It Works')).toBeInTheDocument();
+    expect(screen.getByText('About')).toBeInTheDocument();
+    expect(screen.getByText('FAQs')).toBeInTheDocument();
   });
 
-  test('displays contact information correctly', () => {
+  test('displays contact information', () => {
     render(<Footer />);
 
-    const email = screen.getByText('foodflow.group@gmail.com');
-    const phone = screen.getByText('1-800-122-4567');
-
-    expect(email).toBeInTheDocument();
-    expect(phone).toBeInTheDocument();
+    expect(screen.getByText('Contact')).toBeInTheDocument();
+    expect(screen.getByTestId('envelope-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('phone-icon')).toBeInTheDocument();
   });
 
-  test('renders contact icons', () => {
+  test('displays email link with correct attributes', () => {
     render(<Footer />);
 
-    // Looking for the presence of icons
-    const emailIcon = document.querySelector('.contact-icon');
-    const phoneIcon = document.querySelectorAll('.contact-icon')[1];
+    const emailLink = screen.getByText('foodflow.group@gmail.com');
+    expect(emailLink).toBeInTheDocument();
+    expect(emailLink.closest('a')).toHaveAttribute(
+      'href',
+      'mailto:foodflow.group@gmail.com'
+    );
+    expect(emailLink.closest('a')).toHaveClass('contact-email');
+  });
 
-    expect(emailIcon).toBeInTheDocument();
-    expect(phoneIcon).toBeInTheDocument();
+  test('displays phone link with correct attributes', () => {
+    render(<Footer />);
+
+    const phoneLink = screen.getByText('1-800-122-4567');
+    expect(phoneLink).toBeInTheDocument();
+    expect(phoneLink.closest('a')).toHaveAttribute('href', 'tel:18001224567');
+    expect(phoneLink.closest('a')).toHaveClass('contact-phone');
   });
 
   test('displays copyright information', () => {
     render(<Footer />);
-    const copyright = screen.getByText(
-      /Copyright © 2025. All right reserved to FoodFlow/i
-    );
+
+    const copyright = screen.getByText('© 2024 FoodFlow. All rights reserved.');
     expect(copyright).toBeInTheDocument();
+    expect(copyright).toHaveClass('copyright');
   });
 
-  test('renders legal links', () => {
+  test('displays legal links', () => {
     render(<Footer />);
 
-    const privacyPolicy = screen.getByText('Privacy Policy');
-    const termsConditions = screen.getByText('Terms & Conditions');
+    const privacyLink = screen.getByText('Privacy Policy');
+    const termsLink = screen.getByText('Terms & Conditions');
 
-    expect(privacyPolicy).toBeInTheDocument();
-    expect(termsConditions).toBeInTheDocument();
+    expect(privacyLink).toBeInTheDocument();
+    expect(termsLink).toBeInTheDocument();
+
+    expect(privacyLink.closest('a')).toHaveAttribute('href', '/privacy-policy');
+    expect(termsLink.closest('a')).toHaveAttribute('href', '/terms-conditions');
   });
 
-  test('has correct section headings', () => {
+  test('displays legal links separator', () => {
     render(<Footer />);
 
-    const companyHeading = screen.getByText('Company');
-    const contactHeading = screen.getByText('Contact');
-
-    expect(companyHeading).toBeInTheDocument();
-    expect(contactHeading).toBeInTheDocument();
+    const separator = screen.getByText('|');
+    expect(separator).toBeInTheDocument();
+    expect(separator).toHaveClass('separator');
   });
 
-  test('navigation links have correct href attributes', () => {
+  test('has proper footer structure', () => {
     render(<Footer />);
 
-    const homeLink = screen.getByText('Home').closest('a');
-    const howItWorksLink = screen.getByText('How it works').closest('a');
-    const aboutLink = screen.getByText('About Us').closest('a');
-    const faqsLink = screen.getByText('FAQs').closest('a');
+    expect(screen.getByRole('contentinfo')).toHaveClass('footer');
 
-    expect(homeLink).toHaveAttribute('href', '#home');
-    expect(howItWorksLink).toHaveAttribute('href', '#how-it-works');
-    expect(aboutLink).toHaveAttribute('href', '#about');
-    expect(faqsLink).toHaveAttribute('href', '#faqs');
-  });
-
-  test('legal links have correct href attributes', () => {
-    render(<Footer />);
-
-    const privacyLink = screen.getByText('Privacy Policy').closest('a');
-    const termsLink = screen.getByText('Terms & Conditions').closest('a');
-
-    expect(privacyLink).toHaveAttribute('href', '/privacy-policy');
-    expect(termsLink).toHaveAttribute('href', '/terms-conditions');
-  });
-});
-
-describe('Footer Structure', () => {
-  test('has proper semantic HTML structure', () => {
-    render(<Footer />);
-
-    const footer = screen.getByRole('contentinfo');
-    expect(footer.tagName).toBe('FOOTER');
-
-    // Check for main content sections
     const footerContent = document.querySelector('.footer-content');
     const footerBottom = document.querySelector('.footer-bottom');
 
@@ -130,16 +138,17 @@ describe('Footer Structure', () => {
     expect(footerBottom).toBeInTheDocument();
   });
 
-  test('has correct class names applied', () => {
+  test('renders navigation links with proper href attributes', () => {
     render(<Footer />);
 
-    const footer = screen.getByRole('contentinfo');
-    expect(footer).toHaveClass('footer');
+    const homeLink = screen.getByText('Home').closest('a');
+    const howItWorksLink = screen.getByText('How It Works').closest('a');
+    const aboutLink = screen.getByText('About').closest('a');
+    const faqsLink = screen.getByText('FAQs').closest('a');
 
-    const logoSection = document.querySelector('.logo-section');
-    expect(logoSection).toBeInTheDocument();
-
-    const footerGrid = document.querySelector('.footer-grid');
-    expect(footerGrid).toBeInTheDocument();
+    expect(homeLink).toHaveAttribute('href', '#home');
+    expect(howItWorksLink).toHaveAttribute('href', '#how-it-works');
+    expect(aboutLink).toHaveAttribute('href', '#about');
+    expect(faqsLink).toHaveAttribute('href', '#faqs');
   });
 });

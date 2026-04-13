@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.socket.config.annotation.SockJsServiceRegistration;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.StompWebSocketEndpointRegistration;
@@ -27,33 +28,29 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class WebSocketConfigTest {
-
     @Mock
     private JwtTokenProvider jwtTokenProvider;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private MessageBrokerRegistry messageBrokerRegistry;
-
     @Mock
     private StompEndpointRegistry stompEndpointRegistry;
-
     @Mock
     private StompWebSocketEndpointRegistration endpointRegistration;
-
     @Mock
     private SockJsServiceRegistration sockJsServiceRegistration;
-
     @InjectMocks
     private WebSocketConfig webSocketConfig;
 
     @BeforeEach
     void setUp() {
+        // Inject the CORS allowed origins property value
+        ReflectionTestUtils.setField(webSocketConfig, "corsAllowedOrigins",
+                "http://localhost:3000,http://localhost:8080");
         // Mock the chain of method calls for endpoint registration
         when(stompEndpointRegistry.addEndpoint(anyString())).thenReturn(endpointRegistration);
-        when(endpointRegistration.setAllowedOriginPatterns(anyString())).thenReturn(endpointRegistration);
+        when(endpointRegistration.setAllowedOrigins(any(String[].class))).thenReturn(endpointRegistration);
         when(endpointRegistration.setHandshakeHandler(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.addInterceptors(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.withSockJS()).thenReturn(sockJsServiceRegistration);
@@ -63,7 +60,6 @@ class WebSocketConfigTest {
     void testConfigureMessageBroker() {
         // Act
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
-
         // Assert
         verify(messageBrokerRegistry).enableSimpleBroker("/topic", "/queue");
         verify(messageBrokerRegistry).setApplicationDestinationPrefixes("/app");
@@ -74,10 +70,8 @@ class WebSocketConfigTest {
     void testConfigureMessageBroker_EnablesCorrectBrokerDestinations() {
         // Arrange
         ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
-
         // Act
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
-
         // Assert
         verify(messageBrokerRegistry).enableSimpleBroker(destinationCaptor.capture(), destinationCaptor.capture());
         assertTrue(destinationCaptor.getAllValues().contains("/topic"));
@@ -88,10 +82,8 @@ class WebSocketConfigTest {
     void testConfigureMessageBroker_SetsApplicationPrefix() {
         // Arrange
         ArgumentCaptor<String> prefixCaptor = ArgumentCaptor.forClass(String.class);
-
         // Act
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
-
         // Assert
         verify(messageBrokerRegistry).setApplicationDestinationPrefixes(prefixCaptor.capture());
         assertEquals("/app", prefixCaptor.getValue());
@@ -101,10 +93,8 @@ class WebSocketConfigTest {
     void testConfigureMessageBroker_SetsUserPrefix() {
         // Arrange
         ArgumentCaptor<String> prefixCaptor = ArgumentCaptor.forClass(String.class);
-
         // Act
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
-
         // Assert
         verify(messageBrokerRegistry).setUserDestinationPrefix(prefixCaptor.capture());
         assertEquals("/user", prefixCaptor.getValue());
@@ -114,10 +104,9 @@ class WebSocketConfigTest {
     void testRegisterStompEndpoints() {
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert
         verify(stompEndpointRegistry).addEndpoint("/ws");
-        verify(endpointRegistration).setAllowedOriginPatterns("*");
+        verify(endpointRegistration).setAllowedOrigins(any(String[].class));
         verify(endpointRegistration).setHandshakeHandler(any(PrincipalHandshakeHandler.class));
         verify(endpointRegistration).addInterceptors(any(JwtHandshakeInterceptor.class));
         verify(endpointRegistration).withSockJS();
@@ -127,36 +116,36 @@ class WebSocketConfigTest {
     void testRegisterStompEndpoints_AddsCorrectEndpoint() {
         // Arrange
         ArgumentCaptor<String> endpointCaptor = ArgumentCaptor.forClass(String.class);
-
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert
         verify(stompEndpointRegistry).addEndpoint(endpointCaptor.capture());
         assertEquals("/ws", endpointCaptor.getValue());
     }
 
     @Test
-    void testRegisterStompEndpoints_AllowsAllOriginPatterns() {
+    void testRegisterStompEndpoints_RestrictsOriginsByConfiguration() {
         // Arrange
-        ArgumentCaptor<String> originCaptor = ArgumentCaptor.forClass(String.class);
-
+        ArgumentCaptor<String[]> originsCaptor = ArgumentCaptor.forClass(String[].class);
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert
-        verify(endpointRegistration).setAllowedOriginPatterns(originCaptor.capture());
-        assertEquals("*", originCaptor.getValue());
+        verify(endpointRegistration).setAllowedOrigins(originsCaptor.capture());
+        String[] allowedOrigins = originsCaptor.getValue();
+        assertNotNull(allowedOrigins);
+        assertTrue(allowedOrigins.length > 0);
+        // Should contain the origins from config, not wildcard
+        for (String origin : allowedOrigins) {
+            assertNotEquals("*", origin, "Origins should be restricted, not wildcard");
+        }
     }
 
     @Test
     void testRegisterStompEndpoints_SetsPrincipalHandshakeHandler() {
         // Arrange
         ArgumentCaptor<DefaultHandshakeHandler> handlerCaptor = ArgumentCaptor.forClass(DefaultHandshakeHandler.class);
-
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert
         verify(endpointRegistration).setHandshakeHandler(handlerCaptor.capture());
         assertInstanceOf(PrincipalHandshakeHandler.class, handlerCaptor.getValue());
@@ -166,10 +155,8 @@ class WebSocketConfigTest {
     void testRegisterStompEndpoints_AddsJwtHandshakeInterceptor() {
         // Arrange
         ArgumentCaptor<HandshakeInterceptor> interceptorCaptor = ArgumentCaptor.forClass(HandshakeInterceptor.class);
-
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert
         verify(endpointRegistration).addInterceptors(interceptorCaptor.capture());
         assertInstanceOf(JwtHandshakeInterceptor.class, interceptorCaptor.getValue());
@@ -179,7 +166,6 @@ class WebSocketConfigTest {
     void testRegisterStompEndpoints_EnablesSockJS() {
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert
         verify(endpointRegistration).withSockJS();
     }
@@ -188,11 +174,10 @@ class WebSocketConfigTest {
     void testRegisterStompEndpoints_CallsInCorrectOrder() {
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert - verify the chain is called in correct order
         var inOrder = inOrder(stompEndpointRegistry, endpointRegistration);
         inOrder.verify(stompEndpointRegistry).addEndpoint("/ws");
-        inOrder.verify(endpointRegistration).setAllowedOriginPatterns("*");
+        inOrder.verify(endpointRegistration).setAllowedOrigins(any(String[].class));
         inOrder.verify(endpointRegistration).setHandshakeHandler(any(PrincipalHandshakeHandler.class));
         inOrder.verify(endpointRegistration).addInterceptors(any(JwtHandshakeInterceptor.class));
         inOrder.verify(endpointRegistration).withSockJS();
@@ -203,7 +188,6 @@ class WebSocketConfigTest {
         // Act
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
-
         // Assert - should be called twice
         verify(messageBrokerRegistry, times(2)).enableSimpleBroker("/topic", "/queue");
         verify(messageBrokerRegistry, times(2)).setApplicationDestinationPrefixes("/app");
@@ -215,7 +199,6 @@ class WebSocketConfigTest {
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert - should be called twice
         verify(stompEndpointRegistry, times(2)).addEndpoint("/ws");
         verify(endpointRegistration, times(2)).withSockJS();
@@ -231,10 +214,8 @@ class WebSocketConfigTest {
     void testConfigureMessageBroker_AllMethodsCalled() {
         // Arrange
         reset(messageBrokerRegistry);
-
         // Act
         webSocketConfig.configureMessageBroker(messageBrokerRegistry);
-
         // Assert - verify all three configuration methods are called
         verify(messageBrokerRegistry, times(1)).enableSimpleBroker(anyString(), anyString());
         verify(messageBrokerRegistry, times(1)).setApplicationDestinationPrefixes(anyString());
@@ -247,17 +228,15 @@ class WebSocketConfigTest {
         // Arrange
         reset(stompEndpointRegistry, endpointRegistration, sockJsServiceRegistration);
         when(stompEndpointRegistry.addEndpoint(anyString())).thenReturn(endpointRegistration);
-        when(endpointRegistration.setAllowedOriginPatterns(anyString())).thenReturn(endpointRegistration);
+        when(endpointRegistration.setAllowedOrigins(any(String[].class))).thenReturn(endpointRegistration);
         when(endpointRegistration.setHandshakeHandler(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.addInterceptors(any())).thenReturn(endpointRegistration);
         when(endpointRegistration.withSockJS()).thenReturn(sockJsServiceRegistration);
-
         // Act
         webSocketConfig.registerStompEndpoints(stompEndpointRegistry);
-
         // Assert - verify all configuration methods are called
         verify(stompEndpointRegistry, times(1)).addEndpoint(anyString());
-        verify(endpointRegistration, times(1)).setAllowedOriginPatterns(anyString());
+        verify(endpointRegistration, times(1)).setAllowedOrigins(any(String[].class));
         verify(endpointRegistration, times(1)).setHandshakeHandler(any());
         verify(endpointRegistration, times(1)).addInterceptors(any());
         verify(endpointRegistration, times(1)).withSockJS();

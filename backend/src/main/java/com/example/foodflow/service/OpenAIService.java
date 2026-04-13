@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -10,7 +9,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import okhttp3.*;
 import java.util.concurrent.TimeUnit;
 import java.util.Locale;
-
 /**
  * Service for making OpenAI API calls with enhanced security and monitoring.
  * Handles communication with OpenAI's Chat Completions API using gpt-4o-mini model.
@@ -18,31 +16,21 @@ import java.util.Locale;
  */
 @Service
 public class OpenAIService {
-
     private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
-
     private final BusinessMetricsService businessMetricsService;
-
     @Value("${app.openai.api-key}")
     private String openAIApiKey;
-
     @Value("${app.openai.model:gpt-4o-mini}")
     private String model;
-
     @Value("${app.openai.max-tokens:500}")
     private int maxTokens;
-
     @Value("${app.openai.temperature:0.3}")
     private double temperature;
-
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
-
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-    
     // Security limits
     private static final int MAX_CONTEXT_LENGTH = 20000; // Limit context size
-
     public OpenAIService(BusinessMetricsService businessMetricsService) {
         this.businessMetricsService = businessMetricsService;
         this.httpClient = new OkHttpClient.Builder()
@@ -52,7 +40,6 @@ public class OpenAIService {
                 .build();
         this.objectMapper = new ObjectMapper();
     }
-
     /**
      * Generate a support response using OpenAI with input validation and monitoring
      * 
@@ -64,10 +51,8 @@ public class OpenAIService {
      */
     public String generateSupportResponse(String userMessage, String helpPackContent,
             JsonNode supportContext, String userLanguage) {
-        
         long startTime = System.currentTimeMillis();
         io.micrometer.core.instrument.Timer.Sample sample = businessMetricsService.startTimer();
-
         try {
             // Input validation to prevent abuse
             if (!validateInput(userMessage, helpPackContent, supportContext)) {
@@ -76,31 +61,25 @@ public class OpenAIService {
                 businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                 return getEscalationMessage(userLanguage);
             }
-            
             // Log the request for monitoring
             logger.info("OpenAI API request initiated for user language: {}", userLanguage);
-            
             // Build the messages array for OpenAI
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", model);
             requestBody.put("max_tokens", maxTokens);
             requestBody.put("temperature", temperature);
-
             // Create messages array
             var messagesArray = objectMapper.createArrayNode();
-
             // System message with FoodFlow assistant rules
             var systemMessage = objectMapper.createObjectNode();
             systemMessage.put("role", "system");
             systemMessage.put("content", buildSystemPrompt(userLanguage));
             messagesArray.add(systemMessage);
-
             // Developer message with formatting rules
             var developerMessage = objectMapper.createObjectNode();
             developerMessage.put("role", "system");
             developerMessage.put("content", buildFormattingRules());
             messagesArray.add(developerMessage);
-
             // Context message (truncated if too long)
             if (supportContext != null) {
                 var contextMessage = objectMapper.createObjectNode();
@@ -112,7 +91,6 @@ public class OpenAIService {
                 contextMessage.put("content", "User context: " + contextStr);
                 messagesArray.add(contextMessage);
             }
-
             // Help pack content message (truncated if too long)
             if (helpPackContent != null && !helpPackContent.trim().isEmpty()) {
                 var helpMessage = objectMapper.createObjectNode();
@@ -123,31 +101,25 @@ public class OpenAIService {
                 helpMessage.put("content", "Help pack information: " + content);
                 messagesArray.add(helpMessage);
             }
-
             // User message (sanitized)
             var userMsg = objectMapper.createObjectNode();
             userMsg.put("role", "user");
             userMsg.put("content", sanitizeInput(userMessage));
             messagesArray.add(userMsg);
-
             requestBody.set("messages", messagesArray);
-
             // Build request
             RequestBody body = RequestBody.create(
                     requestBody.toString(),
                     MediaType.get("application/json"));
-
             Request request = new Request.Builder()
                     .url(OPENAI_API_URL)
                     .addHeader("Authorization", "Bearer " + openAIApiKey)
                     .addHeader("Content-Type", "application/json")
                     .post(body)
                     .build();
-
             // Execute request
             try (Response response = httpClient.newCall(request).execute()) {
                 long duration = System.currentTimeMillis() - startTime;
-                
                 if (!response.isSuccessful()) {
                     logger.warn("OpenAI API request failed with status: {} in {}ms",
                         response.code(), duration);
@@ -155,10 +127,8 @@ public class OpenAIService {
                     businessMetricsService.recordOpenAiDuration(sample, "chat_completion");
                     return getEscalationMessage(userLanguage);
                 }
-
                 String responseBody = response.body().string();
                 JsonNode responseJson = objectMapper.readTree(responseBody);
-
                 // Extract the assistant's response
                 JsonNode choices = responseJson.get("choices");
                 if (choices != null && choices.size() > 0) {
@@ -172,11 +142,9 @@ public class OpenAIService {
                         return result;
                     }
                 }
-
                 logger.warn("OpenAI API returned unexpected response format");
                 return getEscalationMessage(userLanguage);
             }
-
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
             logger.error("OpenAI API request failed after {}ms", duration, e);
@@ -185,7 +153,6 @@ public class OpenAIService {
             return getEscalationMessage(userLanguage);
         }
     }
-
     /**
      * Validate input to prevent abuse and oversized requests
      */
@@ -195,55 +162,44 @@ public class OpenAIService {
             logger.warn("OpenAI request blocked: user message is empty");
             return false;
         }
-        
         // No hard length limit; allow full user input to pass through.
-        
         // Check for suspicious patterns (log only; allow to avoid false positives)
         if (containsSuspiciousPatterns(userMessage)) {
             logger.warn("Suspicious pattern detected in user input; allowing request to proceed");
         }
-        
         // Help pack and support context can be large; they will be truncated later.
         // Don't block the request here just because context is oversized.
         if (helpPackContent != null && helpPackContent.length() > MAX_CONTEXT_LENGTH * 2) {
             logger.warn("Help pack content exceeds maximum length; will be truncated");
         }
-        
         if (supportContext != null && supportContext.toString().length() > MAX_CONTEXT_LENGTH * 2) {
             logger.warn("Support context exceeds maximum length; will be truncated");
         }
-        
         return true;
     }
-    
     /**
      * Check for suspicious patterns that might indicate abuse
      */
     private boolean containsSuspiciousPatterns(String input) {
         String lowercaseInput = input.toLowerCase();
-        
         // Check for potential prompt injection attempts
         String[] suspiciousPatterns = {
             "ignore previous", "forget everything", "new instruction", "system:",
             "assistant:", "role:", "behave like", "pretend to be", "act as",
             "\\n\\n", "---", "###", "```"
         };
-        
         for (String pattern : suspiciousPatterns) {
             if (lowercaseInput.contains(pattern)) {
                 logger.warn("Suspicious pattern detected in user input: {}", pattern);
                 return true;
             }
         }
-        
         // Check for excessive repetition (potential spam)
         if (hasExcessiveRepetition(input)) {
             return true;
         }
-        
         return false;
     }
-    
     /**
      * Check for excessive character/word repetition
      */
@@ -263,10 +219,8 @@ public class OpenAIService {
                 return true;
             }
         }
-        
         return false;
     }
-    
     /**
      * Sanitize user input to remove potentially harmful content
      */
@@ -274,13 +228,10 @@ public class OpenAIService {
         if (input == null) {
             return "";
         }
-        
         // Remove excessive whitespace and normalize
         String sanitized = input.trim().replaceAll("\\s+", " ");
-        
         return sanitized;
     }
-
     /**
      * Build the system prompt for the FoodFlow assistant
      */
@@ -290,7 +241,6 @@ public class OpenAIService {
         return String.format(
                 """
                         You are the FoodFlow Support Assistant, helping users with questions about using the FoodFlow food sharing platform.
-
                         CRITICAL RULES:
                         1. Only answer questions using the provided help pack information and user context
                         2. NEVER provide general advice outside FoodFlow (no legal, medical, or food safety guidance)
@@ -300,19 +250,16 @@ public class OpenAIService {
                         6. Keep responses concise and actionable
                         7. Use step-by-step format when appropriate
                         8. Never invent or assume information not provided in context
-
                         SCOPE LIMITATIONS:
                         - Only FoodFlow app functionality and usage
                         - No legal advice about food regulations or liability
                         - No medical advice about food allergies or dietary needs
                         - No food safety guidelines beyond what's in the help pack
                         - No business or partnership advice
-
                         If asked about anything outside this scope, escalate to human support.
                         """,
                 languageName);
     }
-
     /**
      * Build formatting rules for responses
      */
@@ -328,7 +275,6 @@ public class OpenAIService {
                 7. Never claim you "looked up" information - you only use provided context
                 """;
     }
-
     /**
      * Get escalation message in the appropriate language
      */
@@ -342,7 +288,6 @@ public class OpenAIService {
             default -> "I'm unable to answer this question. Please contact our support team for assistance.";
         };
     }
-
     private String normalizeLanguage(String language) {
         if (language == null || language.isBlank()) {
             return "en";
@@ -356,7 +301,6 @@ public class OpenAIService {
             default -> "en";
         };
     }
-
     private String getLanguageName(String language) {
         return switch (normalizeLanguage(language)) {
             case "fr" -> "French";

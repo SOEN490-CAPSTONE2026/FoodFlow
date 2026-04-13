@@ -1,5 +1,4 @@
 package com.example.foodflow.websocket;
-
 import com.example.foodflow.security.JwtTokenProvider;
 import com.example.foodflow.repository.UserRepository;
 import org.springframework.http.server.ServerHttpRequest;
@@ -10,23 +9,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.List;
-
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
-
     private static final Logger logger = LoggerFactory.getLogger(JwtHandshakeInterceptor.class);
-
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-
     public JwtHandshakeInterceptor(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }
-
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
-
         // Try Authorization header first (if present)
         List<String> auth = request.getHeaders().get("Authorization");
         String token = null;
@@ -36,7 +29,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                 token = header.substring(7);
             }
         }
-
         // If no header token, try token query param (used when connecting via SockJS)
         if (token == null) {
             try {
@@ -53,7 +45,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                 // ignore parsing errors
             }
         }
-
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String email = jwtTokenProvider.getEmailFromToken(token);
             var maybeUser = userRepository.findByEmail(email);
@@ -71,7 +62,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         // allow handshake through; set actual Principal in a custom HandshakeHandler if needed
         return true;
     }
-
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                WebSocketHandler wsHandler, Exception exception) { }

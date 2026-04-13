@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -16,15 +15,12 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
-
 class OpenAIServiceTest {
-
     private static BusinessMetricsService mockMetrics() {
         BusinessMetricsService metrics = mock(BusinessMetricsService.class);
         when(metrics.startTimer()).thenReturn(mock(Timer.Sample.class));
         return metrics;
     }
-
     @Test
     void generateSupportResponse_invalidInput_returnsValidationMessage() {
         OpenAIService service = new OpenAIService(mockMetrics());
@@ -34,18 +30,14 @@ class OpenAIServiceTest {
             null,
             "en"
         );
-
         assertThat(result).isEqualTo("I'm unable to answer this question. Please contact our support team for assistance.");
     }
-
     @Test
     void generateSupportResponse_successfulResponse_returnsContent() throws Exception {
         OpenAIService service = new OpenAIService(mockMetrics());
         OkHttpClient httpClient = Mockito.mock(OkHttpClient.class);
         Call call = Mockito.mock(Call.class);
-
         when(httpClient.newCall(any(Request.class))).thenReturn(call);
-
         String responseJson = """
             {"choices":[{"message":{"content":"Hello from AI"}}]}
             """;
@@ -59,23 +51,19 @@ class OpenAIServiceTest {
             .message("OK")
             .body(ResponseBody.create(responseJson, MediaType.get("application/json")))
             .build();
-
         when(call.execute()).thenReturn(response);
-
         ReflectionTestUtils.setField(service, "httpClient", httpClient);
         ReflectionTestUtils.setField(service, "objectMapper", new ObjectMapper());
         ReflectionTestUtils.setField(service, "openAIApiKey", "test-key");
         ReflectionTestUtils.setField(service, "model", "gpt-4o-mini");
         ReflectionTestUtils.setField(service, "maxTokens", 50);
         ReflectionTestUtils.setField(service, "temperature", 0.2);
-
         String result = service.generateSupportResponse(
             "Hello",
             "help pack",
             new ObjectMapper().createObjectNode(),
             "en"
         );
-
         assertThat(result).isEqualTo("Hello from AI");
     }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { impactDashboardAPI } from '../../services/api';
+import ExportDropdown from '../Common/ExportDropdown';
 import {
   TrendingUp,
   Leaf,
@@ -85,22 +86,42 @@ export default function AdminImpactDashboard() {
     fetchMetrics();
   }, [dateRange, t]);
 
-  const handleExport = async () => {
+  const handleExportCSV = async () => {
     try {
-      const response = await impactDashboardAPI.exportMetrics(dateRange);
+      const response = await impactDashboardAPI.exportMetricsCSV(dateRange);
       const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `platform-impact-metrics-${dateRange.toLowerCase()}.csv`;
+      link.download = `FoodFlow_Impact_Report_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Error exporting metrics:', err);
+      console.error('Error exporting CSV:', err);
       setError(
-        t('impactDashboard.exportError', 'Unable to export metrics right now.')
+        t('impactDashboard.exportError', 'Unable to export CSV right now.')
+      );
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await impactDashboardAPI.exportMetricsPDF(dateRange);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `FoodFlow_Impact_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting PDF:', err);
+      setError(
+        t('impactDashboard.exportError', 'Unable to export PDF right now.')
       );
     }
   };
@@ -247,10 +268,11 @@ export default function AdminImpactDashboard() {
             </option>
           </select>
 
-          <button className="export-btn" onClick={handleExport}>
-            <Download size={18} />
-            {t('impactDashboard.export', 'Export CSV')}
-          </button>
+          <ExportDropdown
+            onExportCSV={handleExportCSV}
+            onExportPDF={handleExportPDF}
+            label={t('impactDashboard.export', 'Export')}
+          />
         </div>
       </div>
 

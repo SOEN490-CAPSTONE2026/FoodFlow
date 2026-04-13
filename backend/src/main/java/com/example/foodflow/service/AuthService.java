@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.exception.BusinessException;
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
@@ -31,15 +30,11 @@ import java.util.UUID;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-
 @Service
 public class AuthService {
-
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-
     private final MetricsService metricsService;
     private final ObjectMapper objectMapper;
-
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,33 +42,26 @@ public class AuthService {
     private final EmailNotificationService emailService;
     private final EmailVerificationTokenRepository verificationTokenRepository;
     private final PasswordValidator passwordValidator;
-
     @Value("${password.policy.reset-token-expiry-minutes:15}")
     private int resetTokenExpiryMinutes;
-
     // In-memory storage for reset codes (expiry handled by timestamp)
     private final Map<String, ResetCodeData> resetCodes = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
-    
     // Helper class to store code with timestamp
     private static class ResetCodeData {
         private final String code;
         private final long timestamp;
-        
         ResetCodeData(String code, long timestamp) {
             this.code = code;
             this.timestamp = timestamp;
         }
-        
         public String getCode() {
             return code;
         }
-        
         public long getTimestamp() {
             return timestamp;
         }
     }
-
     // Update the constructor to include MetricsService:
     public AuthService(UserRepository userRepository, 
                     OrganizationRepository organizationRepository,
@@ -94,13 +82,10 @@ public class AuthService {
         this.verificationTokenRepository = verificationTokenRepository;
         this.passwordValidator = passwordValidator;
     }
-
-
     @Transactional
     @Timed(value = "auth.service.registerDonor", description = "Time taken to register a donor")
     public AuthResponse registerDonor(RegisterDonorRequest request) {
         log.info("Starting donor registration for email: {}", request.getEmail());
-
         // Validate password against policy
         List<String> passwordErrors = passwordValidator.validatePassword(request.getPassword());
         if (!passwordErrors.isEmpty()) {
@@ -108,19 +93,16 @@ public class AuthService {
             log.warn("Registration failed: Password policy violation for email: {} - {}", request.getEmail(), errorMessage);
             throw new com.example.foodflow.exception.domain.InvalidClaimException(errorMessage);
         }
-
         // Validate password confirmation
         if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
             log.warn("Registration failed: Passwords do not match for email: {}", request.getEmail());
             throw new com.example.foodflow.exception.domain.InvalidClaimException("Passwords do not match");
         }
-        
         // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("Registration failed: Email already exists: {}", request.getEmail());
             throw new BusinessException("error.auth.email_exists");
         }
-
         // Create user
         User user = new User();
         user.setEmail(request.getEmail());
@@ -133,17 +115,13 @@ public class AuthService {
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
         // Set timezone from request, default to UTC if not provided
         user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
-
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
-
         User savedUser = userRepository.save(user);
         log.debug("User created with ID: {} for email: {}", savedUser.getId(), savedUser.getEmail());
-
         // Save initial password to history
         passwordValidator.savePasswordToHistory(savedUser, encodedPassword);
         log.debug("Initial password saved to history for user: {}", savedUser.getEmail());
-
         // Create organization
         Organization organization = new Organization();
         organization.setUser(savedUser);
@@ -157,23 +135,19 @@ public class AuthService {
         organization.setBusinessLicense(request.getBusinessLicense());
         // Set timezone from request, default to UTC if not provided
         organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
-
         // Store supporting document URL if uploaded
         if (request.getSupportingDocumentUrl() != null) {
             organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
             log.debug("Supporting document URL set for donor: {}", request.getSupportingDocumentUrl());
         }
-
         organizationRepository.save(organization);
         log.debug("Organization created for user: {} - Organization: {}", 
             savedUser.getEmail(), request.getOrganizationName());
-
         // Generate and save email verification token
         String verificationToken = UUID.randomUUID().toString();
         EmailVerificationToken tokenEntity = new EmailVerificationToken(savedUser, verificationToken);
         verificationTokenRepository.save(tokenEntity);
         log.debug("Verification token created for user: {}", savedUser.getEmail());
-
         // Send verification email
         try {
             emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
@@ -182,16 +156,12 @@ public class AuthService {
             log.error("Failed to send verification email to: {}", savedUser.getEmail(), e);
             // Don't fail registration if email fails, user can request resend
         }
-
         // Generate JWT token (user can still receive token but won't be able to use platform until verified)
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
-
         metricsService.incrementDonorRegistration();
         metricsService.incrementUserRegistration();
-
         log.info("Donor registration successful: email={}, organization={}, type={}",
             savedUser.getEmail(), request.getOrganizationName(), request.getOrganizationType());
-
         AuthResponse response = new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
             "Donor registered successfully", savedUser.getId(), request.getOrganizationName(), 
             organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
@@ -199,7 +169,6 @@ public class AuthService {
         response.setLanguagePreference(savedUser.getLanguagePreference());
         return response;
     }
-
     @Transactional
     @Timed(value = "auth.service.registerReceiver", description = "Time taken to register a receiver")
     public AuthResponse registerReceiver(RegisterReceiverRequest request) {
@@ -210,7 +179,6 @@ public class AuthService {
             log.warn("Registration failed: Password policy violation for email: {} - {}", request.getEmail(), errorMessage);
             throw new com.example.foodflow.exception.domain.InvalidClaimException(errorMessage);
         }
-
         // Validate password confirmation
         if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
             throw new com.example.foodflow.exception.domain.InvalidClaimException("Passwords do not match");
@@ -219,7 +187,6 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("error.auth.email_exists");
         }
-
         // Create user
         User user = new User();
         user.setEmail(request.getEmail());
@@ -232,15 +199,11 @@ public class AuthService {
         user.setDataStorageConsent(request.getDataStorageConsent() != null ? request.getDataStorageConsent() : false);
         // Set timezone from request, default to UTC if not provided
         user.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
-
         // Initialize default notification preferences
         initializeDefaultNotificationPreferences(user);
-
         User savedUser = userRepository.save(user);
-
         // Save initial password to history
         passwordValidator.savePasswordToHistory(savedUser, encodedPassword);
-
         // Create organization
         Organization organization = new Organization();
         organization.setUser(savedUser);
@@ -257,7 +220,6 @@ public class AuthService {
         if (request.getCharityRegistrationNumber() != null) {
             organization.setCharityRegistrationNumber(request.getCharityRegistrationNumber());
         }
-
         // Store supporting document URL if uploaded
         if (request.getSupportingDocumentUrl() != null) {
             organization.setSupportingDocumentUrl(request.getSupportingDocumentUrl());
@@ -265,15 +227,12 @@ public class AuthService {
         }
         // Set timezone from request, default to UTC if not provided
         organization.setTimezone(request.getTimezone() != null ? request.getTimezone() : "UTC");
-
         organizationRepository.save(organization);
-
         // Generate and save email verification token
         String verificationToken = UUID.randomUUID().toString();
         EmailVerificationToken tokenEntity = new EmailVerificationToken(savedUser, verificationToken);
         verificationTokenRepository.save(tokenEntity);
         log.debug("Verification token created for user: {}", savedUser.getEmail());
-
         // Send verification email
         try {
             emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
@@ -282,13 +241,10 @@ public class AuthService {
             log.error("Failed to send verification email to: {}", savedUser.getEmail(), e);
             // Don't fail registration if email fails, user can request resend
         }
-
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(savedUser.getEmail(), savedUser.getRole().toString());
-
         metricsService.incrementReceiverRegistration();
         metricsService.incrementUserRegistration();
-
         AuthResponse response = new AuthResponse(token, savedUser.getEmail(), savedUser.getRole().toString(), 
             "Receiver registered successfully", savedUser.getId(), request.getOrganizationName(), 
             organization.getVerificationStatus() != null ? organization.getVerificationStatus().toString() : null,
@@ -296,7 +252,6 @@ public class AuthService {
         response.setLanguagePreference(savedUser.getLanguagePreference());
         return response;
     }
-
     @Transactional(readOnly = true)
     @Timed(value = "auth.service.login", description = "Time taken to login")
     public AuthResponse login(LoginRequest request) {
@@ -309,28 +264,22 @@ public class AuthService {
                     metricsService.incrementAuthFailure("user_not_found");
                     return new BusinessException("error.auth.user_not_found");
             });
-
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                     log.warn("Login failed: Invalid credentials for user: {}", request.getEmail());
                     metricsService.incrementAuthFailure("invalid_credentials");
                     throw new BusinessException("error.auth.invalid_credentials");
             }
-
             // Check if account is deactivated
             if (user.getAccountStatus() == AccountStatus.DEACTIVATED) {
                 log.warn("Login failed: Account deactivated for user: {}", request.getEmail());
                 metricsService.incrementAuthFailure("account_deactivated");
                 throw new com.example.foodflow.exception.BusinessException("error.auth.account_deactivated");
             }
-
             String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().toString());
-
             metricsService.incrementLoginSuccess();
-
             String organizationName = user.getOrganization() != null ? user.getOrganization().getName() : null;
             String verificationStatus = user.getOrganization() != null && user.getOrganization().getVerificationStatus() != null ? user.getOrganization().getVerificationStatus().toString() : null;
             String accountStatus = user.getAccountStatus() != null ? user.getAccountStatus().toString() : null;
-
             log.info("Login successful: email={}, role={}, accountStatus={}, organizationName={}, verificationStatus={}", 
                 user.getEmail(), user.getRole(), accountStatus, organizationName, verificationStatus);
             AuthResponse response = new AuthResponse(token, user.getEmail(), user.getRole().toString(),
@@ -342,23 +291,18 @@ public class AuthService {
             throw e;
         }
     }
-
     @Timed(value = "auth.service.logout", description = "Time taken to logout")
     public AuthResponse logout(LogoutRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BusinessException("error.auth.user_not_found"));
-
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException("error.auth.invalid_credentials");
         }
-
         return new AuthResponse(null, user.getEmail(), user.getRole().toString(), "Account logged out successfully.");
     }
-
     private void initializeDefaultNotificationPreferences(User user) {
         try {
             Map<String, Boolean> defaultPreferences = new HashMap<>();
-            
             // Set all notification types to true based on role
             if (user.getRole() == UserRole.DONOR) {
                 // Claim & Pickup Flow
@@ -405,16 +349,13 @@ public class AuthService {
                 defaultPreferences.put("systemError", true);
                 defaultPreferences.put("highVolumeDonation", true);
             }
-            
             String json = objectMapper.writeValueAsString(defaultPreferences);
             user.setNotificationTypePreferences(json);
-        
         } catch (Exception e) {
             log.error("Failed to initialize notification preferences for user {}: {}", user.getEmail(), e.getMessage());
             // Don't fail registration if notification preferences initialization fails
         }
     }
-    
     /**
      * Initiate password reset flow by generating and sending a 6-digit code via email
      * Note: SMS verification is handled by Firebase on the frontend
@@ -424,7 +365,6 @@ public class AuthService {
     @Timed(value = "auth.service.forgotPassword", description = "Time taken to process forgot password")
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
         log.info("Processing forgot password request for method: {}", request.getMethod());
-        
         if ("email".equals(request.getMethod())) {
             return handleEmailForgotPassword(request);
         } else if ("sms".equals(request.getMethod())) {
@@ -433,56 +373,46 @@ public class AuthService {
             throw new RuntimeException("Invalid method. Please choose 'email' or 'sms'");
         }
     }
-    
     /**
      * Handle SMS forgot password - verify phone exists in database
      * Firebase handles actual SMS sending on frontend
      */
     private Map<String, String> handleSmsForgotPassword(ForgotPasswordRequest request) {
         log.info("Verifying phone number exists: {}", request.getPhone());
-        
         if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
             throw new RuntimeException("Phone number is required for SMS method");
         }
-        
         // Verify user exists with this phone number
         userRepository.findByOrganizationPhone(request.getPhone())
             .orElseThrow(() -> {
                 log.warn("No user found with phone number: {}", request.getPhone());
                 return new RuntimeException("No account found with this phone number");
             });
-        
         log.info("Phone number verified, Firebase will handle SMS sending");
         return Map.of(
             "message", "Phone verified. SMS will be sent.",
             "phone", request.getPhone()
         );
     }
-    
     /**
      * Handle forgot password via email
      */
     private Map<String, String> handleEmailForgotPassword(ForgotPasswordRequest request) {
         log.info("Forgot password request via email for: {}", request.getEmail());
-        
         // Verify user exists
         userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
                     log.warn("Forgot password failed: User not found: {}", request.getEmail());
                     return new RuntimeException("User not found");
                 });
-        
         // Generate 6-digit code
         String resetCode = generateSixDigitCode();
-        
         // Store code with timestamp (60 second expiry for email)
         resetCodes.put(request.getEmail(), new ResetCodeData(resetCode, System.currentTimeMillis()));
-        
         try {
             // Send email via Brevo
             emailService.sendPasswordResetEmail(request.getEmail(), resetCode);
             log.info("Password reset email sent successfully to: {}", request.getEmail());
-            
             return Map.of(
                 "message", "Reset code sent successfully",
                 "email", request.getEmail()
@@ -494,7 +424,6 @@ public class AuthService {
             throw new RuntimeException("Failed to send reset email. Please try again.");
         }
     }
-
     /**
      * Verify the reset code for email
      * @param email user's email
@@ -503,34 +432,27 @@ public class AuthService {
      */
     public boolean verifyResetCode(String email, String code) {
         log.info("Verifying reset code for email: {}", email);
-        
         ResetCodeData storedData = resetCodes.get(email);
-        
         if (storedData == null) {
             log.warn("No reset code found for email: {}", email);
             throw new RuntimeException("No reset code found. Please request a new code.");
         }
-        
         // Check if code has expired (60 seconds for email)
         long currentTime = System.currentTimeMillis();
         long elapsedSeconds = (currentTime - storedData.getTimestamp()) / 1000;
-        
         if (elapsedSeconds > 60) {
             log.warn("Reset code expired for email: {}. Elapsed: {}s", email, elapsedSeconds);
             resetCodes.remove(email);
             throw new RuntimeException("Reset code has expired");
         }
-        
         // Verify the code matches
         if (!storedData.getCode().equals(code)) {
             log.warn("Invalid reset code for email: {}", email);
             throw new RuntimeException("Invalid reset code. Please try again.");
         }
-        
         log.info("Reset code verified successfully for email: {}", email);
         return true;
     }
-    
     /**
      * Reset the user's password after verifying the code
      * @param email user's email (optional, required if phone not provided)
@@ -547,63 +469,50 @@ public class AuthService {
      */
     public Map<String, String> changePassword(User user, String currentPassword, String newPassword, String confirmPassword) {
         log.info("Attempting password change for user: {}", user.getEmail());
-        
         // Verify current password matches
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             log.warn("Incorrect current password provided for user: {}", user.getEmail());
             throw new com.example.foodflow.exception.domain.UnauthorizedAccessException("Incorrect current password");
         }
-        
         // Verify new passwords match
         if (!newPassword.equals(confirmPassword)) {
             log.warn("New password and confirmation do not match for user: {}", user.getEmail());
             throw new com.example.foodflow.exception.domain.InvalidClaimException("New password and confirmation do not match");
         }
-        
         // Verify new password is different from current
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             log.warn("New password is same as current password for user: {}", user.getEmail());
             throw new com.example.foodflow.exception.domain.InvalidClaimException("New password must be different from current password");
         }
-        
         // Validate password against policy (already validated by @ValidPassword, but double-check)
         List<String> validationErrors = passwordValidator.validatePassword(newPassword);
         if (!validationErrors.isEmpty()) {
             log.warn("Password policy validation failed for user: {} - Errors: {}", user.getEmail(), validationErrors);
             throw new com.example.foodflow.exception.domain.InvalidClaimException(String.join("; ", validationErrors));
         }
-
         // Check password history
         if (passwordValidator.isPasswordInHistory(user, newPassword)) {
             log.warn("Password reuse detected for user: {}", user.getEmail());
             throw new com.example.foodflow.exception.domain.InvalidClaimException("You cannot reuse a recent password. Please choose a different password");
         }
-
         // Hash and update the password
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
         userRepository.save(user);
-        
         // Save to password history
         passwordValidator.savePasswordToHistory(user, hashedPassword);
-
         log.info("Password changed successfully for user: {}", user.getEmail());
-        
         return Map.of(
             "message", "Password changed successfully"
         );
-
     }
-    
     @Transactional
     @Timed(value = "auth.service.resetPassword", description = "Time taken to reset password")
     public Map<String, String> resetPassword(String email, String phone, String code, String newPassword) {
         log.info("Attempting password reset for email: {} or phone: {}", email, phone);
-        
         // Find the user by email or phone
         User user;
         String identifier;
-        
         if (email != null && !email.trim().isEmpty()) {
             // Email-based reset - verify code exists and matches (no expiration check)
             // The code was already verified with expiration check in verifyResetCode endpoint
@@ -612,7 +521,6 @@ public class AuthService {
                 log.warn("Invalid or missing reset code for email: {}", email);
                 throw new RuntimeException("Invalid reset code. Please request a new code.");
             }
-            
             identifier = email;
             user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
@@ -630,41 +538,33 @@ public class AuthService {
         } else {
             throw new RuntimeException("Either email or phone is required");
         }
-        
         // Validate password against policy (already validated by @ValidPassword, but double-check)
         List<String> validationErrors = passwordValidator.validatePassword(newPassword);
         if (!validationErrors.isEmpty()) {
             log.warn("Password policy validation failed for user: {} - Errors: {}", user.getEmail(), validationErrors);
             throw new RuntimeException(String.join("; ", validationErrors));
         }
-
         // Check password history
         if (passwordValidator.isPasswordInHistory(user, newPassword)) {
             log.warn("Password reuse detected for user: {}", user.getEmail());
             throw new RuntimeException("You cannot reuse a recent password. Please choose a different password");
         }
-
         // Hash and update the password
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
         userRepository.save(user);
-        
         // Save to password history
         passwordValidator.savePasswordToHistory(user, hashedPassword);
-
         // Remove the used code from storage if it was email-based
         if (email != null && !email.trim().isEmpty()) {
             resetCodes.remove(email);
         }
-        
         log.info("Password reset successful for user: {}", identifier);
-        
         return Map.of(
             "message", "Password reset successful",
             "identifier", identifier
         );
     }
-    
     /**
      * Generate a secure 6-digit code
      */
@@ -672,37 +572,30 @@ public class AuthService {
         int code = secureRandom.nextInt(900000) + 100000; // 100000 to 999999
         return String.valueOf(code);
     }
-
     /**
      * Check if email exists in the system
      * Mimics the logic from handleEmailForgotPassword without sending email
      */
     public boolean checkEmailExists(String email) {
         log.info("Checking if email exists: {}", email);
-        
         if (email == null || email.trim().isEmpty()) {
             return false;
         }
-        
         // Use the same repository method as forgot password
         return userRepository.findByEmail(email).isPresent();
     }
-
     /**
      * Check if phone number exists in the system
      * Mimics the logic from handleSmsForgotPassword without sending SMS
      */
     public boolean checkPhoneExists(String phone) {
         log.info("Checking if phone exists: {}", phone);
-        
         if (phone == null || phone.trim().isEmpty()) {
             return false;
         }
-        
         // Use the same repository method as forgot password
         return userRepository.findByOrganizationPhone(phone).isPresent();
     }
-
     /**
      * Verify user's email address using the token sent via email
      * @param token UUID verification token
@@ -712,19 +605,16 @@ public class AuthService {
     @Timed(value = "auth.service.verifyEmail", description = "Time taken to verify email")
     public Map<String, String> verifyEmail(String token) {
         log.info("Email verification attempt with token: {}", token.substring(0, 8) + "...");
-        
         // Find the token in database
         EmailVerificationToken tokenEntity = verificationTokenRepository.findByToken(token)
             .orElseThrow(() -> {
                 log.warn("Email verification failed: Invalid token");
                 return new RuntimeException("Invalid verification link. Please check your email or request a new verification link.");
             });
-        
         // Log the actual verified_at value for debugging
         log.info("Token found for user: {} - verifiedAt value: {}", 
             tokenEntity.getUser().getEmail(), 
             tokenEntity.getVerifiedAt());
-        
         // Check if already verified
         if (tokenEntity.getVerifiedAt() != null) {
             log.warn("Email verification failed: Token already used for user: {} (verified_at: {})", 
@@ -732,35 +622,27 @@ public class AuthService {
                 tokenEntity.getVerifiedAt());
             throw new RuntimeException("This verification link has already been used. Log into your account to proceed.");
         }
-        
         // Check if expired
         if (tokenEntity.isExpired()) {
             log.warn("Email verification failed: Token expired for user: {}", tokenEntity.getUser().getEmail());
             throw new RuntimeException("This verification link has expired (24 hours). Please request a new verification email.");
         }
-        
         // Verify the user - transition to PENDING_ADMIN_APPROVAL
         User user = tokenEntity.getUser();
         user.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
-        
         // Automatically enable email notifications upon email verification
         user.setEmailNotificationsEnabled(true);
         log.info("Email notifications automatically enabled for user: {}", user.getEmail());
-        
         userRepository.save(user);
-        
         // Mark token as verified
         tokenEntity.setVerifiedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         verificationTokenRepository.save(tokenEntity);
-        
         log.info("Email verified successfully for user: {} - Status set to PENDING_ADMIN_APPROVAL", user.getEmail());
-        
         return Map.of(
             "message", "Email verified successfully! Your account is now awaiting admin approval. You can log in, but full access will be granted within 48 hours.",
             "email", user.getEmail()
         );
     }
-
     /**
      * Resend verification email to user
      * @param email user's email from JWT token
@@ -770,29 +652,24 @@ public class AuthService {
     @Timed(value = "auth.service.resendVerificationEmail", description = "Time taken to resend verification email")
     public Map<String, String> resendVerificationEmail(String email) {
         log.info("Resend verification email request for: {}", email);
-        
         // Find user
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> {
                 log.warn("Resend verification failed: User not found: {}", email);
                 return new RuntimeException("User not found");
             });
-        
         // Check if already verified
         if (user.getAccountStatus() == AccountStatus.ACTIVE) {
             log.warn("Resend verification failed: User already verified: {}", email);
             throw new RuntimeException("Your email is already verified. You can log in to your account.");
         }
-        
         // Delete old tokens for this user
         verificationTokenRepository.deleteByUserId(user.getId());
-        
         // Generate new token
         String verificationToken = UUID.randomUUID().toString();
         EmailVerificationToken tokenEntity = new EmailVerificationToken(user, verificationToken);
         verificationTokenRepository.save(tokenEntity);
         log.debug("New verification token created for user: {}", user.getEmail());
-        
         // Send verification email
         try {
             emailService.sendVerificationEmail(user.getEmail(), verificationToken);

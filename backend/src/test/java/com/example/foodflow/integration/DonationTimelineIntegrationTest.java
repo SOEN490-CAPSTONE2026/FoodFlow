@@ -1,5 +1,4 @@
 package com.example.foodflow.integration;
-
 import com.example.foodflow.model.dto.ClaimRequest;
 import com.example.foodflow.model.dto.ClaimResponse;
 import com.example.foodflow.model.dto.CreateSurplusRequest;
@@ -30,27 +29,20 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
 class DonationTimelineIntegrationTest {
-
         @Autowired
         private SurplusService surplusService;
-
         @Autowired
         private ClaimService claimService;
-
         @Autowired
         private UserRepository userRepository;
-
         @Autowired
         private OrganizationRepository organizationRepository;
-
         private User donor;
         private User receiver;
-
         @BeforeEach
         void setUp() {
                 // Create test donor organization
@@ -61,7 +53,6 @@ class DonationTimelineIntegrationTest {
                 donorOrg.setPhone("555-1234");
                 donorOrg.setContactPerson("John Doe");
                 donorOrg = organizationRepository.save(donorOrg);
-
                 // Create test donor user
                 donor = new User();
                 donor.setEmail("donor@timeline-test.com");
@@ -70,7 +61,6 @@ class DonationTimelineIntegrationTest {
                 donor.setAccountStatus(AccountStatus.ACTIVE);
                 donor.setOrganization(donorOrg);
                 donor = userRepository.save(donor);
-
                 // Create test receiver organization
                 Organization receiverOrg = new Organization();
                 receiverOrg.setName("Test Charity");
@@ -79,7 +69,6 @@ class DonationTimelineIntegrationTest {
                 receiverOrg.setPhone("555-5678");
                 receiverOrg.setContactPerson("Jane Smith");
                 receiverOrg = organizationRepository.save(receiverOrg);
-
                 // Create test receiver user
                 receiver = new User();
                 receiver.setEmail("receiver@timeline-test.com");
@@ -89,7 +78,6 @@ class DonationTimelineIntegrationTest {
                 receiver.setOrganization(receiverOrg);
                 receiver = userRepository.save(receiver);
         }
-
         @Test
         void testCompleteDonationLifecycle_CreatesTimelineEvents() {
                 // Given - Create a surplus post
@@ -103,7 +91,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(9, 0));
                 request.setPickupTo(LocalTime.of(17, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now().plusDays(1));
@@ -111,45 +98,38 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(17, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 // Step 1: Create surplus post (AVAILABLE status)
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
                 assertThat(createdPost).isNotNull();
                 assertThat(createdPost.getStatus()).isEqualTo(PostStatus.AVAILABLE);
                 assertThat(createdPost.getId()).isNotNull();
-
                 // Verify timeline after creation - donor can view
                 List<DonationTimelineDTO> donorTimelineAfterCreation = surplusService
                                 .getTimelineForPost(createdPost.getId(), donor);
                 assertThat(donorTimelineAfterCreation).isNotEmpty();
                 assertThat(donorTimelineAfterCreation)
                                 .anyMatch(event -> event.getEventType().equals("DONATION_POSTED"));
-
                 // Step 2: Receiver claims the post (CLAIMED status)
                 ClaimRequest claimRequest = new ClaimRequest();
                 claimRequest.setSurplusPostId(createdPost.getId());
                 ClaimResponse claim = claimService.claimSurplusPost(claimRequest, receiver);
                 assertThat(claim).isNotNull();
                 assertThat(claim.getSurplusPost().getStatus()).isEqualTo(PostStatus.CLAIMED);
-
                 // Verify timeline after claim - both donor and receiver can view
                 List<DonationTimelineDTO> donorTimelineAfterClaim = surplusService
                                 .getTimelineForPost(createdPost.getId(), donor);
                 assertThat(donorTimelineAfterClaim).hasSizeGreaterThan(donorTimelineAfterCreation.size());
                 assertThat(donorTimelineAfterClaim).anyMatch(event -> event.getEventType().equals("DONATION_CLAIMED"));
-
                 List<DonationTimelineDTO> receiverTimelineAfterClaim = surplusService
                                 .getTimelineForPost(createdPost.getId(), receiver);
                 assertThat(receiverTimelineAfterClaim).isNotEmpty();
                 assertThat(receiverTimelineAfterClaim)
                                 .anyMatch(event -> event.getEventType().equals("DONATION_CLAIMED") &&
                                                 event.getActor().equals("receiver"));
-
                 // Verify event ordering (descending by timestamp)
                 assertThat(donorTimelineAfterClaim).isSortedAccordingTo(
                                 (e1, e2) -> e2.getTimestamp().compareTo(e1.getTimestamp()));
         }
-
         @Test
         void testTimelineEvents_AreVisibleToBothParties() {
                 // Given - Create and claim a post
@@ -163,7 +143,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(10, 0));
                 request.setPickupTo(LocalTime.of(18, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now());
@@ -171,21 +150,17 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(18, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
                 ClaimRequest claimRequest2 = new ClaimRequest();
                 claimRequest2.setSurplusPostId(createdPost.getId());
                 claimService.claimSurplusPost(claimRequest2, receiver);
-
                 // When - Fetch timeline as both donor and receiver
                 List<DonationTimelineDTO> donorTimeline = surplusService.getTimelineForPost(createdPost.getId(), donor);
                 List<DonationTimelineDTO> receiverTimeline = surplusService.getTimelineForPost(createdPost.getId(),
                                 receiver);
-
                 // Then - Both should see the same events (donor and receiver see identical
                 // timelines)
                 assertThat(donorTimeline).hasSameSizeAs(receiverTimeline);
-
                 // Verify they have the same event types
                 List<String> donorEventTypes = donorTimeline.stream()
                                 .map(DonationTimelineDTO::getEventType)
@@ -193,10 +168,8 @@ class DonationTimelineIntegrationTest {
                 List<String> receiverEventTypes = receiverTimeline.stream()
                                 .map(DonationTimelineDTO::getEventType)
                                 .toList();
-
                 assertThat(donorEventTypes).containsExactlyElementsOf(receiverEventTypes);
         }
-
         @Test
         void testTimelineEvents_IncludeActorAttribution() {
                 // Given - Create and claim a post
@@ -210,7 +183,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(9, 0));
                 request.setPickupTo(LocalTime.of(17, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now().plusDays(1));
@@ -218,35 +190,28 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(17, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
                 ClaimRequest claimRequest3 = new ClaimRequest();
                 claimRequest3.setSurplusPostId(createdPost.getId());
                 claimService.claimSurplusPost(claimRequest3, receiver);
-
                 // When - Fetch timeline
                 List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(createdPost.getId(), donor);
-
                 // Then - Verify actor attribution
                 DonationTimelineDTO creationEvent = timeline.stream()
                                 .filter(event -> event.getEventType().equals("DONATION_POSTED"))
                                 .findFirst()
                                 .orElse(null);
-
                 assertThat(creationEvent).isNotNull();
                 assertThat(creationEvent.getActor()).isEqualTo("donor");
                 assertThat(creationEvent.getActorUserId()).isEqualTo(donor.getId());
-
                 DonationTimelineDTO claimEvent = timeline.stream()
                                 .filter(event -> event.getEventType().equals("DONATION_CLAIMED"))
                                 .findFirst()
                                 .orElse(null);
-
                 assertThat(claimEvent).isNotNull();
                 assertThat(claimEvent.getActor()).isEqualTo("receiver");
                 assertThat(claimEvent.getActorUserId()).isEqualTo(receiver.getId());
         }
-
         @Test
         void testTimelineEvents_OnlyVisibleEventsReturned() {
                 // Given - Create a surplus post
@@ -260,7 +225,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(8, 0));
                 request.setPickupTo(LocalTime.of(16, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now().plusDays(2));
@@ -268,16 +232,12 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(16, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
-
                 // When - Fetch timeline
                 List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(createdPost.getId(), donor);
-
                 // Then - All returned events should have visibleToUsers=true
                 assertThat(timeline).allMatch(event -> event.getVisibleToUsers());
         }
-
         @Test
         void testTimelineEvents_WithCancellation_RecordsEvent() {
                 // Given - Create and claim a post
@@ -291,7 +251,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(11, 0));
                 request.setPickupTo(LocalTime.of(19, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now().plusDays(1));
@@ -299,25 +258,19 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(19, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
                 ClaimRequest claimRequest4 = new ClaimRequest();
                 claimRequest4.setSurplusPostId(createdPost.getId());
                 ClaimResponse claim = claimService.claimSurplusPost(claimRequest4, receiver);
-
                 // When - Cancel the claim
                 claimService.cancelClaim(claim.getId(), receiver);
-
                 // Then - Verify cancellation event in timeline
                 List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(createdPost.getId(), donor);
-
                 assertThat(timeline).anyMatch(event -> event.getEventType().equals("CLAIM_CANCELLED"));
-
                 // Verify timeline shows progression: Posted → Claimed → Cancelled
                 assertThat(timeline).extracting(DonationTimelineDTO::getEventType)
                                 .contains("DONATION_POSTED", "DONATION_CLAIMED", "CLAIM_CANCELLED");
         }
-
         @Test
         void testTimelineEvents_OrderedByTimestampDescending() {
                 // Given - Create and claim a post (generates multiple events)
@@ -331,7 +284,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(12, 0));
                 request.setPickupTo(LocalTime.of(20, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now());
@@ -339,34 +291,26 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(20, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
                 ClaimRequest claimRequest5 = new ClaimRequest();
                 claimRequest5.setSurplusPostId(createdPost.getId());
                 claimService.claimSurplusPost(claimRequest5, receiver);
-
                 // When - Fetch timeline
                 List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(createdPost.getId(), donor);
-
                 // Then - Verify events are ordered by timestamp descending (most recent first)
                 assertThat(timeline).hasSizeGreaterThan(1);
-
                 for (int i = 0; i < timeline.size() - 1; i++) {
                         DonationTimelineDTO currentEvent = timeline.get(i);
                         DonationTimelineDTO nextEvent = timeline.get(i + 1);
-
                         assertThat(currentEvent.getTimestamp())
                                         .isAfterOrEqualTo(nextEvent.getTimestamp());
                 }
-
                 // Most recent event should be the claim
                 assertThat(timeline.get(0).getEventType()).isEqualTo("DONATION_CLAIMED");
-
                 // Oldest event should be the creation
                 assertThat(timeline.get(timeline.size() - 1).getEventType())
                                 .isEqualTo("DONATION_POSTED");
         }
-
         @Test
         void testTimelineEvents_StatusTransitions_RecordedCorrectly() {
                 // Given - Create and claim a post
@@ -380,7 +324,6 @@ class DonationTimelineIntegrationTest {
                 request.setPickupFrom(LocalTime.of(10, 0));
                 request.setPickupTo(LocalTime.of(18, 0));
                 request.setPickupLocation(new Location(45.5017, -73.5673, "Montreal, QC"));
-
                 List<PickupSlotRequest> slots = new ArrayList<>();
                 PickupSlotRequest slot = new PickupSlotRequest();
                 slot.setPickupDate(LocalDate.now().plusDays(1));
@@ -388,21 +331,17 @@ class DonationTimelineIntegrationTest {
                 slot.setEndTime(LocalTime.of(18, 0));
                 slots.add(slot);
                 request.setPickupSlots(slots);
-
                 SurplusResponse createdPost = surplusService.createSurplusPost(request, donor);
                 ClaimRequest claimRequest6 = new ClaimRequest();
                 claimRequest6.setSurplusPostId(createdPost.getId());
                 claimService.claimSurplusPost(claimRequest6, receiver);
-
                 // When - Fetch timeline
                 List<DonationTimelineDTO> timeline = surplusService.getTimelineForPost(createdPost.getId(), donor);
-
                 // Then - Verify status transitions are recorded
                 DonationTimelineDTO claimEvent = timeline.stream()
                                 .filter(event -> event.getEventType().equals("DONATION_CLAIMED"))
                                 .findFirst()
                                 .orElse(null);
-
                 assertThat(claimEvent).isNotNull();
                 assertThat(claimEvent.getOldStatus()).isEqualTo("AVAILABLE");
                 assertThat(claimEvent.getNewStatus()).isEqualTo("CLAIMED");

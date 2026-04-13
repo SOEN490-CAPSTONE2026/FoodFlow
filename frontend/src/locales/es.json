@@ -1226,7 +1226,7 @@
     "loading": "Cargando tus donaciones...",
     "sortByDate": "Ordenar por fecha",
     "sortByStatus": "Ordenar por estado",
-    "createWithAI": "Crear con IA",
+    "createWithAI": "Donar con IA",
     "donateMore": "Donar más",
     "emptyStateTitle": "Aún no has publicado nada",
     "emptyStateDescription": "Crea tu primera publicación de donación para comenzar a ayudar a tu comunidad a reducir el desperdicio de alimentos.",
@@ -1881,7 +1881,7 @@
     "days7": "7 días",
     "days30": "30 días",
     "allTime": "Todo el tiempo",
-    "export": "Exportar CSV",
+    "export": "Exportar",
     "errorLoading": "No se pudieron cargar las métricas",
     "loadError": "No se pudieron cargar las métricas de impacto",
     "exportError": "No se pudieron exportar las métricas",
@@ -2969,11 +2969,17 @@
     },
     "actions": {
       "skip": "Omitir",
+      "cancelSkip": "Continuar tutorial",
+      "confirmSkip": "Sí, omitir tutorial",
       "back": "Atrás",
       "next": "Siguiente",
       "finish": "Finalizar"
     },
     "stepProgress": "Paso {{current}} de {{total}}",
+    "skipConfirmation": {
+      "title": "¿Omitir este tutorial?",
+      "text": "Podrás volver a verlo más tarde desde Ayuda, pero omitirlo ahora cerrará la guía."
+    },
     "errors": {
       "saveFailed": "No pudimos guardar tu progreso del tutorial. Inténtalo de nuevo."
     },
@@ -2985,65 +2991,73 @@
     },
     "donor": {
       "steps": {
-        "dashboard": {
+        "welcome": {
           "title": "Bienvenido a FoodFlow",
-          "text": "Este es tu panel de donante. Desde aquí puedes gestionar tus donaciones y seguir lo que sucede después."
+          "text": "FoodFlow te ayuda a compartir excedentes de comida rápidamente. Este recorrido corto te muestra dónde gestionar tu cuenta, crear donaciones y seguir tu progreso."
+        },
+        "dashboard": {
+          "title": "Resumen del panel",
+          "text": "Tu panel te da una vista rápida de la actividad de donaciones, solicitudes e impacto para que veas primero lo que necesita atención."
+        },
+        "settings": {
+          "title": "Empieza por Configuración",
+          "text": "Revisa tu configuración al principio para elegir idioma, región, zona horaria, opciones de calendario y preferencias de visualización antes de publicar comida."
+        },
+        "createDonation": {
+          "title": "Crear una donación",
+          "text": "Usa esta sección para añadir una nueva donación de alimentos, completar los detalles y dejarla disponible para que los receptores la reclamen."
+        },
+        "openAiDonation": {
+          "title": "Abre la opción de donación con IA",
+          "text": "Desde la página de donaciones, haz clic en este botón de IA cuando quieras que FoodFlow te ayude a extraer los detalles de una foto de comida."
+        },
+        "aiDonation": {
+          "title": "Donar con IA",
+          "text": "Si tienes una foto de la comida, el flujo con IA puede extraer los detalles por ti. Revisa el resultado antes de enviarlo para mantener la publicación precisa."
+        },
+        "messages": {
+          "title": "Coordina desde Mensajes",
+          "text": "Usa Mensajes para responder preguntas, confirmar detalles de recogida y mantener la coordinación con los receptores después de compartir o reclamar una donación."
         },
         "impact": {
-          "title": "Mira tu impacto",
-          "text": "Tu panel de impacto muestra cuánta comida has salvado y la diferencia que están generando tus donaciones con el tiempo."
+          "title": "Revisa tu panel de impacto",
+          "text": "Tu panel de impacto te ayuda a seguir los resultados de tus donaciones con el tiempo, incluidas las tendencias de actividad y la diferencia que estás generando."
         },
-        "postDonation": {
-          "title": "Publica una donación",
-          "text": "Usa esta acción para crear una nueva donación de alimentos y ponerla a disposición de los receptores."
-        },
-        "chat": {
-          "title": "Chatea con receptores",
-          "text": "Una vez que una donación sea reclamada, puedes usar el chat para coordinar la recogida y responder preguntas."
-        },
-        "pickup": {
-          "title": "Sigue el progreso de la recogida",
-          "text": "Cada donación avanza por un flujo de recogida con estados para que siempre sepas en qué etapa se encuentra."
-        },
-        "setup": {
-          "title": "Configura tu cuenta",
-          "text": "Usa Idioma y región para elegir idioma, ubicación y zona horaria. La integración con calendario te permite sincronizar recogidas de FoodFlow, y las preferencias de visualización controlan cómo se ven tus tarjetas de donación."
+        "achievements": {
+          "title": "Logros y progreso",
+          "text": "Los logros son insignias que desbloqueas al usar FoodFlow. Te ayudan a seguir hitos, actividad y el impacto positivo de tus donaciones con el tiempo."
         }
       }
     },
     "receiver": {
       "steps": {
-        "browse": {
-          "title": "Explorar donaciones",
-          "text": "Aquí puedes explorar las donaciones de alimentos disponibles y encontrar artículos que se ajusten a tus necesidades."
+        "welcome": {
+          "title": "Bienvenido a FoodFlow",
+          "text": "FoodFlow te ayuda a encontrar y reclamar comida disponible rápidamente. Este recorrido corto destaca las secciones que usarás con más frecuencia."
         },
-        "saved": {
-          "title": "Donaciones guardadas",
-          "text": "Aquí puedes encontrar rápidamente las donaciones que guardaste para revisarlas más tarde."
+        "browse": {
+          "title": "Explorar donaciones disponibles",
+          "text": "Empieza aquí para explorar alimentos disponibles, cambiar la vista y encontrar donaciones que se ajusten a tus necesidades."
         },
         "claims": {
-          "title": "Tus reclamaciones",
-          "text": "Esta sección muestra las donaciones que has reclamado y te permite seguir su progreso."
+          "title": "Sigue tus reclamaciones",
+          "text": "La página de reclamaciones muestra las donaciones que has solicitado o reclamado para que puedas seguir cada recogida de principio a fin."
         },
-        "chat": {
-          "title": "Chatea con donantes",
-          "text": "Usa el chat para coordinar la recogida, hacer preguntas y mantenerte al día con los donantes."
+        "messages": {
+          "title": "Mantente en contacto con Mensajes",
+          "text": "Usa Mensajes para coordinar la recogida, hacer preguntas de seguimiento y mantener la comunicación con los donantes en un solo lugar."
         },
         "impact": {
-          "title": "Tu panel de impacto",
-          "text": "Este panel te ayuda a seguir tu actividad, tus recogidas y tu impacto general en la plataforma."
-        },
-        "preferences": {
-          "title": "Preferencias y coincidencias",
-          "text": "Configura aquí tus preferencias alimentarias para que FoodFlow pueda recomendar donaciones que se adapten mejor a tus necesidades."
+          "title": "Consulta tu panel de impacto",
+          "text": "El panel de impacto resume tu actividad en FoodFlow para que puedas seguir cuántas recogidas y acciones has completado con el tiempo."
         },
         "settings": {
-          "title": "Configuración",
-          "text": "Puedes gestionar tu cuenta, volver a mostrar el tutorial y ajustar opciones de la plataforma desde aquí."
+          "title": "Revisa la configuración pronto",
+          "text": "Usa el menú de tu cuenta para abrir Configuración, gestionar tu perfil y ajustar tus preferencias antes de empezar a reclamar donaciones."
         },
-        "done": {
-          "title": "Ya estás listo",
-          "text": "Eso es todo: ya estás listo para empezar a usar FoodFlow como receptor."
+        "achievements": {
+          "title": "Entender los logros",
+          "text": "Los logros son insignias por hitos como reclamaciones, recogidas y actividad en FoodFlow. Muestran tu progreso a medida que sigues usando la plataforma."
         }
       }
     }

@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.ImpactConfiguration;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.FoodCategory;
@@ -14,22 +13,17 @@ import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 /**
  * Service for category-weighted environmental impact calculations
  */
 @Service
 public class ImpactCalculationService {
-
     private static final Logger logger = LoggerFactory.getLogger(ImpactCalculationService.class);
-
     private final ImpactConfigurationRepository configRepository;
     private final ObjectMapper objectMapper;
-
     // Default factors (used when no configuration exists)
     private static final Map<String, Double> DEFAULT_EMISSION_FACTORS = new HashMap<>();
     private static final Map<String, Double> DEFAULT_WATER_FACTORS = new HashMap<>();
-
     static {
         // Emission factors (kg CO2e per kg food)
         DEFAULT_EMISSION_FACTORS.put("FRUITS_VEGETABLES", 0.5);
@@ -38,36 +32,30 @@ public class ImpactCalculationService {
         DEFAULT_EMISSION_FACTORS.put("BERRIES", 0.6);
         DEFAULT_EMISSION_FACTORS.put("CITRUS_FRUITS", 0.5);
         DEFAULT_EMISSION_FACTORS.put("TROPICAL_FRUITS", 0.7);
-
         DEFAULT_EMISSION_FACTORS.put("BREAD", 0.8);
         DEFAULT_EMISSION_FACTORS.put("BAKERY_PASTRY", 0.8);
         DEFAULT_EMISSION_FACTORS.put("BAKED_GOODS", 0.8);
         DEFAULT_EMISSION_FACTORS.put("WHOLE_GRAINS", 0.6);
         DEFAULT_EMISSION_FACTORS.put("RICE", 0.7);
         DEFAULT_EMISSION_FACTORS.put("PASTA", 0.7);
-
         DEFAULT_EMISSION_FACTORS.put("DAIRY", 2.5);
         DEFAULT_EMISSION_FACTORS.put("DAIRY_COLD", 2.5);
         DEFAULT_EMISSION_FACTORS.put("MILK", 2.5);
         DEFAULT_EMISSION_FACTORS.put("CHEESE", 3.0);
         DEFAULT_EMISSION_FACTORS.put("YOGURT", 2.2);
         DEFAULT_EMISSION_FACTORS.put("BUTTER", 3.5);
-
         DEFAULT_EMISSION_FACTORS.put("FRESH_MEAT", 6.0);
         DEFAULT_EMISSION_FACTORS.put("GROUND_MEAT", 6.0);
         DEFAULT_EMISSION_FACTORS.put("POULTRY", 4.5);
         DEFAULT_EMISSION_FACTORS.put("FISH", 3.0);
         DEFAULT_EMISSION_FACTORS.put("SEAFOOD", 3.5);
         DEFAULT_EMISSION_FACTORS.put("EGGS", 2.0);
-
         DEFAULT_EMISSION_FACTORS.put("PREPARED_MEALS", 1.5);
         DEFAULT_EMISSION_FACTORS.put("READY_TO_EAT", 1.5);
         DEFAULT_EMISSION_FACTORS.put("FROZEN_FOOD", 1.8);
         DEFAULT_EMISSION_FACTORS.put("FROZEN", 1.8);
-
         DEFAULT_EMISSION_FACTORS.put("CANNED_VEGETABLES", 0.9);
         DEFAULT_EMISSION_FACTORS.put("CANNED_FRUITS", 0.9);
-
         // Water factors (liters per kg food)
         DEFAULT_WATER_FACTORS.put("FRUITS_VEGETABLES", 300.0);
         DEFAULT_WATER_FACTORS.put("LEAFY_GREENS", 250.0);
@@ -75,37 +63,31 @@ public class ImpactCalculationService {
         DEFAULT_WATER_FACTORS.put("BERRIES", 400.0);
         DEFAULT_WATER_FACTORS.put("CITRUS_FRUITS", 500.0);
         DEFAULT_WATER_FACTORS.put("TROPICAL_FRUITS", 600.0);
-
         DEFAULT_WATER_FACTORS.put("BREAD", 800.0);
         DEFAULT_WATER_FACTORS.put("BAKERY_PASTRY", 800.0);
         DEFAULT_WATER_FACTORS.put("BAKED_GOODS", 800.0);
         DEFAULT_WATER_FACTORS.put("WHOLE_GRAINS", 1000.0);
         DEFAULT_WATER_FACTORS.put("RICE", 1200.0);
         DEFAULT_WATER_FACTORS.put("PASTA", 900.0);
-
         DEFAULT_WATER_FACTORS.put("DAIRY", 1000.0);
         DEFAULT_WATER_FACTORS.put("DAIRY_COLD", 1000.0);
         DEFAULT_WATER_FACTORS.put("MILK", 1000.0);
         DEFAULT_WATER_FACTORS.put("CHEESE", 1500.0);
         DEFAULT_WATER_FACTORS.put("YOGURT", 900.0);
         DEFAULT_WATER_FACTORS.put("BUTTER", 1300.0);
-
         DEFAULT_WATER_FACTORS.put("FRESH_MEAT", 15000.0);
         DEFAULT_WATER_FACTORS.put("GROUND_MEAT", 15000.0);
         DEFAULT_WATER_FACTORS.put("POULTRY", 4300.0);
         DEFAULT_WATER_FACTORS.put("FISH", 3000.0);
         DEFAULT_WATER_FACTORS.put("SEAFOOD", 3500.0);
         DEFAULT_WATER_FACTORS.put("EGGS", 3300.0);
-
         DEFAULT_WATER_FACTORS.put("PREPARED_MEALS", 800.0);
         DEFAULT_WATER_FACTORS.put("READY_TO_EAT", 800.0);
         DEFAULT_WATER_FACTORS.put("FROZEN_FOOD", 900.0);
         DEFAULT_WATER_FACTORS.put("FROZEN", 900.0);
-
         DEFAULT_WATER_FACTORS.put("CANNED_VEGETABLES", 400.0);
         DEFAULT_WATER_FACTORS.put("CANNED_FRUITS", 400.0);
     }
-
     private Map<String, Double> emissionFactors;
     private Map<String, Double> waterFactors;
     private Double minMealWeightKg = 0.4;
@@ -114,14 +96,12 @@ public class ImpactCalculationService {
     private Double defaultWaterFactor = 500.0;
     private String currentVersion = "1.0-default";
     private String disclosureText = "Estimates are calculated using industry-standard environmental conversion factors. Results represent conservative approximations.";
-
     public ImpactCalculationService(ImpactConfigurationRepository configRepository, ObjectMapper objectMapper) {
         this.configRepository = configRepository;
         this.objectMapper = objectMapper;
         this.emissionFactors = new HashMap<>(DEFAULT_EMISSION_FACTORS);
         this.waterFactors = new HashMap<>(DEFAULT_WATER_FACTORS);
     }
-
     @PostConstruct
     public void loadConfiguration() {
         try {
@@ -138,7 +118,6 @@ public class ImpactCalculationService {
             logger.error("Error loading impact configuration, using defaults", e);
         }
     }
-
     private void loadFactorsFromConfig(ImpactConfiguration config) {
         try {
             this.emissionFactors = objectMapper.readValue(
@@ -159,7 +138,6 @@ public class ImpactCalculationService {
             logger.error("Error parsing configuration JSON", e);
         }
     }
-
     private void initializeDefaultConfiguration() {
         try {
             ImpactConfiguration config = new ImpactConfiguration("1.0-default");
@@ -177,7 +155,6 @@ public class ImpactCalculationService {
             logger.error("Error initializing default configuration", e);
         }
     }
-
     /**
      * Calculate CO2 emissions avoided for a surplus post based on food category
      */
@@ -186,7 +163,6 @@ public class ImpactCalculationService {
         double factor = getEmissionFactor(primaryCategory);
         return weightKg * factor;
     }
-
     /**
      * Calculate water saved for a surplus post based on food category
      */
@@ -195,7 +171,6 @@ public class ImpactCalculationService {
         double factor = getWaterFactor(primaryCategory);
         return weightKg * factor;
     }
-
     /**
      * Calculate bounded meal estimates (min/max)
      */
@@ -204,7 +179,6 @@ public class ImpactCalculationService {
         int maxMeals = (int) Math.ceil(weightKg / minMealWeightKg);
         return new int[]{minMeals, maxMeals};
     }
-
     /**
      * Convert quantity to kg
      */
@@ -212,10 +186,8 @@ public class ImpactCalculationService {
         if (quantity == null || quantity.getValue() == null) {
             return 0.0;
         }
-
         double value = quantity.getValue();
         Quantity.Unit unit = quantity.getUnit();
-
         switch (unit) {
             case KILOGRAM:
                 return value;
@@ -252,7 +224,6 @@ public class ImpactCalculationService {
                 return value * 0.5; // Default estimate
         }
     }
-
     /**
      * Get emission factor for a food category
      */
@@ -262,7 +233,6 @@ public class ImpactCalculationService {
         }
         return emissionFactors.getOrDefault(category.name(), defaultEmissionFactor);
     }
-
     /**
      * Get water factor for a food category
      */
@@ -272,7 +242,6 @@ public class ImpactCalculationService {
         }
         return waterFactors.getOrDefault(category.name(), defaultWaterFactor);
     }
-
     /**
      * Get primary food category (first food-type category, excluding dietary labels)
      */
@@ -280,28 +249,22 @@ public class ImpactCalculationService {
         if (categories == null || categories.isEmpty()) {
             return null;
         }
-
         return categories.stream()
             .filter(FoodCategory::isFoodType)
             .findFirst()
             .orElse(null);
     }
-
     // Getters for metadata
     public String getCurrentVersion() {
         return currentVersion;
     }
-
     public String getDisclosureText() {
         return disclosureText;
     }
-
     public Double getMinMealWeightKg() {
         return minMealWeightKg;
     }
-
     public Double getMaxMealWeightKg() {
         return maxMealWeightKg;
     }
 }
-

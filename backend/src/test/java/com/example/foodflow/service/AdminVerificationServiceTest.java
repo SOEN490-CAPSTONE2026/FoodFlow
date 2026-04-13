@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import brevo.ApiException;
 import com.example.foodflow.model.dto.ApprovalResponse;
 import com.example.foodflow.model.dto.RejectionResponse;
@@ -25,32 +24,23 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AdminVerificationService Unit Tests")
 class AdminVerificationServiceTest {
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private EmailNotificationService emailService;
-
     @Mock
     private EmailVerificationTokenRepository verificationTokenRepository;
-
     @Mock
     private NotificationPreferenceService notificationPreferenceService;
-
     @Mock
     private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
-
     @InjectMocks
     private AdminVerificationService adminVerificationService;
-
     private User testUser;
     private Organization testOrganization;
-
     @BeforeEach
     void setUp() {
         // Create test organization
@@ -64,7 +54,6 @@ class AdminVerificationServiceTest {
         testOrganization.setCharityRegistrationNumber("123456789RR0001");
         testOrganization.setCapacity(500);
         testOrganization.setCreatedAt(LocalDateTime.now().minusDays(2));
-
         // Create test user
         testUser = new User();
         testUser.setId(1L);
@@ -75,15 +64,12 @@ class AdminVerificationServiceTest {
         testUser.setCity("Seattle");
         testUser.setCountry("United States");
         testUser.setCreatedAt(LocalDateTime.now().minusDays(2));
-
         // Set bidirectional relationship
         testOrganization.setUser(testUser);
     }
-
     @Nested
     @DisplayName("getPendingUsers Tests")
     class GetPendingUsersTests {
-
         @Test
         @DisplayName("Should return paginated pending users")
         void getPendingUsers_Success() {
@@ -95,12 +81,10 @@ class AdminVerificationServiceTest {
                     isNull(),
                     any(PageRequest.class)
             )).thenReturn(userPage);
-
             // Act
             UserVerificationPageResponse response = adminVerificationService.getPendingUsers(
                     0, 20, "date", "desc", null, null
             );
-
             // Assert
             assertNotNull(response);
             assertEquals(1, response.getTotalElements());
@@ -110,7 +94,6 @@ class AdminVerificationServiceTest {
             assertEquals("Community Food Bank", response.getContent().get(0).getOrganizationName());
             assertEquals("john@foodbank.org", response.getContent().get(0).getEmail());
         }
-
         @Test
         @DisplayName("Should filter by role")
         void getPendingUsers_WithRoleFilter() {
@@ -122,12 +105,10 @@ class AdminVerificationServiceTest {
                     isNull(),
                     any(PageRequest.class)
             )).thenReturn(userPage);
-
             // Act
             UserVerificationPageResponse response = adminVerificationService.getPendingUsers(
                     0, 20, "date", "desc", "RECEIVER", null
             );
-
             // Assert
             assertNotNull(response);
             assertEquals(1, response.getContent().size());
@@ -138,7 +119,6 @@ class AdminVerificationServiceTest {
                     any(PageRequest.class)
             );
         }
-
         @Test
         @DisplayName("Should apply search term")
         void getPendingUsers_WithSearch() {
@@ -151,12 +131,10 @@ class AdminVerificationServiceTest {
                     eq(searchTerm),
                     any(PageRequest.class)
             )).thenReturn(userPage);
-
             // Act
             UserVerificationPageResponse response = adminVerificationService.getPendingUsers(
                     0, 20, "date", "desc", null, searchTerm
             );
-
             // Assert
             assertNotNull(response);
             verify(userRepository).findByAccountStatusInAndSearchTerm(
@@ -166,7 +144,6 @@ class AdminVerificationServiceTest {
                     any(PageRequest.class)
             );
         }
-
         @Test
         @DisplayName("Should sort by user type")
         void getPendingUsers_SortByUserType() {
@@ -178,10 +155,8 @@ class AdminVerificationServiceTest {
                     isNull(),
                     any(PageRequest.class)
             )).thenReturn(userPage);
-
             // Act
             adminVerificationService.getPendingUsers(0, 20, "usertype", "asc", null, null);
-
             // Assert
             verify(userRepository).findByAccountStatusInAndSearchTerm(
                     anyList(),
@@ -193,7 +168,6 @@ class AdminVerificationServiceTest {
                     )
             );
         }
-
         @Test
         @DisplayName("Should ignore invalid role filter")
         void getPendingUsers_InvalidRole() {
@@ -205,12 +179,10 @@ class AdminVerificationServiceTest {
                     isNull(),
                     any(PageRequest.class)
             )).thenReturn(userPage);
-
             // Act
             UserVerificationPageResponse response = adminVerificationService.getPendingUsers(
                     0, 20, "date", "desc", "INVALID_ROLE", null
             );
-
             // Assert
             assertNotNull(response);
             verify(userRepository).findByAccountStatusInAndSearchTerm(
@@ -221,11 +193,9 @@ class AdminVerificationServiceTest {
             );
         }
     }
-
     @Nested
     @DisplayName("approveUser Tests")
     class ApproveUserTests {
-
         @Test
         @DisplayName("Should approve user successfully")
         void approveUser_Success() {
@@ -233,19 +203,15 @@ class AdminVerificationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(true);
-
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
             assertEquals("User approved successfully", response.getMessage());
             assertEquals(AccountStatus.ACTIVE, testUser.getAccountStatus());
-            
             verify(userRepository).findById(1L);
             verify(userRepository).save(testUser);
-            
             // Verify email was sent
             try {
                 verify(emailService).sendAccountApprovalEmail(
@@ -256,13 +222,11 @@ class AdminVerificationServiceTest {
                 fail("Email service should have been called");
             }
         }
-
         @Test
         @DisplayName("Should throw exception when user not found")
         void approveUser_UserNotFound() {
             // Arrange
             when(userRepository.findById(999L)).thenReturn(Optional.empty());
-
             // Act & Assert
             IllegalArgumentException exception = assertThrows(
                     IllegalArgumentException.class,
@@ -272,14 +236,12 @@ class AdminVerificationServiceTest {
             verify(userRepository).findById(999L);
             verify(userRepository, never()).save(any(User.class));
         }
-
         @Test
         @DisplayName("Should throw exception when user not pending approval")
         void approveUser_NotPendingApproval() {
             // Arrange
             testUser.setAccountStatus(AccountStatus.ACTIVE);
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-
             // Act & Assert
             IllegalStateException exception = assertThrows(
                     IllegalStateException.class,
@@ -290,23 +252,19 @@ class AdminVerificationServiceTest {
             verify(userRepository, never()).save(any(User.class));
         }
     }
-
     @Nested
     @DisplayName("rejectUser Tests")
     class RejectUserTests {
-
         @Test
         @DisplayName("Should reject user successfully with message")
         void rejectUser_SuccessWithMessage() {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
-
             // Act
             RejectionResponse response = adminVerificationService.rejectUser(
                     1L, "incomplete_info", "Missing registration documents"
             );
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
@@ -314,10 +272,8 @@ class AdminVerificationServiceTest {
             assertEquals(AccountStatus.DEACTIVATED, testUser.getAccountStatus());
             assertTrue(testUser.getAdminNotes().contains("incomplete_info"));
             assertTrue(testUser.getAdminNotes().contains("Missing registration documents"));
-            
             verify(userRepository).findById(1L);
             verify(userRepository).save(testUser);
-            
             // Verify email was sent
             try {
                 verify(emailService).sendAccountRejectionEmail(
@@ -330,28 +286,23 @@ class AdminVerificationServiceTest {
                 fail("Email service should have been called");
             }
         }
-
         @Test
         @DisplayName("Should reject user successfully without custom message")
         void rejectUser_SuccessWithoutMessage() {
             // Arrange
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
-
             // Act
             RejectionResponse response = adminVerificationService.rejectUser(
                     1L, "duplicate_account", null
             );
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
             assertEquals(AccountStatus.DEACTIVATED, testUser.getAccountStatus());
             assertTrue(testUser.getAdminNotes().contains("duplicate_account"));
-            
             verify(userRepository).findById(1L);
             verify(userRepository).save(testUser);
-            
             // Verify email was sent with null message
             try {
                 verify(emailService).sendAccountRejectionEmail(
@@ -364,13 +315,11 @@ class AdminVerificationServiceTest {
                 fail("Email service should have been called");
             }
         }
-
         @Test
         @DisplayName("Should throw exception when user not found")
         void rejectUser_UserNotFound() {
             // Arrange
             when(userRepository.findById(999L)).thenReturn(Optional.empty());
-
             // Act & Assert
             IllegalArgumentException exception = assertThrows(
                     IllegalArgumentException.class,
@@ -380,14 +329,12 @@ class AdminVerificationServiceTest {
             verify(userRepository).findById(999L);
             verify(userRepository, never()).save(any(User.class));
         }
-
         @Test
         @DisplayName("Should throw exception when user not pending approval")
         void rejectUser_NotPendingApproval() {
             // Arrange
             testUser.setAccountStatus(AccountStatus.ACTIVE);
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-
             // Act & Assert
             IllegalStateException exception = assertThrows(
                     IllegalStateException.class,
@@ -398,11 +345,9 @@ class AdminVerificationServiceTest {
             verify(userRepository, never()).save(any(User.class));
         }
     }
-
     @Nested
     @DisplayName("verifyEmailManually Tests")
     class VerifyEmailManuallyTests {
-
         @Test
         @DisplayName("Should verify email and move to admin approval")
         void verifyEmailManually_Success() {
@@ -412,10 +357,8 @@ class AdminVerificationServiceTest {
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(verificationTokenRepository.findTopByUserIdOrderByCreatedAtDesc(1L))
                     .thenReturn(Optional.empty());
-
             // Act
             ApprovalResponse response = adminVerificationService.verifyEmailManually(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
@@ -425,14 +368,12 @@ class AdminVerificationServiceTest {
             verify(verificationTokenRepository).findTopByUserIdOrderByCreatedAtDesc(1L);
             verify(userRepository).save(testUser);
         }
-
         @Test
         @DisplayName("Should throw when user not pending verification")
         void verifyEmailManually_NotPendingVerification() {
             // Arrange
             testUser.setAccountStatus(AccountStatus.PENDING_ADMIN_APPROVAL);
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-
             // Act & Assert
             IllegalStateException exception = assertThrows(
                     IllegalStateException.class,
@@ -443,13 +384,10 @@ class AdminVerificationServiceTest {
             verify(userRepository, never()).save(any(User.class));
         }
     }
-
     // Notification-related tests
-
     @Nested
     @DisplayName("Notification Preference Tests")
     class NotificationPreferenceTests {
-
         @Test
         @DisplayName("Should send only email when websocket is disabled")
         void approveUser_EmailEnabledWebSocketDisabled_SendsOnlyEmail() throws Exception {
@@ -458,17 +396,14 @@ class AdminVerificationServiceTest {
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(false);
-
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
             verify(emailService).sendAccountApprovalEmail(eq("john@foodbank.org"), eq("Community Food Bank"));
             verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
         }
-
         @Test
         @DisplayName("Should send only websocket when email is disabled")
         void approveUser_EmailDisabledWebSocketEnabled_SendsOnlyWebSocket() throws Exception {
@@ -477,17 +412,14 @@ class AdminVerificationServiceTest {
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(false);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
-
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
             verify(emailService, never()).sendAccountApprovalEmail(anyString(), anyString());
             verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
         }
-
         @Test
         @DisplayName("Should send both notifications when both are enabled")
         void approveUser_BothEnabled_SendsBoth() throws Exception {
@@ -496,17 +428,14 @@ class AdminVerificationServiceTest {
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
-
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
             verify(emailService).sendAccountApprovalEmail(eq("john@foodbank.org"), eq("Community Food Bank"));
             verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
         }
-
         @Test
         @DisplayName("Should not send any notifications when both are disabled")
         void approveUser_BothDisabled_SendsNeither() throws Exception {
@@ -514,17 +443,14 @@ class AdminVerificationServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), anyString(), anyString())).thenReturn(false);
-
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
             verify(emailService, never()).sendAccountApprovalEmail(anyString(), anyString());
             verify(messagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), anyMap());
         }
-
         @Test
         @DisplayName("Should handle email failure gracefully and still send websocket")
         void approveUser_EmailFailsWebSocketSucceeds_CompletesSuccessfully() throws Exception {
@@ -534,10 +460,8 @@ class AdminVerificationServiceTest {
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
             doThrow(new ApiException("Email service error")).when(emailService).sendAccountApprovalEmail(anyString(), anyString());
-
             // Act
             ApprovalResponse response = adminVerificationService.approveUser(1L);
-
             // Assert
             assertNotNull(response);
             assertTrue(response.isSuccess());
@@ -545,7 +469,6 @@ class AdminVerificationServiceTest {
             verify(messagingTemplate).convertAndSendToUser(eq("1"), eq("/queue/verification/approved"), anyMap());
             assertEquals(AccountStatus.ACTIVE, testUser.getAccountStatus());
         }
-
         @Test
         @DisplayName("Should respect notification preferences for each channel independently")
         void approveUser_ChecksPreferencesForEachChannel() throws Exception {
@@ -554,10 +477,8 @@ class AdminVerificationServiceTest {
             when(userRepository.save(any(User.class))).thenReturn(testUser);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"))).thenReturn(true);
             when(notificationPreferenceService.shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"))).thenReturn(true);
-
             // Act
             adminVerificationService.approveUser(1L);
-
             // Assert - verify that preferences were checked for both channels
             verify(notificationPreferenceService).shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("email"));
             verify(notificationPreferenceService).shouldSendNotification(any(User.class), eq("verificationStatusChanged"), eq("websocket"));

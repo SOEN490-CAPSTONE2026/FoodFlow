@@ -232,26 +232,43 @@
 
 .donations-table th:nth-child(9),
 .donations-table td:nth-child(9) {
-  width: 10%;
-  min-width: 100px;
+  width: 12%;
+  min-width: 150px;
 }
 
 .donations-table th:nth-child(10),
 .donations-table td:nth-child(10) {
-  width: 10%;
-  min-width: 100px;
+  width: 12%;
+  min-width: 150px;
 }
 
 .donations-table th:nth-child(11),
 .donations-table td:nth-child(11) {
-  width: 6%;
-  min-width: 80px;
+  width: 8%;
+  min-width: 96px;
+  text-align: center;
+}
+
+.donations-table th:nth-child(4),
+.donations-table td:nth-child(4),
+.donations-table th:nth-child(7),
+.donations-table td:nth-child(7),
+.donations-table th:nth-child(8),
+.donations-table td:nth-child(8) {
   text-align: center;
 }
 
 .donations-table td:nth-child(11) .action-buttons {
   justify-content: center;
   flex-wrap: nowrap;
+  margin: 0 auto;
+}
+
+.donations-table td:nth-child(4) [class^='pill-status-'],
+.donations-table td:nth-child(7) .table-muted,
+.donations-table td:nth-child(7) .rating-cell,
+.donations-table td:nth-child(8) .table-muted,
+.donations-table td:nth-child(8) .flagged-cell {
   margin: 0 auto;
 }
 
@@ -338,10 +355,69 @@
   text-align: left;
 }
 
-.action-buttons {
+.donations-table .action-buttons {
   display: flex;
   gap: 2px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  min-width: fit-content;
+  overflow: visible;
+}
+
+.donations-table .action-btn {
+  padding: 4px;
+  border: none !important;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  line-height: 1;
+  color: #1b4965 !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  text-align: center !important;
+  overflow: visible !important;
+  position: static !important;
+}
+
+.donations-table .action-btn::before {
+  display: none !important;
+  content: none !important;
+}
+
+.donations-table .action-btn:hover {
+  transform: scale(1.08);
+}
+
+.donations-table .action-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: block;
+  color: #1b4965 !important;
+  stroke: #1b4965 !important;
+  fill: none !important;
+  stroke-width: 2;
+  opacity: 1;
+}
+
+.donations-table .action-btn-override {
+  background: #ffffff;
+  border-color: #dbe3ea;
+  color: #1b4965;
+}
+
+.donations-table .action-btn-override:hover {
+  background: #f8fbfd;
+  border-color: #62b6cb;
 }
 
 .donation-admin-modal-overlay {
@@ -1150,13 +1226,14 @@
 .rating-cell {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 6px;
   font-size: 14px;
   font-weight: 500;
   color: #374151;
   white-space: nowrap;
   vertical-align: middle;
+  margin: 0 auto;
 }
 
 .pill-status-flagged {

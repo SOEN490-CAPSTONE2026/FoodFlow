@@ -1,5 +1,4 @@
 package com.example.foodflow.exception;
-
 import com.example.foodflow.model.dto.AuthResponse;
 import com.example.foodflow.model.entity.OrganizationType;
 import com.example.foodflow.model.entity.VerificationStatus;
@@ -13,10 +12,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.stream.Collectors;
-
 @ControllerAdvice
 public class RestExceptionHandler {
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<AuthResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();
@@ -30,11 +27,9 @@ public class RestExceptionHandler {
                     break;
                 }
             }
-
             String invalidValue = ife.getValue() != null ? ife.getValue().toString() : "";
             String message = "Invalid value '" + invalidValue + "'";
             if (!fieldName.isEmpty()) message += " for field '" + fieldName + "'";
-
             // If the target type is one of our enums, append allowed values
             if ("OrganizationType".equals(targetType)) {
                 String allowed = String.join(", ",
@@ -51,14 +46,11 @@ public class RestExceptionHandler {
             } else if ("DietaryTag".equals(targetType)) {
                 message += ". Allowed values: [" + FoodTaxonomyContract.allowedDietaryTags() + "]";
             }
-
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse(null, null, null, message));
         }
-
         // Fallback generic message
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse(null, null, null, "Malformed request body"));
     }
-
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<AuthResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         String rootMsg = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
@@ -69,7 +61,6 @@ public class RestExceptionHandler {
             String message = "Invalid enum value provided. Allowed organization_type values: [" + allowedOrg + "] and verification_status values: [" + allowedVer + "]";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse(null, null, null, message));
         }
-
         // Default fallback
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponse(null, null, null, "Data integrity violation"));
     }

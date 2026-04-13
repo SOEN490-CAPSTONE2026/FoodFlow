@@ -668,13 +668,9 @@ export default function DonorListFood() {
   const handleReportSubmit = async reportData => {
     try {
       await reportAPI.createReport(reportData);
-      alert(t('donorListFood.reportSubmittedSuccessfully'));
-      setShowReportModal(false);
-      setReportTargetUser(null);
-      setCompletedDonationId(null);
     } catch (err) {
       console.error('Failed to submit report', err);
-      alert(t('donorListFood.failedSubmitReport'));
+      throw new Error(t('donorListFood.failedSubmitReport'));
     }
   };
 
@@ -941,6 +937,7 @@ export default function DonorListFood() {
         <div className="header-actions">
           <button
             className="donor-ai-button"
+            data-tour="donor-ai-donation-entry"
             onClick={() => navigate('/donor/ai-donation')}
           >
             <Sparkles size={18} />

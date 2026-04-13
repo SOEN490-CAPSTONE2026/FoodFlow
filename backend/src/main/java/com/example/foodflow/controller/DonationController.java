@@ -1,22 +1,16 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.DonorPrivacySettingsDTO;
 import com.example.foodflow.service.DonationStatsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/donations")
 public class DonationController {
-
     private final DonationStatsService donationStatsService;
-
     public DonationController(DonationStatsService donationStatsService) {
         this.donationStatsService = donationStatsService;
     }
-
     /**
      * Get platform-wide monetary donation totals and impact metrics.
      * Returns aggregate statistics: total amount donated, total donation count,
@@ -29,7 +23,6 @@ public class DonationController {
         Map<String, Object> totals = donationStatsService.getPlatformTotals();
         return ResponseEntity.ok(totals);
     }
-
     /**
      * Get detailed platform donation metrics from the database view.
      * Includes time-windowed stats (last 7 days, last 30 days), averages,
@@ -42,7 +35,6 @@ public class DonationController {
         Map<String, Object> metrics = donationStatsService.getPlatformMetricsFromView();
         return ResponseEntity.ok(metrics);
     }
-
     /**
      * Get badge information for a specific user.
      * Returns the current badge tier, progress toward next tier,
@@ -56,7 +48,6 @@ public class DonationController {
         Map<String, Object> badgeInfo = donationStatsService.getUserBadgeInfo(userId);
         return ResponseEntity.ok(badgeInfo);
     }
-
     /**
      * Get the current privacy settings for a user's donor profile.
      *
@@ -68,7 +59,6 @@ public class DonationController {
         DonorPrivacySettingsDTO settings = donationStatsService.getPrivacySettings(userId);
         return ResponseEntity.ok(settings);
     }
-
     /**
      * Update privacy settings for a user's donor profile.
      * Supports partial updates — only non-null fields are applied.
@@ -84,7 +74,6 @@ public class DonationController {
         DonorPrivacySettingsDTO updated = donationStatsService.updatePrivacySettings(userId, settings);
         return ResponseEntity.ok(updated);
     }
-
     /**
      * Get a user's public donor profile, respecting their privacy settings.
      * Only returns information the user has opted to show publicly.

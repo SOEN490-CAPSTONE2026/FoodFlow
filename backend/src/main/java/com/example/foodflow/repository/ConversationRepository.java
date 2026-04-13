@@ -1,17 +1,13 @@
 package com.example.foodflow.repository;
-
 import com.example.foodflow.model.entity.Conversation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, Long> {
-    
     /**
      * Find all conversations where the user is either user1 or user2
      * Ordered by last message time (most recent first), falling back to creation date for new conversations
@@ -26,7 +22,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "WHERE c.user1.id = :userId OR c.user2.id = :userId " +
            "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByUserId(@Param("userId") Long userId);
-    
     /**
      * Find direct (non-donation) conversation between two users (order-independent)
      */
@@ -35,7 +30,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "(c.user1.id = :userId1 AND c.user2.id = :userId2) " +
            "OR (c.user1.id = :userId2 AND c.user2.id = :userId1))")
     Optional<Conversation> findByUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
-
     /**
      * Check if direct (non-donation) conversation exists between two users
      */
@@ -44,7 +38,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "(c.user1.id = :userId1 AND c.user2.id = :userId2) " +
            "OR (c.user1.id = :userId2 AND c.user2.id = :userId1))")
     boolean existsBetweenUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
-
         /**
      * Find conversation by surplus post ID where user is a participant
      * Uses LEFT JOIN FETCH to eagerly load related entities
@@ -58,7 +51,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "WHERE c.surplusPost.id = :postId " +
            "AND (c.user1.id = :userId OR c.user2.id = :userId)")
     Optional<Conversation> findByPostIdAndUserId(@Param("postId") Long postId, @Param("userId") Long userId);
-    
     /**
      * Find all conversations for a specific surplus post
      * Ordered by last message time (most recent first), falling back to creation date for new conversations
@@ -67,7 +59,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "WHERE c.surplusPost.id = :postId " +
            "ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC")
     List<Conversation> findByPostId(@Param("postId") Long postId);
-
     /**
      * Find conversation by donation (surplus post) ID and receiver ID.
      * Used for donation-anchored threads where (donation_id, receiver_id) is the unique key.

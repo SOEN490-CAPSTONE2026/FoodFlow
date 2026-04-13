@@ -1,16 +1,20 @@
-Product Demo: [https://drive.google.com/file/d/1nEElLNKFA6pm4d5NZZG9k_GQtKXwSGws/view?usp=sharing](https://drive.google.com/file/d/1CU44bG2VqstZmIIO1301CaJXIrd5j8sn/view?usp=sharing)
+Product Demo: [Video](https://drive.google.com/file/d/1CU44bG2VqstZmIIO1301CaJXIrd5j8sn/view?usp=sharing) 
+
 Deployment link: https://foodflow-app.com/
 
 # FoodFlow
 
-![Build Status](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/workflows/CI/badge.svg)
+![Build Status](https://github.com/SOEN490-CAPSTONE2026/FoodFlow/actions/workflows/ci-cd.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+
+> **Note:** The CI pipeline enforces a strict **minimum code coverage of 80%**.  
+> Some pipeline runs may appear as failed because the build intentionally stops when coverage drops below this threshold. These failures are expected and help maintain code quality.
 
 ## 🎬 Release Demos
 - Release 1 Demo: [Video](https://drive.google.com/file/d/1QMPNL1EYaqpbYQZB4Q4PgDAAiZX4eoUZ/view?usp=sharing) [Slideshow](https://docs.google.com/presentation/d/1XW-psvClrD1vm02NoNI0VIn4971Y4OIbMR2bVWhAyp8/edit?usp=sharing)
 - Release 2 Demo: [Video](https://drive.google.com/file/d/1hVvFLlU-G6kuPS6G6Oq4_uASJtDOs8UH/view) [Slideshow](https://docs.google.com/presentation/d/1oSXrTyCY9ngMlPyji20SyCfQyJ3tqTullJgg0uAYKhs/edit?usp=sharing)
-- [Release 3 Demo]() - [Coming Soon]
+- Release 3 Demo: [Video](https://drive.google.com/file/d/1MQaZc6poylWYzM-iYLJyCmx9K3KiIPe-/view?usp=sharing) [Slideshow](https://docs.google.com/presentation/d/1EPXdqivUnQ_lNO-lSRivXMZ0-Ohvb4UGIPed2pzzAXU/edit?usp=sharing)
 
 ## 📖 Project Summary
 FoodFlow is a platform that connects restaurants, grocery stores, bakeries, and event organizers with verified charities, shelters, and community kitchens to redistribute surplus food in real-time. By leveraging technology to bridge the gap between food surplus and food insecurity, FoodFlow ensures that edible food reaches those in need rather than being discarded, creating measurable social and environmental impact while helping businesses comply with food waste regulations.
@@ -68,6 +72,23 @@ Our team values diversity and collaboration, creating an environment of mutual r
    REACT_APP_GOOGLE_MAPS_API_KEY=
 
    FRONTEND_URL=
+
+   OPENAI_API_KEY=
+   
+   GOOGLE_CALENDAR_CLIENT_ID=
+   GOOGLE_CALENDAR_CLIENT_SECRET=
+   GOOGLE_CALENDAR_REDIRECT_URI=
+   
+   SUPPORT_EMAIL=
+   SUPPORT_PHONE=
+   RATE_LIMIT_ENABLED=false
+   TWILIO_ACCOUNT_SID=
+   TWILIO_AUTH_TOKEN=
+   TWILIO_PHONE_NUMBER=
+   
+   STRIPE_API_KEY=
+   REACT_APP_STRIPE_PUBLISHABLE_KEY=
+   STRIPE_WEBHOOK_SECRET=
    ```
 
    Ask a team member for the necessary values for the .env file

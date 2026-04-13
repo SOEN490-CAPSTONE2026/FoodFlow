@@ -1,10 +1,8 @@
 package com.example.foodflow.service.calendar;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 /**
  * Utility for encrypting/decrypting sensitive tokens (OAuth refresh tokens)
  * DEPRECATED: Encryption has been removed for local development simplicity
@@ -18,13 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Deprecated
 public class EncryptionUtility {
-
     private static final Logger logger = LoggerFactory.getLogger(EncryptionUtility.class);
-
     public EncryptionUtility(@Value("${calendar.encryption.key:}") String encryptionKeyString) {
         logger.warn("EncryptionUtility is deprecated and should not be used. Tokens are stored in plain text.");
     }
-
     /**
      * @deprecated No longer encrypts - returns input as-is
      */
@@ -33,7 +28,6 @@ public class EncryptionUtility {
         logger.warn("encrypt() called but encryption is disabled - returning plain text");
         return plainText;
     }
-
     /**
      * @deprecated No longer decrypts - returns input as-is
      */

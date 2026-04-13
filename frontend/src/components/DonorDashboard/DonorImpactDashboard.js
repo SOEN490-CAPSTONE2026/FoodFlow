@@ -15,6 +15,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { impactDashboardAPI } from '../../services/api';
+import ExportDropdown from '../Common/ExportDropdown';
 import './Donor_Styles/DonorImpactDashboard.css';
 
 export default function DonorImpactDashboard() {
@@ -69,15 +70,15 @@ export default function DonorImpactDashboard() {
     fetchMetrics();
   }, [dateRange, t]);
 
-  const handleExport = () => {
+  const handleExportCSV = () => {
     impactDashboardAPI
-      .exportMetrics(dateRange)
+      .exportMetricsCSV(dateRange)
       .then(response => {
         const blob = new Blob([response.data], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `impact-metrics-${dateRange.toLowerCase()}.csv`;
+        link.download = `FoodFlow_Impact_Report_${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -85,10 +86,28 @@ export default function DonorImpactDashboard() {
       })
       .catch(() => {
         setError(
-          t(
-            'impactDashboard.exportError',
-            'Unable to export metrics right now.'
-          )
+          t('impactDashboard.exportError', 'Unable to export CSV right now.')
+        );
+      });
+  };
+
+  const handleExportPDF = () => {
+    impactDashboardAPI
+      .exportMetricsPDF(dateRange)
+      .then(response => {
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `FoodFlow_Impact_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        setError(
+          t('impactDashboard.exportError', 'Unable to export PDF right now.')
         );
       });
   };
@@ -265,10 +284,11 @@ export default function DonorImpactDashboard() {
             </option>
           </select>
 
-          <button className="export-btn" onClick={handleExport}>
-            <Download size={18} />
-            {t('impactDashboard.export', 'Export CSV')}
-          </button>
+          <ExportDropdown
+            onExportCSV={handleExportCSV}
+            onExportPDF={handleExportPDF}
+            label={t('impactDashboard.export', 'Export')}
+          />
         </div>
       </div>
 

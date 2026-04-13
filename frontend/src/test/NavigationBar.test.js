@@ -1,260 +1,167 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
 import NavigationBar from '../components/NavigationBar';
+import { AuthContext } from '../contexts/AuthContext';
 
-// Mock logo import
-jest.mock('../assets/Logo.png', () => 'test-logo.png');
-
-// Mock scrollTo
-window.scrollTo = jest.fn();
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
-
-// Mock react-router-dom hooks
 const mockNavigate = jest.fn();
-const mockUseLocation = jest.fn();
+const mockChangeLanguage = jest.fn();
+let mockLocation = { pathname: '/', state: null, search: '' };
+let mockLanguage = 'en';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useLocation: () => mockUseLocation(),
+  useLocation: () => mockLocation,
+}));
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: key => key,
+    i18n: {
+      language: mockLanguage,
+      changeLanguage: mockChangeLanguage,
+    },
+  }),
+}));
+
+jest.mock('react-icons/fa', () => ({
+  FaBars: () => <span data-testid="bars-icon">bars</span>,
+  FaTimes: () => <span data-testid="times-icon">times</span>,
 }));
 
 describe('NavigationBar', () => {
-  const mockLogout = jest.fn();
-
-  const renderWithProviders = (
-    isLoggedIn = false,
-    locationPath = '/',
-    role = 'RECEIVER'
-  ) => {
-    mockUseLocation.mockReturnValue({
-      pathname: locationPath,
-      state: null,
-    });
-
-    return render(
-      <AuthContext.Provider value={{ isLoggedIn, role, logout: mockLogout }}>
-        <BrowserRouter>
-          <NavigationBar />
-        </BrowserRouter>
-      </AuthContext.Provider>
-    );
-  };
-
   beforeEach(() => {
-    mockNavigate.mockClear();
-    mockLogout.mockClear();
-    window.scrollTo.mockClear();
-    window.HTMLElement.prototype.scrollIntoView.mockClear();
-    mockUseLocation.mockClear();
+    jest.clearAllMocks();
+    sessionStorage.clear();
+    mockLocation = { pathname: '/', state: null, search: '' };
+    mockLanguage = 'en';
+    Element.prototype.scrollIntoView = jest.fn();
+    jest.spyOn(window.history, 'replaceState');
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    window.history.replaceState.mockRestore();
   });
 
-  test('renders NavigationBar with logo', () => {
-    renderWithProviders();
+  const renderNav = (authValue = { isLoggedIn: false, role: null }) =>
+    render(
+      <AuthContext.Provider value={authValue}>
+        <NavigationBar />
+      </AuthContext.Provider>
+    );
 
-    const logo = screen.getByAltText('Logo');
-    expect(logo).toBeInTheDocument();
-    expect(logo).toHaveAttribute('src', 'test-logo.png');
+  test('renders logged-out navigation and toggles the menu', () => {
+    renderNav();
+
+    expect(screen.getByAltText('Logo')).toBeInTheDocument();
+    expect(screen.getAllByText('nav.login').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('language.select').length).toBe(2);
+
+    const menuToggle = screen.getByRole('button', { name: 'Toggle menu' });
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(menuToggle);
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByTestId('times-icon')).toBeInTheDocument();
   });
 
-  test('renders navigation links', () => {
-    renderWithProviders();
+  test('navigates to login and register and closes the mobile menu', () => {
+    renderNav();
 
-    expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('How it works')).toBeInTheDocument();
-    expect(screen.getByText('About Us')).toBeInTheDocument();
-    expect(screen.getByText('FAQs')).toBeInTheDocument();
-    expect(screen.getByText('Contact Us')).toBeInTheDocument();
-  });
-
-  test('shows login and register buttons in desktop view when user is not logged in', () => {
-    renderWithProviders(false);
-
-    // Use getAllByText due to having multiple instances (desktop and mobile)
-    const loginButtons = screen.getAllByText('Login');
-    const registerButtons = screen.getAllByText('Register');
-
-    expect(loginButtons.length).toBeGreaterThan(0);
-    expect(registerButtons.length).toBeGreaterThan(0);
-  });
-
-  test('shows logout button when user is logged in', () => {
-    renderWithProviders(true);
-
-    // Use getAllByText since there are multiple instances
-    const returnButtons = screen.getAllByText('Return to Dashboard');
-    const loginButtons = screen.queryAllByText('Login');
-    const registerButtons = screen.queryAllByText('Register');
-
-    expect(returnButtons.length).toBeGreaterThan(0);
-    expect(loginButtons).toHaveLength(0);
-    expect(registerButtons).toHaveLength(0);
-  });
-
-  test('desktop logout button calls logout function', () => {
-    renderWithProviders(true);
-
-    // Get the desktop return to dashboard button
-    const buttonsContainer = document.querySelector('.buttons');
-    const returnButton = buttonsContainer.querySelector('.signup-button');
-
-    fireEvent.click(returnButton);
-
-    // Should navigate to receiver browse page, not call logout
-    expect(mockNavigate).toHaveBeenCalledWith('/receiver/browse');
-    expect(mockLogout).not.toHaveBeenCalled();
-  });
-
-  test('desktop login button navigates to login page', () => {
-    renderWithProviders(false);
-
-    // Get the desktop login button
-    const buttonsContainer = document.querySelector('.buttons');
-    const loginButton = buttonsContainer.querySelector('.login-button');
-
-    fireEvent.click(loginButton);
-
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.click(screen.getAllByText('nav.login')[0]);
     expect(mockNavigate).toHaveBeenCalledWith('/login');
-  });
 
-  test('desktop register button navigates to register page', () => {
-    renderWithProviders(false);
-
-    // Get the desktop register button
-    const buttonsContainer = document.querySelector('.buttons');
-    const registerButton = buttonsContainer.querySelector('.signup-button');
-
-    fireEvent.click(registerButton);
-
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.click(screen.getAllByText('nav.register')[0]);
     expect(mockNavigate).toHaveBeenCalledWith('/register');
+
+    expect(screen.getByRole('button', { name: 'Toggle menu' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
   });
 
-  test('mobile menu toggle works', () => {
-    renderWithProviders(false);
+  test('scrolls on the landing page and updates the hash', () => {
+    const section = document.createElement('section');
+    section.id = 'about';
+    section.scrollIntoView = jest.fn();
+    document.body.appendChild(section);
 
-    // Find the menu toggle by its class
-    const menuToggle = document.querySelector('.menu-toggle');
-    fireEvent.click(menuToggle);
+    renderNav();
+    fireEvent.click(screen.getByText('nav.about'));
 
-    // Menu should be visible after click
-    const menu = document.querySelector('.menu');
-    expect(menu).toHaveClass('active');
-
-    fireEvent.click(menuToggle);
-    expect(menu).not.toHaveClass('active');
-  });
-
-  test('mobile logout button calls logout function', () => {
-    renderWithProviders(true);
-
-    // Open mobile menu first
-    const menuToggle = document.querySelector('.menu-toggle');
-    fireEvent.click(menuToggle);
-
-    // Get the mobile return to dashboard button
-    const mobileButtonsContainer = document.querySelector('.mobile-buttons');
-    const returnButton = mobileButtonsContainer.querySelector('.signup-button');
-
-    fireEvent.click(returnButton);
-
-    // Should navigate to receiver browse page, not call logout
-    expect(mockNavigate).toHaveBeenCalledWith('/receiver/browse');
-    expect(mockLogout).not.toHaveBeenCalled();
-  });
-
-  test('logo click navigates to home when not on home page', () => {
-    renderWithProviders(false, '/some-other-page');
-
-    const logo = screen.getByAltText('Logo').closest('div');
-    fireEvent.click(logo);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/#home', {
-      state: {
-        from: undefined,
-        scrollTo: 'home',
-      },
-    });
-  });
-
-  test('logo click scrolls to top when already on home page', () => {
-    renderWithProviders(false, '/');
-
-    const homeSection = document.createElement('section');
-    const getByIdSpy = jest
-      .spyOn(document, 'getElementById')
-      .mockReturnValue(homeSection);
-
-    const logo = screen.getByAltText('Logo').closest('div');
-    fireEvent.click(logo);
-
-    expect(homeSection.scrollIntoView).toHaveBeenCalledWith({
+    expect(window.history.replaceState).toHaveBeenCalled();
+    expect(section.scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'start',
     });
-
-    getByIdSpy.mockRestore();
   });
 
-  test('navigation links have click handlers and correct hrefs', () => {
-    renderWithProviders(false, '/');
+  test('stores the target and navigates when jumping to a section from another route', () => {
+    mockLocation = {
+      pathname: '/login',
+      state: { from: '/receiver/browse' },
+      search: '?next=1',
+    };
 
-    const homeLink = screen.getByText('Home');
-    const howItWorksLink = screen.getByText('How it works');
-    const aboutLink = screen.getByText('About Us');
-    const faqsLink = screen.getByText('FAQs');
-    const contactLink = screen.getByText('Contact Us');
+    renderNav();
+    fireEvent.click(screen.getByText('nav.contact'));
 
-    // Verify the links have correct href attributes
-    expect(homeLink).toHaveAttribute('href', '#home');
-    expect(howItWorksLink).toHaveAttribute('href', '#how-it-works');
-    expect(aboutLink).toHaveAttribute('href', '#about');
-    expect(faqsLink).toHaveAttribute('href', '#faqs');
-    expect(contactLink).toHaveAttribute('href', '#contact');
-
-    // Test that clicking doesn't throw errors
-    expect(() => {
-      fireEvent.click(homeLink);
-      fireEvent.click(howItWorksLink);
-      fireEvent.click(aboutLink);
-    }).not.toThrow();
+    expect(sessionStorage.getItem('landingScrollTarget')).toBe('contact');
+    expect(sessionStorage.getItem('returnFrom')).toBe('/receiver/browse');
+    expect(mockNavigate).toHaveBeenCalledWith('/#contact', {
+      state: { scrollTo: 'contact', from: '/receiver/browse' },
+    });
   });
 
-  test('navigation links navigate to home with scroll state when not on home page', () => {
-    // Mock being on a different page
-    renderWithProviders(false, '/login');
+  test('handles logo clicks both on and off the landing page', () => {
+    mockLocation = { pathname: '/privacy', state: null, search: '' };
+    const { rerender } = renderNav();
 
-    const homeLink = screen.getByText('Home');
-    fireEvent.click(homeLink);
-
-    // Should navigate to home with scroll state for the home section
+    fireEvent.click(screen.getByAltText('Logo'));
+    expect(sessionStorage.getItem('landingScrollTarget')).toBe('home');
     expect(mockNavigate).toHaveBeenCalledWith('/#home', {
-      state: { scrollTo: 'home', from: undefined },
+      state: { from: undefined, scrollTo: 'home' },
     });
+
+    mockNavigate.mockClear();
+    mockLocation = { pathname: '/', state: null, search: '?lang=en' };
+    rerender(
+      <AuthContext.Provider value={{ isLoggedIn: false, role: null }}>
+        <NavigationBar />
+      </AuthContext.Provider>
+    );
+
+    fireEvent.click(screen.getByAltText('Logo'));
+    expect(window.history.replaceState).toHaveBeenCalled();
   });
 
-  test('navigation links scroll when already on home page', () => {
-    // Mock being on home page
-    renderWithProviders(false, '/');
+  test.each([
+    ['RECEIVER', '/receiver/browse'],
+    ['DONOR', '/donor'],
+    ['ADMIN', '/admin/dashboard'],
+    ['OTHER', '/'],
+  ])('returns logged-in users to the right dashboard for %s', (role, path) => {
+    renderNav({ isLoggedIn: true, role });
 
-    const homeSection = document.createElement('section');
-    const getByIdSpy = jest
-      .spyOn(document, 'getElementById')
-      .mockReturnValue(homeSection);
+    fireEvent.click(screen.getAllByText('nav.returnToDashboard')[0]);
+    expect(mockNavigate).toHaveBeenCalledWith(path);
+  });
 
-    const homeLink = screen.getByText('Home');
-    fireEvent.click(homeLink);
+  test('changes language and closes the dropdown when clicking outside', () => {
+    renderNav();
 
-    expect(homeSection.scrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
-      block: 'start',
-    });
+    fireEvent.click(screen.getAllByLabelText('language.select')[0]);
+    expect(screen.getAllByText('language.french').length).toBeGreaterThan(0);
 
-    getByIdSpy.mockRestore();
+    fireEvent.click(screen.getAllByText('language.french')[0]);
+    expect(mockChangeLanguage).toHaveBeenCalledWith('fr');
+
+    fireEvent.click(screen.getAllByLabelText('language.select')[0]);
+    expect(screen.getAllByText('language.spanish').length).toBeGreaterThan(0);
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryAllByText('language.spanish')).toHaveLength(0);
   });
 });

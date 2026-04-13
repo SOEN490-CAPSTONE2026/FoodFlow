@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.InvoiceResponse;
 import com.example.foodflow.model.entity.Invoice;
 import com.example.foodflow.model.entity.Payment;
@@ -27,26 +26,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class InvoiceService {
-
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
     private final RefundRepository refundRepository;
-
     @Transactional
     public InvoiceResponse generateInvoice(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
-
         Invoice invoice = invoiceRepository.findByPaymentId(paymentId).orElseGet(() -> {
             Invoice createdInvoice = new Invoice();
             createdInvoice.setPayment(payment);
@@ -55,33 +49,26 @@ public class InvoiceService {
             createdInvoice.setDueDate(LocalDate.now().plusDays(30));
             return createdInvoice;
         });
-
         invoice = syncInvoiceFields(invoice, payment);
         invoice = invoiceRepository.save(invoice);
-
         log.info("Invoice generated/synced: {} for payment: {}", invoice.getInvoiceNumber(), paymentId);
-
         return toInvoiceResponse(invoice);
     }
-
     public InvoiceResponse getInvoiceByPaymentId(Long paymentId) {
         return invoiceRepository.findByPaymentId(paymentId)
                 .map(this::toInvoiceResponse)
                 .orElse(null);
     }
-
     public InvoiceResponse getInvoiceById(Long invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
         return toInvoiceResponse(invoice);
     }
-
     @Transactional
     public InvoiceResponse generateInvoiceForUser(Long paymentId, User user) {
         getOwnedPayment(paymentId, user);
         return generateInvoice(paymentId);
     }
-
     public InvoiceResponse getInvoiceByPaymentIdForUser(Long paymentId, User user) {
         getOwnedPayment(paymentId, user);
         InvoiceResponse invoice = getInvoiceByPaymentId(paymentId);
@@ -90,19 +77,16 @@ public class InvoiceService {
         }
         return invoice;
     }
-
     public InvoiceResponse getInvoiceByIdForUser(Long invoiceId, User user) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
         verifyOwnership(invoice.getPayment(), user);
         return toInvoiceResponse(invoice);
     }
-
     public Page<InvoiceResponse> getInvoicesForUser(User user, Pageable pageable) {
         return invoiceRepository.findByOrganizationId(user.getOrganization().getId(), pageable)
                 .map(this::toInvoiceResponse);
     }
-
     public byte[] downloadInvoice(Long invoiceId, User user) {
         InvoiceResponse invoice = getInvoiceByIdForUser(invoiceId, user);
         String paymentAmount = invoice.getSubtotalAmount() != null ? invoice.getSubtotalAmount().toPlainString()
@@ -120,12 +104,10 @@ public class InvoiceService {
                 netAmount,
                 invoice.getStatus() != null ? invoice.getStatus().name() : "UNKNOWN");
     }
-
     @Transactional
     public InvoiceResponse syncInvoiceForPayment(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
-
         Invoice invoice = invoiceRepository.findByPaymentId(paymentId).orElseGet(() -> {
             Invoice createdInvoice = new Invoice();
             createdInvoice.setPayment(payment);
@@ -134,15 +116,12 @@ public class InvoiceService {
             createdInvoice.setDueDate(LocalDate.now().plusDays(30));
             return createdInvoice;
         });
-
         invoice = syncInvoiceFields(invoice, payment);
         return toInvoiceResponse(invoiceRepository.save(invoice));
     }
-
     private String generateInvoiceNumber() {
         return "INV-" + System.currentTimeMillis();
     }
-
     private byte[] buildInvoicePdf(
             String invoiceNumber,
             Long paymentId,
@@ -156,19 +135,15 @@ public class InvoiceService {
             PdfWriter writer = new PdfWriter(outputStream);
             PdfDocument pdfDocument = new PdfDocument(writer);
             Document document = new Document(pdfDocument);
-
             // Set document margins
             document.setMargins(40, 40, 40, 40);
-
             // Brand colors
             DeviceRgb primaryColor = new DeviceRgb(62, 180, 205); // FoodFlow teal
             DeviceRgb accentColor = new DeviceRgb(230, 126, 34); // Warm orange
             DeviceRgb darkGray = new DeviceRgb(52, 73, 94); // Dark text
             DeviceRgb lightGray = new DeviceRgb(236, 240, 241); // Light background
-
             // ===== HEADER SECTION =====
             Table headerTable = new Table(new float[] { 1, 1 }).setWidth(UnitValue.createPercentValue(100));
-
             // Logo/Brand name cell
             Cell brandCell = new Cell()
                     .add(new Paragraph("🍽️ FoodFlow")
@@ -180,7 +155,6 @@ public class InvoiceService {
                             .setFontColor(darkGray))
                     .setBorder(Border.NO_BORDER)
                     .setPadding(0);
-
             // Invoice details cell
             Cell invoiceDetailsCell = new Cell()
                     .add(new Paragraph("Invoice #" + valueOrFallback(invoiceNumber, "N/A"))
@@ -193,17 +167,13 @@ public class InvoiceService {
                             .setTextAlignment(TextAlignment.RIGHT))
                     .setBorder(Border.NO_BORDER)
                     .setPadding(0);
-
             headerTable.addCell(brandCell);
             headerTable.addCell(invoiceDetailsCell);
             document.add(headerTable);
-
             // Add spacing
             document.add(new Paragraph("\n"));
-
             // ===== COMPANY INFO & INVOICE DATES =====
             Table companyInfoTable = new Table(new float[] { 1, 1 }).setWidth(UnitValue.createPercentValue(100));
-
             // Company info
             Cell companyInfo = new Cell()
                     .add(createSectionTitle("From", primaryColor))
@@ -217,7 +187,6 @@ public class InvoiceService {
                             .setFontSize(9))
                     .setBorder(Border.NO_BORDER)
                     .setPadding(10);
-
             // Invoice dates
             Cell invoiceDates = new Cell()
                     .add(createSectionTitle("Invoice Details", primaryColor))
@@ -231,17 +200,13 @@ public class InvoiceService {
                     .setBorder(Border.NO_BORDER)
                     .setPadding(10)
                     .setTextAlignment(TextAlignment.RIGHT);
-
             companyInfoTable.addCell(companyInfo);
             companyInfoTable.addCell(invoiceDates);
             document.add(companyInfoTable);
-
             document.add(new Paragraph("\n"));
-
             // ===== FINANCIAL SUMMARY TABLE =====
             Table summaryTable = new Table(new float[] { 1, 1 }).setWidth(UnitValue.createPercentValue(100));
             summaryTable.setBackgroundColor(lightGray);
-
             // Donation Amount
             Cell donationLabelCell = new Cell()
                     .add(new Paragraph("Donation Amount")
@@ -250,7 +215,6 @@ public class InvoiceService {
                     .setBorder(new SolidBorder(lightGray, 1))
                     .setPadding(12)
                     .setBackgroundColor(lightGray);
-
             Cell donationValueCell = new Cell()
                     .add(new Paragraph("CAD $" + valueOrFallback(paymentAmount, "0.00"))
                             .setBold()
@@ -259,10 +223,8 @@ public class InvoiceService {
                     .setBorder(new SolidBorder(lightGray, 1))
                     .setPadding(12)
                     .setBackgroundColor(lightGray);
-
             summaryTable.addCell(donationLabelCell);
             summaryTable.addCell(donationValueCell);
-
             // Refunded Amount (if any)
             if (refundedAmount != null && !refundedAmount.equals("0.00")) {
                 Cell refundLabelCell = new Cell()
@@ -272,7 +234,6 @@ public class InvoiceService {
                         .setBorder(new SolidBorder(lightGray, 1))
                         .setPadding(12)
                         .setBackgroundColor(lightGray);
-
                 Cell refundValueCell = new Cell()
                         .add(new Paragraph("- CAD $" + refundedAmount)
                                 .setFontSize(11)
@@ -281,11 +242,9 @@ public class InvoiceService {
                         .setBorder(new SolidBorder(lightGray, 1))
                         .setPadding(12)
                         .setBackgroundColor(lightGray);
-
                 summaryTable.addCell(refundLabelCell);
                 summaryTable.addCell(refundValueCell);
             }
-
             // Net Amount
             Cell netLabelCell = new Cell()
                     .add(new Paragraph("Net Amount")
@@ -295,7 +254,6 @@ public class InvoiceService {
                     .setBorder(new SolidBorder(primaryColor, 1))
                     .setPadding(14)
                     .setBackgroundColor(primaryColor);
-
             Cell netValueCell = new Cell()
                     .add(new Paragraph("CAD $" + valueOrFallback(netAmount, "0.00"))
                             .setBold()
@@ -305,17 +263,12 @@ public class InvoiceService {
                     .setBorder(new SolidBorder(primaryColor, 1))
                     .setPadding(14)
                     .setBackgroundColor(primaryColor);
-
             summaryTable.addCell(netLabelCell);
             summaryTable.addCell(netValueCell);
-
             document.add(summaryTable);
-
             document.add(new Paragraph("\n"));
-
             // ===== FOOTER SECTION =====
             Table footerTable = new Table(new float[] { 1 }).setWidth(UnitValue.createPercentValue(100));
-
             Cell footerCell = new Cell()
                     .add(new Paragraph("Thank You for Your Donation!")
                             .setBold()
@@ -335,10 +288,8 @@ public class InvoiceService {
                     .setBorder(new SolidBorder(ColorConstants.LIGHT_GRAY, 1))
                     .setPadding(15)
                     .setBackgroundColor(lightGray);
-
             footerTable.addCell(footerCell);
             document.add(footerTable);
-
             // Legal notice
             document.add(new Paragraph("\n"));
             document.add(new Paragraph(
@@ -346,16 +297,13 @@ public class InvoiceService {
                     .setFontSize(8)
                     .setFontColor(ColorConstants.GRAY)
                     .setTextAlignment(TextAlignment.CENTER));
-
             document.close();
-
             return outputStream.toByteArray();
         } catch (Exception exception) {
             log.error("Failed to generate invoice PDF", exception);
             throw new RuntimeException("Failed to generate invoice PDF", exception);
         }
     }
-
     private Paragraph createSectionTitle(String title, DeviceRgb color) {
         return new Paragraph(title.toUpperCase())
                 .setBold()
@@ -363,19 +311,16 @@ public class InvoiceService {
                 .setFontColor(color)
                 .setMarginBottom(6);
     }
-
     private String formatDate(LocalDate date) {
         if (date == null)
             return "N/A";
         return date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
     }
-
     private String formatStatus(String status) {
         if (status == null)
             return "UNKNOWN";
         return status.charAt(0) + status.substring(1).toLowerCase();
     }
-
     private DeviceRgb getStatusColor(String status) {
         if (status == null)
             return new DeviceRgb(128, 128, 128); // gray
@@ -386,28 +331,23 @@ public class InvoiceService {
             default -> new DeviceRgb(128, 128, 128); // gray
         };
     }
-
     private static class UnitValue {
         static com.itextpdf.layout.properties.UnitValue createPercentValue(float percent) {
             return com.itextpdf.layout.properties.UnitValue.createPercentValue(percent);
         }
     }
-
     private String valueOrFallback(Object value, String fallback) {
         return value != null ? value.toString() : fallback;
     }
-
     private Payment getOwnedPayment(Long paymentId, User user) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
         verifyOwnership(payment, user);
         return payment;
     }
-
     private Invoice syncInvoiceFields(Invoice invoice, Payment payment) {
         BigDecimal refundedAmount = calculateApprovedRefundTotal(payment.getId());
         BigDecimal netAmount = payment.getAmount().subtract(refundedAmount).max(BigDecimal.ZERO);
-
         invoice.setStatus(resolveInvoiceStatus(payment, refundedAmount));
         invoice.setIssuedDate(invoice.getIssuedDate() != null ? invoice.getIssuedDate() : LocalDate.now());
         invoice.setDueDate(invoice.getDueDate() != null ? invoice.getDueDate() : LocalDate.now().plusDays(30));
@@ -416,7 +356,6 @@ public class InvoiceService {
         invoice.setTotalAmount(netAmount);
         return invoice;
     }
-
     private BigDecimal calculateApprovedRefundTotal(Long paymentId) {
         return refundRepository.findByPaymentId(paymentId).stream()
                 .filter(refund -> refund.getStatus() == RefundStatus.PROCESSING
@@ -424,7 +363,6 @@ public class InvoiceService {
                 .map(Refund::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
     private InvoiceStatus resolveInvoiceStatus(Payment payment, BigDecimal refundedAmount) {
         if (refundedAmount.compareTo(payment.getAmount()) >= 0) {
             return InvoiceStatus.VOID;
@@ -434,13 +372,11 @@ public class InvoiceService {
         }
         return InvoiceStatus.DRAFT;
     }
-
     private void verifyOwnership(Payment payment, User user) {
         if (!payment.getOrganization().getId().equals(user.getOrganization().getId())) {
             throw new RuntimeException("Unauthorized access to invoice");
         }
     }
-
     private InvoiceResponse toInvoiceResponse(Invoice invoice) {
         BigDecimal refundedAmount = calculateApprovedRefundTotal(invoice.getPayment().getId());
         BigDecimal netAmount = invoice.getSubtotalAmount() != null

@@ -1,5 +1,4 @@
 package com.example.foodflow.integration;
-
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
  * Integration tests for password policy enforcement across registration and
  * password management flows
@@ -22,13 +20,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 class PasswordPolicyIntegrationTest {
-
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Test
     void registerDonor_WeakPassword_Returns400() throws Exception {
         // Given - Registration with weak password (too short)
@@ -41,7 +36,6 @@ class PasswordPolicyIntegrationTest {
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
         request.setBusinessLicense("BL-12345");
-
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -49,7 +43,6 @@ class PasswordPolicyIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
-
     @Test
     void registerDonor_CommonPassword_Returns400() throws Exception {
         // Given - Registration with common password
@@ -62,7 +55,6 @@ class PasswordPolicyIntegrationTest {
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
         request.setBusinessLicense("BL-12345");
-
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -71,7 +63,6 @@ class PasswordPolicyIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
                         org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("too common"))));
     }
-
     @Test
     void registerDonor_NoUppercase_Returns400() throws Exception {
         // Given - Registration with no uppercase
@@ -84,7 +75,6 @@ class PasswordPolicyIntegrationTest {
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
         request.setBusinessLicense("BL-12345");
-
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -93,7 +83,6 @@ class PasswordPolicyIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
                         org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("uppercase"))));
     }
-
     @Test
     void registerDonor_NoSpecialChar_Returns400() throws Exception {
         // Given - Registration with no special character
@@ -106,7 +95,6 @@ class PasswordPolicyIntegrationTest {
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
         request.setBusinessLicense("BL-12345");
-
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -115,7 +103,6 @@ class PasswordPolicyIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors[?(@.field=='password')].message").value(
                         org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("special character"))));
     }
-
     @Test
     void registerDonor_StrongPassword_Returns200() throws Exception {
         // Given - Registration with strong password
@@ -128,7 +115,6 @@ class PasswordPolicyIntegrationTest {
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
         request.setBusinessLicense("BL-12345");
-
         // When & Then
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -137,7 +123,6 @@ class PasswordPolicyIntegrationTest {
                 .andExpect(jsonPath("$.token").exists())
                 .andExpect(jsonPath("$.email").value("strongpass@test.com"));
     }
-
     @Test
     void registerDonor_Receiver1234Password_Returns400() throws Exception {
         // Given - Registration with "receiver1234" (no uppercase, no special char)
@@ -150,7 +135,6 @@ class PasswordPolicyIntegrationTest {
         request.setPhone("123-456-7890");
         request.setAddress("123 Main St");
         request.setBusinessLicense("BL-12345");
-
         // When & Then - Should reject due to missing uppercase and special character
         mockMvc.perform(post("/api/auth/register/donor")
                 .contentType(MediaType.APPLICATION_JSON)

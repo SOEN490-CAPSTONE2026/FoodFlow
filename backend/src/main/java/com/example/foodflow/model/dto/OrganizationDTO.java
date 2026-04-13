@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -29,9 +28,7 @@ public class OrganizationDTO {
     private VerificationStatus verificationStatus;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
-
     // Getters/Setters omitted for brevity
-
     public static OrganizationDTO toDTO(com.example.foodflow.model.entity.Organization org) {
         if (org == null) return null;
         OrganizationDTO dto = new OrganizationDTO();
@@ -49,7 +46,6 @@ public class OrganizationDTO {
         dto.setCreatedAt(org.getCreatedAt());
         return dto;
     }
-
     public static OrganizationDTO toDTOWithoutUser(com.example.foodflow.model.entity.Organization org) {
         if (org == null) return null;
         OrganizationDTO dto = new OrganizationDTO();

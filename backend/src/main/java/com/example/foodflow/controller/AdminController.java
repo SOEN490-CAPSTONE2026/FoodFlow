@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.AdminDonationResponse;
 import com.example.foodflow.model.dto.AdminUserResponse;
 import com.example.foodflow.model.dto.DeactivateUserRequest;
@@ -28,18 +27,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasAuthority('ADMIN')")
 public class AdminController {
-
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);
-
     private final AdminUserService adminUserService;
     private final AdminDonationService adminDonationService;
     private final DisputeService disputeService;
@@ -47,7 +42,6 @@ public class AdminController {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
     private final AuditLogRepository auditLogRepository;
-
     public AdminController(AdminUserService adminUserService, AdminDonationService adminDonationService,
                           DisputeService disputeService, JwtTokenProvider jwtTokenProvider, 
                           UserRepository userRepository, FileStorageService fileStorageService,
@@ -60,7 +54,6 @@ public class AdminController {
         this.fileStorageService = fileStorageService;
         this.auditLogRepository = auditLogRepository;
     }
-
     /**
      * Get all users with optional filters and pagination
      * GET /api/admin/users?role=DONOR&accountStatus=ACTIVE&search=email&page=0&size=20
@@ -72,10 +65,8 @@ public class AdminController {
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
         log.info("Admin fetching users - role: {}, status: {}, search: {}, page: {}", 
                  role, accountStatus, search, page);
-        
         try {
             Page<AdminUserResponse> users = adminUserService.getAllUsers(role, accountStatus, search, page, size);
             return ResponseEntity.ok(users);
@@ -84,7 +75,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Get a specific user by ID
      * GET /api/admin/users/{userId}
@@ -92,7 +82,6 @@ public class AdminController {
     @GetMapping("/users/{userId}")
     public ResponseEntity<AdminUserResponse> getUserById(@PathVariable Long userId) {
         log.info("Admin fetching user details for userId: {}", userId);
-        
         try {
             AdminUserResponse user = adminUserService.getUserById(userId);
             return ResponseEntity.ok(user);
@@ -104,7 +93,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Deactivate a user account
      * PUT /api/admin/users/{userId}/deactivate
@@ -114,9 +102,7 @@ public class AdminController {
             @PathVariable Long userId,
             @RequestBody DeactivateUserRequest request,
             @RequestHeader("Authorization") String authHeader) {
-        
         log.info("Admin deactivating user: {}", userId);
-        
         try {
             // Extract admin user ID from JWT token
             String token = authHeader.substring(7); // Remove "Bearer " prefix
@@ -124,14 +110,12 @@ public class AdminController {
             User adminUser = userRepository.findByEmail(adminEmail)
                     .orElseThrow(() -> new RuntimeException("Admin user not found"));
             Long adminId = adminUser.getId();
-            
             AdminUserResponse deactivatedUser = adminUserService.deactivateUser(
                 userId, 
                 request.getAdminNotes(), 
                 adminId,
                 request.isDeleteRequested()
             );
-            
             return ResponseEntity.ok(deactivatedUser);
         } catch (RuntimeException e) {
             log.error("Error deactivating user {}: {}", userId, e.getMessage());
@@ -141,7 +125,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().body("Failed to deactivate user");
         }
     }
-
     /**
      * Reactivate a user account
      * PUT /api/admin/users/{userId}/reactivate
@@ -149,7 +132,6 @@ public class AdminController {
     @PutMapping("/users/{userId}/reactivate")
     public ResponseEntity<?> reactivateUser(@PathVariable Long userId) {
         log.info("Admin reactivating user: {}", userId);
-        
         try {
             AdminUserResponse reactivatedUser = adminUserService.reactivateUser(userId);
             return ResponseEntity.ok(reactivatedUser);
@@ -161,7 +143,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().body("Failed to reactivate user");
         }
     }
-
     /**
      * Send alert to a user
      * POST /api/admin/users/{userId}/send-alert
@@ -171,9 +152,7 @@ public class AdminController {
             @PathVariable Long userId,
             @RequestBody SendAlertRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        
         log.info("Admin sending alert to user: {}", userId);
-        
         try {
             Long adminId = null;
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -183,7 +162,6 @@ public class AdminController {
                         .map(User::getId)
                         .orElse(null);
             }
-
             if (request.getAlertType() != null && !request.getAlertType().isBlank()) {
                 adminUserService.sendAlertToUser(userId, request.getMessage(), request.getAlertType(), adminId);
             } else {
@@ -198,7 +176,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().body("Failed to send alert");
         }
     }
-
     /**
      * Get user activity summary
      * GET /api/admin/users/{userId}/activity
@@ -206,7 +183,6 @@ public class AdminController {
     @GetMapping("/users/{userId}/activity")
     public ResponseEntity<AdminUserResponse> getUserActivity(@PathVariable Long userId) {
         log.info("Admin fetching activity for user: {}", userId);
-        
         try {
             AdminUserResponse activity = adminUserService.getUserActivity(userId);
             return ResponseEntity.ok(activity);
@@ -218,7 +194,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Get recent activity history for a user
      * GET /api/admin/users/{userId}/recent-activity?limit=3
@@ -228,7 +203,6 @@ public class AdminController {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "3") int limit) {
         log.info("Admin fetching recent activity for user: {}, limit: {}", userId, limit);
-        
         try {
             List<UserActivityDTO> activities = adminUserService.getRecentActivity(userId, limit);
             return ResponseEntity.ok(activities);
@@ -240,7 +214,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Upload/replace supporting document for a user
      * POST /api/admin/users/{userId}/supporting-document
@@ -250,14 +223,11 @@ public class AdminController {
             @PathVariable Long userId,
             @RequestParam("file") MultipartFile file) {
         log.info("Admin uploading supporting document for user: {}", userId);
-        
         try {
             // Validate and store file
             String documentUrl = fileStorageService.storeFile(file, "licenses");
-            
             // Update user's supporting document URL
             AdminUserResponse updatedUser = adminUserService.updateSupportingDocument(userId, documentUrl);
-            
             log.info("Supporting document uploaded successfully for user: {}", userId);
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
@@ -274,9 +244,7 @@ public class AdminController {
             return ResponseEntity.internalServerError().body("Failed to upload document");
         }
     }
-
     // ========== AUDIT LOG ENDPOINTS ==========
-
     /**
      * Get the 20 most recent audit log entries
      * GET /api/admin/audit-logs/recent
@@ -291,9 +259,7 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     // ========== DONATION MANAGEMENT ENDPOINTS ==========
-
     /**
      * Get all donations with filtering and pagination
      * GET /api/admin/donations?status=CLAIMED&donorId=1&receiverId=2&flagged=true&fromDate=2024-01-01&toDate=2024-12-31&search=food&page=0&size=20
@@ -309,10 +275,8 @@ public class AdminController {
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
         log.info("Admin fetching donations - status: {}, donor: {}, receiver: {}, flagged: {}, fromDate: {}, toDate: {}, search: {}", 
                  status, donorId, receiverId, flagged, fromDate, toDate, search);
-        
         try {
             Page<AdminDonationResponse> donations = adminDonationService.getAllDonations(
                 status, donorId, receiverId, flagged, fromDate, toDate, search, page, size
@@ -323,7 +287,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Get a specific donation by ID with full details and timeline
      * GET /api/admin/donations/{donationId}
@@ -331,7 +294,6 @@ public class AdminController {
     @GetMapping("/donations/{donationId}")
     public ResponseEntity<AdminDonationResponse> getDonationById(@PathVariable Long donationId) {
         log.info("Admin fetching donation details for donationId: {}", donationId);
-        
         try {
             AdminDonationResponse donation = adminDonationService.getDonationById(donationId);
             return ResponseEntity.ok(donation);
@@ -343,7 +305,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Override donation status manually (force-complete, force-cancel, force-expire, etc.)
      * POST /api/admin/donations/{donationId}/override-status
@@ -353,9 +314,7 @@ public class AdminController {
             @PathVariable Long donationId,
             @RequestBody OverrideStatusRequest request,
             @RequestHeader("Authorization") String authHeader) {
-        
         log.info("Admin overriding status for donation: {} to {}", donationId, request.getNewStatus());
-        
         try {
             // Extract admin user ID from JWT token
             String token = authHeader.substring(7); // Remove "Bearer " prefix
@@ -363,14 +322,12 @@ public class AdminController {
             User adminUser = userRepository.findByEmail(adminEmail)
                     .orElseThrow(() -> new RuntimeException("Admin user not found"));
             Long adminId = adminUser.getId();
-            
             AdminDonationResponse updatedDonation = adminDonationService.overrideStatus(
                 donationId, 
                 request.getNewStatus(), 
                 request.getReason(), 
                 adminId
             );
-            
             return ResponseEntity.ok(updatedDonation);
         } catch (RuntimeException e) {
             log.error("Error overriding status for donation {}: {}", donationId, e.getMessage());
@@ -380,9 +337,7 @@ public class AdminController {
             return ResponseEntity.internalServerError().body("Failed to override donation status");
         }
     }
-
     // ========== DISPUTE/REPORT MANAGEMENT ENDPOINTS ==========
-
     /**
      * Get all disputes/reports for admin with optional filtering
      * GET /api/admin/disputes?status=OPEN&page=0&size=20
@@ -392,9 +347,7 @@ public class AdminController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
         log.info("Admin fetching disputes - status: {}, page: {}, size: {}", status, page, size);
-        
         try {
             Page<AdminDisputeResponse> disputes = disputeService.getAllDisputes(status, page, size);
             return ResponseEntity.ok(disputes);
@@ -403,7 +356,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Get dispute details by ID
      * GET /api/admin/disputes/{disputeId}
@@ -411,7 +363,6 @@ public class AdminController {
     @GetMapping("/disputes/{disputeId}")
     public ResponseEntity<AdminDisputeResponse> getDisputeById(@PathVariable Long disputeId) {
         log.info("Admin fetching dispute details for disputeId: {}", disputeId);
-        
         try {
             AdminDisputeResponse dispute = disputeService.getDisputeById(disputeId);
             return ResponseEntity.ok(dispute);
@@ -423,7 +374,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
     /**
      * Update dispute status (resolve, close, etc.)
      * PUT /api/admin/disputes/{disputeId}/status
@@ -432,16 +382,13 @@ public class AdminController {
     public ResponseEntity<?> updateDisputeStatus(
             @PathVariable Long disputeId,
             @Valid @RequestBody UpdateDisputeStatusRequest request) {
-        
         log.info("Admin updating dispute {} status to {}", disputeId, request.getStatus());
-        
         try {
             AdminDisputeResponse updatedDispute = disputeService.updateDisputeStatus(
                 disputeId,
                 request.getStatus(),
                 request.getAdminNotes()
             );
-            
             return ResponseEntity.ok(updatedDispute);
         } catch (RuntimeException e) {
             log.error("Error updating dispute {} status: {}", disputeId, e.getMessage());

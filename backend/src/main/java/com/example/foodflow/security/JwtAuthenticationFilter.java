@@ -1,5 +1,4 @@
 package com.example.foodflow.security;
-
 import com.example.foodflow.filter.RequestCorrelationFilter;
 import com.example.foodflow.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -14,34 +13,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 import java.util.Collections;
-
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,
                                    UserRepository userRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-
         String authHeader = request.getHeader("Authorization");
         String email = null;
         String token = null;
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
@@ -51,10 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.warn("Failed to extract email from JWT token: {}", e.getMessage());
             }
         }
-
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             var user = userRepository.findByEmail(email).orElse(null);
-
             if (user != null && jwtTokenProvider.validateToken(token)) {
                 // Set user ID in MDC for logging
                 RequestCorrelationFilter.setUserId(email);
@@ -73,7 +62,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.warn("Invalid JWT token for user: {}", email);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }

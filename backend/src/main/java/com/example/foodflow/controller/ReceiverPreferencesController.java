@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.ReceiverPreferencesRequest;
 import com.example.foodflow.model.dto.ReceiverPreferencesResponse;
 import com.example.foodflow.model.entity.User;
@@ -13,19 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/receiver/preferences")
 public class ReceiverPreferencesController {
-    
     private static final Logger logger = LoggerFactory.getLogger(ReceiverPreferencesController.class);
-    
     private final ReceiverPreferencesService preferencesService;
-
     public ReceiverPreferencesController(ReceiverPreferencesService preferencesService) {
         this.preferencesService = preferencesService;
     }
-    
     /**
      * GET /api/receiver/preferences
      * Get current user's preferences
@@ -33,12 +27,9 @@ public class ReceiverPreferencesController {
     @GetMapping
     public ResponseEntity<ReceiverPreferencesResponse> getPreferences(
             @AuthenticationPrincipal User currentUser) {
-        
         logger.info("Getting preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
-        
         try {
             Optional<ReceiverPreferencesResponse> preferences = preferencesService.getPreferences(currentUser);
-            
             if (preferences.isPresent()) {
                 return ResponseEntity.ok(preferences.get());
             } else {
@@ -51,7 +42,6 @@ public class ReceiverPreferencesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
     /**
      * POST /api/receiver/preferences
      * Create new preferences
@@ -60,19 +50,15 @@ public class ReceiverPreferencesController {
     public ResponseEntity<ReceiverPreferencesResponse> createPreferences(
             @Valid @RequestBody ReceiverPreferencesRequest request,
             @AuthenticationPrincipal User currentUser) {
-        
         logger.info("Creating preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
-        
         try {
             // Check if preferences already exist
             if (preferencesService.hasPreferences(currentUser)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(null); // Preferences already exist, use PUT to update
             }
-            
             ReceiverPreferencesResponse response = preferencesService.savePreferences(currentUser, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-            
         } catch (IllegalArgumentException e) {
             logger.error("Validation error creating preferences: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -81,7 +67,6 @@ public class ReceiverPreferencesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
     /**
      * PUT /api/receiver/preferences
      * Update existing preferences
@@ -90,13 +75,10 @@ public class ReceiverPreferencesController {
     public ResponseEntity<ReceiverPreferencesResponse> updatePreferences(
             @Valid @RequestBody ReceiverPreferencesRequest request,
             @AuthenticationPrincipal User currentUser) {
-        
         logger.info("Updating preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
-        
         try {
             ReceiverPreferencesResponse response = preferencesService.savePreferences(currentUser, request);
             return ResponseEntity.ok(response);
-            
         } catch (IllegalArgumentException e) {
             logger.error("Validation error updating preferences: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -105,7 +87,6 @@ public class ReceiverPreferencesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
     /**
      * DELETE /api/receiver/preferences
      * Delete user's preferences (reset to default)
@@ -113,19 +94,15 @@ public class ReceiverPreferencesController {
     @DeleteMapping
     public ResponseEntity<Void> deletePreferences(
             @AuthenticationPrincipal User currentUser) {
-        
         logger.info("Deleting preferences for user: {}", currentUser != null ? currentUser.getId() : "null");
-        
         try {
             preferencesService.deletePreferences(currentUser);
             return ResponseEntity.noContent().build();
-            
         } catch (Exception e) {
             logger.error("Error deleting preferences for user {}: {}", currentUser.getId(), e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
     /**
      * GET /api/receiver/preferences/exists
      * Check if user has preferences set
@@ -133,7 +110,6 @@ public class ReceiverPreferencesController {
     @GetMapping("/exists")
     public ResponseEntity<Boolean> hasPreferences(
             @AuthenticationPrincipal User currentUser) {
-        
         try {
             boolean exists = preferencesService.hasPreferences(currentUser);
             return ResponseEntity.ok(exists);

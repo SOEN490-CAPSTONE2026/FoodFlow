@@ -1,5 +1,4 @@
 package com.example.foodflow.service.calendar;
-
 import com.example.foodflow.model.entity.CalendarIntegration;
 import com.example.foodflow.model.entity.CalendarSyncPreference;
 import com.example.foodflow.model.entity.User;
@@ -15,25 +14,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 /**
  * Service for managing calendar integrations (OAuth connections, disconnections)
  */
 @Service
 @Transactional
 public class CalendarIntegrationService {
-
     private static final Logger logger = LoggerFactory.getLogger(CalendarIntegrationService.class);
-
     private final CalendarIntegrationRepository calendarIntegrationRepository;
     private final CalendarConsentHistoryRepository calendarConsentHistoryRepository;
     private final CalendarSyncPreferenceRepository calendarSyncPreferenceRepository;
     private final GoogleOAuthService googleOAuthService;
     private final GoogleCalendarProvider googleCalendarProvider;
-
     public CalendarIntegrationService(CalendarIntegrationRepository calendarIntegrationRepository,
                                       CalendarConsentHistoryRepository calendarConsentHistoryRepository,
                                       CalendarSyncPreferenceRepository calendarSyncPreferenceRepository,
@@ -45,7 +39,6 @@ public class CalendarIntegrationService {
         this.googleOAuthService = googleOAuthService;
         this.googleCalendarProvider = googleCalendarProvider;
     }
-
     /**
      * Get or create a calendar integration for a user
      */
@@ -56,7 +49,6 @@ public class CalendarIntegrationService {
                 return calendarIntegrationRepository.save(integration);
             });
     }
-
     /**
      * Store OAuth tokens after successful authentication (overload for GoogleTokenResponse)
      */
@@ -64,22 +56,18 @@ public class CalendarIntegrationService {
                                                 GoogleOAuthService.GoogleTokenResponse tokenResponse) {
         CalendarIntegration integration = storeOAuthTokens(user, calendarProvider, 
             tokenResponse.getRefreshToken(), tokenResponse.getAccessTokenExpiry());
-        
         // Store granted scopes
         if (tokenResponse.getScope() != null) {
             integration.setGrantedScopes(tokenResponse.getScope());
         }
-        
         // Fetch and store calendar metadata for Google Calendar
         if ("GOOGLE".equalsIgnoreCase(calendarProvider)) {
             try {
                 logger.info("Fetching calendar metadata for user {}", user.getId());
                 var settings = googleCalendarProvider.fetchCalendarSettings(tokenResponse.getRefreshToken());
-                
                 integration.setGoogleAccountEmail(settings.getId());
                 integration.setPrimaryCalendarName(settings.getCalendarName()); // Use helper method
                 integration.setCalendarTimeZone(settings.getTimeZone());
-                
                 logger.info("Calendar metadata stored: email={}, name={}, timezone={}", 
                            settings.getId(), settings.getSummary(), settings.getTimeZone());
             } catch (Exception e) {
@@ -88,35 +76,27 @@ public class CalendarIntegrationService {
                 // Don't fail the entire connection if metadata fetch fails
             }
         }
-        
         return calendarIntegrationRepository.save(integration);
     }
-
     /**
      * Store OAuth tokens after successful authentication
      */
     public CalendarIntegration storeOAuthTokens(User user, String calendarProvider, 
                                                  String refreshToken, LocalDateTime accessTokenExpiry) {
         CalendarIntegration integration = getOrCreateIntegration(user, calendarProvider);
-        
         // Store the refresh token in plain text (for local development)
         // In production, consider database-level encryption or column encryption
         integration.setRefreshToken(refreshToken);
         integration.setAccessTokenExpiry(accessTokenExpiry);
         integration.setIsConnected(true);
-        
         CalendarIntegration saved = calendarIntegrationRepository.save(integration);
-        
         // Log consent action for audit trail
         logConsentAction(user, calendarProvider, "GRANTED");
-        
         // Create default sync preferences if they don't exist
         createDefaultSyncPreferencesIfNeeded(user);
-        
         logger.info("OAuth tokens stored for user {} with provider {}", user.getId(), calendarProvider);
         return saved;
     }
-
     /**
      * Disconnect a calendar provider
      * This method ensures proper revocation with Google before clearing local tokens
@@ -124,14 +104,11 @@ public class CalendarIntegrationService {
     public void disconnectCalendar(User user, String calendarProvider) {
         try {
             logger.info("Disconnecting calendar for user {} from provider {}", user.getId(), calendarProvider);
-            
             Optional<CalendarIntegration> integration = calendarIntegrationRepository
                 .findByUserIdAndCalendarProvider(user.getId(), calendarProvider);
-            
             if (integration.isPresent()) {
                 logger.info("Found calendar integration to disconnect: {}", integration.get().getId());
                 CalendarIntegration cal = integration.get();
-                
                 // Step 1: Revoke the token with Google first
                 String refreshToken = cal.getRefreshToken();
                 if (refreshToken != null && !refreshToken.isBlank()) {
@@ -148,18 +125,15 @@ public class CalendarIntegrationService {
                 } else {
                     logger.warn("No refresh token found for user {}, skipping Google revocation", user.getId());
                 }
-                
                 // Step 2: Clear tokens and mark as disconnected in our database
                 cal.setIsConnected(false);
                 cal.setRefreshToken(null);
                 cal.setAccessTokenExpiry(null);
                 calendarIntegrationRepository.save(cal);
                 logger.info("Calendar integration updated in database - tokens cleared");
-                
                 // Step 3: Log revocation for audit trail
                 logger.info("Logging consent action REVOKED for user {}", user.getId());
                 logConsentAction(user, calendarProvider, "REVOKED");
-                
                 logger.info("Calendar disconnected successfully for user {} with provider {}", 
                            user.getId(), calendarProvider);
             } else {
@@ -171,7 +145,6 @@ public class CalendarIntegrationService {
             throw e;
         }
     }
-
     /**
      * Check if a user has an active calendar connection
      */
@@ -180,7 +153,6 @@ public class CalendarIntegrationService {
             .map(CalendarIntegration::getIsConnected)
             .orElse(false);
     }
-
     /**
      * Verify and update calendar connection status
      * This checks if the user still has valid permissions with Google
@@ -189,28 +161,21 @@ public class CalendarIntegrationService {
     public void verifyAndUpdateConnectionStatus(User user) {
         try {
             logger.info("Verifying calendar connection status for user {}", user.getId());
-            
             Optional<CalendarIntegration> integrationOpt = getUserIntegration(user);
-            
             if (!integrationOpt.isPresent()) {
                 logger.info("No calendar integration found for user {}", user.getId());
                 return;
             }
-            
             CalendarIntegration integration = integrationOpt.get();
-            
             // Only verify if marked as connected and has a refresh token
             if (!integration.getIsConnected() || integration.getRefreshToken() == null) {
                 logger.info("Calendar not connected or no refresh token for user {}", user.getId());
                 return;
             }
-            
             String refreshToken = integration.getRefreshToken();
-            
             try {
                 // Verify access by calling Google's calendar API
                 boolean isValid = googleCalendarProvider.verifyCalendarAccess(refreshToken);
-                
                 if (!isValid) {
                     logger.warn("Calendar access verification returned false for user {}", user.getId());
                     updateLastFailedRefresh(user);
@@ -237,33 +202,27 @@ public class CalendarIntegrationService {
                        user.getId(), e.getMessage(), e);
         }
     }
-
     /**
      * Clean up integration when permissions are invalid/revoked
      * Does NOT call Google revoke endpoint (already revoked by user)
      */
     private void cleanupInvalidIntegration(CalendarIntegration integration, User user) {
         logger.info("Cleaning up invalid calendar integration for user {}", user.getId());
-        
         // Mark as disconnected and clear tokens
         integration.setIsConnected(false);
         integration.setRefreshToken(null);
         integration.setAccessTokenExpiry(null);
         calendarIntegrationRepository.save(integration);
-        
         // Log the automatic revocation
         logConsentAction(user, integration.getCalendarProvider(), "AUTO_REVOKED");
-        
         logger.info("Invalid calendar integration cleaned up for user {}", user.getId());
     }
-
     /**
      * Get user's calendar integration
      */
     public Optional<CalendarIntegration> getUserIntegration(User user) {
         return calendarIntegrationRepository.findByUser(user);
     }
-
     /**
      * Get refresh token (plain text for local development)
      */
@@ -274,7 +233,6 @@ public class CalendarIntegrationService {
         // Return the token as-is (no decryption needed)
         return integration.getRefreshToken();
     }
-
     /**
      * Update access token expiry time (called when refreshing tokens)
      */
@@ -282,7 +240,6 @@ public class CalendarIntegrationService {
         integration.setAccessTokenExpiry(newExpiry);
         calendarIntegrationRepository.save(integration);
     }
-
     /**
      * Update last successful sync timestamp
      * Called after successfully syncing an event to external calendar
@@ -296,7 +253,6 @@ public class CalendarIntegrationService {
             logger.debug("Updated lastSuccessfulSync for user {}", user.getId());
         }
     }
-
     /**
      * Update last failed refresh timestamp
      * Called when token refresh fails (e.g., invalid_grant error)
@@ -310,7 +266,6 @@ public class CalendarIntegrationService {
             logger.debug("Updated lastFailedRefresh for user {}", user.getId());
         }
     }
-
     /**
      * Log consent action for GDPR compliance
      */
@@ -328,31 +283,26 @@ public class CalendarIntegrationService {
             throw e;
         }
     }
-
     /**
      * Get user's consent history
      */
     public java.util.List<CalendarConsentHistory> getConsentHistory(User user) {
         return calendarConsentHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
     }
-
     /**
      * Create default sync preferences for a user if they don't exist
      * This ensures users have sensible defaults when first connecting their calendar
      */
     public CalendarSyncPreference createDefaultSyncPreferencesIfNeeded(User user) {
         Optional<CalendarSyncPreference> existing = calendarSyncPreferenceRepository.findByUserId(user.getId());
-        
         if (existing.isPresent()) {
             logger.debug("Sync preferences already exist for user {}", user.getId());
             return existing.get();
         }
-        
         // Create new preferences with default values
         // Defaults are set in the entity: all sync options enabled, 30-minute reminders
         CalendarSyncPreference preferences = new CalendarSyncPreference(user);
         CalendarSyncPreference saved = calendarSyncPreferenceRepository.save(preferences);
-        
         logger.info("Default sync preferences created for user {}", user.getId());
         return saved;
     }
