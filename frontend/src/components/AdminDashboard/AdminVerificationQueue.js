@@ -341,7 +341,12 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
   );
 };
 
-  const ProfileChangeRejectionModal = ({ change, onClose, onConfirm, loading }) => {
+const ProfileChangeRejectionModal = ({
+  change,
+  onClose,
+  onConfirm,
+  loading,
+}) => {
   const [reason, setReason] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [mouseDownInsideModal, setMouseDownInsideModal] = useState(false);
@@ -355,7 +360,10 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
   ];
 
   const handleBackdropClick = e => {
-    if (!mouseDownInsideModal && e.target.classList.contains('modal-backdrop')) {
+    if (
+      !mouseDownInsideModal &&
+      e.target.classList.contains('modal-backdrop')
+    ) {
       onClose();
     }
     setMouseDownInsideModal(false);
@@ -390,10 +398,18 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
         <div className="modal-body">
           <p>Please provide a reason for rejecting this profile change.</p>
           <div className="user-info-summary">
-            <p><strong>User:</strong> {change.userName}</p>
-            <p><strong>Field:</strong> {change.fieldName}</p>
-            <p><strong>Current Value:</strong> {change.oldValue || 'N/A'}</p>
-            <p><strong>Requested Value:</strong> {change.newValue}</p>
+            <p>
+              <strong>User:</strong> {change.userName}
+            </p>
+            <p>
+              <strong>Field:</strong> {change.fieldName}
+            </p>
+            <p>
+              <strong>Current Value:</strong> {change.oldValue || 'N/A'}
+            </p>
+            <p>
+              <strong>Requested Value:</strong> {change.newValue}
+            </p>
           </div>
 
           <div className="form-group">
@@ -420,7 +436,11 @@ const ManualVerifyModal = ({ user, onClose, onConfirm, loading }) => {
           </div>
         </div>
         <div className="modal-actions">
-          <button className="btn-secondary" onClick={onClose} disabled={loading}>
+          <button
+            className="btn-secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
             Cancel
           </button>
           <button
@@ -577,7 +597,9 @@ const AdminVerificationQueue = () => {
   };
 
   const handleRejectChange = async (reason, customMessage) => {
-    if (!selectedChange) return;
+    if (!selectedChange) {
+      return;
+    }
     try {
       setRejectingChange(true);
       await adminVerificationAPI.rejectProfileChange(
