@@ -96,7 +96,9 @@ describe('AdminDisputeDetail', () => {
 
     expect(await screen.findByText('Custom load failure')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'adminDisputeDetail.backToDisputes' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'adminDisputeDetail.backToDisputes' })
+    );
     expect(mockedNavigate).toHaveBeenCalledWith('/admin/disputes');
   });
 
@@ -209,9 +211,7 @@ describe('AdminDisputeDetail', () => {
     fireEvent.click(
       screen.getByText('adminDisputeDetail.actions.overrideDonation')
     );
-    fireEvent.click(
-      screen.getByText('adminDisputeDetail.actions.flagUser')
-    );
+    fireEvent.click(screen.getByText('adminDisputeDetail.actions.flagUser'));
 
     expect(window.confirm).toHaveBeenCalledWith(
       'adminDisputeDetail.confirm.deactivateUser'

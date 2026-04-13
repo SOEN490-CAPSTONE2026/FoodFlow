@@ -192,7 +192,10 @@ describe('FiltersPanel', () => {
     const distanceInputs = screen.getAllByRole('slider');
     if (distanceInputs.length > 0) {
       fireEvent.change(distanceInputs[0], { target: { value: '25' } });
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('distance', expect.any(Number));
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+        'distance',
+        expect.any(Number)
+      );
     }
   });
 
@@ -200,7 +203,7 @@ describe('FiltersPanel', () => {
     render(<FiltersPanel {...defaultProps} />);
     const foodTypeButton = screen.getByText('Food Type');
     fireEvent.click(foodTypeButton);
-    
+
     // Try to click on a food category option if available
     const options = screen.queryAllByRole('checkbox');
     if (options.length > 0) {
@@ -215,8 +218,13 @@ describe('FiltersPanel', () => {
     if (datePicker) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 5);
-      fireEvent.change(datePicker, { target: { value: futureDate.toISOString().split('T')[0] } });
-      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith('expiryBefore', expect.any(String));
+      fireEvent.change(datePicker, {
+        target: { value: futureDate.toISOString().split('T')[0] },
+      });
+      expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+        'expiryBefore',
+        expect.any(String)
+      );
     }
   });
 
@@ -240,15 +248,15 @@ describe('FiltersPanel', () => {
 
   test('handles clear filters action', () => {
     render(<FiltersPanel {...defaultProps} />);
-    
+
     // Apply some filters first
     const foodTypeButton = screen.getByText('Food Type');
     fireEvent.click(foodTypeButton);
-    
+
     // Then clear them
     const clearButton = screen.getByText('Clear All');
     fireEvent.click(clearButton);
-    
+
     expect(defaultProps.onClearFilters).toHaveBeenCalled();
   });
 
@@ -260,7 +268,7 @@ describe('FiltersPanel', () => {
       },
     };
     render(<FiltersPanel {...appliedProps} />);
-    
+
     // Check if applied filters are displayed
     const filterTags = screen.queryAllByRole('button');
     expect(filterTags.length).toBeGreaterThan(0);
@@ -275,10 +283,10 @@ describe('FiltersPanel', () => {
         locationSource: 'manual',
       },
     };
-    
+
     render(<FiltersPanel {...props} />);
     const resetBtn = screen.queryByText('Use account address');
-    
+
     if (resetBtn) {
       fireEvent.click(resetBtn);
       expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
@@ -291,11 +299,11 @@ describe('FiltersPanel', () => {
   test('adjusts distance on input change', () => {
     const props = {
       ...defaultProps,
-      filters: { ...defaultProps.filters }
+      filters: { ...defaultProps.filters },
     };
-    
+
     render(<FiltersPanel {...props} />);
-    
+
     // Find any input that might control distance
     const inputs = screen.getAllByRole('slider');
     if (inputs.length > 0) {
@@ -347,7 +355,9 @@ describe('FiltersPanel', () => {
   });
 
   test('handles visibility toggle', () => {
-    const { rerender } = render(<FiltersPanel {...defaultProps} isVisible={true} />);
+    const { rerender } = render(
+      <FiltersPanel {...defaultProps} isVisible={true} />
+    );
     expect(screen.getByText('Food Type')).toBeInTheDocument();
 
     rerender(<FiltersPanel {...defaultProps} isVisible={false} />);
@@ -389,7 +399,7 @@ describe('FiltersPanel', () => {
     render(<FiltersPanel {...defaultProps} />);
     const useAnotherBtn = screen.getByText('Use another address');
     fireEvent.click(useAnotherBtn);
-    
+
     // Location editor should be visible
     const closeButtons = screen.getAllByRole('button');
     expect(closeButtons.length).toBeGreaterThan(0);
@@ -482,12 +492,12 @@ describe('FiltersPanel', () => {
 
   test('handles rapid filter changes', () => {
     render(<FiltersPanel {...defaultProps} />);
-    
+
     // Simulate rapid changes
     fireEvent.click(screen.getByText('Apply Filters'));
     fireEvent.click(screen.getByText('Clear All'));
     fireEvent.click(screen.getByText('Apply Filters'));
-    
+
     expect(defaultProps.onApplyFilters).toHaveBeenCalledTimes(2);
     expect(defaultProps.onClearFilters).toHaveBeenCalledTimes(1);
   });

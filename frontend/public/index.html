@@ -21,12 +21,18 @@
     <!-- Default Open Graph tags — overridden per-page by SEOHead -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="FoodFlow" />
-    <meta property="og:title" content="FoodFlow | Surplus Food Redistribution Platform" />
+    <meta
+      property="og:title"
+      content="FoodFlow | Surplus Food Redistribution Platform"
+    />
     <meta
       property="og:description"
       content="FoodFlow connects restaurants, grocery stores, and businesses with verified charities and shelters to redistribute surplus food in real time."
     />
-    <meta property="og:image" content="https://foodflow-org.up.railway.app/Logo.png" />
+    <meta
+      property="og:image"
+      content="https://foodflow-org.up.railway.app/Logo.png"
+    />
     <meta property="og:url" content="https://foodflow-org.up.railway.app/" />
 
     <!-- Google Search Console site verification                                      -->
@@ -42,35 +48,35 @@
       (function (m, a, z, e) {
         var s, t, u, v;
         try {
-          t = m.sessionStorage.getItem("maze-us");
+          t = m.sessionStorage.getItem('maze-us');
         } catch (err) {}
 
         if (!t) {
           t = new Date().getTime();
           try {
-            m.sessionStorage.setItem("maze-us", t);
+            m.sessionStorage.setItem('maze-us', t);
           } catch (err) {}
         }
 
         u =
           document.currentScript ||
           (function () {
-            var w = document.getElementsByTagName("script");
+            var w = document.getElementsByTagName('script');
             return w[w.length - 1];
           })();
         v = u && u.nonce;
 
-        s = a.createElement("script");
-        s.src = z + "?apiKey=" + e;
+        s = a.createElement('script');
+        s.src = z + '?apiKey=' + e;
         s.async = true;
-        if (v) s.setAttribute("nonce", v);
-        a.getElementsByTagName("head")[0].appendChild(s);
+        if (v) s.setAttribute('nonce', v);
+        a.getElementsByTagName('head')[0].appendChild(s);
         m.mazeUniversalSnippetApiKey = e;
       })(
         window,
         document,
-        "https://snippet.maze.co/maze-universal-loader.js",
-        "1d39738a-2035-476b-a471-68babc101962"
+        'https://snippet.maze.co/maze-universal-loader.js',
+        '1d39738a-2035-476b-a471-68babc101962'
       );
     </script>
   </head>

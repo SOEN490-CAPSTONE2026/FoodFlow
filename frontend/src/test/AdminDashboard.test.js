@@ -273,8 +273,6 @@ describe('AdminDashboard', () => {
     });
   });
 
-
-
   describe('All Admin Components', () => {
     test('renders users route', () => {
       renderWithRouter('/admin/users');

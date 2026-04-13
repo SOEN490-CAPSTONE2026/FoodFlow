@@ -947,9 +947,7 @@ describe('AdminVerificationQueue', () => {
       );
     });
 
-    fireEvent.click(
-      screen.getByTitle(/adminVerificationQueue.sort.toggle/i)
-    );
+    fireEvent.click(screen.getByTitle(/adminVerificationQueue.sort.toggle/i));
     await waitFor(() => {
       expect(adminVerificationAPI.getPendingUsers).toHaveBeenLastCalledWith(
         expect.objectContaining({ sortOrder: 'asc' })
@@ -984,7 +982,12 @@ describe('AdminVerificationQueue', () => {
             accountStatus: 'PENDING_ADMIN_APPROVAL',
             createdAt: new Date().toISOString(),
             supportingDocument: null,
-            address: { street: '1', city: 'Ottawa', state: 'ON', zipCode: 'K1A' },
+            address: {
+              street: '1',
+              city: 'Ottawa',
+              state: 'ON',
+              zipCode: 'K1A',
+            },
           },
         ],
         totalElements: 1,
@@ -1024,7 +1027,12 @@ describe('AdminVerificationQueue', () => {
             createdAt: oneHourAgo,
             supportingDocument: 'https://files.example.com/license.pdf',
             businessLicense: 'AB-1',
-            address: { street: '3', city: 'Toronto', state: 'ON', zipCode: 'M5H' },
+            address: {
+              street: '3',
+              city: 'Toronto',
+              state: 'ON',
+              zipCode: 'M5H',
+            },
           },
           {
             id: 8,
@@ -1038,7 +1046,12 @@ describe('AdminVerificationQueue', () => {
             createdAt: oneDayAgo,
             supportingDocument: 'daily.pdf',
             businessLicense: 'AB-2',
-            address: { street: '4', city: 'Toronto', state: 'ON', zipCode: 'M5H' },
+            address: {
+              street: '4',
+              city: 'Toronto',
+              state: 'ON',
+              zipCode: 'M5H',
+            },
           },
         ],
         totalElements: 2,
@@ -1056,7 +1069,11 @@ describe('AdminVerificationQueue', () => {
         /adminVerificationQueue\.time\.hours/
       );
     });
-    fireEvent.click(screen.getByText('https://files.example.com/license.pdf').closest('button'));
+    fireEvent.click(
+      screen
+        .getByText('https://files.example.com/license.pdf')
+        .closest('button')
+    );
     expect(openSpy).toHaveBeenCalledWith(
       'https://files.example.com/license.pdf',
       '_blank'

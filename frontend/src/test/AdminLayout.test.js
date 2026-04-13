@@ -145,10 +145,7 @@ describe('AdminLayout', () => {
                 path="analytics"
                 element={<Stub label="Analytics Dashboard Content" />}
               />
-              <Route
-                path="impact"
-                element={<Stub label="Impact Content" />}
-              />
+              <Route path="impact" element={<Stub label="Impact Content" />} />
               <Route
                 path="calendar"
                 element={<Stub label="Calendar Admin Content" />}
@@ -163,7 +160,10 @@ describe('AdminLayout', () => {
                 path="referrals"
                 element={<Stub label="Referrals Content" />}
               />
-              <Route path="help" element={<Stub label="Help Center Content" />} />
+              <Route
+                path="help"
+                element={<Stub label="Help Center Content" />}
+              />
               <Route path="images" element={<Stub label="Images Content" />} />
               <Route
                 path="settings"
@@ -254,11 +254,19 @@ describe('AdminLayout', () => {
   });
 
   it.each([
-    ['/admin/verification-queue', 'Verification Queue', 'Review accounts pending admin action'],
+    [
+      '/admin/verification-queue',
+      'Verification Queue',
+      'Review accounts pending admin action',
+    ],
     ['/admin/analytics', 'Analytics', 'Track compliance metrics'],
     ['/admin/impact', 'Impact Dashboard', 'Review platform impact'],
     ['/admin/calendar', 'Calendar', 'Manage platform events'],
-    ['/admin/disputes', 'Disputes & Reports', 'Resolve reports and escalations'],
+    [
+      '/admin/disputes',
+      'Disputes & Reports',
+      'Resolve reports and escalations',
+    ],
     ['/admin/referrals', 'Referrals', 'Monitor referral growth'],
     ['/admin/help', 'Help', 'Read admin guides'],
     ['/admin/images', 'Images', 'Review uploaded images'],
@@ -288,7 +296,10 @@ describe('AdminLayout', () => {
         <MemoryRouter initialEntries={['/admin/settings']}>
           <Routes>
             <Route path="/admin/*" element={<AdminLayout />}>
-              <Route path="settings" element={<Stub label="Settings Content" />} />
+              <Route
+                path="settings"
+                element={<Stub label="Settings Content" />}
+              />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -314,18 +325,22 @@ describe('AdminLayout', () => {
       });
     });
 
-    expect(
-      await screen.findByTestId('message-notification')
-    ).toHaveTextContent('sender@example.com:New inbox message');
+    expect(await screen.findByTestId('message-notification')).toHaveTextContent(
+      'sender@example.com:New inbox message'
+    );
 
-    fireEvent.click(screen.getByRole('button', { name: /dismiss notification/i }));
+    fireEvent.click(
+      screen.getByRole('button', { name: /dismiss notification/i })
+    );
 
     await waitFor(() => {
       expect(
         screen.queryByTestId('message-notification')
       ).not.toBeInTheDocument();
     });
-    expect(document.querySelector('.admin-content')).toHaveClass('messages-page');
+    expect(document.querySelector('.admin-content')).toHaveClass(
+      'messages-page'
+    );
   });
 
   it('ignores socket payloads with no message body and disconnects on unmount', () => {
@@ -337,7 +352,9 @@ describe('AdminLayout', () => {
       });
     });
 
-    expect(screen.queryByTestId('message-notification')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('message-notification')
+    ).not.toBeInTheDocument();
 
     unmount();
     expect(mockDisconnect).toHaveBeenCalled();
@@ -365,7 +382,10 @@ describe('AdminLayout', () => {
   });
 
   it.each([
-    ['https://cdn.example.com/avatar.png', 'https://cdn.example.com/avatar.png'],
+    [
+      'https://cdn.example.com/avatar.png',
+      'https://cdn.example.com/avatar.png',
+    ],
     ['data:image/png;base64,abc', 'data:image/png;base64,abc'],
     ['/uploads/user.png', 'http://localhost:8080/api/files/uploads/user.png'],
     ['/api/files/photo.png', 'http://localhost:8080/api/files/photo.png'],

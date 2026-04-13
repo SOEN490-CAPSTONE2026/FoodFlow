@@ -89,7 +89,12 @@ describe('ReceiverLayout admin approval banner', () => {
   });
 
   it('renders with different account statuses', () => {
-    const statuses = ['PENDING_ADMIN_APPROVAL', 'PENDING_VERIFICATION', 'ACTIVE', 'SUSPENDED'];
+    const statuses = [
+      'PENDING_ADMIN_APPROVAL',
+      'PENDING_VERIFICATION',
+      'ACTIVE',
+      'SUSPENDED',
+    ];
 
     statuses.forEach(status => {
       const { unmount } = render(
@@ -101,12 +106,14 @@ describe('ReceiverLayout admin approval banner', () => {
           </AuthContext.Provider>
         </MemoryRouter>
       );
-      
+
       // Component should render without crashing
       if (status === 'PENDING_ADMIN_APPROVAL') {
         expect(screen.getByTestId('admin-approval-banner')).toBeInTheDocument();
       } else {
-        expect(screen.queryByTestId('admin-approval-banner')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('admin-approval-banner')
+        ).not.toBeInTheDocument();
       }
       unmount();
     });
@@ -115,16 +122,16 @@ describe('ReceiverLayout admin approval banner', () => {
   it('handles context without accountStatus gracefully', () => {
     render(
       <MemoryRouter>
-        <AuthContext.Provider
-          value={{ role: 'RECEIVER' }}
-        >
+        <AuthContext.Provider value={{ role: 'RECEIVER' }}>
           <ReceiverLayoutContent />
         </AuthContext.Provider>
       </MemoryRouter>
     );
 
     // Should render without throwing error when banner is not shown
-    expect(screen.queryByTestId('admin-approval-banner')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('admin-approval-banner')
+    ).not.toBeInTheDocument();
   });
 
   it('maintains banner visibility for PENDING_ADMIN_APPROVAL status', () => {

@@ -294,7 +294,7 @@ describe('DonationMap', () => {
           distanceRadius={10}
         />
       );
-      
+
       let circles = screen.getAllByTestId('circle');
       expect(circles[0]).toHaveAttribute('data-radius', '10000');
 
@@ -306,7 +306,7 @@ describe('DonationMap', () => {
           distanceRadius={20}
         />
       );
-      
+
       circles = screen.getAllByTestId('circle');
       expect(circles[0]).toHaveAttribute('data-radius', '20000');
     });
@@ -374,7 +374,9 @@ describe('DonationMap', () => {
         />
       );
 
-      expect(screen.queryByText('Loading Google Maps...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading Google Maps...')
+      ).not.toBeInTheDocument();
       expect(screen.getByTestId('google-map')).toBeInTheDocument();
     });
   });
@@ -392,7 +394,7 @@ describe('DonationMap', () => {
 
       // Verify map container is rendered
       expect(screen.getByTestId('google-map')).toBeInTheDocument();
-      
+
       // Verify recenter button exists
       const recenterButton = screen.getByRole('button', { name: /recenter/i });
       expect(recenterButton).toBeInTheDocument();
