@@ -22,11 +22,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserProfileServiceTest {
     
-    @Mock
+   @Mock
     private UserRepository userRepository;
 
     @Mock
     private BusinessMetricsService businessMetricsService;
+
+    @Mock
+    private com.example.foodflow.repository.OrganizationRepository organizationRepository;
+
+    @Mock
+    private ProfileChangeService profileChangeService;
+
+    @Mock
+    private com.example.foodflow.repository.ProfileChangeRequestRepository profileChangeRequestRepository;
     
     @InjectMocks
     private UserProfileService userProfileService;
@@ -198,8 +207,6 @@ class UserProfileServiceTest {
     }
 
     // --- tests for updateProfile ---
-    @Mock
-    private com.example.foodflow.repository.OrganizationRepository organizationRepository;
 
     @Test
     void updateProfile_SuccessfulUpdate_ShouldPersistFields() {

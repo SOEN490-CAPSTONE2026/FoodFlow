@@ -740,7 +740,7 @@ export const adminVerificationAPI = {
       message,
     }),
 
-    /**
+  /**
    * Get all pending profile change requests
    * @returns {Promise} List of pending profile changes
    */
