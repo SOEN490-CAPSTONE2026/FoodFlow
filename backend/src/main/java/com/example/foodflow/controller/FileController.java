@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,25 +8,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 /**
  * Controller for serving uploaded files.
  */
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
-
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
-
     @Value("${file.upload.dir:uploads}")
     private String uploadDir;
-
     /**
      * Serves uploaded files from the evidence subfolder.
      * URL pattern: /api/files/evidence/donation-{id}/{filename}
@@ -40,7 +34,6 @@ public class FileController {
         logger.info("Serving evidence file: donationId={}, filename={}", donationId, filename);
         return serveFile("evidence/donation-" + donationId + "/" + filename);
     }
-
     /**
      * Serves uploaded license/supporting documents.
      * URL pattern: /api/files/licenses/{filename}
@@ -50,7 +43,6 @@ public class FileController {
         logger.info("Serving license file: filename={}", filename);
         return serveFile("licenses/" + filename);
     }
-
     /**
      * Fallback for legacy URLs that were stored directly as /uploads/{filename}
      * This handles old URLs that don't have the proper path structure
@@ -63,7 +55,6 @@ public class FileController {
         // Try to find the file in the uploads directory (search subdirectories)
         return serveFileSearching(filename);
     }
-
     /**
      * Serves donation images stored under /uploads/donation-images/{filename}
      * URL pattern: /api/files/donation-images/{filename}
@@ -74,7 +65,6 @@ public class FileController {
         logger.info("Serving donation image file: filename={}", filename);
         return serveFile("donation-images/" + filename);
     }
-
     /**
      * Serves donation images stored under donor-specific folders:
      * /uploads/donation-images/donor-{id}/{filename}
@@ -87,7 +77,6 @@ public class FileController {
         logger.info("Serving donation image file: donorFolder={}, filename={}", donorFolder, filename);
         return serveFile("donation-images/" + donorFolder + "/" + filename);
     }
-
     /**
      * Serves internal library images from /uploads/internal-library/{filename}
      * URL pattern: /api/files/internal-library/{filename}
@@ -98,34 +87,28 @@ public class FileController {
         logger.info("Serving internal library image file: filename={}", filename);
         return serveFile("internal-library/" + filename);
     }
-
     /**
      * Search for a file by filename in the uploads directory and subdirectories
      */
     private ResponseEntity<Resource> serveFileSearching(String filename) {
         try {
             Path uploadPath = resolveUploadPath();
-
             // Search for the file in the uploads directory tree
             java.util.Optional<Path> foundFile = Files.walk(uploadPath)
                 .filter(Files::isRegularFile)
                 .filter(p -> p.getFileName().toString().equals(filename))
                 .findFirst();
-
             if (foundFile.isPresent()) {
                 logger.info("Found file at: {}", foundFile.get());
                 return serveFileFromPath(foundFile.get());
             }
-
             logger.warn("File not found anywhere in uploads: {}", filename);
             return ResponseEntity.notFound().build();
-
         } catch (IOException e) {
             logger.error("Error searching for file: {}", filename, e);
             return ResponseEntity.notFound().build();
         }
     }
-
     /**
      * Resolves the upload directory path consistently
      */
@@ -137,7 +120,6 @@ public class FileController {
         }
         return uploadPath.toAbsolutePath().normalize();
     }
-
     /**
      * Generic method to serve files from the upload directory.
      */
@@ -151,19 +133,16 @@ public class FileController {
         logger.info("Looking for file at: {}", file);
         return serveFileFromPath(file);
     }
-
     /**
      * Serve a file from an absolute path
      */
     private ResponseEntity<Resource> serveFileFromPath(Path file) {
         try {
             Resource resource = new UrlResource(file.toUri());
-
             if (!resource.exists() || !resource.isReadable()) {
                 logger.warn("File not found or not readable: {}", file);
                 return ResponseEntity.notFound().build();
             }
-
             // Determine content type
             String contentType;
             try {
@@ -171,15 +150,12 @@ public class FileController {
             } catch (Exception e) {
                 contentType = "application/octet-stream";
             }
-
             logger.info("Serving file: {} with content type: {}", file, contentType);
-
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                     .header(HttpHeaders.CACHE_CONTROL, "max-age=86400") // Cache for 1 day
                     .body(resource);
-
         } catch (MalformedURLException e) {
             logger.error("Malformed URL for file: {}", file, e);
             return ResponseEntity.badRequest().build();

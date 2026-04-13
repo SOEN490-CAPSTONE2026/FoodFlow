@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.RegionResponse;
 import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.regex.Pattern;
-
 /**
  * Service for managing user profile settings including region and timezone.
  */
@@ -45,7 +43,6 @@ public class UserProfileService {
         this.profileChangeService = profileChangeService;
         this.profileChangeRequestRepository = profileChangeRequestRepository;
     }
-
     /**
      * Updates user's region settings (country, city) and automatically resolves timezone.
      */
@@ -55,7 +52,6 @@ public class UserProfileService {
         String timezone;
         if (request.getTimezone() != null && !request.getTimezone().trim().isEmpty()) {
             String providedTimezone = request.getTimezone().trim();
-
             if (providedTimezone.startsWith("UTC") || providedTimezone.startsWith("GMT")) {
                 timezone = TimezoneResolver.convertOffsetToTimezone(providedTimezone);
             } else {
@@ -86,7 +82,6 @@ public class UserProfileService {
     public RegionResponse getRegionSettings(User user) {
         return buildRegionResponse(user);
     }
-
     /**
      * Gets user profile data including organization information.
      */
@@ -100,7 +95,6 @@ public class UserProfileService {
         response.setPhoneNumber(user.getPhone());
         response.setProfilePhoto(user.getProfilePhoto());
         response.setOnboardingCompleted(Boolean.TRUE.equals(user.getOnboardingCompleted()));
-
         Organization org = user.getOrganization();
         if (org != null) {
             response.setOrganizationName(org.getName());
@@ -148,8 +142,7 @@ public class UserProfileService {
             }
             user.setEmail(request.getEmail());
         }
-
-        // Validate and set phone
+        // Validate and set phone (supports both phone and phoneNumber fields)
         String phoneValue = request.getPhone();
         if (phoneValue != null && !phoneValue.trim().isEmpty()) {
             final Pattern phonePattern = Pattern.compile("^[+0-9 ()-]{7,20}$");
@@ -158,33 +151,25 @@ public class UserProfileService {
             }
             user.setPhone(phoneValue);
         }
-
         // Full name
         if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
             user.setFullName(request.getFullName());
         }
-
         // Profile photo optional
         if (request.getProfilePhoto() != null) {
             user.setProfilePhoto(request.getProfilePhoto());
         }
-
         userRepository.save(user);
         businessMetricsService.incrementProfileUpdates();
-
         // Organization fields
         String addressValue = request.getOrganizationAddress();
-
         if ((request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) ||
             (addressValue != null && !addressValue.trim().isEmpty())) {
-
             Organization org = organizationRepository.findByUserId(user.getId()).orElseGet(() -> {
                 Organization o = new Organization();
                 o.setUser(user);
                 return o;
             });
-
-            // Sensitive fields — intercept for admin approval
             if (request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) {
                 boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
                         user, org, "name", request.getOrganizationName());
@@ -192,7 +177,6 @@ public class UserProfileService {
                     org.setName(request.getOrganizationName());
                 }
             }
-
             if (addressValue != null && !addressValue.trim().isEmpty()) {
                 boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
                         user, org, "address", addressValue);
@@ -200,7 +184,6 @@ public class UserProfileService {
                     org.setAddress(addressValue);
                 }
             }
-
             // Non-sensitive fields — save directly
             if (request.getFullName() != null) {
                 org.setContactPerson(request.getFullName());
@@ -208,14 +191,11 @@ public class UserProfileService {
             if (phoneValue != null) {
                 org.setPhone(phoneValue);
             }
-
             organizationRepository.save(org);
             user.setOrganization(org);
         }
-
         return getProfile(user);
     }
-
     @Transactional
     public UserProfileResponse updateOnboarding(User user, UpdateOnboardingRequest request) {
         user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
@@ -285,11 +265,9 @@ profileChangeRequestRepository
         RegionResponse response = new RegionResponse();
         response.setCountry(user.getCountry());
         response.setCity(user.getCity());
-
         String timezone = user.getTimezone() != null ? user.getTimezone() : "UTC";
         response.setTimezone(timezone);
         response.setTimezoneOffset(TimezoneResolver.getTimezoneOffset(timezone));
-
         return response;
     }
 }

@@ -1,48 +1,37 @@
 package com.example.foodflow.model.types;
-
-
 import jakarta.persistence.Embeddable;
 import java.util.Objects;
-
 @Embeddable
 public class Location {
-
     private Double latitude;
     private Double longitude;
     private String address;
     private String country; // Full country name (e.g., "Canada", "United States")
-
     public Location() {} // JPA requirement
-
     public Location(Double latitude, Double longitude, String address) {
         this.latitude = Objects.requireNonNull(latitude);
         this.longitude = Objects.requireNonNull(longitude);
         this.address = address;
     }
-
     public Location(Double latitude, Double longitude, String address, String country) {
         this.latitude = Objects.requireNonNull(latitude);
         this.longitude = Objects.requireNonNull(longitude);
         this.address = address;
         this.country = country;
     }
-
     public Double getLatitude() { return latitude; }
     public Double getLongitude() { return longitude; }
     public String getAddress() { return address; }
     public String getCountry() { return country; }
-
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
     public void setAddress(String address) { this.address = address; }
     public void setCountry(String country) { this.country = country; }
-
     @Override
     public String toString() {
         String countryPart = country != null ? ", " + country : "";
         return address + " (" + latitude + ", " + longitude + countryPart + ")";
     }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -51,12 +40,10 @@ public class Location {
         return Objects.equals(latitude, that.latitude) &&
             Objects.equals(longitude, that.longitude);
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(latitude, longitude);
     }
-
     // Optional helper for distance (Haversine formula)
     public double distanceTo(Location other) {
         final int R = 6371; // km

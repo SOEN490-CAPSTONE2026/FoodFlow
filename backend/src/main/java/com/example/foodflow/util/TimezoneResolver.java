@@ -1,19 +1,15 @@
 package com.example.foodflow.util;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-
 /**
  * Utility class for resolving timezone IDs from city and country combinations.
  * This provides a mapping between major cities and their timezone identifiers.
  */
 public class TimezoneResolver {
-    
     // Static mapping of major cities to timezone IDs
     private static final Map<String, String> CITY_TIMEZONE_MAP = new HashMap<>();
-    
     static {
         // North America - Canada
         CITY_TIMEZONE_MAP.put("Toronto|Canada", "America/Toronto");
@@ -25,7 +21,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Winnipeg|Canada", "America/Winnipeg");
         CITY_TIMEZONE_MAP.put("Quebec City|Canada", "America/Toronto");
         CITY_TIMEZONE_MAP.put("Halifax|Canada", "America/Halifax");
-        
         // North America - United States
         CITY_TIMEZONE_MAP.put("New York|United States", "America/New_York");
         CITY_TIMEZONE_MAP.put("Los Angeles|United States", "America/Los_Angeles");
@@ -53,41 +48,35 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Portland|United States", "America/Los_Angeles");
         CITY_TIMEZONE_MAP.put("Las Vegas|United States", "America/Los_Angeles");
         CITY_TIMEZONE_MAP.put("Miami|United States", "America/New_York");
-        
         // Europe - United Kingdom
         CITY_TIMEZONE_MAP.put("London|United Kingdom", "Europe/London");
         CITY_TIMEZONE_MAP.put("Manchester|United Kingdom", "Europe/London");
         CITY_TIMEZONE_MAP.put("Birmingham|United Kingdom", "Europe/London");
         CITY_TIMEZONE_MAP.put("Glasgow|United Kingdom", "Europe/London");
         CITY_TIMEZONE_MAP.put("Edinburgh|United Kingdom", "Europe/London");
-        
         // Europe - France
         CITY_TIMEZONE_MAP.put("Paris|France", "Europe/Paris");
         CITY_TIMEZONE_MAP.put("Marseille|France", "Europe/Paris");
         CITY_TIMEZONE_MAP.put("Lyon|France", "Europe/Paris");
         CITY_TIMEZONE_MAP.put("Toulouse|France", "Europe/Paris");
         CITY_TIMEZONE_MAP.put("Nice|France", "Europe/Paris");
-        
         // Europe - Germany
         CITY_TIMEZONE_MAP.put("Berlin|Germany", "Europe/Berlin");
         CITY_TIMEZONE_MAP.put("Hamburg|Germany", "Europe/Berlin");
         CITY_TIMEZONE_MAP.put("Munich|Germany", "Europe/Berlin");
         CITY_TIMEZONE_MAP.put("Cologne|Germany", "Europe/Berlin");
         CITY_TIMEZONE_MAP.put("Frankfurt|Germany", "Europe/Berlin");
-        
         // Europe - Italy
         CITY_TIMEZONE_MAP.put("Rome|Italy", "Europe/Rome");
         CITY_TIMEZONE_MAP.put("Milan|Italy", "Europe/Rome");
         CITY_TIMEZONE_MAP.put("Naples|Italy", "Europe/Rome");
         CITY_TIMEZONE_MAP.put("Turin|Italy", "Europe/Rome");
         CITY_TIMEZONE_MAP.put("Florence|Italy", "Europe/Rome");
-        
         // Europe - Spain
         CITY_TIMEZONE_MAP.put("Madrid|Spain", "Europe/Madrid");
         CITY_TIMEZONE_MAP.put("Barcelona|Spain", "Europe/Madrid");
         CITY_TIMEZONE_MAP.put("Valencia|Spain", "Europe/Madrid");
         CITY_TIMEZONE_MAP.put("Seville|Spain", "Europe/Madrid");
-        
         // Europe - Others
         CITY_TIMEZONE_MAP.put("Amsterdam|Netherlands", "Europe/Amsterdam");
         CITY_TIMEZONE_MAP.put("Brussels|Belgium", "Europe/Brussels");
@@ -103,7 +92,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Warsaw|Poland", "Europe/Warsaw");
         CITY_TIMEZONE_MAP.put("Budapest|Hungary", "Europe/Budapest");
         CITY_TIMEZONE_MAP.put("Athens|Greece", "Europe/Athens");
-        
         // Asia - East Asia
         CITY_TIMEZONE_MAP.put("Tokyo|Japan", "Asia/Tokyo");
         CITY_TIMEZONE_MAP.put("Osaka|Japan", "Asia/Tokyo");
@@ -114,7 +102,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Seoul|South Korea", "Asia/Seoul");
         CITY_TIMEZONE_MAP.put("Hong Kong|Hong Kong", "Asia/Hong_Kong");
         CITY_TIMEZONE_MAP.put("Taipei|Taiwan", "Asia/Taipei");
-        
         // Asia - Southeast Asia
         CITY_TIMEZONE_MAP.put("Singapore|Singapore", "Asia/Singapore");
         CITY_TIMEZONE_MAP.put("Bangkok|Thailand", "Asia/Bangkok");
@@ -123,7 +110,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Kuala Lumpur|Malaysia", "Asia/Kuala_Lumpur");
         CITY_TIMEZONE_MAP.put("Hanoi|Vietnam", "Asia/Ho_Chi_Minh");
         CITY_TIMEZONE_MAP.put("Ho Chi Minh City|Vietnam", "Asia/Ho_Chi_Minh");
-        
         // Asia - South Asia
         CITY_TIMEZONE_MAP.put("Mumbai|India", "Asia/Kolkata");
         CITY_TIMEZONE_MAP.put("Delhi|India", "Asia/Kolkata");
@@ -132,7 +118,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Chennai|India", "Asia/Kolkata");
         CITY_TIMEZONE_MAP.put("Karachi|Pakistan", "Asia/Karachi");
         CITY_TIMEZONE_MAP.put("Dhaka|Bangladesh", "Asia/Dhaka");
-        
         // Asia - Middle East
         CITY_TIMEZONE_MAP.put("Dubai|United Arab Emirates", "Asia/Dubai");
         CITY_TIMEZONE_MAP.put("Abu Dhabi|United Arab Emirates", "Asia/Dubai");
@@ -141,7 +126,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Jerusalem|Israel", "Asia/Jerusalem");
         CITY_TIMEZONE_MAP.put("Istanbul|Turkey", "Europe/Istanbul");
         CITY_TIMEZONE_MAP.put("Ankara|Turkey", "Europe/Istanbul");
-        
         // Oceania
         CITY_TIMEZONE_MAP.put("Sydney|Australia", "Australia/Sydney");
         CITY_TIMEZONE_MAP.put("Melbourne|Australia", "Australia/Melbourne");
@@ -150,7 +134,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Adelaide|Australia", "Australia/Adelaide");
         CITY_TIMEZONE_MAP.put("Auckland|New Zealand", "Pacific/Auckland");
         CITY_TIMEZONE_MAP.put("Wellington|New Zealand", "Pacific/Auckland");
-        
         // South America
         CITY_TIMEZONE_MAP.put("São Paulo|Brazil", "America/Sao_Paulo");
         CITY_TIMEZONE_MAP.put("Rio de Janeiro|Brazil", "America/Sao_Paulo");
@@ -160,7 +143,6 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Bogotá|Colombia", "America/Bogota");
         CITY_TIMEZONE_MAP.put("Santiago|Chile", "America/Santiago");
         CITY_TIMEZONE_MAP.put("Caracas|Venezuela", "America/Caracas");
-        
         // Africa
         CITY_TIMEZONE_MAP.put("Cairo|Egypt", "Africa/Cairo");
         CITY_TIMEZONE_MAP.put("Lagos|Nigeria", "Africa/Lagos");
@@ -169,13 +151,11 @@ public class TimezoneResolver {
         CITY_TIMEZONE_MAP.put("Casablanca|Morocco", "Africa/Casablanca");
         CITY_TIMEZONE_MAP.put("Accra|Ghana", "Africa/Accra");
         CITY_TIMEZONE_MAP.put("Addis Ababa|Ethiopia", "Africa/Addis_Ababa");
-        
         // Mexico and Central America
         CITY_TIMEZONE_MAP.put("Mexico City|Mexico", "America/Mexico_City");
         CITY_TIMEZONE_MAP.put("Guadalajara|Mexico", "America/Mexico_City");
         CITY_TIMEZONE_MAP.put("Monterrey|Mexico", "America/Monterrey");
     }
-    
     /**
      * Resolves timezone ID from city and country combination.
      * 
@@ -187,18 +167,14 @@ public class TimezoneResolver {
         if (city == null || country == null) {
             return "UTC";
         }
-        
         String key = city.trim() + "|" + country.trim();
         String timezone = CITY_TIMEZONE_MAP.get(key);
-        
         // If city not found, fallback to country-level default
         if (timezone == null) {
             timezone = getCountryDefaultTimezone(country.trim());
         }
-        
         return timezone;
     }
-    
     /**
      * Gets the default timezone for a country when specific city is not mapped.
      * 
@@ -216,7 +192,6 @@ public class TimezoneResolver {
         if ("Mexico".equalsIgnoreCase(country)) {
             return "America/Mexico_City";
         }
-        
         // Europe
         if ("United Kingdom".equalsIgnoreCase(country) || "UK".equalsIgnoreCase(country)) {
             return "Europe/London";
@@ -233,7 +208,6 @@ public class TimezoneResolver {
         if ("Spain".equalsIgnoreCase(country)) {
             return "Europe/Madrid";
         }
-        
         // Asia
         if ("Japan".equalsIgnoreCase(country)) {
             return "Asia/Tokyo";
@@ -247,7 +221,6 @@ public class TimezoneResolver {
         if ("Singapore".equalsIgnoreCase(country)) {
             return "Asia/Singapore";
         }
-        
         // Oceania
         if ("Australia".equalsIgnoreCase(country)) {
             return "Australia/Sydney";
@@ -255,7 +228,6 @@ public class TimezoneResolver {
         if ("New Zealand".equalsIgnoreCase(country)) {
             return "Pacific/Auckland";
         }
-        
         // South America
         if ("Brazil".equalsIgnoreCase(country)) {
             return "America/Sao_Paulo";
@@ -263,11 +235,9 @@ public class TimezoneResolver {
         if ("Argentina".equalsIgnoreCase(country)) {
             return "America/Argentina/Buenos_Aires";
         }
-        
         // Default fallback
         return "UTC";
     }
-    
     /**
      * Gets the current UTC offset for a given timezone.
      * 
@@ -278,7 +248,6 @@ public class TimezoneResolver {
         if (timezoneId == null || timezoneId.trim().isEmpty()) {
             return "+00:00";
         }
-        
         try {
             ZoneId zoneId = ZoneId.of(timezoneId);
             ZonedDateTime now = ZonedDateTime.now(zoneId);
@@ -287,7 +256,6 @@ public class TimezoneResolver {
             return "+00:00";
         }
     }
-    
     /**
      * Checks if a timezone ID is valid.
      * 
@@ -298,7 +266,6 @@ public class TimezoneResolver {
         if (timezoneId == null || timezoneId.trim().isEmpty()) {
             return false;
         }
-        
         try {
             ZoneId.of(timezoneId);
             return true;
@@ -306,7 +273,6 @@ public class TimezoneResolver {
             return false;
         }
     }
-    
     /**
      * Converts a UTC offset string (e.g., "UTC-05:00", "UTC+03:30") to a representative IANA timezone ID.
      * 
@@ -317,9 +283,7 @@ public class TimezoneResolver {
         if (offsetString == null || offsetString.trim().isEmpty()) {
             return "UTC";
         }
-        
         String normalized = offsetString.trim().toUpperCase();
-        
         // Remove "UTC" or "GMT" prefix
         if (normalized.startsWith("UTC")) {
             normalized = normalized.substring(3);
@@ -328,7 +292,6 @@ public class TimezoneResolver {
         } else {
             return "UTC";
         }
-        
         // Map UTC offsets to representative IANA timezones
         // Format: UTC±HH:MM
         switch (normalized) {
@@ -347,12 +310,10 @@ public class TimezoneResolver {
             case "-03:00": return "America/Argentina/Buenos_Aires";
             case "-02:00": return "Atlantic/South_Georgia";
             case "-01:00": return "Atlantic/Azores";
-            
             // Zero offset
             case "+00:00":
             case "-00:00":
             case "": return "UTC";
-            
             // Positive offsets (Eastern Hemisphere)
             case "+01:00": return "Europe/London";
             case "+02:00": return "Europe/Paris";
@@ -378,13 +339,11 @@ public class TimezoneResolver {
             case "+12:45": return "Pacific/Chatham";
             case "+13:00": return "Pacific/Tongatapu";
             case "+14:00": return "Pacific/Kiritimati";
-            
             default:
                 // If format doesn't match, return UTC
                 return "UTC";
         }
     }
-    
     /**
      * Converts a LocalDateTime from one timezone to another.
      * 
@@ -397,21 +356,16 @@ public class TimezoneResolver {
             java.time.LocalDateTime dateTime, 
             String fromTimezone, 
             String toTimezone) {
-        
         if (dateTime == null) {
             return null;
         }
-        
         try {
             ZoneId fromZone = ZoneId.of(fromTimezone != null ? fromTimezone : "UTC");
             ZoneId toZone = ZoneId.of(toTimezone != null ? toTimezone : "UTC");
-            
             // Convert LocalDateTime to ZonedDateTime in source timezone
             ZonedDateTime zonedDateTime = dateTime.atZone(fromZone);
-            
             // Convert to target timezone
             ZonedDateTime convertedDateTime = zonedDateTime.withZoneSameInstant(toZone);
-            
             // Return as LocalDateTime (strips timezone info but represents correct time)
             return convertedDateTime.toLocalDateTime();
         } catch (Exception e) {
@@ -419,7 +373,6 @@ public class TimezoneResolver {
             return dateTime;
         }
     }
-    
     /**
      * Converts LocalDate and LocalTime from one timezone to another, returning LocalDateTime.
      * 
@@ -434,11 +387,9 @@ public class TimezoneResolver {
             java.time.LocalTime time,
             String fromTimezone,
             String toTimezone) {
-        
         if (date == null || time == null) {
             return null;
         }
-        
         java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, time);
         return convertTimezone(dateTime, fromTimezone, toTimezone);
     }

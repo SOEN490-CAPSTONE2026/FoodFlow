@@ -3,6 +3,8 @@ package com.example.foodflow.controller;
 import com.example.foodflow.model.dto.ImpactMetricsDTO;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.service.ImpactDashboardService;
+import com.example.foodflow.util.CsvExportUtils;
+import com.example.foodflow.util.PdfExportUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -10,10 +12,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 /**
  * REST controller for impact dashboard metrics
@@ -62,16 +69,17 @@ public class ImpactDashboardController {
     }
 
     /**
-     * Export impact metrics as CSV
+     * Export impact metrics as CSV or PDF
      */
     @GetMapping("/export")
     @PreAuthorize("hasAnyAuthority('DONOR', 'RECEIVER', 'ADMIN')")
     public ResponseEntity<byte[]> exportMetrics(
             @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "ALL_TIME") String dateRange) {
+            @RequestParam(defaultValue = "ALL_TIME") String dateRange,
+            @RequestParam(defaultValue = "csv") String format) {
 
-        logger.info("GET /api/impact-dashboard/export - userId={}, role={}, dateRange={}",
-                currentUser.getId(), currentUser.getRole(), dateRange);
+        logger.info("GET /api/impact-dashboard/export - userId={}, role={}, dateRange={}, format={}",
+                currentUser.getId(), currentUser.getRole(), dateRange, format);
 
         ImpactMetricsDTO metrics;
 
@@ -90,123 +98,151 @@ public class ImpactDashboardController {
         }
 
         try {
-            byte[] csvData = generateCsv(metrics);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentDispositionFormData("attachment",
-                    "impact-metrics-" + dateRange.toLowerCase() + ".csv");
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(csvData);
-
+            if ("pdf".equalsIgnoreCase(format)) {
+                return exportAsPdf(metrics, dateRange);
+            } else {
+                return exportAsCsv(metrics, dateRange);
+            }
         } catch (Exception e) {
-            logger.error("Error generating CSV export", e);
+            logger.error("Error generating export", e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
+    ResponseEntity<byte[]> exportMetrics(User currentUser, String dateRange) {
+        return exportMetrics(currentUser, dateRange, "csv");
+    }
+
+    private ResponseEntity<byte[]> exportAsCsv(ImpactMetricsDTO metrics, String dateRange) throws Exception {
+        byte[] csvData = generateCsv(metrics);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment",
+                "FoodFlow_Impact_Report_" + java.time.LocalDate.now() + ".csv");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
+    }
+
+    private ResponseEntity<byte[]> exportAsPdf(ImpactMetricsDTO metrics, String dateRange) throws Exception {
+        byte[] pdfData = PdfExportUtils.generatePdf(metrics);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/pdf"));
+        headers.setContentDispositionFormData("attachment",
+                "FoodFlow_Impact_Report_" + java.time.LocalDate.now() + ".pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfData);
+    }
+
     /**
-     * Generate CSV content from metrics
+     * Generate professional CSV content from metrics with FoodFlow branding
      */
     private byte[] generateCsv(ImpactMetricsDTO metrics) throws Exception {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
 
-        // Write header
         writer.println("Metric,Value");
+        String reportTitle = generateReportTitle(metrics.getRole());
+        String dateRangeLabel = CsvExportUtils.formatDateRangeLabel(
+                metrics.getDateRange(), metrics.getStartDate(), metrics.getEndDate());
 
-        // Write metrics
-        writer.println("Role," + metrics.getRole());
-        writer.println("Date Range," + metrics.getDateRange());
-        writer.println("Start Date," + (metrics.getStartDate() != null ? metrics.getStartDate() : "N/A"));
-        writer.println("End Date," + (metrics.getEndDate() != null ? metrics.getEndDate() : "N/A"));
-        writer.println();
+        CsvExportUtils.writeHeader(writer, reportTitle, LocalDateTime.now(),
+                metrics.getRole(), dateRangeLabel);
+        CsvExportUtils.writeSectionHeader(writer, "Environmental Impact");
+        CsvExportUtils.writeNumericMetric(writer, "Total Food Saved",
+                metrics.getTotalFoodWeightKg(), "kg");
+        CsvExportUtils.writeRangeMetric(writer, "Estimated Meals Provided (Range)",
+                metrics.getMinMealsProvided(), metrics.getMaxMealsProvided());
+        CsvExportUtils.writeNumericMetric(writer, "Estimated Meals Provided (Best Estimate)",
+                metrics.getEstimatedMealsProvided(), "meals");
+        CsvExportUtils.writeNumericMetric(writer, "CO2 Emissions Avoided",
+                metrics.getCo2EmissionsAvoidedKg(), "kg");
+        CsvExportUtils.writeNumericMetric(writer, "Water Conserved",
+                metrics.getWaterSavedLiters(), "liters");
+        CsvExportUtils.writeNumericMetric(writer, "Estimated People Fed",
+                metrics.getPeopleFedEstimate(), "people");
 
-        writer.println("Environmental Impact");
-        writer.println("Total Food Weight (kg)," + (metrics.getTotalFoodWeightKg() != null ?
-                String.format("%.2f", metrics.getTotalFoodWeightKg()) : "0.00"));
-
-        // Bounded meal estimates
-        if (metrics.getMinMealsProvided() != null && metrics.getMaxMealsProvided() != null) {
-            writer.println("Estimated Meals Provided (Range)," +
-                    metrics.getMinMealsProvided() + "-" + metrics.getMaxMealsProvided());
-        }
-        writer.println("Estimated Meals Provided (Midpoint)," + (metrics.getEstimatedMealsProvided() != null ?
-                metrics.getEstimatedMealsProvided() : "0"));
-
-        writer.println("CO2 Emissions Avoided (kg)," + (metrics.getCo2EmissionsAvoidedKg() != null ?
-                String.format("%.2f", metrics.getCo2EmissionsAvoidedKg()) : "0.00"));
-        writer.println("Water Saved (liters)," + (metrics.getWaterSavedLiters() != null ?
-                String.format("%.2f", metrics.getWaterSavedLiters()) : "0.00"));
-        writer.println("People Fed (estimate)," + (metrics.getPeopleFedEstimate() != null ?
-                metrics.getPeopleFedEstimate() : "0"));
-        writer.println();
-
-        writer.println("Operational Efficiency");
+        CsvExportUtils.writeSectionHeader(writer, "Operational Efficiency");
         if (metrics.getTotalPostsCreated() != null) {
-            writer.println("Total Posts Created," + metrics.getTotalPostsCreated());
+            CsvExportUtils.writeNumericMetric(writer, "Total Posts Created",
+                    metrics.getTotalPostsCreated(), "");
         }
         if (metrics.getTotalDonationsCompleted() != null) {
-            writer.println("Total Donations Completed," + metrics.getTotalDonationsCompleted());
+            CsvExportUtils.writeNumericMetric(writer, "Total Donations Completed",
+                    metrics.getTotalDonationsCompleted(), "");
         }
         if (metrics.getTotalClaimsMade() != null) {
-            writer.println("Total Claims Made," + metrics.getTotalClaimsMade());
+            CsvExportUtils.writeNumericMetric(writer, "Total Claims Made",
+                    metrics.getTotalClaimsMade(), "");
         }
         if (metrics.getDonationCompletionRate() != null) {
-            writer.println("Donation Completion Rate (%)," +
-                    String.format("%.1f", metrics.getDonationCompletionRate()));
+            CsvExportUtils.writePercentageMetric(writer, "Donation Completion Rate",
+                    metrics.getDonationCompletionRate());
         }
         if (metrics.getWasteDiversionEfficiencyPercent() != null) {
-            writer.println("Waste Diversion Efficiency (%)," +
-                    String.format("%.1f", metrics.getWasteDiversionEfficiencyPercent()));
+            CsvExportUtils.writePercentageMetric(writer, "Waste Diversion Efficiency",
+                    metrics.getWasteDiversionEfficiencyPercent());
         }
-        writer.println();
 
-        writer.println("Time & Logistics");
+        CsvExportUtils.writeSectionHeader(writer, "Time & Logistics");
         if (metrics.getMedianClaimTimeHours() != null) {
-            writer.println("Median Time to Claim (hours)," +
-                    String.format("%.1f", metrics.getMedianClaimTimeHours()));
+            CsvExportUtils.writeNumericMetric(writer, "Median Time to Claim",
+                    metrics.getMedianClaimTimeHours(), "hours");
         }
         if (metrics.getP75ClaimTimeHours() != null) {
-            writer.println("75th Percentile Time to Claim (hours)," +
-                    String.format("%.1f", metrics.getP75ClaimTimeHours()));
+            CsvExportUtils.writeNumericMetric(writer, "75th Percentile Time to Claim",
+                    metrics.getP75ClaimTimeHours(), "hours");
         }
         if (metrics.getPickupTimelinessRate() != null) {
-            writer.println("Pickup Timeliness Rate (%)," +
-                    String.format("%.1f", metrics.getPickupTimelinessRate()));
+            CsvExportUtils.writePercentageMetric(writer, "Pickup Timeliness Rate",
+                    metrics.getPickupTimelinessRate());
         }
-        writer.println();
 
-        writer.println("Engagement");
+        CsvExportUtils.writeSectionHeader(writer, "Engagement");
         if (metrics.getActiveDonationDays() != null) {
-            writer.println("Active Days with Donations," + metrics.getActiveDonationDays());
+            CsvExportUtils.writeNumericMetric(writer, "Active Days with Donations",
+                    metrics.getActiveDonationDays(), "days");
         }
 
-        // Admin-only metrics
         if ("ADMIN".equals(metrics.getRole())) {
-            writer.println();
-            writer.println("User Engagement");
-            writer.println("Active Donors," + (metrics.getActiveDonors() != null ?
-                    metrics.getActiveDonors() : "0"));
-            writer.println("Active Receivers," + (metrics.getActiveReceivers() != null ?
-                    metrics.getActiveReceivers() : "0"));
-            writer.println("Repeat Donors," + (metrics.getRepeatDonors() != null ?
-                    metrics.getRepeatDonors() : "0"));
-            writer.println("Repeat Receivers," + (metrics.getRepeatReceivers() != null ?
-                    metrics.getRepeatReceivers() : "0"));
+            CsvExportUtils.writeSectionHeader(writer, "User Engagement (Platform-wide)");
+            CsvExportUtils.writeNumericMetric(writer, "Active Donors",
+                    metrics.getActiveDonors(), "");
+            CsvExportUtils.writeNumericMetric(writer, "Active Receivers",
+                    metrics.getActiveReceivers(), "");
+            CsvExportUtils.writeNumericMetric(writer, "Repeat Donors",
+                    metrics.getRepeatDonors(), "");
+            CsvExportUtils.writeNumericMetric(writer, "Repeat Receivers",
+                    metrics.getRepeatReceivers(), "");
         }
 
-        // Factor metadata for transparency
-        writer.println();
-        writer.println("Calculation Metadata");
-        writer.println("Factor Version," + (metrics.getFactorVersion() != null ?
-                metrics.getFactorVersion() : "N/A"));
-        writer.println("Disclosure,\"" + (metrics.getFactorDisclosure() != null ?
-                metrics.getFactorDisclosure() : "N/A") + "\"");
+        CsvExportUtils.writeMetadataDisclosure(writer,
+                metrics.getFactorVersion(), metrics.getFactorDisclosure());
+        CsvExportUtils.writeFooter(writer);
 
         writer.flush();
         return outputStream.toByteArray();
+    }
+
+    private String generateReportTitle(String role) {
+        if (role == null) {
+            return "FoodFlow - Impact Report";
+        }
+
+        switch (role) {
+            case "DONOR":
+                return "FoodFlow - Impact Report: Donor Impact Report";
+            case "RECEIVER":
+                return "FoodFlow - Impact Report: Receiver Impact Report";
+            case "ADMIN":
+                return "FoodFlow - Impact Report: Platform-wide Impact Report";
+            default:
+                return "FoodFlow Impact Report";
+        }
     }
 }

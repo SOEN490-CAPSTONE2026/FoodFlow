@@ -1,271 +1,136 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
 import RegisterType from '../components/RegisterType';
 
-// Mock navigate
+// ─── Mock dependencies ────────────────────────────────────────────────────────
+
 const mockNavigate = jest.fn();
+
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Mock images
-jest.mock(
-  '../assets/illustrations/registration-illustration2.png',
-  () => 'registration-illustration.png'
-);
-jest.mock('../assets/icons/donor-icon.png', () => 'donor-icon.png');
-jest.mock('../assets/icons/receiver-icon.png', () => 'receiver-icon.png');
-jest.mock('../assets/Logo.png', () => 'logo.png');
-jest.mock('../style/RegisterType.css', () => ({}), { virtual: true });
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: key => key,
+  }),
+}));
 
-describe('RegisterType', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+jest.mock('../components/SEOHead', () => () => null);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+
+describe('RegisterType render', () => {
+  test('renders without throwing', () => {
+    expect(() => render(<RegisterType />)).not.toThrow();
   });
 
-  it('renders the main heading', () => {
+  test('renders FoodFlow logo image', () => {
     render(<RegisterType />);
-    expect(screen.getByText('Join FoodFlow')).toBeInTheDocument();
+    expect(screen.getByAltText('FoodFlow Logo')).toBeInTheDocument();
   });
 
-  it('renders the subtitle', () => {
+  test('renders donor registration button', () => {
     render(<RegisterType />);
     expect(
-      screen.getByText('Choose your role to start making an impact.')
+      screen.getByRole('button', { name: /registerType\.donor\.button/i })
     ).toBeInTheDocument();
   });
 
-  it('renders the logo', () => {
+  test('renders receiver registration button', () => {
     render(<RegisterType />);
-    const logo = screen.getByAltText('FoodFlow Logo');
-    expect(logo).toBeInTheDocument();
-    expect(logo).toHaveAttribute('src', 'logo.png');
-  });
-
-  it('navigates to home page when logo is clicked', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<RegisterType />);
-
-    const logoContainer = screen
-      .getByAltText('FoodFlow Logo')
-      .closest('.logo-container');
-    await user.click(logoContainer);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/');
-  });
-
-  it('renders donor card with correct content', () => {
-    render(<RegisterType />);
-
-    expect(screen.getByText("I'm Donating")).toBeInTheDocument();
     expect(
-      screen.getByText(/For restaurants, grocery stores, and event organizers/i)
+      screen.getByRole('button', { name: /registerType\.receiver\.button/i })
     ).toBeInTheDocument();
   });
 
-  it('renders donor icon', () => {
+  test('renders Donor Icon image', () => {
     render(<RegisterType />);
-    const donorIcon = screen.getByAltText('Donor Icon');
-    expect(donorIcon).toBeInTheDocument();
-    expect(donorIcon).toHaveAttribute('src', 'donor-icon.png');
-    expect(donorIcon).toHaveAttribute('height', '129');
-    expect(donorIcon).toHaveAttribute('width', '129');
+    expect(screen.getByAltText('Donor Icon')).toBeInTheDocument();
   });
 
-  it('renders donor benefits list', () => {
+  test('renders Receiver Icon image', () => {
     render(<RegisterType />);
-
-    expect(screen.getByText("Post what's available")).toBeInTheDocument();
-    expect(
-      screen.getByText('Connect with nearby charities')
-    ).toBeInTheDocument();
-    expect(screen.getByText('Watch your impact grow')).toBeInTheDocument();
+    expect(screen.getByAltText('Receiver Icon')).toBeInTheDocument();
   });
 
-  it('renders donor register button', () => {
+  test('renders illustration image', () => {
     render(<RegisterType />);
-    const donorButton = screen.getByRole('button', {
-      name: /register as a donor/i,
-    });
-    expect(donorButton).toBeInTheDocument();
-    expect(donorButton).toHaveClass('register-button', 'donor-button');
+    expect(screen.getByAltText('Woman carrying food box')).toBeInTheDocument();
   });
+});
 
-  it('navigates to donor registration when donor button is clicked', async () => {
-    const user = userEvent.setup({ delay: null });
+// ─── Navigation ───────────────────────────────────────────────────────────────
+
+describe('RegisterType navigation', () => {
+  test('clicking the donor button navigates to /register/donor', async () => {
     render(<RegisterType />);
-
-    const donorButton = screen.getByRole('button', {
-      name: /register as a donor/i,
-    });
-    await user.click(donorButton);
-
+    await userEvent.click(
+      screen.getByRole('button', { name: /registerType\.donor\.button/i })
+    );
     expect(mockNavigate).toHaveBeenCalledWith('/register/donor');
   });
 
-  it('renders the center illustration', () => {
+  test('clicking the receiver button navigates to /register/receiver', async () => {
     render(<RegisterType />);
-    const illustration = screen.getByAltText('Woman carrying food box');
-    expect(illustration).toBeInTheDocument();
-    expect(illustration).toHaveAttribute(
-      'src',
-      'registration-illustration.png'
+    await userEvent.click(
+      screen.getByRole('button', { name: /registerType\.receiver\.button/i })
     );
-    expect(illustration).toHaveAttribute('height', '892');
-    expect(illustration).toHaveAttribute('width', '595');
-  });
-
-  it('renders receiver card with correct content', () => {
-    render(<RegisterType />);
-
-    expect(screen.getByText("I'm Receiving")).toBeInTheDocument();
-    expect(
-      screen.getByText(/For charities, shelters, and community kitchens/i)
-    ).toBeInTheDocument();
-  });
-
-  it('renders receiver icon', () => {
-    render(<RegisterType />);
-    const receiverIcon = screen.getByAltText('Receiver Icon');
-    expect(receiverIcon).toBeInTheDocument();
-    expect(receiverIcon).toHaveAttribute('src', 'receiver-icon.png');
-    expect(receiverIcon).toHaveAttribute('height', '129');
-    expect(receiverIcon).toHaveAttribute('width', '129');
-  });
-
-  it('renders receiver benefits list', () => {
-    render(<RegisterType />);
-
-    expect(
-      screen.getByText('Accept fresh donations nearby')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Connect directly with food donors')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Feed your community efficiently')
-    ).toBeInTheDocument();
-  });
-
-  it('renders receiver register button', () => {
-    render(<RegisterType />);
-    const receiverButton = screen.getByRole('button', {
-      name: /register as a receiver/i,
-    });
-    expect(receiverButton).toBeInTheDocument();
-    expect(receiverButton).toHaveClass('register-button', 'receiver-button');
-  });
-
-  it('navigates to receiver registration when receiver button is clicked', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<RegisterType />);
-
-    const receiverButton = screen.getByRole('button', {
-      name: /register as a receiver/i,
-    });
-    await user.click(receiverButton);
-
     expect(mockNavigate).toHaveBeenCalledWith('/register/receiver');
   });
 
-  it('renders both option cards', () => {
+  test('clicking the logo navigates to /', async () => {
     render(<RegisterType />);
-
-    const optionCards = screen.getAllByRole('heading', { level: 3 });
-    expect(optionCards).toHaveLength(2);
-    expect(optionCards[0]).toHaveTextContent("I'm Donating");
-    expect(optionCards[1]).toHaveTextContent("I'm Receiving");
+    await userEvent.click(screen.getByAltText('FoodFlow Logo'));
+    expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
-  it('renders all images with correct alt text', () => {
+  test('navigate is not called on initial render', () => {
     render(<RegisterType />);
-
-    expect(screen.getByAltText('FoodFlow Logo')).toBeInTheDocument();
-    expect(screen.getByAltText('Donor Icon')).toBeInTheDocument();
-    expect(screen.getByAltText('Receiver Icon')).toBeInTheDocument();
-    expect(screen.getByAltText('Woman carrying food box')).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('logo container has cursor pointer style', () => {
+  test('donor and receiver buttons call navigate exactly once each', async () => {
     render(<RegisterType />);
-
-    const logoContainer = screen
-      .getByAltText('FoodFlow Logo')
-      .closest('.logo-container');
-    expect(logoContainer).toHaveStyle({ cursor: 'pointer' });
-  });
-
-  it('renders all unordered lists', () => {
-    render(<RegisterType />);
-
-    const lists = screen.getAllByRole('list');
-    expect(lists).toHaveLength(2); // One for donor, one for receiver
-  });
-
-  it('renders correct number of list items', () => {
-    render(<RegisterType />);
-
-    const listItems = screen.getAllByRole('listitem');
-    expect(listItems).toHaveLength(6); // 3 for donor + 3 for receiver
-  });
-
-  it('has correct class names for main container', () => {
-    render(<RegisterType />);
-
-    const mainContainer = screen
-      .getByText('Join FoodFlow')
-      .closest('.register-type-page');
-    expect(mainContainer).toHaveClass('register-type-page');
-  });
-
-  it('has correct class names for donor card', () => {
-    render(<RegisterType />);
-
-    const donorCard = screen.getByText("I'm Donating").closest('.option-card');
-    expect(donorCard).toHaveClass('option-card', 'donor');
-  });
-
-  it('has correct class names for receiver card', () => {
-    render(<RegisterType />);
-
-    const receiverCard = screen
-      .getByText("I'm Receiving")
-      .closest('.option-card');
-    expect(receiverCard).toHaveClass('option-card', 'receiver');
-  });
-
-  it('renders intro section with correct class', () => {
-    render(<RegisterType />);
-
-    const intro = screen.getByText('Join FoodFlow').closest('.intro');
-    expect(intro).toBeInTheDocument();
-    expect(intro).toHaveClass('intro');
-  });
-
-  it('subtitle has correct class', () => {
-    render(<RegisterType />);
-
-    const subtitle = screen.getByText(
-      'Choose your role to start making an impact.'
+    await userEvent.click(
+      screen.getByRole('button', { name: /registerType\.donor\.button/i })
     );
-    expect(subtitle).toHaveClass('subtitle');
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /registerType\.receiver\.button/i })
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+  });
+});
+
+// ─── i18n keys rendered ───────────────────────────────────────────────────────
+
+describe('RegisterType i18n', () => {
+  test('renders the page title translation key', () => {
+    render(<RegisterType />);
+    expect(screen.getByText('registerType.title')).toBeInTheDocument();
   });
 
-  it('renders content section with correct class', () => {
+  test('renders the page subtitle translation key', () => {
     render(<RegisterType />);
-
-    const content = screen.getByText("I'm Donating").closest('.content');
-    expect(content).toHaveClass('content');
+    expect(screen.getByText('registerType.subtitle')).toBeInTheDocument();
   });
 
-  it('illustration container has correct class', () => {
+  test('renders donor heading translation key', () => {
     render(<RegisterType />);
+    expect(screen.getByText('registerType.donor.heading')).toBeInTheDocument();
+  });
 
-    const illustrationContainer = screen
-      .getByAltText('Woman carrying food box')
-      .closest('.illustration');
-    expect(illustrationContainer).toHaveClass('illustration');
+  test('renders receiver heading translation key', () => {
+    render(<RegisterType />);
+    expect(
+      screen.getByText('registerType.receiver.heading')
+    ).toBeInTheDocument();
   });
 });

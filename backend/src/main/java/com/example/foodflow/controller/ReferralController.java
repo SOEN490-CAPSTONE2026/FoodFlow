@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.ReferralRequest;
 import com.example.foodflow.model.dto.ReferralResponse;
 import com.example.foodflow.model.entity.User;
@@ -12,20 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 @RestController
 public class ReferralController {
-
     private static final Logger log = LoggerFactory.getLogger(ReferralController.class);
-
     private final ReferralService referralService;
-
     public ReferralController(ReferralService referralService) {
         this.referralService = referralService;
     }
-
     /**
      * Submit a referral (community invite or business suggestion).
      * Accessible by DONOR and RECEIVER roles.
@@ -45,7 +38,6 @@ public class ReferralController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
     /**
      * Get all referral submissions (admin view).
      * Accessible by ADMIN role only.

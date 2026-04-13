@@ -1,5 +1,4 @@
 package com.example.foodflow.exception;
-
 import com.example.foodflow.model.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,20 +7,16 @@ import org.mockito.Mockito;
 import org.springframework.http.ResponseEntity;
 import org.springframework.context.MessageSource;
 import org.springframework.web.servlet.LocaleResolver;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 import com.example.foodflow.exception.domain.DonationNotFoundException;
 import com.example.foodflow.exception.domain.UnauthorizedAccessException;
 import com.example.foodflow.exception.domain.InvalidClaimException;
 import com.example.foodflow.exception.domain.ClaimNotFoundException;
 import com.example.foodflow.exception.domain.InvalidClaimStateException;
 import com.example.foodflow.exception.domain.PaymentFailedException;
-
 public class GlobalExceptionHandlerTest {
     private GlobalExceptionHandler handler;
     private HttpServletRequest request;
-
     @BeforeEach
     void setUp() {
         MessageSource messageSource = Mockito.mock(MessageSource.class);
@@ -32,7 +27,6 @@ public class GlobalExceptionHandlerTest {
         Mockito.when(messageSource.getMessage(Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.any()))
                .thenAnswer(invocation -> invocation.getArgument(2)); // default to provided message
     }
-
     @Test
     void handleDonationNotFoundException_returns404() {
         DonationNotFoundException ex = new DonationNotFoundException(123L);
@@ -43,7 +37,6 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage()).contains("not found");
         assertThat(response.getBody().getPath()).isEqualTo("/api/test");
     }
-
     @Test
     void handleUnauthorizedAccessException_returns403() {
         UnauthorizedAccessException ex = new UnauthorizedAccessException("Forbidden");
@@ -53,7 +46,6 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getError()).isEqualTo("Forbidden");
         assertThat(response.getBody().getMessage()).contains("Forbidden");
     }
-
     @Test
     void handleInvalidClaimException_returns400() {
         InvalidClaimException ex = new InvalidClaimException("Invalid claim");
@@ -63,7 +55,6 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getError()).isEqualTo("Invalid Claim");
         assertThat(response.getBody().getMessage()).contains("Invalid claim");
     }
-
     @Test
     void handleClaimNotFoundException_returns404() {
         ClaimNotFoundException ex = new ClaimNotFoundException(456L);
@@ -73,7 +64,6 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getError()).isEqualTo("Claim Not Found");
         assertThat(response.getBody().getMessage()).contains("not found");
     }
-
     @Test
     void handleInvalidClaimStateException_returns409() {
         InvalidClaimStateException ex = new InvalidClaimStateException("Invalid state");
@@ -83,7 +73,6 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getError()).isEqualTo("Invalid Claim State");
         assertThat(response.getBody().getMessage()).contains("Invalid state");
     }
-
     @Test
     void handlePaymentFailedException_returns402() {
         PaymentFailedException ex = new PaymentFailedException("Payment failed");

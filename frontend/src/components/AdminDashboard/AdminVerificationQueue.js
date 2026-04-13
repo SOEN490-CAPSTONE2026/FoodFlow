@@ -966,7 +966,7 @@ const AdminVerificationQueue = () => {
                   : t('adminVerificationQueue.sort.ascending'),
             })}
           >
-            {sortOrder === 'asc' ? '↑' : '↓'}
+            {sortOrder === 'asc' ? 'â†‘' : 'â†“'}
           </button>
         </div>
 
@@ -1095,7 +1095,7 @@ const AdminVerificationQueue = () => {
                                   'adminVerificationQueue.actions.verifyEmail'
                                 )}
                               >
-                                <Mail size={16} />
+                                <UserCheck size={16} />
                               </button>
                             ) : (
                               <>

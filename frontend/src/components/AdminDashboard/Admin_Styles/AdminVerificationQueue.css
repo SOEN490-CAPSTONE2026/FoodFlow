@@ -604,14 +604,14 @@
   align-items: center;
   gap: 6px;
   transition: all 0.2s;
-  background: #2563eb;
+  background: #73bdcb;
   color: white;
 }
 
 .btn-verify-small:hover {
-  background: #1d4ed8;
+  background: #5faebd;
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 6px rgba(115, 189, 203, 0.28);
 }
 
 .btn-verify-small svg {

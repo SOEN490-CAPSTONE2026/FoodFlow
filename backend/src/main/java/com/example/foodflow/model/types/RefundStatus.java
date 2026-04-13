@@ -1,5 +1,4 @@
 package com.example.foodflow.model.types;
-
 /**
  * Status of a refund transaction
  */

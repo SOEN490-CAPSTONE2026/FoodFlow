@@ -1,5 +1,4 @@
 package com.example.foodflow.repository;
-
 import com.example.foodflow.model.entity.Organization;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.entity.User;
@@ -16,23 +15,17 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import com.example.foodflow.model.types.*;
 import static org.assertj.core.api.Assertions.assertThat;
-
 @DataJpaTest
 @ActiveProfiles("test")
 class SurplusPostRepositoryTest {
-
     @Autowired
     private SurplusPostRepository surplusPostRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private OrganizationRepository organizationRepository;
-
     private User donor;
     private Organization organization;
-
     @BeforeEach
     void setUp() {
         // Create organization
@@ -44,7 +37,6 @@ class SurplusPostRepositoryTest {
         organization.setAddress("123 Main St");
         organization.setVerificationStatus(VerificationStatus.PENDING);
         organization = organizationRepository.save(organization);
-
         // Create donor user
         donor = new User();
         donor.setEmail("donor@test.com");
@@ -53,15 +45,12 @@ class SurplusPostRepositoryTest {
         donor.setOrganization(organization);
         donor = userRepository.save(donor);
     }
-
-    
     @Test
     void testSaveSurplusPost() {
         // Given
         SurplusPost post = new SurplusPost();
         post.setDonor(donor);
         post.setTitle("Vegetable Lasagna");
-
         HashSet<FoodCategory> foodCategories = new HashSet<>();
         foodCategories.add(FoodCategory.PREPARED_MEALS);
         post.setFoodCategories(foodCategories);
@@ -72,10 +61,8 @@ class SurplusPostRepositoryTest {
         post.setPickupFrom(LocalTime.now().plusHours(3));
         post.setPickupTo(LocalTime.now().plusHours(5));
         post.setDescription("Vegetarian lasagna");
-
         // When
         SurplusPost saved = surplusPostRepository.save(post);
-
         // Then
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getTitle()).isEqualTo("Vegetable Lasagna");
@@ -86,39 +73,30 @@ class SurplusPostRepositoryTest {
         assertThat(saved.getDonor().getEmail()).isEqualTo("donor@test.com");
         assertThat(saved.getCreatedAt()).isNotNull();
     }
-
-    
     @Test
     void testFindAll() {
         // Given
-        SurplusPost post1 = createSurplusPost("Bread", new Quantity(5.0,Quantity.Unit.ITEM));
-        SurplusPost post2 = createSurplusPost("Milk", new Quantity(3.0,Quantity.Unit.ITEM));
+        SurplusPost post1 = createSurplusPost("Bread", new Quantity(5.0, Quantity.Unit.ITEM));
+        SurplusPost post2 = createSurplusPost("Milk", new Quantity(3.0, Quantity.Unit.ITEM));
         surplusPostRepository.save(post1);
         surplusPostRepository.save(post2);
-
         // When
         Iterable<SurplusPost> all = surplusPostRepository.findAll();
-
         // Then
         assertThat(all).hasSize(2);
     }
-
-    
     @Test
     void testFindById() {
         // Given
-        SurplusPost post = createSurplusPost("Fruit", new Quantity(20.0,Quantity.Unit.ITEM));
+        SurplusPost post = createSurplusPost("Fruit", new Quantity(20.0, Quantity.Unit.ITEM));
         SurplusPost saved = surplusPostRepository.save(post);
-
         // When
         SurplusPost found = surplusPostRepository.findById(saved.getId()).orElse(null);
-
         // Then
         assertThat(found).isNotNull();
         assertThat(found.getTitle()).isEqualTo("Fruit");
         assertThat(found.getQuantity().getValue()).isEqualTo(20.0);
     }
-
     private SurplusPost createSurplusPost(String foodName, Quantity quantity) {
         SurplusPost post = new SurplusPost();
         post.setDonor(donor);
@@ -133,5 +111,4 @@ class SurplusPostRepositoryTest {
         post.setDescription("Test food description");
         return post;
     }
-
 }

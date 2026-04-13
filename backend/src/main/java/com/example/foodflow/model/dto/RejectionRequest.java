@@ -1,7 +1,5 @@
 package com.example.foodflow.model.dto;
-
 import jakarta.validation.constraints.NotBlank;
-
 public class RejectionRequest {
 
     @NotBlank(message = "Reason is required")
@@ -9,7 +7,6 @@ public class RejectionRequest {
     private String message;
 
     public RejectionRequest() {}
-
     public RejectionRequest(String reason, String message) {
         this.reason = reason;
         this.message = message;

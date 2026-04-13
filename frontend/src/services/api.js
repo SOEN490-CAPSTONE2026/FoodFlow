@@ -966,6 +966,27 @@ export const impactDashboardAPI = {
    * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
    * @returns {Promise} CSV file download
    */
+  exportMetricsCSV: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/export', {
+      params: { dateRange, format: 'csv' },
+      responseType: 'blob',
+    }),
+
+  /**
+   * Export impact metrics as PDF
+   * @param {string} dateRange - Date range filter: 'WEEKLY', 'MONTHLY', 'ALL_TIME'
+   * @returns {Promise} PDF file download
+   */
+  exportMetricsPDF: (dateRange = 'ALL_TIME') =>
+    api.get('/impact-dashboard/export', {
+      params: { dateRange, format: 'pdf' },
+      responseType: 'blob',
+    }),
+
+  /**
+   * Legacy export (for backwards compatibility)
+   * @deprecated Use exportMetricsCSV or exportMetricsPDF instead
+   */
   exportMetrics: (dateRange = 'ALL_TIME') =>
     api.get('/impact-dashboard/export', {
       params: { dateRange },

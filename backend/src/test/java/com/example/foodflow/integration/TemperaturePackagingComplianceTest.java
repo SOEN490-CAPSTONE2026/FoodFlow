@@ -1,5 +1,4 @@
 package com.example.foodflow.integration;
-
 import com.example.foodflow.model.dto.CreateSurplusRequest;
 import com.example.foodflow.model.dto.SurplusResponse;
 import com.example.foodflow.model.entity.AccountStatus;
@@ -28,7 +27,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Integration test to verify temperature and packaging type compliance logging.
  * Story: As a donor, I want to log storage temperature and packaging type so
@@ -38,24 +36,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @Transactional
 class TemperaturePackagingComplianceTest {
-
     @Autowired
     private SurplusService surplusService;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private OrganizationRepository organizationRepository;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
-
     @Autowired
     private Validator validator;
-
     private User testDonor;
-
     @BeforeEach
     void setUp() {
         // Create organization for the donor
@@ -66,7 +57,6 @@ class TemperaturePackagingComplianceTest {
         organization.setAddress("123 Test Street");
         organization.setPhone("555-0100");
         organization = organizationRepository.save(organization);
-
         // Create and persist donor user
         testDonor = new User();
         testDonor.setEmail("testdonor@compliance.test");
@@ -76,7 +66,6 @@ class TemperaturePackagingComplianceTest {
         testDonor.setOrganization(organization);
         testDonor = userRepository.save(testDonor);
     }
-
     /**
      * Test: Donor selects "Frozen" + "Sealed" → donation posts successfully
      */
@@ -86,17 +75,14 @@ class TemperaturePackagingComplianceTest {
         CreateSurplusRequest request = createBaseRequest();
         request.setTemperatureCategory(TemperatureCategory.FROZEN);
         request.setPackagingType(PackagingType.SEALED);
-
         // Act
         SurplusResponse response = surplusService.createSurplusPost(request, testDonor);
-
         // Assert
         assertNotNull(response);
         assertNotNull(response.getId());
         assertEquals(TemperatureCategory.FROZEN, response.getTemperatureCategory());
         assertEquals(PackagingType.SEALED, response.getPackagingType());
     }
-
     /**
      * Test: Donor selects "Room Temperature" + "Loose" → visible to receivers
      */
@@ -106,20 +92,16 @@ class TemperaturePackagingComplianceTest {
         CreateSurplusRequest request = createBaseRequest();
         request.setTemperatureCategory(TemperatureCategory.ROOM_TEMPERATURE);
         request.setPackagingType(PackagingType.LOOSE);
-
         // Act
         SurplusResponse response = surplusService.createSurplusPost(request, testDonor);
-
         // Assert
         assertNotNull(response);
         assertEquals(TemperatureCategory.ROOM_TEMPERATURE, response.getTemperatureCategory());
         assertEquals(PackagingType.LOOSE, response.getPackagingType());
-
         // Verify data is returned correctly
         assertEquals("Room Temperature", response.getTemperatureCategory().getDisplayName());
         assertEquals("Loose", response.getPackagingType().getDisplayName());
     }
-
     /**
      * Test: Missing temperature category → validation error
      */
@@ -129,17 +111,14 @@ class TemperaturePackagingComplianceTest {
         CreateSurplusRequest request = createBaseRequest();
         request.setTemperatureCategory(null);
         request.setPackagingType(PackagingType.BOXED);
-
         // Act - Manually validate the request using Jakarta Validator
         Set<ConstraintViolation<CreateSurplusRequest>> violations = validator.validate(request);
-
         // Assert
         assertFalse(violations.isEmpty(), "Should have validation violations");
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("temperatureCategory")),
                 "Should have violation for temperatureCategory");
     }
-
     /**
      * Test: Missing packaging type → validation error
      */
@@ -149,17 +128,14 @@ class TemperaturePackagingComplianceTest {
         CreateSurplusRequest request = createBaseRequest();
         request.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
         request.setPackagingType(null);
-
         // Act - Manually validate the request using Jakarta Validator
         Set<ConstraintViolation<CreateSurplusRequest>> violations = validator.validate(request);
-
         // Assert
         assertFalse(violations.isEmpty(), "Should have validation violations");
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("packagingType")),
                 "Should have violation for packagingType");
     }
-
     /**
      * Test: All temperature categories work
      */
@@ -169,14 +145,11 @@ class TemperaturePackagingComplianceTest {
             CreateSurplusRequest request = createBaseRequest();
             request.setTemperatureCategory(category);
             request.setPackagingType(PackagingType.SEALED);
-
             SurplusResponse response = surplusService.createSurplusPost(request, testDonor);
-
             assertNotNull(response);
             assertEquals(category, response.getTemperatureCategory());
         }
     }
-
     /**
      * Test: All packaging types work
      */
@@ -186,16 +159,12 @@ class TemperaturePackagingComplianceTest {
             CreateSurplusRequest request = createBaseRequest();
             request.setTemperatureCategory(TemperatureCategory.REFRIGERATED);
             request.setPackagingType(type);
-
             SurplusResponse response = surplusService.createSurplusPost(request, testDonor);
-
             assertNotNull(response);
             assertEquals(type, response.getPackagingType());
         }
     }
-
     // Helper methods
-
     private CreateSurplusRequest createBaseRequest() {
         CreateSurplusRequest request = new CreateSurplusRequest();
         request.setTitle("Test Donation");
@@ -206,13 +175,11 @@ class TemperaturePackagingComplianceTest {
         request.setPickupDate(LocalDate.now().plusDays(1));
         request.setPickupFrom(LocalTime.of(10, 0));
         request.setPickupTo(LocalTime.of(12, 0));
-
         Location location = new Location();
         location.setAddress("123 Test Street");
         location.setLatitude(45.5017);
         location.setLongitude(-73.5673);
         request.setPickupLocation(location);
-
         return request;
     }
 }

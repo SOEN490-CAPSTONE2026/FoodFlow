@@ -8,61 +8,74 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ClaimRepository extends JpaRepository<Claim, Long> {
-    
-    // Find active claim for a specific post
-    Optional<Claim> findBySurplusPostIdAndStatus(Long surplusPostId, ClaimStatus status);
-    
-    // Find all claims by receiver
-    List<Claim> findByReceiverIdAndStatus(Long receiverId, ClaimStatus status);
-    
-     // find one claim by SurplusPost (used by SurplusService)
-    Optional<Claim> findBySurplusPost(SurplusPost post);
+        // Find active claim for a specific post
+        Optional<Claim> findBySurplusPostIdAndStatus(Long surplusPostId, ClaimStatus status);
 
-    // used by ClaimService to list all claims
-    List<Claim> findBySurplusPostId(Long surplusPostId);
+        // Find all claims by receiver
+        List<Claim> findByReceiverIdAndStatus(Long receiverId, ClaimStatus status);
 
-    
-    // Check if post already has active claim
-    boolean existsBySurplusPostIdAndStatus(Long surplusPostId, ClaimStatus status);
-    
-    // Get receiver's claims with surplus post details
-    @Query("SELECT c FROM Claim c " +
-           "JOIN FETCH c.surplusPost sp " +
-           "JOIN FETCH sp.donor " +
-           "WHERE c.receiver.id = :receiverId " +
-           "AND c.status IN :statuses " +
-           "ORDER BY c.claimedAt DESC")
-    List<Claim> findReceiverClaimsWithDetails(
-        @Param("receiverId") Long receiverId,
-        @Param("statuses") List<ClaimStatus> statuses
-    );
+        // find one claim by SurplusPost (used by SurplusService)
+        Optional<Claim> findBySurplusPost(SurplusPost post);
 
-    long countByStatus(ClaimStatus status);
-    long countByReceiverId(Long receiverId);
+        // used by ClaimService to list all claims
+        List<Claim> findBySurplusPostId(Long surplusPostId);
 
-    /**
-     * Find completed claims for a user (either as donor or receiver)
-     */
-    @Query("SELECT c FROM Claim c WHERE " +
-        "c.status = com.example.foodflow.model.types.ClaimStatus.COMPLETED AND " +
-        "(c.surplusPost.donor = :user OR c.receiver = :user)")
-    List<Claim> findCompletedClaimsForUser(@Param("user") User user);
-    
-    /**
-     * Find all active/upcoming claims for a user (either as donor or receiver)
-     */
-    @Query("SELECT c FROM Claim c " +
-           "JOIN FETCH c.surplusPost sp " +
-           "JOIN FETCH sp.donor " +
-           "JOIN FETCH c.receiver " +
-           "WHERE c.status = com.example.foodflow.model.types.ClaimStatus.ACTIVE " +
-           "AND (sp.donor = :user OR c.receiver = :user) " +
-           "ORDER BY c.confirmedPickupDate ASC, c.confirmedPickupStartTime ASC")
-    List<Claim> findActiveClaimsForUser(@Param("user") User user);
+        // Check if post already has active claim
+        boolean existsBySurplusPostIdAndStatus(Long surplusPostId, ClaimStatus status);
+
+        // Get receiver's claims with surplus post details
+        @Query("SELECT c FROM Claim c " +
+                        "JOIN FETCH c.surplusPost sp " +
+                        "JOIN FETCH sp.donor " +
+                        "WHERE c.receiver.id = :receiverId " +
+                        "AND c.status IN :statuses " +
+                        "ORDER BY c.claimedAt DESC")
+        List<Claim> findReceiverClaimsWithDetails(
+                        @Param("receiverId") Long receiverId,
+                        @Param("statuses") List<ClaimStatus> statuses);
+
+        long countByStatus(ClaimStatus status);
+
+        long countByReceiverId(Long receiverId);
+
+        /**
+         * Find completed claims for a user (either as donor or receiver)
+         */
+        @Query("SELECT c FROM Claim c WHERE " +
+                        "c.status = com.example.foodflow.model.types.ClaimStatus.COMPLETED AND " +
+                        "(c.surplusPost.donor = :user OR c.receiver = :user)")
+        List<Claim> findCompletedClaimsForUser(@Param("user") User user);
+
+        /**
+         * Find all active/upcoming claims for a user (either as donor or receiver)
+         */
+        @Query("SELECT c FROM Claim c " +
+                        "JOIN FETCH c.surplusPost sp " +
+                        "JOIN FETCH sp.donor " +
+                        "JOIN FETCH c.receiver " +
+                        "WHERE c.status = com.example.foodflow.model.types.ClaimStatus.ACTIVE " +
+                        "AND (sp.donor = :user OR c.receiver = :user) " +
+                        "ORDER BY c.confirmedPickupDate ASC, c.confirmedPickupStartTime ASC")
+        List<Claim> findActiveClaimsForUser(@Param("user") User user);
+
+        /**
+         * Find all claims by donor ID through the surplus post
+         */
+        @Query("SELECT c FROM Claim c " +
+                        "JOIN FETCH c.surplusPost sp " +
+                        "WHERE sp.donor.id = :donorId")
+        List<Claim> findByDonorId(@Param("donorId") Long donorId);
+
+        /**
+         * Find all claims by receiver ID
+         */
+        @Query("SELECT c FROM Claim c " +
+                        "JOIN FETCH c.surplusPost sp " +
+                        "WHERE c.receiver.id = :receiverId")
+        List<Claim> findAllByReceiverId(@Param("receiverId") Long receiverId);
 }

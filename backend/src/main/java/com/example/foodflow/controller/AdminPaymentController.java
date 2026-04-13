@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.AdminPaymentSummaryResponse;
 import com.example.foodflow.model.dto.AdminPaymentTransactionResponse;
 import com.example.foodflow.model.dto.AdminRefundDecisionRequest;
@@ -15,17 +14,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
-
 @RestController
 @RequestMapping("/api/admin/payments")
 @PreAuthorize("hasAuthority('ADMIN')")
 @RequiredArgsConstructor
 public class AdminPaymentController {
-
     private final AdminPaymentService adminPaymentService;
-
     @GetMapping
     public ResponseEntity<Page<AdminPaymentTransactionResponse>> getTransactions(
         @RequestParam(required = false) String status,
@@ -41,7 +36,6 @@ public class AdminPaymentController {
             adminPaymentService.getTransactions(status, refundStatus, currency, search, fromDate, toDate, page, size)
         );
     }
-
     @GetMapping("/summary")
     public ResponseEntity<AdminPaymentSummaryResponse> getSummary(
         @RequestParam(required = false) String status,
@@ -55,7 +49,6 @@ public class AdminPaymentController {
             adminPaymentService.getSummary(status, refundStatus, currency, search, fromDate, toDate)
         );
     }
-
     @PostMapping("/refunds/{refundId}/approve")
     public ResponseEntity<RefundResponse> approveRefund(
         @PathVariable Long refundId,
@@ -66,7 +59,6 @@ public class AdminPaymentController {
             adminPaymentService.approveRefund(refundId, adminUser, request != null ? request.getAdminNotes() : null)
         );
     }
-
     @PostMapping("/refunds/{refundId}/reject")
     public ResponseEntity<RefundResponse> rejectRefund(
         @PathVariable Long refundId,
@@ -77,7 +69,6 @@ public class AdminPaymentController {
             adminPaymentService.rejectRefund(refundId, adminUser, request != null ? request.getAdminNotes() : null)
         );
     }
-
     @PostMapping("/{paymentId}/refund-requests")
     public ResponseEntity<RefundResponse> createRefundRequest(
         @PathVariable Long paymentId,

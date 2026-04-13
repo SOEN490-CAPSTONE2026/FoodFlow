@@ -1,35 +1,27 @@
 package com.example.foodflow.model.types;
-
 import java.math.BigDecimal;
-
 /**
  * Badge tiers awarded to users based on their cumulative monetary donations.
  * Each tier has a minimum threshold amount (in CAD) that must be reached.
  */
 public enum DonorBadge {
-
     NONE(BigDecimal.ZERO, "No badge yet"),
     BRONZE(new BigDecimal("10"), "Bronze Supporter — $10+ donated"),
     SILVER(new BigDecimal("50"), "Silver Supporter — $50+ donated"),
     GOLD(new BigDecimal("100"), "Gold Supporter — $100+ donated"),
     PLATINUM(new BigDecimal("500"), "Platinum Supporter — $500+ donated");
-
     private final BigDecimal threshold;
     private final String description;
-
     DonorBadge(BigDecimal threshold, String description) {
         this.threshold = threshold;
         this.description = description;
     }
-
     public BigDecimal getThreshold() {
         return threshold;
     }
-
     public String getDescription() {
         return description;
     }
-
     /**
      * Determines the highest badge tier a user qualifies for based on their total donated amount.
      * Checks from highest tier (PLATINUM) down to lowest (BRONZE).
@@ -56,7 +48,6 @@ public enum DonorBadge {
         }
         return NONE;
     }
-
     /**
      * Returns the next badge tier after the current one, or null if already at PLATINUM.
      */
@@ -69,7 +60,6 @@ public enum DonorBadge {
             case PLATINUM -> null;
         };
     }
-
     /**
      * Returns the amount still needed to reach the next badge tier.
      *

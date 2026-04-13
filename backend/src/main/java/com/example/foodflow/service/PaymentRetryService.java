@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.PaymentResponse;
 import com.example.foodflow.model.dto.PaymentRetryResponse;
 import com.example.foodflow.model.entity.Payment;
@@ -14,18 +13,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentRetryService {
-
     private final PaymentRetryRepository paymentRetryRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentAuditService paymentAuditService;
-
     @Transactional(readOnly = true)
     public List<PaymentRetryResponse> getRetriesForPayment(Long paymentId, User user) {
         Payment payment = getOwnedPayment(paymentId, user);
@@ -34,22 +29,18 @@ public class PaymentRetryService {
             .map(this::toResponse)
             .toList();
     }
-
     @Transactional
     public PaymentResponse retryPayment(Long paymentId, User user) {
         Payment payment = getOwnedPayment(paymentId, user);
-
         int nextAttempt = paymentRetryRepository.countByPaymentId(paymentId) + 1;
         PaymentRetry retry = new PaymentRetry();
         retry.setPayment(payment);
         retry.setAttemptNumber(nextAttempt);
         retry.setStatus("PENDING");
         retry = paymentRetryRepository.save(retry);
-
         try {
             PaymentIntent paymentIntent = PaymentIntent.retrieve(payment.getStripePaymentIntentId());
             PaymentIntent updatedIntent = paymentIntent;
-
             if ("requires_confirmation".equals(paymentIntent.getStatus())) {
                 updatedIntent = paymentIntent.confirm();
             } else if ("requires_action".equals(paymentIntent.getStatus())
@@ -61,15 +52,12 @@ public class PaymentRetryService {
             } else if ("canceled".equals(paymentIntent.getStatus())) {
                 throw new RuntimeException("Canceled payments cannot be retried.");
             }
-
             PaymentStatus mappedStatus = mapStripeStatus(updatedIntent.getStatus());
             payment.setStatus(mappedStatus);
             paymentRepository.save(payment);
-
             retry.setStatus(mappedStatus == PaymentStatus.FAILED ? "FAILED" : "SUCCEEDED");
             retry.setErrorMessage(null);
             paymentRetryRepository.save(retry);
-
             paymentAuditService.logPaymentEvent(
                 payment.getId(),
                 "PAYMENT_RETRY_ATTEMPTED",
@@ -77,7 +65,6 @@ public class PaymentRetryService {
                 user.getId(),
                 null
             );
-
             return PaymentResponse.builder()
                 .id(payment.getId())
                 .organizationId(payment.getOrganization().getId())
@@ -95,7 +82,6 @@ public class PaymentRetryService {
             retry.setStatus("FAILED");
             retry.setErrorMessage(e.getMessage());
             paymentRetryRepository.save(retry);
-
             paymentAuditService.logPaymentEvent(
                 payment.getId(),
                 "PAYMENT_RETRY_FAILED",
@@ -103,25 +89,20 @@ public class PaymentRetryService {
                 user.getId(),
                 null
             );
-
             if (e instanceof RuntimeException runtimeException) {
                 throw runtimeException;
             }
             throw new RuntimeException("Failed to retry payment: " + e.getMessage());
         }
     }
-
     private Payment getOwnedPayment(Long paymentId, User user) {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new RuntimeException("Payment not found"));
-
         if (!payment.getOrganization().getId().equals(user.getOrganization().getId())) {
             throw new RuntimeException("Unauthorized access to payment");
         }
-
         return payment;
     }
-
     private PaymentRetryResponse toResponse(PaymentRetry retry) {
         return PaymentRetryResponse.builder()
             .id(retry.getId())
@@ -133,7 +114,6 @@ public class PaymentRetryService {
             .createdAt(retry.getCreatedAt())
             .build();
     }
-
     private PaymentStatus mapStripeStatus(String stripeStatus) {
         return switch (stripeStatus) {
             case "requires_payment_method", "requires_confirmation" -> PaymentStatus.PENDING;

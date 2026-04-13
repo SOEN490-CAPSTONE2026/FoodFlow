@@ -1,5 +1,4 @@
 package com.example.foodflow.integration;
-
 import com.example.foodflow.model.dto.LoginRequest;
 import com.example.foodflow.model.dto.RegisterDonorRequest;
 import com.example.foodflow.model.dto.RegisterReceiverRequest;
@@ -15,42 +14,32 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.UUID;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 class FeedIntegrationTest {
-
         @Autowired
         private MockMvc mockMvc;
-
         @Autowired
         private ObjectMapper objectMapper;
-
         @Autowired
         private UserRepository userRepository;
-
         private static String uniqueEmail(String prefix) {
                 return prefix + "+" + UUID.randomUUID() + "@test.com";
         }
-
         private void approveAccount(String email) {
                 userRepository.findByEmail(email).ifPresent(user -> {
                         user.setAccountStatus(AccountStatus.ACTIVE);
                         userRepository.save(user);
                 });
         }
-
         @Test
         void feedLoadsForReceiver() throws Exception {
                 String receiverEmail = uniqueEmail("receiver");
-
                 // Register a receiver
                 RegisterReceiverRequest registerRequest = new RegisterReceiverRequest();
                 registerRequest.setEmail(receiverEmail);
@@ -60,34 +49,28 @@ class FeedIntegrationTest {
                 registerRequest.setContactPerson("Test Receiver");
                 registerRequest.setPhone("123-456-7890");
                 registerRequest.setAddress("123 Test St");
-
                 // Login and get token
                 mockMvc.perform(post("/api/auth/register/receiver")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                                 .andExpect(status().isOk());
-
                 LoginRequest loginRequest = new LoginRequest(receiverEmail, "TestSecure123!");
                 MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
                                 .andExpect(status().isOk())
                                 .andReturn();
-
                 String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token")
                                 .asText();
-
                 // Test feed loads using existing surplus endpoint (requires RECEIVER auth)
                 mockMvc.perform(get("/api/surplus")
                                 .header("Authorization", "Bearer " + token))
                                 .andExpect(status().isOk())
                                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
         }
-
         @Test
         void donorPostCreationStillWorks() throws Exception {
                 String donorEmail = uniqueEmail("donor");
-
                 // Register a donor
                 RegisterDonorRequest registerRequest = new RegisterDonorRequest();
                 registerRequest.setEmail(donorEmail);
@@ -98,26 +81,21 @@ class FeedIntegrationTest {
                 registerRequest.setPhone("123-456-7890");
                 registerRequest.setAddress("123 Test St");
                 registerRequest.setBusinessLicense("FEED-TEST-LICENSE-123");
-
                 // Login and get token
                 mockMvc.perform(post("/api/auth/register/donor")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                                 .andExpect(status().isOk());
-
                 // Approve the account after registration
                 approveAccount(donorEmail);
-
                 LoginRequest loginRequest = new LoginRequest(donorEmail, "TestSecure123!");
                 MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(loginRequest)))
                                 .andExpect(status().isOk())
                                 .andReturn();
-
                 String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token")
                                 .asText();
-
                 // Create surplus post with correct DTO fields
                 String postJson = "{"
                                 + "\"title\": \"Milk\","
@@ -132,7 +110,6 @@ class FeedIntegrationTest {
                                 + "\"temperatureCategory\": \"REFRIGERATED\","
                                 + "\"packagingType\": \"SEALED\""
                                 + "}";
-
                 mockMvc.perform(post("/api/surplus")
                                 .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -140,11 +117,9 @@ class FeedIntegrationTest {
                                 .andExpect(status().isCreated())
                                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Milk")));
         }
-
         @Test
         void newPostAppearsInFeed() throws Exception {
                 String donorEmail = uniqueEmail("donor2");
-
                 // Register a donor
                 RegisterDonorRequest donorRequest = new RegisterDonorRequest();
                 donorRequest.setEmail(donorEmail);
@@ -155,27 +130,21 @@ class FeedIntegrationTest {
                 donorRequest.setPhone("123-456-7890");
                 donorRequest.setAddress("123 Test St");
                 donorRequest.setBusinessLicense("FEED-TEST-LICENSE-456");
-
                 mockMvc.perform(post("/api/auth/register/donor")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(donorRequest)))
                                 .andExpect(status().isOk());
-
                 // Approve the donor account after registration
                 approveAccount(donorEmail);
-
                 LoginRequest donorLogin = new LoginRequest(donorEmail, "TestSecure123!");
                 MvcResult donorLoginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(donorLogin)))
                                 .andExpect(status().isOk())
                                 .andReturn();
-
                 String donorToken = objectMapper.readTree(donorLoginResult.getResponse().getContentAsString())
                                 .get("token").asText();
-
                 String receiverEmail = uniqueEmail("receiver2");
-
                 // Register a receiver
                 RegisterReceiverRequest receiverRequest = new RegisterReceiverRequest();
                 receiverRequest.setEmail(receiverEmail);
@@ -185,25 +154,20 @@ class FeedIntegrationTest {
                 receiverRequest.setContactPerson("Test Receiver 2");
                 receiverRequest.setPhone("987-654-3210");
                 receiverRequest.setAddress("456 Test Ave");
-
                 mockMvc.perform(post("/api/auth/register/receiver")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(receiverRequest)))
                                 .andExpect(status().isOk());
-
                 // Approve the receiver account after registration
                 approveAccount(receiverEmail);
-
                 LoginRequest receiverLogin = new LoginRequest(receiverEmail, "TestSecure123!");
                 MvcResult receiverLoginResult = mockMvc.perform(post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(receiverLogin)))
                                 .andExpect(status().isOk())
                                 .andReturn();
-
                 String receiverToken = objectMapper.readTree(receiverLoginResult.getResponse().getContentAsString())
                                 .get("token").asText();
-
                 // Create surplus post with correct DTO fields
                 String postJson = "{"
                                 + "\"title\": \"Bread\","
@@ -219,13 +183,11 @@ class FeedIntegrationTest {
                                 + "\"packagingType\": \"BOXED\","
                                 + "\"pickupSlots\": [{\"pickupDate\": \"2030-01-01\", \"startTime\": \"15:00:00\", \"endTime\": \"18:00:00\"}]"
                                 + "}";
-
                 mockMvc.perform(post("/api/surplus")
                                 .header("Authorization", "Bearer " + donorToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(postJson))
                                 .andExpect(status().isCreated());
-
                 // Verify the post appears in the feed using existing surplus endpoint (requires
                 // RECEIVER auth)
                 mockMvc.perform(get("/api/surplus")

@@ -9,17 +9,16 @@ import com.example.foodflow.service.ConversationService;
 import com.example.foodflow.service.MessageService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/conversations")
 public class ConversationController {
-    
     private final ConversationService conversationService;
     private final MessageService messageService;
 
@@ -27,7 +26,7 @@ public class ConversationController {
         this.conversationService = conversationService;
         this.messageService = messageService;
     }
-    
+
     /**
      * Get all conversations for the current user
      */
@@ -37,7 +36,7 @@ public class ConversationController {
         List<ConversationResponse> conversations = conversationService.getUserConversations(currentUser);
         return ResponseEntity.ok(conversations);
     }
-    
+
     /**
      * Start a new conversation with a user by email
      */
@@ -48,7 +47,7 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.startConversation(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
-    
+
     /**
      * Get a specific conversation
      */
@@ -59,18 +58,23 @@ public class ConversationController {
         ConversationResponse conversation = conversationService.getConversationResponse(id, currentUser);
         return ResponseEntity.ok(conversation);
     }
-    
+
     /**
-     * Get all messages in a conversation
+     * Get paginated messages in a conversation
+     * 
+     * @param page     page number (0-based, default 0)
+     * @param pageSize messages per page (default 20, max 100)
      */
     @GetMapping("/{id}/messages")
-    public ResponseEntity<List<MessageResponse>> getConversationMessages(
+    public ResponseEntity<Page<MessageResponse>> getConversationMessages(
             @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
             @AuthenticationPrincipal User currentUser) {
-        List<MessageResponse> messages = messageService.getConversationMessages(id, currentUser);
+        Page<MessageResponse> messages = messageService.getConversationMessages(id, currentUser, page, pageSize);
         return ResponseEntity.ok(messages);
     }
-    
+
     /**
      * Mark all messages in a conversation as read
      */
@@ -82,7 +86,7 @@ public class ConversationController {
         return ResponseEntity.ok().build();
     }
 
-     /**
+    /**
      * Get conversation for a specific post
      * Returns the conversation details including the other participant
      * for the current user and the specified post
@@ -95,8 +99,7 @@ public class ConversationController {
         return ResponseEntity.ok(conversation);
     }
 
-
-      /**
+    /**
      * Create or get conversation for a specific post
      * Creates a new conversation linked to the post if one doesn't exist
      * Returns existing conversation if it already exists
@@ -107,14 +110,15 @@ public class ConversationController {
             @Valid @RequestBody StartPostConversationRequest request,
             @AuthenticationPrincipal User currentUser) {
         ConversationResponse conversation = conversationService.createOrGetPostConversation(
-            postId, request.getOtherUserId(), currentUser
-        );
+                postId, request.getOtherUserId(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
     }
 
     /**
-     * Express interest in a donation - creates/returns a donation-anchored conversation thread.
-     * No request body needed - receiver is the authenticated user, donor comes from the post.
+     * Express interest in a donation - creates/returns a donation-anchored
+     * conversation thread.
+     * No request body needed - receiver is the authenticated user, donor comes from
+     * the post.
      */
     @PostMapping("/interested/{postId}")
     public ResponseEntity<ConversationResponse> expressInterest(

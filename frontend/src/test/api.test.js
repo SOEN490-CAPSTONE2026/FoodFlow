@@ -1,0 +1,1251 @@
+// Unmock the global API mock from setupTests.js so we can test the real implementation
+jest.unmock('../services/api');
+
+const mockPost = jest.fn();
+const mockGet = jest.fn();
+const mockPut = jest.fn();
+const mockPatch = jest.fn();
+const mockDelete = jest.fn();
+
+jest.mock('axios', () => ({
+  create: jest.fn(() => ({
+    interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
+    post: mockPost,
+    get: mockGet,
+    put: mockPut,
+    patch: mockPatch,
+    delete: mockDelete,
+  })),
+}));
+
+// Load API modules after mocks are set up
+const {
+  authAPI,
+  surplusAPI,
+  imageAPI,
+  donorPhotoSettingsAPI,
+  conversationAPI,
+  claimsAPI,
+  feedbackAPI,
+  gamificationAPI,
+  impactDashboardAPI,
+  notificationPreferencesAPI,
+  profileAPI,
+  rateLimitAPI,
+  recommendationAPI,
+  reportAPI,
+  savedDonationAPI,
+  supportChatAPI,
+  userAPI,
+  adminDisputeAPI,
+  adminDonationAPI,
+  adminVerificationAPI,
+} = require('../services/api');
+
+describe('API service', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    mockPost.mockReset();
+    mockGet.mockReset();
+    mockPut.mockReset();
+    mockPatch.mockReset();
+    mockDelete.mockReset();
+    localStorage.clear();
+  });
+
+  test('call /auth/login', async () => {
+    mockPost.mockResolvedValue({ data: { token: 'test-token-123' } });
+    const resp = await authAPI.login({ username: 'alice', password: 'pw' });
+    expect(mockPost).toHaveBeenCalledWith('/auth/login', {
+      username: 'alice',
+      password: 'pw',
+    });
+    expect(localStorage.getItem('jwtToken')).toBe('test-token-123');
+    expect(resp).toEqual({ data: { token: 'test-token-123' } });
+  });
+
+  test('call /auth/logout', async () => {
+    localStorage.setItem('jwtToken', 'existing-token');
+    mockPost.mockResolvedValue({ status: 200 });
+    const resp = await authAPI.logout();
+    expect(localStorage.getItem('jwtToken')).toBeNull();
+    expect(mockPost).toHaveBeenCalledWith('/auth/logout');
+    expect(resp).toEqual({ status: 200 });
+  });
+
+  test('call /surplus/search', async () => {
+    mockPost.mockResolvedValue({ data: { results: [] } });
+    const filters = {
+      foodType: ['Fruits & Vegetables', 'Frozen Food'],
+      expiryBefore: '2025-12-01',
+      locationCoords: { lat: '45.0', lng: '-73.0', address: '123 Main St' },
+      distance: '10',
+    };
+    const resp = await surplusAPI.search(filters);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/surplus/search',
+      expect.objectContaining({
+        foodTypes: ['Fruits & Vegetables', 'Frozen Food'],
+        expiryBefore: '2025-12-01',
+        userLocation: { latitude: 45, longitude: -73, address: '123 Main St' },
+        maxDistanceKm: 10,
+        status: 'AVAILABLE',
+      })
+    );
+    expect(resp).toEqual({ data: { results: [] } });
+  });
+
+  test('send pickupSlotId', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+    const postId = 123;
+    const slot = { id: 55 };
+    const resp = await surplusAPI.claim(postId, slot);
+    expect(mockPost).toHaveBeenCalledWith('/claims', {
+      surplusPostId: postId,
+      pickupSlotId: 55,
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('surplusAPI.claim includes pickupSlot', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+    const postId = 222;
+    const slot = { start: '10:00', end: '10:30' };
+    const resp = await surplusAPI.claim(postId, slot);
+    expect(mockPost).toHaveBeenCalledWith('/claims', {
+      surplusPostId: postId,
+      pickupSlot: slot,
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('surplusAPI.searchBasic builds query params and calls GET', async () => {
+    mockGet.mockResolvedValue({ data: { items: [] } });
+    const filters = {
+      foodType: ['Bakery & Pastry'],
+      expiryBefore: '2025-01-01',
+    };
+    const resp = await surplusAPI.searchBasic(filters);
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringMatching(/\/surplus\/search\?.*foodType=BAKERY/)
+    );
+    expect(resp).toEqual({ data: { items: [] } });
+  });
+
+  test('surplusAPI.getTimeline calls GET /surplus/{postId}/timeline', async () => {
+    const mockTimelineData = [
+      {
+        id: 1,
+        eventType: 'DONATION_POSTED',
+        timestamp: '2026-01-11T10:00:00',
+        actor: 'donor',
+        actorUserId: 1,
+        newStatus: 'AVAILABLE',
+        details: 'Donation created',
+        visibleToUsers: true,
+      },
+      {
+        id: 2,
+        eventType: 'DONATION_CLAIMED',
+        timestamp: '2026-01-11T11:00:00',
+        actor: 'receiver',
+        actorUserId: 2,
+        oldStatus: 'AVAILABLE',
+        newStatus: 'CLAIMED',
+        details: 'Claimed by Food Bank',
+        visibleToUsers: true,
+      },
+    ];
+
+    mockGet.mockResolvedValue({ data: mockTimelineData });
+    const postId = 123;
+    const resp = await surplusAPI.getTimeline(postId);
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus/123/timeline');
+    expect(resp.data).toEqual(mockTimelineData);
+    expect(resp.data.length).toBe(2);
+  });
+
+  test('surplusAPI.getTimeline handles empty timeline', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+    const postId = 456;
+    const resp = await surplusAPI.getTimeline(postId);
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus/456/timeline');
+    expect(resp.data).toEqual([]);
+  });
+
+  test('surplusAPI.getTimeline handles API error', async () => {
+    mockGet.mockRejectedValue(new Error('Network error'));
+    const postId = 789;
+
+    await expect(surplusAPI.getTimeline(postId)).rejects.toThrow(
+      'Network error'
+    );
+    expect(mockGet).toHaveBeenCalledWith('/surplus/789/timeline');
+  });
+
+  // authAPI tests
+  test('authAPI.registerDonor with FormData', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const formData = new FormData();
+    formData.append('email', 'donor@test.com');
+    const resp = await authAPI.registerDonor(formData);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/register/donor', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.registerDonor with regular object', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const data = { email: 'donor@test.com', password: 'pass123' };
+    const resp = await authAPI.registerDonor(data);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/register/donor', data, {});
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.registerReceiver with FormData', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const formData = new FormData();
+    formData.append('email', 'receiver@test.com');
+    const resp = await authAPI.registerReceiver(formData);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/register/receiver', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.registerReceiver with regular object', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const data = { email: 'receiver@test.com', password: 'pass123' };
+    const resp = await authAPI.registerReceiver(data);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/register/receiver', data, {});
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.forgotPassword', async () => {
+    mockPost.mockResolvedValue({ data: { message: 'Email sent' } });
+
+    const data = { email: 'user@test.com' };
+    const resp = await authAPI.forgotPassword(data);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/forgot-password', data);
+    expect(resp).toEqual({ data: { message: 'Email sent' } });
+  });
+
+  test('authAPI.verifyResetCode', async () => {
+    mockPost.mockResolvedValue({ data: { valid: true } });
+
+    const data = { email: 'user@test.com', code: '123456' };
+    const resp = await authAPI.verifyResetCode(data);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/verify-reset-code', data);
+    expect(resp).toEqual({ data: { valid: true } });
+  });
+
+  test('authAPI.resetPassword', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const data = {
+      email: 'user@test.com',
+      code: '123456',
+      newPassword: 'newpass',
+    };
+    const resp = await authAPI.resetPassword(data);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/reset-password', data);
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.checkEmailExists', async () => {
+    mockGet.mockResolvedValue({ data: { exists: true } });
+
+    const resp = await authAPI.checkEmailExists('test@test.com');
+
+    expect(mockGet).toHaveBeenCalledWith('/auth/check-email', {
+      params: { email: 'test@test.com' },
+    });
+    expect(resp).toEqual({ data: { exists: true } });
+  });
+
+  test('imageAPI.upload sends multipart form-data', async () => {
+    mockPost.mockResolvedValue({ data: { image: { id: 1 } } });
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+
+    await imageAPI.upload(file, { foodType: 'PRODUCE', donationId: 9 });
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/images/upload',
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    );
+  });
+
+  test('donorPhotoSettingsAPI calls expected endpoints', async () => {
+    mockGet.mockResolvedValue({ data: { displayType: 'SINGLE' } });
+    mockPut.mockResolvedValue({ data: { displayType: 'PER_FOOD_TYPE' } });
+
+    await donorPhotoSettingsAPI.get();
+    await donorPhotoSettingsAPI.update({ displayType: 'PER_FOOD_TYPE' });
+
+    expect(mockGet).toHaveBeenCalledWith('/donor/settings/photos');
+    expect(mockPut).toHaveBeenCalledWith('/donor/settings/photos', {
+      displayType: 'PER_FOOD_TYPE',
+    });
+  });
+
+  test('authAPI.checkPhoneExists', async () => {
+    mockGet.mockResolvedValue({ data: { exists: false } });
+
+    const resp = await authAPI.checkPhoneExists('514-555-1234');
+
+    expect(mockGet).toHaveBeenCalledWith('/auth/check-phone', {
+      params: { phone: '514-555-1234' },
+    });
+    expect(resp).toEqual({ data: { exists: false } });
+  });
+
+  test('authAPI.changePassword', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const data = { oldPassword: 'old', newPassword: 'new' };
+    const resp = await authAPI.changePassword(data);
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/change-password', data);
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.verifyEmail', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await authAPI.verifyEmail('token123');
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/verify-email', null, {
+      params: { token: 'token123' },
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('authAPI.resendVerificationEmail', async () => {
+    mockPost.mockResolvedValue({ data: { sent: true } });
+
+    const resp = await authAPI.resendVerificationEmail();
+
+    expect(mockPost).toHaveBeenCalledWith('/auth/resend-verification-email');
+    expect(resp).toEqual({ data: { sent: true } });
+  });
+
+  // surplusAPI tests
+  test('surplusAPI.list', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const resp = await surplusAPI.list();
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus');
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.getMyPosts', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const resp = await surplusAPI.getMyPosts();
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus/my-posts');
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.getPost', async () => {
+    mockGet.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await surplusAPI.getPost(1);
+
+    expect(mockGet).toHaveBeenCalledWith('/surplus/1');
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('surplusAPI.create', async () => {
+    mockPost.mockResolvedValue({ data: { id: 1 } });
+
+    const data = { title: 'Food', quantity: 10 };
+    const resp = await surplusAPI.create(data);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/surplus',
+      expect.objectContaining({
+        title: 'Food',
+        quantity: 10,
+        dietaryTags: [],
+      })
+    );
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('surplusAPI.update', async () => {
+    mockPut.mockResolvedValue({ data: { id: 1 } });
+
+    const data = { title: 'Updated' };
+    const resp = await surplusAPI.update(1, data);
+
+    expect(mockPut).toHaveBeenCalledWith(
+      '/surplus/1',
+      expect.objectContaining({
+        title: 'Updated',
+        dietaryTags: [],
+      })
+    );
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('surplusAPI.deletePost', async () => {
+    mockDelete.mockResolvedValue({ data: { success: true } });
+
+    const resp = await surplusAPI.deletePost(1);
+
+    expect(mockDelete).toHaveBeenCalledWith('/surplus/1/delete');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('surplusAPI.claim without slot', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await surplusAPI.claim(123);
+
+    expect(mockPost).toHaveBeenCalledWith('/claims', { surplusPostId: 123 });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('surplusAPI.completeSurplusPost', async () => {
+    mockPatch.mockResolvedValue({ data: { success: true } });
+
+    const resp = await surplusAPI.completeSurplusPost(1, '123456');
+
+    expect(mockPatch).toHaveBeenCalledWith('/surplus/1/complete', {
+      otpCode: '123456',
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('surplusAPI.confirmPickup', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await surplusAPI.confirmPickup(1, '654321');
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/pickup/confirm', {
+      postId: 1,
+      otpCode: '654321',
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('surplusAPI.search with minimal filters', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+
+    const filters = {};
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.search with foodType only', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+
+    const filters = { foodType: ['Dairy & Cold Items'] };
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      foodTypes: ['Dairy & Cold Items'],
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.search with expiryBefore only', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+
+    const filters = { expiryBefore: '2026-02-01' };
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      expiryBefore: '2026-02-01',
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.search with location but no distance', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+
+    const filters = {
+      locationCoords: { lat: '45.5', lng: '-73.5', address: 'Montreal' },
+    };
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.search with dietary tags and sort', async () => {
+    mockPost.mockResolvedValue({ data: [] });
+
+    const filters = {
+      dietaryTags: ['VEGAN', 'HALAL'],
+      dietaryMatch: 'ALL',
+      sort: 'newest',
+    };
+    const resp = await surplusAPI.search(filters);
+
+    expect(mockPost).toHaveBeenCalledWith('/surplus/search', {
+      dietaryTags: ['VEGAN', 'HALAL'],
+      dietaryMatch: 'ALL',
+      sort: 'newest',
+      status: 'AVAILABLE',
+    });
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.uploadEvidence', async () => {
+    mockPost.mockResolvedValue({
+      data: { url: 'http://example.com/evidence.jpg' },
+    });
+
+    const file = new File(['content'], 'evidence.jpg', { type: 'image/jpeg' });
+    const resp = await surplusAPI.uploadEvidence(1, file);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/surplus/1/evidence',
+      expect.any(FormData),
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    expect(resp).toEqual({ data: { url: 'http://example.com/evidence.jpg' } });
+  });
+
+  test('surplusAPI.searchBasic with empty foodType', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const filters = { foodType: [] };
+    const resp = await surplusAPI.searchBasic(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('status=AVAILABLE')
+    );
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('surplusAPI.searchBasic with dietary tags and sort', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const filters = {
+      dietaryTags: ['VEGETARIAN', 'NUT_FREE'],
+      dietaryMatch: 'ALL',
+      sort: 'closest',
+    };
+    const resp = await surplusAPI.searchBasic(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('dietaryTags=VEGETARIAN%2CNUT_FREE')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('dietaryMatch=ALL')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('sort=closest')
+    );
+    expect(resp).toEqual({ data: [] });
+  });
+
+  // conversationAPI tests
+  test('conversationAPI express/get endpoints', async () => {
+    mockPost
+      .mockResolvedValueOnce({ data: { id: 11 } })
+      .mockResolvedValueOnce({ data: { id: 22 } });
+    mockGet
+      .mockResolvedValueOnce({ data: [{ id: 1 }] })
+      .mockResolvedValueOnce({ data: { id: 7 } })
+      .mockResolvedValueOnce({ data: [{ id: 9, content: 'hi' }] });
+
+    const interestResp = await conversationAPI.expressInterest(99);
+    const createResp = await conversationAPI.createOrGetPostConversation(99, 7);
+    const allResp = await conversationAPI.getConversations();
+    const oneResp = await conversationAPI.getConversation(7);
+    const msgsResp = await conversationAPI.getMessages(7);
+
+    expect(mockPost).toHaveBeenNthCalledWith(1, '/conversations/interested/99');
+    expect(mockPost).toHaveBeenNthCalledWith(2, '/conversations/post/99', {
+      otherUserId: 7,
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/conversations');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/conversations/7');
+    expect(mockGet).toHaveBeenNthCalledWith(3, '/conversations/7/messages');
+    expect(interestResp).toEqual({ data: { id: 11 } });
+    expect(createResp).toEqual({ data: { id: 22 } });
+    expect(allResp).toEqual({ data: [{ id: 1 }] });
+    expect(oneResp).toEqual({ data: { id: 7 } });
+    expect(msgsResp).toEqual({ data: [{ id: 9, content: 'hi' }] });
+  });
+
+  // claimsAPI tests
+  test('claimsAPI.myClaims', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const resp = await claimsAPI.myClaims();
+
+    expect(mockGet).toHaveBeenCalledWith('/claims/my-claims');
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('claimsAPI.claim', async () => {
+    mockPost.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await claimsAPI.claim(123);
+
+    expect(mockPost).toHaveBeenCalledWith('/claims', { surplusPostId: 123 });
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('claimsAPI.cancel', async () => {
+    mockDelete.mockResolvedValue({ data: { success: true } });
+
+    const resp = await claimsAPI.cancel(456);
+
+    expect(mockDelete).toHaveBeenCalledWith('/claims/456');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('claimsAPI.getClaimForSurplusPost', async () => {
+    mockGet.mockResolvedValue({ data: { id: 789 } });
+
+    const resp = await claimsAPI.getClaimForSurplusPost(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/claims/post/123');
+    expect(resp).toEqual({ data: { id: 789 } });
+  });
+
+  // savedDonationAPI tests
+  test('savedDonationAPI.getSavedDonations', async () => {
+    mockGet.mockResolvedValue({ data: [{ id: 1 }] });
+
+    const resp = await savedDonationAPI.getSavedDonations();
+
+    expect(mockGet).toHaveBeenCalledWith('/receiver/saved');
+    expect(resp).toEqual({ data: [{ id: 1 }] });
+  });
+
+  test('savedDonationAPI.save', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await savedDonationAPI.save(42);
+
+    expect(mockPost).toHaveBeenCalledWith('/receiver/saved/42');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('savedDonationAPI.unsave', async () => {
+    mockDelete.mockResolvedValue({ data: { success: true } });
+
+    const resp = await savedDonationAPI.unsave(42);
+
+    expect(mockDelete).toHaveBeenCalledWith('/receiver/saved/42');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('savedDonationAPI.isSaved', async () => {
+    mockGet.mockResolvedValue({ data: true });
+
+    const resp = await savedDonationAPI.isSaved(42);
+
+    expect(mockGet).toHaveBeenCalledWith('/receiver/saved/check/42');
+    expect(resp).toEqual({ data: true });
+  });
+
+  test('savedDonationAPI.getSavedCount', async () => {
+    mockGet.mockResolvedValue({ data: { count: 3 } });
+
+    const resp = await savedDonationAPI.getSavedCount();
+
+    expect(mockGet).toHaveBeenCalledWith('/receiver/saved/count');
+    expect(resp).toEqual({ data: { count: 3 } });
+  });
+
+  // recommendationAPI tests
+  test('recommendationAPI.getBrowseRecommendations with postIds', async () => {
+    mockGet.mockResolvedValue({ data: { 1: 80, 2: 90 } });
+
+    const result = await recommendationAPI.getBrowseRecommendations([1, 2, 3]);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/browse', {
+      params: { postIds: '1,2,3' },
+    });
+    expect(result).toEqual({ 1: 80, 2: 90 });
+  });
+
+  test('recommendationAPI.getBrowseRecommendations with empty array', async () => {
+    const result = await recommendationAPI.getBrowseRecommendations([]);
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result).toEqual({});
+  });
+
+  test('recommendationAPI.getBrowseRecommendations with null', async () => {
+    const result = await recommendationAPI.getBrowseRecommendations(null);
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result).toEqual({});
+  });
+
+  test('recommendationAPI.getBrowseRecommendations handles error', async () => {
+    mockGet.mockRejectedValue(new Error('Network error'));
+
+    const result = await recommendationAPI.getBrowseRecommendations([1, 2]);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/browse', {
+      params: { postIds: '1,2' },
+    });
+    expect(result).toEqual({});
+  });
+
+  test('recommendationAPI.getRecommendationForPost', async () => {
+    mockGet.mockResolvedValue({ data: { score: 85 } });
+
+    const result = await recommendationAPI.getRecommendationForPost(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/post/123');
+    expect(result).toEqual({ score: 85 });
+  });
+
+  test('recommendationAPI.getRecommendationForPost handles error', async () => {
+    mockGet.mockRejectedValue(new Error('Not found'));
+
+    const result = await recommendationAPI.getRecommendationForPost(999);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/post/999');
+    expect(result).toBeNull();
+  });
+
+  test('recommendationAPI.getTopRecommendations with default minScore', async () => {
+    mockGet.mockResolvedValue({ data: [{ id: 1 }, { id: 2 }] });
+
+    const result = await recommendationAPI.getTopRecommendations([1, 2, 3]);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/top', {
+      params: {
+        minScore: 50,
+        postIds: '1,2,3',
+      },
+    });
+    expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  test('recommendationAPI.getTopRecommendations with custom minScore', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const result = await recommendationAPI.getTopRecommendations([1, 2, 3], 75);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/top', {
+      params: {
+        minScore: 75,
+        postIds: '1,2,3',
+      },
+    });
+    expect(result).toEqual([]);
+  });
+
+  test('recommendationAPI.getTopRecommendations handles error', async () => {
+    mockGet.mockRejectedValue(new Error('Server error'));
+
+    const result = await recommendationAPI.getTopRecommendations([1, 2], 60);
+
+    expect(mockGet).toHaveBeenCalledWith('/recommendations/top', {
+      params: { postIds: '1,2', minScore: 60 },
+    });
+    expect(result).toEqual([]);
+  });
+
+  test('recommendationAPI.getTopRecommendations with empty postIds', async () => {
+    const result = await recommendationAPI.getTopRecommendations([]);
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result).toEqual({});
+  });
+
+  // userAPI tests
+  test('userAPI.getProfile', async () => {
+    mockGet.mockResolvedValue({ data: { id: 1, name: 'John' } });
+
+    const resp = await userAPI.getProfile(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/users/123');
+    expect(resp).toEqual({ data: { id: 1, name: 'John' } });
+  });
+
+  test('userAPI.updateProfile', async () => {
+    mockPut.mockResolvedValue({ data: { id: 1 } });
+
+    const formData = new FormData();
+    const resp = await userAPI.updateProfile(formData);
+
+    expect(mockPut).toHaveBeenCalledWith('/users/update', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('userAPI.updatePassword', async () => {
+    mockPut.mockResolvedValue({ data: { success: true } });
+
+    const data = { oldPassword: 'old', newPassword: 'new' };
+    const resp = await userAPI.updatePassword(data);
+
+    expect(mockPut).toHaveBeenCalledWith('/users/update-password', data);
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  // profileAPI tests
+  test('profileAPI.get', async () => {
+    mockGet.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await profileAPI.get();
+
+    expect(mockGet).toHaveBeenCalledWith('/profile');
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('profileAPI.update', async () => {
+    mockPut.mockResolvedValue({ data: { id: 1 } });
+
+    const data = { name: 'Updated' };
+    const resp = await profileAPI.update(data);
+
+    expect(mockPut).toHaveBeenCalledWith('/profile', data);
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('profileAPI.updateOnboarding', async () => {
+    mockPut.mockResolvedValue({ data: { onboardingCompleted: true } });
+
+    const data = { onboardingCompleted: true };
+    const resp = await profileAPI.updateOnboarding(data);
+
+    expect(mockPut).toHaveBeenCalledWith('/profile/onboarding', data);
+    expect(resp).toEqual({ data: { onboardingCompleted: true } });
+  });
+
+  // reportAPI tests
+  test('reportAPI.createReport', async () => {
+    mockPost.mockResolvedValue({ data: { id: 1 } });
+
+    const reportData = {
+      reportedUserId: 123,
+      donationId: 456,
+      description: 'Test report',
+      photoEvidenceUrl: 'http://example.com/photo.jpg',
+    };
+    const resp = await reportAPI.createReport(reportData);
+
+    expect(mockPost).toHaveBeenCalledWith('/reports', {
+      reportedId: 123,
+      donationId: 456,
+      description: 'Test report',
+      imageUrl: 'http://example.com/photo.jpg',
+    });
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  // feedbackAPI tests
+  test('feedbackAPI.submitFeedback', async () => {
+    mockPost.mockResolvedValue({ data: { id: 1 } });
+
+    const payload = { rating: 5, comment: 'Great!' };
+    const resp = await feedbackAPI.submitFeedback(payload);
+
+    expect(mockPost).toHaveBeenCalledWith('/feedback', payload);
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('feedbackAPI.getFeedbackForClaim', async () => {
+    mockGet.mockResolvedValue({ data: { rating: 5 } });
+
+    const resp = await feedbackAPI.getFeedbackForClaim(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/feedback/claim/123');
+    expect(resp).toEqual({ data: { rating: 5 } });
+  });
+
+  test('feedbackAPI.getMyRating', async () => {
+    mockGet.mockResolvedValue({ data: { averageRating: 4.5 } });
+
+    const resp = await feedbackAPI.getMyRating();
+
+    expect(mockGet).toHaveBeenCalledWith('/feedback/my-rating');
+    expect(resp).toEqual({ data: { averageRating: 4.5 } });
+  });
+
+  test('feedbackAPI.getUserRating', async () => {
+    mockGet.mockResolvedValue({ data: { rating: 4.8 } });
+
+    const resp = await feedbackAPI.getUserRating(456);
+
+    expect(mockGet).toHaveBeenCalledWith('/feedback/rating/456');
+    expect(resp).toEqual({ data: { rating: 4.8 } });
+  });
+
+  test('feedbackAPI.canProvideFeedback', async () => {
+    mockGet.mockResolvedValue({ data: { can: true } });
+
+    const resp = await feedbackAPI.canProvideFeedback(789);
+
+    expect(mockGet).toHaveBeenCalledWith('/feedback/can-review/789');
+    expect(resp).toEqual({ data: { can: true } });
+  });
+
+  test('feedbackAPI.getPendingFeedback', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const resp = await feedbackAPI.getPendingFeedback();
+
+    expect(mockGet).toHaveBeenCalledWith('/feedback/pending');
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('feedbackAPI.getMyReviews', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const resp = await feedbackAPI.getMyReviews();
+
+    expect(mockGet).toHaveBeenCalledWith('/feedback/my-reviews');
+    expect(resp).toEqual({ data: [] });
+  });
+
+  // adminDisputeAPI tests
+  test('adminDisputeAPI.getAllDisputes with no filters', async () => {
+    mockGet.mockResolvedValue({ data: { content: [] } });
+
+    const resp = await adminDisputeAPI.getAllDisputes();
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('/admin/disputes?')
+    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('page=0'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('size=20'));
+    expect(resp).toEqual({ data: { content: [] } });
+  });
+
+  test('adminDisputeAPI.getAllDisputes with filters', async () => {
+    mockGet.mockResolvedValue({ data: { content: [] } });
+
+    const filters = { status: 'OPEN', page: 1, size: 10 };
+    const resp = await adminDisputeAPI.getAllDisputes(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('status=OPEN')
+    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('page=1'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('size=10'));
+    expect(resp).toEqual({ data: { content: [] } });
+  });
+
+  test('adminDisputeAPI.getDisputeById', async () => {
+    mockGet.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await adminDisputeAPI.getDisputeById(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/admin/disputes/123');
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('adminDisputeAPI.updateDisputeStatus', async () => {
+    mockPut.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await adminDisputeAPI.updateDisputeStatus(
+      123,
+      'RESOLVED',
+      'Fixed'
+    );
+
+    expect(mockPut).toHaveBeenCalledWith('/admin/disputes/123/status', {
+      status: 'RESOLVED',
+      adminNotes: 'Fixed',
+    });
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  // adminDonationAPI tests
+  test('adminDonationAPI.getAllDonations with minimal filters', async () => {
+    mockGet.mockResolvedValue({ data: { content: [] } });
+
+    const resp = await adminDonationAPI.getAllDonations();
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('/admin/donations?')
+    );
+    expect(resp).toEqual({ data: { content: [] } });
+  });
+
+  test('adminDonationAPI.getAllDonations with all filters', async () => {
+    mockGet.mockResolvedValue({ data: { content: [] } });
+
+    const filters = {
+      status: 'COMPLETED',
+      donorId: 1,
+      receiverId: 2,
+      flagged: true,
+      fromDate: '2026-01-01',
+      toDate: '2026-01-31',
+      search: 'food',
+      page: 2,
+      size: 50,
+    };
+    const resp = await adminDonationAPI.getAllDonations(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('status=COMPLETED')
+    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('donorId=1'));
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('receiverId=2')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('flagged=true')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('fromDate=2026-01-01')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('toDate=2026-01-31')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('search=food')
+    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('page=2'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('size=50'));
+    expect(resp).toEqual({ data: { content: [] } });
+  });
+
+  test('adminDonationAPI.getDonationById', async () => {
+    mockGet.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await adminDonationAPI.getDonationById(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/admin/donations/123');
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  test('adminDonationAPI.overrideStatus', async () => {
+    mockPost.mockResolvedValue({ data: { id: 1 } });
+
+    const resp = await adminDonationAPI.overrideStatus(
+      123,
+      'COMPLETED',
+      'Admin override'
+    );
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/admin/donations/123/override-status',
+      {
+        newStatus: 'COMPLETED',
+        reason: 'Admin override',
+      }
+    );
+    expect(resp).toEqual({ data: { id: 1 } });
+  });
+
+  // adminVerificationAPI tests
+  test('adminVerificationAPI.getPendingUsers with no filters', async () => {
+    mockGet.mockResolvedValue({ data: { content: [] } });
+
+    const resp = await adminVerificationAPI.getPendingUsers();
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('/admin/pending-users?')
+    );
+    expect(resp).toEqual({ data: { content: [] } });
+  });
+
+  test('adminVerificationAPI.getPendingUsers with all filters', async () => {
+    mockGet.mockResolvedValue({ data: { content: [] } });
+
+    const filters = {
+      userType: 'DONOR',
+      search: 'food bank',
+      sortBy: 'date',
+      sortOrder: 'desc',
+      page: 1,
+      size: 10,
+    };
+    const resp = await adminVerificationAPI.getPendingUsers(filters);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('userType=DONOR')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('search=food+bank')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('sortBy=date')
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      expect.stringContaining('sortOrder=desc')
+    );
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('page=1'));
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('size=10'));
+    expect(resp).toEqual({ data: { content: [] } });
+  });
+
+  test('adminVerificationAPI.approveUser', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await adminVerificationAPI.approveUser(123);
+
+    expect(mockPost).toHaveBeenCalledWith('/admin/approve/123');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('adminVerificationAPI.verifyEmail', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await adminVerificationAPI.verifyEmail(123);
+
+    expect(mockPost).toHaveBeenCalledWith('/admin/verify-email/123');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('adminVerificationAPI.rejectUser', async () => {
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    const resp = await adminVerificationAPI.rejectUser(
+      123,
+      'Invalid documents',
+      'Please resubmit'
+    );
+
+    expect(mockPost).toHaveBeenCalledWith('/admin/reject/123', {
+      reason: 'Invalid documents',
+      message: 'Please resubmit',
+    });
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  test('conversationAPI.markAsRead', async () => {
+    mockPut.mockResolvedValue({ data: { success: true } });
+    const resp = await conversationAPI.markAsRead(91);
+
+    expect(mockPut).toHaveBeenCalledWith('/conversations/91/read');
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  // notificationPreferencesAPI tests
+  test('notificationPreferencesAPI.getPreferences', async () => {
+    mockGet.mockResolvedValue({ data: { email: true } });
+
+    const resp = await notificationPreferencesAPI.getPreferences();
+
+    expect(mockGet).toHaveBeenCalledWith('/user/notifications/preferences');
+    expect(resp).toEqual({ data: { email: true } });
+  });
+
+  test('notificationPreferencesAPI.updatePreferences', async () => {
+    mockPut.mockResolvedValue({ data: { success: true } });
+
+    const data = { email: false };
+    const resp = await notificationPreferencesAPI.updatePreferences(data);
+
+    expect(mockPut).toHaveBeenCalledWith(
+      '/user/notifications/preferences',
+      data
+    );
+    expect(resp).toEqual({ data: { success: true } });
+  });
+
+  // gamificationAPI tests
+  test('gamificationAPI.getUserStats', async () => {
+    mockGet.mockResolvedValue({ data: { points: 100 } });
+
+    const resp = await gamificationAPI.getUserStats(123);
+
+    expect(mockGet).toHaveBeenCalledWith('/gamification/users/123/stats');
+    expect(resp).toEqual({ data: { points: 100 } });
+  });
+
+  test('gamificationAPI.getAllAchievements', async () => {
+    mockGet.mockResolvedValue({ data: [] });
+
+    const resp = await gamificationAPI.getAllAchievements();
+
+    expect(mockGet).toHaveBeenCalledWith('/gamification/achievements');
+    expect(resp).toEqual({ data: [] });
+  });
+
+  test('gamificationAPI.getLeaderboard', async () => {
+    mockGet.mockResolvedValue({ data: [{ userId: 1, points: 100 }] });
+
+    const resp = await gamificationAPI.getLeaderboard('DONOR');
+
+    expect(mockGet).toHaveBeenCalledWith('/gamification/leaderboard/DONOR');
+    expect(resp).toEqual({ data: [{ userId: 1, points: 100 }] });
+  });
+
+  // support/rate-limit/impact API tests
+  test('supportChatAPI.sendMessage', async () => {
+    mockPost.mockResolvedValue({ data: { reply: 'ok' } });
+
+    const resp = await supportChatAPI.sendMessage('hello', '/receiver/browse');
+
+    expect(mockPost).toHaveBeenCalledWith('/support/chat', {
+      message: 'hello',
+      pageContext: '/receiver/browse',
+    });
+    expect(resp).toEqual({ data: { reply: 'ok' } });
+  });
+
+  test('rateLimitAPI methods', async () => {
+    mockGet
+      .mockResolvedValueOnce({ data: { totalRequests: 10 } })
+      .mockResolvedValueOnce({ data: { status: 'OK' } });
+
+    const statsResp = await rateLimitAPI.getStats();
+    const statusResp = await rateLimitAPI.getUserStatus();
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/admin/rate-limit-stats');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/admin/my-rate-limit');
+    expect(statsResp).toEqual({ data: { totalRequests: 10 } });
+    expect(statusResp).toEqual({ data: { status: 'OK' } });
+  });
+
+  test('impactDashboardAPI.getMetrics uses default range', async () => {
+    mockGet.mockResolvedValue({ data: { mealsSaved: 20 } });
+
+    const resp = await impactDashboardAPI.getMetrics();
+
+    expect(mockGet).toHaveBeenCalledWith('/impact-dashboard/metrics', {
+      params: { dateRange: 'ALL_TIME' },
+    });
+    expect(resp).toEqual({ data: { mealsSaved: 20 } });
+  });
+
+  test('impactDashboardAPI.exportMetrics sets blob response type', async () => {
+    mockGet.mockResolvedValue({ data: new Blob(['csv']) });
+
+    const resp = await impactDashboardAPI.exportMetrics('MONTHLY');
+
+    expect(mockGet).toHaveBeenCalledWith('/impact-dashboard/export', {
+      params: { dateRange: 'MONTHLY' },
+      responseType: 'blob',
+    });
+    expect(resp.data).toBeInstanceOf(Blob);
+  });
+});

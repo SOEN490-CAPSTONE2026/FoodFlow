@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.entity.DonationTimeline;
 import com.example.foodflow.model.entity.SurplusPost;
 import com.example.foodflow.model.types.PostStatus;
@@ -8,27 +7,22 @@ import com.example.foodflow.service.BusinessMetricsService;
 import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
-
 /**
  * Service for managing donation timeline events.
  * Centralizes timeline event creation to ensure consistency across the application.
  */
 @Service
 public class TimelineService {
-    
     private final DonationTimelineRepository timelineRepository;
     private final BusinessMetricsService businessMetricsService;
     private final Clock clock;
-    
     public TimelineService(DonationTimelineRepository timelineRepository, BusinessMetricsService businessMetricsService, Clock clock) {
         this.timelineRepository = timelineRepository;
         this.businessMetricsService = businessMetricsService;
         this.clock = clock != null ? clock : Clock.systemUTC();
     }
-    
     /**
      * Creates a timeline event for a donation status change.
      * All timestamps are automatically set to UTC.
@@ -54,7 +48,6 @@ public class TimelineService {
             PostStatus newStatus,
             String details,
             Boolean visibleToUsers) {
-        
         DonationTimeline event = new DonationTimeline();
         event.setSurplusPost(post);
         event.setEventType(eventType);
@@ -65,13 +58,10 @@ public class TimelineService {
         event.setDetails(details);
         event.setVisibleToUsers(visibleToUsers != null ? visibleToUsers : true);
         event.setTimestamp(LocalDateTime.now(clock)); // UTC timestamp
-        
         DonationTimeline savedEvent = timelineRepository.save(event);
         businessMetricsService.incrementTimelineEventsCreated();
-        
         return savedEvent;
     }
-    
     /**
      * Convenience method for creating timeline events without old/new status tracking.
      * Useful for non-status-change events.
@@ -84,7 +74,6 @@ public class TimelineService {
             Long actorUserId,
             String details,
             Boolean visibleToUsers) {
-        
         return createTimelineEvent(post, eventType, actor, actorUserId, null, null, details, visibleToUsers);
     }
 }

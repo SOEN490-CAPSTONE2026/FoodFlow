@@ -1,5 +1,4 @@
 package com.example.foodflow.model.dto;
-
 import com.example.foodflow.model.types.DietaryTag;
 import com.example.foodflow.model.types.FoodCategory;
 import com.example.foodflow.model.types.FoodType;
@@ -21,29 +20,22 @@ import java.util.List;
 import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class CreateSurplusRequestValidationTest {
-
     private Validator validator;
     private ObjectMapper objectMapper;
-
     @BeforeEach
     void setUp() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
         objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     }
-
     @Test
     void shouldRejectDuplicateDietaryTags() {
         CreateSurplusRequest request = buildValidRequest();
         request.setDietaryTags(List.of(DietaryTag.VEGAN, DietaryTag.VEGAN));
-
         Set<ConstraintViolation<CreateSurplusRequest>> violations = validator.validate(request);
-
         assertThat(violations).anyMatch(v -> "validation.dietaryTags.unique".equals(v.getMessage()));
     }
-
     @Test
     void shouldRejectInvalidFoodTypeValueOnDeserialization() {
         String payload = """
@@ -62,12 +54,10 @@ class CreateSurplusRequestValidationTest {
                   "packagingType": "SEALED"
                 }
                 """;
-
         assertThatThrownBy(() -> objectMapper.readValue(payload, CreateSurplusRequest.class))
                 .isInstanceOf(Exception.class)
                 .hasMessageContaining("INVALID_TYPE");
     }
-
     @Test
     void shouldRejectInvalidDietaryTagValueOnDeserialization() {
         String payload = """
@@ -87,12 +77,10 @@ class CreateSurplusRequestValidationTest {
                   "packagingType": "SEALED"
                 }
                 """;
-
         assertThatThrownBy(() -> objectMapper.readValue(payload, CreateSurplusRequest.class))
                 .isInstanceOf(Exception.class)
                 .hasMessageContaining("INVALID_TAG");
     }
-
     private CreateSurplusRequest buildValidRequest() {
         CreateSurplusRequest request = new CreateSurplusRequest();
         request.setTitle("Valid");

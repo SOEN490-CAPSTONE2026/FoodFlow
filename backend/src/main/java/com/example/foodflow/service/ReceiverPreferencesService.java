@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.ReceiverPreferencesRequest;
 import com.example.foodflow.model.dto.ReceiverPreferencesResponse;
 import com.example.foodflow.model.entity.ReceiverPreferences;
@@ -9,16 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
-
 @Service
 public class ReceiverPreferencesService {
-    
     private final ReceiverPreferencesRepository preferencesRepository;
-
     public ReceiverPreferencesService(ReceiverPreferencesRepository preferencesRepository) {
         this.preferencesRepository = preferencesRepository;
     }
-    
     /**
      * Get preferences for a user
      */
@@ -27,7 +22,6 @@ public class ReceiverPreferencesService {
         return preferencesRepository.findByUserId(user.getId())
                 .map(ReceiverPreferencesResponse::new);
     }
-    
     /**
      * Create or update preferences for a user
      */
@@ -35,11 +29,9 @@ public class ReceiverPreferencesService {
     public ReceiverPreferencesResponse savePreferences(User user, ReceiverPreferencesRequest request) {
         // Validate the request
         request.validate();
-        
         // Check if preferences already exist
         ReceiverPreferences preferences = preferencesRepository.findByUserId(user.getId())
                 .orElse(new ReceiverPreferences(user));
-        
         // Update preferences
         preferences.setPreferredFoodTypes(request.getPreferredFoodTypes());
         preferences.setMaxCapacity(request.getMaxCapacity());
@@ -49,18 +41,14 @@ public class ReceiverPreferencesService {
         preferences.setAcceptRefrigerated(request.getAcceptRefrigerated());
         preferences.setAcceptFrozen(request.getAcceptFrozen());
         preferences.setPreferredDonationSizes(request.getPreferredDonationSizes());
-        
         // Update notification preferences if provided
         if (request.getNotificationPreferencesEnabled() != null) {
             preferences.setNotificationPreferencesEnabled(request.getNotificationPreferencesEnabled());
         }
-        
         // Save to database
         ReceiverPreferences saved = preferencesRepository.save(preferences);
-        
         return new ReceiverPreferencesResponse(saved);
     }
-    
     /**
      * Delete preferences for a user
      */
@@ -68,7 +56,6 @@ public class ReceiverPreferencesService {
     public void deletePreferences(User user) {
         preferencesRepository.deleteByUserId(user.getId());
     }
-    
     /**
      * Check if user has preferences set
      */
@@ -76,18 +63,15 @@ public class ReceiverPreferencesService {
     public boolean hasPreferences(User user) {
         return preferencesRepository.existsByUserId(user.getId());
     }
-    
     /**
      * Get preferences or create default ones
      */
     @Transactional
     public ReceiverPreferencesResponse getOrCreateDefaultPreferences(User user) {
         Optional<ReceiverPreferences> existing = preferencesRepository.findByUserId(user.getId());
-        
         if (existing.isPresent()) {
             return new ReceiverPreferencesResponse(existing.get());
         }
-        
         // Create default preferences
         ReceiverPreferences defaultPrefs = new ReceiverPreferences(user);
         defaultPrefs.setMaxCapacity(50); // Default capacity
@@ -96,7 +80,6 @@ public class ReceiverPreferencesService {
         defaultPrefs.setAcceptRefrigerated(true);
         defaultPrefs.setAcceptFrozen(true);
         defaultPrefs.setNotificationPreferencesEnabled(true); // Default to enabled
-        
         ReceiverPreferences saved = preferencesRepository.save(defaultPrefs);
         return new ReceiverPreferencesResponse(saved);
     }

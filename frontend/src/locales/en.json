@@ -102,6 +102,19 @@
     "infoPrefix": "You are reporting",
     "thisUser": "this user",
     "donationLinked": "This report will be linked to the donation.",
+    "quickOptionsLabel": "Quick report options",
+    "predefinedMessages": {
+      "noShow": {
+        "title": "Missed pickup / no-show",
+        "body": "Use this when the donor did not show up at the agreed time.",
+        "text": "The user did not show up for the scheduled pickup time."
+      },
+      "unsafeBehavior": {
+        "title": "Unsafe or inappropriate behavior",
+        "body": "Use this when the interaction felt unsafe, threatening, or inappropriate.",
+        "text": "The user displayed unsafe or inappropriate behavior during our interaction."
+      }
+    },
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Please describe what happened...",
     "photoLabel": "Photo Evidence (Optional)",
@@ -110,6 +123,10 @@
     "evidencePreviewAlt": "Evidence preview",
     "removePhoto": "Remove",
     "cancel": "Cancel",
+    "successTitle": "Report Submitted",
+    "successHeading": "Thanks for reporting this issue.",
+    "successCopy": "Your report was sent successfully. The FoodFlow team will review it and follow up if more details are needed.",
+    "done": "Done",
     "submitting": "Submitting...",
     "submit": "Submit Report"
   },
@@ -1264,7 +1281,7 @@
     "loading": "Loading your donations...",
     "sortByDate": "Sort by Date",
     "sortByStatus": "Sort by Status",
-    "createWithAI": "Create with AI",
+    "createWithAI": "Donate with AI",
     "donateMore": "Donate More",
     "emptyStateTitle": "You haven't posted anything yet",
     "emptyStateDescription": "Create your first donation post to start helping your community reduce food waste.",
@@ -1949,7 +1966,7 @@
     "days7": "7 Days",
     "days30": "30 Days",
     "allTime": "All Time",
-    "export": "Export CSV",
+    "export": "Export",
     "errorLoading": "Failed to load metrics",
     "loadError": "Failed to load impact metrics",
     "exportError": "Failed to export metrics",
@@ -3121,8 +3138,8 @@
   },
   "aiDonation": {
     "backToDashboard": "Back to Dashboard",
-    "title": "Create Donation with AI",
-    "subtitle": "Upload a label photo to automatically extract product details",
+    "title": "Donate with AI",
+    "subtitle": "Upload a label photo to generate donation details faster",
     "steps": {
       "upload": "Upload",
       "review": "Review",
@@ -3196,11 +3213,17 @@
     },
     "actions": {
       "skip": "Skip",
+      "cancelSkip": "Continue tutorial",
+      "confirmSkip": "Yes, skip tutorial",
       "back": "Back",
       "next": "Next",
       "finish": "Finish"
     },
     "stepProgress": "Step {{current}} of {{total}}",
+    "skipConfirmation": {
+      "title": "Skip this tutorial?",
+      "text": "You can replay it later from Help, but skipping now will close the guided walkthrough."
+    },
     "errors": {
       "saveFailed": "We could not save your tutorial progress. Please try again."
     },
@@ -3212,65 +3235,73 @@
     },
     "donor": {
       "steps": {
-        "dashboard": {
+        "welcome": {
           "title": "Welcome to FoodFlow",
-          "text": "This is your donor dashboard. From here, you can manage your donations and follow what happens next."
+          "text": "FoodFlow helps you share surplus food quickly. This short tour shows where to manage your account, create donations, and track your progress."
+        },
+        "dashboard": {
+          "title": "Dashboard overview",
+          "text": "Your dashboard gives you a quick summary of donation activity, requests, and impact so you can see what needs attention first."
+        },
+        "settings": {
+          "title": "Start with settings",
+          "text": "Review your settings early to choose your language, region, timezone, calendar options, and donation display preferences before you post food."
+        },
+        "createDonation": {
+          "title": "Create a donation",
+          "text": "Use this section to add a new food donation, fill in the details, and make it available for receivers to claim."
+        },
+        "openAiDonation": {
+          "title": "Open the AI donation option",
+          "text": "From the donate page, click this AI button when you want FoodFlow to help extract donation details from a food photo."
+        },
+        "aiDonation": {
+          "title": "Create a donation with AI",
+          "text": "If you have a food photo, the AI donation flow can extract details for you. Review the result before submitting so the final listing stays accurate."
+        },
+        "messages": {
+          "title": "Coordinate in messages",
+          "text": "Use messages to answer questions, confirm pickup details, and stay aligned with receivers after a donation is shared or claimed."
         },
         "impact": {
-          "title": "See your impact",
-          "text": "Your impact dashboard shows how much food you have saved and the difference your donations are making over time."
+          "title": "Review your impact dashboard",
+          "text": "Your impact dashboard helps you track donation results over time, including activity trends and the difference your donations are making."
         },
-        "postDonation": {
-          "title": "Post a donation",
-          "text": "Use this action to create a new food donation and make it available to receivers."
-        },
-        "chat": {
-          "title": "Chat with receivers",
-          "text": "Once a donation is claimed, you can use chat to coordinate pickup details and answer questions."
-        },
-        "pickup": {
-          "title": "Follow pickup progress",
-          "text": "Each donation moves through a pickup flow with statuses so you always know what stage it is in."
-        },
-        "setup": {
-          "title": "Set up your account",
-          "text": "Use Language & Region to choose your language, location, and timezone. Calendar Integration lets you sync FoodFlow pickups, and Display Preferences controls how your donation cards look."
+        "achievements": {
+          "title": "Achievements and progress",
+          "text": "Achievements are badges you unlock as you use FoodFlow. They help you track milestones, activity, and the positive impact of your donations over time."
         }
       }
     },
     "receiver": {
       "steps": {
-        "browse": {
-          "title": "Browse donations",
-          "text": "This is where you can explore available food donations and find items that match your needs."
+        "welcome": {
+          "title": "Welcome to FoodFlow",
+          "text": "FoodFlow helps you find and claim available food quickly. This short tour highlights the key places you will use most often."
         },
-        "saved": {
-          "title": "Saved donations",
-          "text": "Here you can quickly find donations you saved to review later."
+        "browse": {
+          "title": "Browse available donations",
+          "text": "Start here to explore available food, switch views, and find donations that match your needs."
         },
         "claims": {
-          "title": "Your claims",
-          "text": "This section shows the donations you’ve claimed and lets you track their progress."
+          "title": "Track your claims",
+          "text": "Your claims page shows the donations you have requested or claimed so you can follow each pickup from start to finish."
         },
-        "chat": {
-          "title": "Chat with donors",
-          "text": "Use chat to coordinate pickup details, ask questions, and stay updated with donors."
+        "messages": {
+          "title": "Stay in touch through messages",
+          "text": "Use messages to coordinate pickup details, ask follow-up questions, and keep communication with donors in one place."
         },
         "impact": {
-          "title": "Your impact dashboard",
-          "text": "This dashboard helps you track your activity, pickups, and overall impact on the platform."
-        },
-        "preferences": {
-          "title": "Preferences and matching",
-          "text": "Set your food preferences here so FoodFlow can recommend donations that better fit your needs."
+          "title": "Check your impact dashboard",
+          "text": "The impact dashboard summarizes your activity on FoodFlow so you can track how many pickups and actions you have completed over time."
         },
         "settings": {
-          "title": "Settings",
-          "text": "You can manage your account, replay the tutorial, and adjust platform options from here."
+          "title": "Check your settings early",
+          "text": "Use your account menu to open settings, manage your profile, and adjust preferences before you start claiming donations."
         },
-        "done": {
-          "title": "You’re ready",
-          "text": "That’s it — you’re ready to start using FoodFlow as a receiver."
+        "achievements": {
+          "title": "Understand achievements",
+          "text": "Achievements are badges for milestones such as claims, pickups, and activity on FoodFlow. They show your progress as you keep using the platform."
         }
       }
     }

@@ -1,5 +1,4 @@
 package com.example.foodflow.service;
-
 import com.example.foodflow.model.dto.ReferralRequest;
 import com.example.foodflow.model.dto.ReferralResponse;
 import com.example.foodflow.model.entity.Referral;
@@ -8,22 +7,17 @@ import com.example.foodflow.repository.ReferralRepository;
 import com.example.foodflow.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Service
 @Transactional
 public class ReferralService {
-
     private final ReferralRepository referralRepository;
     private final UserRepository userRepository;
-
     public ReferralService(ReferralRepository referralRepository, UserRepository userRepository) {
         this.referralRepository = referralRepository;
         this.userRepository = userRepository;
     }
-
     /**
      * Submit a new referral (community invite or business suggestion).
      *
@@ -34,7 +28,6 @@ public class ReferralService {
     public ReferralResponse submitReferral(ReferralRequest request, Long submitterId) {
         User submitter = userRepository.findById(submitterId)
                 .orElseThrow(() -> new RuntimeException("Submitter not found: " + submitterId));
-
         Referral referral = new Referral();
         referral.setSubmitter(submitter);
         referral.setReferralType(request.getReferralType());
@@ -42,11 +35,9 @@ public class ReferralService {
         referral.setContactEmail(request.getContactEmail());
         referral.setContactPhone(request.getContactPhone());
         referral.setMessage(request.getMessage());
-
         Referral saved = referralRepository.save(referral);
         return toResponse(saved);
     }
-
     /**
      * Get all referral submissions ordered by newest first (admin only).
      *
@@ -59,7 +50,6 @@ public class ReferralService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
-
     private ReferralResponse toResponse(Referral referral) {
         ReferralResponse response = new ReferralResponse();
         response.setId(referral.getId());

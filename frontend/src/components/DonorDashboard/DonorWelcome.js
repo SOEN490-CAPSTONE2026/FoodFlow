@@ -166,7 +166,7 @@ export default function DonorWelcome() {
   };
 
   return (
-    <div className="donor-welcome-page">
+    <div className="donor-welcome-page" data-tour="donor-dashboard-main">
       {/* Welcome Header */}
       <div className="welcome-header">
         <h1>

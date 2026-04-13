@@ -1,5 +1,4 @@
 package com.example.foodflow.exception.domain;
-
 /**
  * Exception thrown when a message is not found.
  */

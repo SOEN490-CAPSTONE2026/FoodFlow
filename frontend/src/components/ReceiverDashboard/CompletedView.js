@@ -109,11 +109,9 @@ const CompletedView = ({
   const handleReportSubmit = async reportData => {
     try {
       await reportAPI.createReport(reportData);
-      alert('Report submitted successfully! An admin will review it shortly.');
-      setShowReportModal(false);
     } catch (error) {
       console.error('Failed to submit report:', error);
-      alert('Failed to submit report. Please try again.');
+      throw new Error('Failed to submit report. Please try again.');
     }
   };
 

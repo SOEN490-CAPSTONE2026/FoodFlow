@@ -1,5 +1,4 @@
 package com.example.foodflow.controller;
-
 import com.example.foodflow.model.dto.MessageHistoryResponse;
 import com.example.foodflow.model.dto.MessageRequest;
 import com.example.foodflow.model.dto.MessageResponse;
@@ -10,19 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
-    
     private final MessageService messageService;
-
     public MessageController(MessageService messageService) {
         this.messageService = messageService;
     }
-    
     /**
      * Send message via REST (alternative to WebSocket)
      */
@@ -33,7 +27,6 @@ public class MessageController {
         MessageResponse response = messageService.sendMessage(request, sender);
         return ResponseEntity.ok(response);
     }
-    
     /**
      * Mark a specific message as read
      */
@@ -44,7 +37,6 @@ public class MessageController {
         messageService.markAsRead(messageId, currentUser);
         return ResponseEntity.ok().build();
     }
-    
     /**
      * Get unread message count for current user
      */
@@ -54,7 +46,6 @@ public class MessageController {
         long count = messageService.getUnreadCount(currentUser);
         return ResponseEntity.ok(Map.of("unreadCount", count));
     }
-
        /**
      * Get paginated message history for a specific donation post
      */
@@ -69,5 +60,4 @@ public class MessageController {
         );
         return ResponseEntity.ok(response);
     }
-
 }

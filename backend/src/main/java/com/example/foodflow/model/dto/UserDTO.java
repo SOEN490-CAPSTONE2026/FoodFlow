@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
-
 @Data //handles getters, setters, toString, equals, and hashCode
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -24,7 +23,6 @@ public class UserDTO {
     private String languagePreference;
     private Boolean emailNotificationsEnabled;
     private Boolean smsNotificationsEnabled;
-
     public static UserDTO toDTO(com.example.foodflow.model.entity.User user) {
         if (user == null) return null;
         UserDTO dto = new UserDTO();
@@ -39,7 +37,6 @@ public class UserDTO {
         dto.setSmsNotificationsEnabled(user.getSmsNotificationsEnabled());
         return dto;
     }
-
     public static UserDTO toDTOWithoutOrganization(com.example.foodflow.model.entity.User user) {
         if (user == null) return null;
         UserDTO dto = new UserDTO();

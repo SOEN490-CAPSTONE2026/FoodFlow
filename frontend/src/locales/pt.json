@@ -1208,7 +1208,7 @@
     "loading": "Carregando suas doações...",
     "sortByDate": "Ordenar por data",
     "sortByStatus": "Ordenar por status",
-    "createWithAI": "Criar com IA",
+    "createWithAI": "Doar com IA",
     "donateMore": "Doar mais",
     "emptyStateTitle": "Você ainda não publicou nada",
     "emptyStateDescription": "Crie sua primeira publicação de doação para começar a ajudar sua comunidade a reduzir o desperdício de alimentos.",
@@ -1861,7 +1861,7 @@
     "days7": "7 dias",
     "days30": "30 dias",
     "allTime": "Todo o período",
-    "export": "Exportar CSV",
+    "export": "Exportar",
     "errorLoading": "Falha ao carregar métricas",
     "loadError": "Falha ao carregar métricas de impacto",
     "exportError": "Falha ao exportar métricas",
@@ -2995,11 +2995,17 @@
     },
     "actions": {
       "skip": "Pular",
+      "cancelSkip": "Continuar tutorial",
+      "confirmSkip": "Sim, pular tutorial",
       "back": "Voltar",
       "next": "Próximo",
       "finish": "Concluir"
     },
     "stepProgress": "Etapa {{current}} de {{total}}",
+    "skipConfirmation": {
+      "title": "Pular este tutorial?",
+      "text": "Você poderá abri-lo novamente depois em Ajuda, mas pular agora fechará o guia."
+    },
     "errors": {
       "saveFailed": "Não foi possível salvar o progresso do tutorial. Tente novamente."
     },
@@ -3011,65 +3017,73 @@
     },
     "donor": {
       "steps": {
-        "dashboard": {
+        "welcome": {
           "title": "Bem-vindo ao FoodFlow",
-          "text": "Este é o seu painel de doador. A partir daqui, você pode gerenciar suas doações e acompanhar o que acontece depois."
+          "text": "O FoodFlow ajuda você a compartilhar excedentes de comida rapidamente. Este tour curto mostra onde gerenciar sua conta, criar doações e acompanhar seu progresso."
+        },
+        "dashboard": {
+          "title": "Visão geral do painel",
+          "text": "Seu painel mostra rapidamente a atividade das doações, solicitações e impacto para que você veja primeiro o que precisa de atenção."
+        },
+        "settings": {
+          "title": "Comece pelas configurações",
+          "text": "Revise suas configurações logo no início para escolher idioma, região, fuso horário, opções de calendário e preferências de exibição antes de publicar alimentos."
+        },
+        "createDonation": {
+          "title": "Criar uma doação",
+          "text": "Use esta seção para adicionar uma nova doação de alimentos, preencher os detalhes e deixá-la disponível para os receptores."
+        },
+        "openAiDonation": {
+          "title": "Abra a opção de doação com IA",
+          "text": "Na página de doação, clique neste botão de IA quando quiser que o FoodFlow ajude a extrair os detalhes de uma foto de alimento."
+        },
+        "aiDonation": {
+          "title": "Doar com IA",
+          "text": "Se você tiver uma foto do alimento, o fluxo com IA pode extrair os detalhes para você. Revise o resultado antes de enviar para manter o anúncio preciso."
+        },
+        "messages": {
+          "title": "Coordene pelas mensagens",
+          "text": "Use as mensagens para responder perguntas, confirmar detalhes da retirada e manter o alinhamento com os receptores depois que uma doação for compartilhada ou reivindicada."
         },
         "impact": {
-          "title": "Veja seu impacto",
-          "text": "Seu painel de impacto mostra quanto alimento você salvou e a diferença que suas doações estão fazendo ao longo do tempo."
+          "title": "Revise seu painel de impacto",
+          "text": "Seu painel de impacto ajuda a acompanhar os resultados das doações ao longo do tempo, incluindo tendências de atividade e a diferença que você está gerando."
         },
-        "postDonation": {
-          "title": "Publicar uma doação",
-          "text": "Use esta ação para criar uma nova doação de alimentos e disponibilizá-la para os receptores."
-        },
-        "chat": {
-          "title": "Conversar com receptores",
-          "text": "Depois que uma doação for reivindicada, você pode usar o chat para coordenar a retirada e responder a perguntas."
-        },
-        "pickup": {
-          "title": "Acompanhar o progresso da retirada",
-          "text": "Cada doação passa por um fluxo de retirada com status para que você sempre saiba em que etapa ela está."
-        },
-        "setup": {
-          "title": "Configure sua conta",
-          "text": "Use Idioma e região para escolher seu idioma, localização e fuso horário. A integração com calendário sincroniza as retiradas do FoodFlow, e as preferências de exibição controlam como seus cartões de doação aparecem."
+        "achievements": {
+          "title": "Conquistas e progresso",
+          "text": "As conquistas são badges que você desbloqueia ao usar o FoodFlow. Elas ajudam a acompanhar marcos, atividade e o impacto positivo das suas doações ao longo do tempo."
         }
       }
     },
     "receiver": {
       "steps": {
-        "browse": {
-          "title": "Explorar doações",
-          "text": "Aqui você pode explorar as doações de alimentos disponíveis e encontrar itens que atendam às suas necessidades."
+        "welcome": {
+          "title": "Bem-vindo ao FoodFlow",
+          "text": "O FoodFlow ajuda você a encontrar e solicitar alimentos disponíveis rapidamente. Este tour curto destaca as áreas que você usará com mais frequência."
         },
-        "saved": {
-          "title": "Doações salvas",
-          "text": "Aqui você encontra rapidamente as doações que salvou para revisar mais tarde."
+        "browse": {
+          "title": "Explorar doações disponíveis",
+          "text": "Comece aqui para explorar alimentos disponíveis, alternar visualizações e encontrar doações que atendam às suas necessidades."
         },
         "claims": {
-          "title": "Suas solicitações",
-          "text": "Esta seção mostra as doações que você reivindicou e permite acompanhar o progresso delas."
+          "title": "Acompanhe suas solicitações",
+          "text": "A página de solicitações mostra as doações pedidas ou reivindicadas para que você acompanhe cada retirada do início ao fim."
         },
-        "chat": {
-          "title": "Conversar com doadores",
-          "text": "Use o chat para coordenar detalhes da retirada, fazer perguntas e se manter atualizado com os doadores."
+        "messages": {
+          "title": "Fique em contato pelas mensagens",
+          "text": "Use as mensagens para coordenar a retirada, fazer perguntas de acompanhamento e manter a comunicação com os doadores em um só lugar."
         },
         "impact": {
-          "title": "Seu painel de impacto",
-          "text": "Este painel ajuda você a acompanhar sua atividade, retiradas e impacto geral na plataforma."
-        },
-        "preferences": {
-          "title": "Preferências e correspondência",
-          "text": "Defina aqui suas preferências alimentares para que o FoodFlow recomende doações que combinem melhor com suas necessidades."
+          "title": "Confira seu painel de impacto",
+          "text": "O painel de impacto resume sua atividade no FoodFlow para que você acompanhe quantas retiradas e ações concluiu ao longo do tempo."
         },
         "settings": {
-          "title": "Configurações",
-          "text": "Você pode gerenciar sua conta, repetir o tutorial e ajustar opções da plataforma a partir daqui."
+          "title": "Revise as configurações cedo",
+          "text": "Use o menu da conta para abrir as configurações, gerenciar seu perfil e ajustar preferências antes de começar a reivindicar doações."
         },
-        "done": {
-          "title": "Você está pronto",
-          "text": "É isso — você está pronto para começar a usar o FoodFlow como receptor."
+        "achievements": {
+          "title": "Entenda as conquistas",
+          "text": "As conquistas são badges por marcos como solicitações, retiradas e atividade no FoodFlow. Elas mostram seu progresso enquanto você continua usando a plataforma."
         }
       }
     }
