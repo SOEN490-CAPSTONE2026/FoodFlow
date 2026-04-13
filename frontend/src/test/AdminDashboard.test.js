@@ -272,4 +272,16 @@ describe('AdminDashboard', () => {
       expect(screen.getByTestId('admin-home')).toBeInTheDocument();
     });
   });
+
+  describe('All Admin Components', () => {
+    test('renders users route', () => {
+      renderWithRouter('/admin/users');
+      expect(screen.getByTestId('admin-users')).toBeInTheDocument();
+    });
+
+    test('renders money-donations route', () => {
+      renderWithRouter('/admin/money-donations');
+      expect(screen.getByTestId('admin-money-donations')).toBeInTheDocument();
+    });
+  });
 });

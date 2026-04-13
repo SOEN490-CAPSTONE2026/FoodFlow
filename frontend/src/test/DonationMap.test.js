@@ -283,4 +283,205 @@ describe('DonationMap', () => {
       expect(screen.getByTestId('google-map')).toBeInTheDocument();
     });
   });
+
+  describe('Distance Radius Updates', () => {
+    it('updates circle radius when distanceRadius prop changes', () => {
+      const { rerender } = render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      let circles = screen.getAllByTestId('circle');
+      expect(circles[0]).toHaveAttribute('data-radius', '10000');
+
+      rerender(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={20}
+        />
+      );
+
+      circles = screen.getAllByTestId('circle');
+      expect(circles[0]).toHaveAttribute('data-radius', '20000');
+    });
+  });
+
+  describe('Donation Updates', () => {
+    it('updates markers when donations change', () => {
+      const { rerender } = render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      let markers = screen.getAllByTestId(/^marker-/);
+      const initialMarkerCount = markers.length;
+
+      const additionalDonations = [
+        ...mockDonations,
+        {
+          id: 3,
+          title: 'Dairy Products',
+          pickupLocation: {
+            latitude: 45.5,
+            longitude: -73.55,
+          },
+        },
+      ];
+
+      rerender(
+        <DonationMap
+          donations={additionalDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      markers = screen.getAllByTestId(/^marker-/);
+      expect(markers.length).toBeGreaterThan(initialMarkerCount);
+    });
+  });
+
+  describe('Loading States', () => {
+    it('transitions from loading to loaded', () => {
+      const { rerender } = render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={false}
+          distanceRadius={10}
+        />
+      );
+
+      expect(screen.getByText('Loading Google Maps...')).toBeInTheDocument();
+
+      rerender(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      expect(
+        screen.queryByText('Loading Google Maps...')
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId('google-map')).toBeInTheDocument();
+    });
+  });
+
+  describe('Card Rendering', () => {
+    it('renders map container with controls', () => {
+      render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      // Verify map container is rendered
+      expect(screen.getByTestId('google-map')).toBeInTheDocument();
+
+      // Verify recenter button exists
+      const recenterButton = screen.getByRole('button', { name: /recenter/i });
+      expect(recenterButton).toBeInTheDocument();
+    });
+  });
+
+  describe('Complex Scenarios', () => {
+    it('handles donations with same coordinates as user', () => {
+      const donationsAtUserLocation = [
+        {
+          id: 1,
+          title: 'Donation Same Location',
+          pickupLocation: {
+            latitude: 45.5017,
+            longitude: -73.5673,
+          },
+        },
+      ];
+
+      render(
+        <DonationMap
+          donations={donationsAtUserLocation}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      const markers = screen.getAllByTestId(/^marker-/);
+      expect(markers.length).toBeGreaterThan(0);
+    });
+
+    it('handles very large distance radius', () => {
+      render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={100}
+        />
+      );
+
+      const circles = screen.getAllByTestId('circle');
+      expect(circles[0]).toHaveAttribute('data-radius', '100000');
+    });
+
+    it('handles multiple resets and updates', () => {
+      const { rerender } = render(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={10}
+        />
+      );
+
+      // First update
+      rerender(
+        <DonationMap
+          donations={[]}
+          userLocation={mockUserLocation}
+          isLoaded={true}
+          distanceRadius={15}
+        />
+      );
+
+      // Second update
+      rerender(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={null}
+          isLoaded={true}
+          distanceRadius={20}
+        />
+      );
+
+      // Third update
+      rerender(
+        <DonationMap
+          donations={mockDonations}
+          userLocation={mockUserLocation}
+          isLoaded={false}
+          distanceRadius={10}
+        />
+      );
+
+      expect(screen.getByText('Loading Google Maps...')).toBeInTheDocument();
+    });
+  });
 });

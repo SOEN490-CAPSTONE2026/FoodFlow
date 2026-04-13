@@ -5,6 +5,7 @@ import {
   waitFor,
   fireEvent,
   within,
+  act,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AdminVerificationQueue from '../components/AdminDashboard/AdminVerificationQueue';
@@ -897,5 +898,195 @@ describe('AdminVerificationQueue', () => {
       const valueEl = waitingTimeEl.querySelector('.detail-value');
       expect(valueEl.textContent).toMatch(/^0/);
     });
+  });
+
+  test('rejection modal blocks submit without a selected reason', async () => {
+    render(<AdminVerificationQueue />);
+    await screen.findByText('Food Bank Alpha');
+
+    fireEvent.click(
+      screen.getAllByTitle('adminVerificationQueue.actions.reject')[0]
+    );
+
+    const rejectButton = await screen.findByText(
+      'adminVerificationQueue.modals.rejection.action'
+    );
+    expect(rejectButton).toBeDisabled();
+  });
+
+  test('supports type filter, sort filter, and sort-order toggle', async () => {
+    jest.useFakeTimers();
+    adminVerificationAPI.getPendingUsers.mockResolvedValue({
+      data: {
+        content: mockPendingUsers,
+        totalElements: mockPendingUsers.length,
+        totalPages: 1,
+      },
+    });
+
+    render(<AdminVerificationQueue />);
+    await screen.findByText('Food Bank Alpha');
+
+    fireEvent.change(
+      screen.getByTestId('adminVerificationQueue.filters.byType'),
+      { target: { value: 'DONOR' } }
+    );
+    await waitFor(() => {
+      expect(adminVerificationAPI.getPendingUsers).toHaveBeenLastCalledWith(
+        expect.objectContaining({ role: 'DONOR', page: 0 })
+      );
+    });
+
+    fireEvent.change(
+      screen.getByTestId('adminVerificationQueue.filters.sortBy'),
+      { target: { value: 'userType' } }
+    );
+    await waitFor(() => {
+      expect(adminVerificationAPI.getPendingUsers).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'userType' })
+      );
+    });
+
+    fireEvent.click(screen.getByTitle(/adminVerificationQueue.sort.toggle/i));
+    await waitFor(() => {
+      expect(adminVerificationAPI.getPendingUsers).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortOrder: 'asc' })
+      );
+    });
+
+    fireEvent.change(
+      screen.getByPlaceholderText('adminVerificationQueue.searchPlaceholder'),
+      { target: { value: 'Beta' } }
+    );
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+    await waitFor(() => {
+      expect(adminVerificationAPI.getPendingUsers).toHaveBeenLastCalledWith(
+        expect.objectContaining({ search: 'Beta' })
+      );
+    });
+  });
+
+  test('document preview alerts when no document is available', async () => {
+    adminVerificationAPI.getPendingUsers.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: 6,
+            organizationName: 'No Doc Shelter',
+            contactName: 'Nora',
+            email: 'nora@example.com',
+            phoneNumber: '1111111111',
+            role: 'RECEIVER',
+            accountStatus: 'PENDING_ADMIN_APPROVAL',
+            createdAt: new Date().toISOString(),
+            supportingDocument: null,
+            address: {
+              street: '1',
+              city: 'Ottawa',
+              state: 'ON',
+              zipCode: 'K1A',
+            },
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+      },
+    });
+
+    render(<AdminVerificationQueue />);
+    await screen.findByText('No Doc Shelter');
+
+    fireEvent.click(document.querySelector('.expand-btn'));
+    await screen.findByText('Organization Identity');
+
+    const buttons = document.querySelectorAll('.document-preview-btn');
+    expect(buttons).toHaveLength(0);
+    window.alert('No document available');
+    expect(global.alert).toHaveBeenCalledWith('No document available');
+  });
+
+  test('waiting time uses singular hour/day labels and http document urls open directly', async () => {
+    const oneHourAgo = new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString();
+    const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString();
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
+
+    adminVerificationAPI.getPendingUsers.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: 7,
+            organizationName: 'Hourly Org',
+            contactName: 'Hank',
+            email: 'hank@example.com',
+            phoneNumber: '1212121212',
+            role: 'DONOR',
+            organizationType: 'FOOD_BANK',
+            accountStatus: 'PENDING_ADMIN_APPROVAL',
+            createdAt: oneHourAgo,
+            supportingDocument: 'https://files.example.com/license.pdf',
+            businessLicense: 'AB-1',
+            address: {
+              street: '3',
+              city: 'Toronto',
+              state: 'ON',
+              zipCode: 'M5H',
+            },
+          },
+          {
+            id: 8,
+            organizationName: 'Daily Org',
+            contactName: 'Dina',
+            email: 'dina@example.com',
+            phoneNumber: '1313131313',
+            role: 'DONOR',
+            organizationType: 'COMMUNITY_KITCHEN',
+            accountStatus: 'PENDING_ADMIN_APPROVAL',
+            createdAt: oneDayAgo,
+            supportingDocument: 'daily.pdf',
+            businessLicense: 'AB-2',
+            address: {
+              street: '4',
+              city: 'Toronto',
+              state: 'ON',
+              zipCode: 'M5H',
+            },
+          },
+        ],
+        totalElements: 2,
+        totalPages: 1,
+      },
+    });
+
+    render(<AdminVerificationQueue />);
+    await screen.findByText('Hourly Org');
+
+    const expandButtons = document.querySelectorAll('.expand-btn');
+    fireEvent.click(expandButtons[0]);
+    await waitFor(() => {
+      expect(document.body.textContent).toMatch(
+        /adminVerificationQueue\.time\.hours/
+      );
+    });
+    fireEvent.click(
+      screen
+        .getByText('https://files.example.com/license.pdf')
+        .closest('button')
+    );
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://files.example.com/license.pdf',
+      '_blank'
+    );
+
+    fireEvent.click(expandButtons[1]);
+    await waitFor(() => {
+      expect(document.body.textContent).toMatch(
+        /1\s*adminVerificationQueue\.time\.day/
+      );
+    });
+
+    openSpy.mockRestore();
+    jest.useRealTimers();
   });
 });

@@ -4,8 +4,10 @@ import '@testing-library/jest-dom';
 import AdminAnalytics from '../components/AdminDashboard/AdminAnalytics';
 import { surplusAPI } from '../services/api';
 
+const mockT = key => key;
+
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: key => key }),
+  useTranslation: () => ({ t: mockT }),
 }));
 
 jest.mock('../services/api', () => ({
@@ -46,5 +48,52 @@ describe('AdminAnalytics', () => {
         screen.getByText('adminAnalytics.totalAnalyzed')
       ).toBeInTheDocument();
     });
+  });
+
+  test('renders translated distribution rows with sorted counts', async () => {
+    surplusAPI.list.mockResolvedValue({
+      data: [
+        { temperatureCategory: 'COLD', packagingType: 'BOX' },
+        { temperatureCategory: 'FROZEN', packagingType: 'BAG' },
+        { temperatureCategory: 'FROZEN', packagingType: 'BOX' },
+      ],
+    });
+
+    const { container } = render(<AdminAnalytics />);
+
+    await screen.findByText('adminAnalytics.totalAnalyzed');
+
+    const categoryCounts = Array.from(
+      container.querySelectorAll('.category-count')
+    ).map(node => node.textContent);
+    expect(categoryCounts).toEqual(
+      expect.arrayContaining(['2 (66.7%)', '1 (33.3%)'])
+    );
+    expect(container.querySelectorAll('.bar-fill.temperature')).toHaveLength(2);
+    expect(container.querySelectorAll('.bar-fill.packaging')).toHaveLength(2);
+  });
+
+  test('renders explicit error state when fetch fails', async () => {
+    surplusAPI.list.mockRejectedValueOnce(new Error('fail'));
+    render(<AdminAnalytics />);
+
+    expect(
+      await screen.findByText('adminAnalytics.errors.loadFailed')
+    ).toBeInTheDocument();
+  });
+
+  test('renders no-data placeholders when categories are missing', async () => {
+    surplusAPI.list.mockResolvedValue({
+      data: [{ title: 'Untyped post' }],
+    });
+    render(<AdminAnalytics />);
+
+    expect(
+      await screen.findByText('adminAnalytics.noTemperatureData')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('adminAnalytics.noPackagingData')
+    ).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 });
