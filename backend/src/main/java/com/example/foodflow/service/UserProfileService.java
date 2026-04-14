@@ -170,20 +170,26 @@ public class UserProfileService {
                 o.setUser(user);
                 return o;
             });
-            if (request.getOrganizationName() != null && !request.getOrganizationName().trim().isEmpty()) {
-                boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
-                        user, org, "name", request.getOrganizationName());
-                if (!intercepted) {
-                    org.setName(request.getOrganizationName());
-                }
-            }
-            if (addressValue != null && !addressValue.trim().isEmpty()) {
-                boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
-                        user, org, "address", addressValue);
-                if (!intercepted) {
-                    org.setAddress(addressValue);
-                }
-            }
+            if (request.getOrganizationName() != null
+        && !request.getOrganizationName().trim().isEmpty()
+        && !request.getOrganizationName().equals(org.getName())) {
+    boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
+            user, org, "name", request.getOrganizationName());
+    if (!intercepted) {
+        org.setName(request.getOrganizationName());
+    }
+}
+System.out.println("DEBUG addressValue=[" + addressValue + "] org.getAddress()=[" + org.getAddress() + "] equals=" + (addressValue != null && addressValue.equals(org.getAddress())));
+if (addressValue != null
+        && !addressValue.trim().isEmpty()
+        && !addressValue.equals(org.getAddress())) {
+    boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
+            user, org, "address", addressValue);
+    if (!intercepted) {
+        org.setAddress(addressValue);
+    }
+}
+        
             // Non-sensitive fields — save directly
             if (request.getFullName() != null) {
                 org.setContactPerson(request.getFullName());

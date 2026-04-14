@@ -47,12 +47,17 @@ public class ProfileChangeService {
                                                  String newValue) {
 
         if (!registry.isSensitive("ORGANIZATION", fieldName)) {
-            return false;
-        }
+    return false;
+}
 
-        String oldValue = organization != null
-                ? extractOldValue(organization, fieldName)
-                : null;
+String oldValue = organization != null
+        ? extractOldValue(organization, fieldName)
+        : null;
+
+// Skip if the value hasn't actually changed
+if (oldValue != null && oldValue.equals(newValue)) {
+    return false;
+}
 
         Optional<ProfileChangeRequest> existingPending =
                 repository.findByUser_IdAndEntityTypeAndFieldNameAndStatus(
