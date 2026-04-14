@@ -302,4 +302,16 @@ public class NotificationService {
         // Must start with +, followed by 1-15 digits
         return phone.matches("^\\+[1-9]\\d{1,14}$");
     }
+
+    public void sendProfileChangeNotification(User user, String message) {
+    Map<String, Object> notification = new HashMap<>();
+    notification.put("type", "PROFILE_CHANGE");
+    notification.put("message", message);
+    notification.put("timestamp", System.currentTimeMillis());
+    messagingTemplate.convertAndSendToUser(
+            user.getId().toString(),
+            "/queue/notifications",
+            notification
+    );
+}
 }

@@ -4,28 +4,44 @@ import com.example.foodflow.model.dto.UpdateOnboardingRequest;
 import com.example.foodflow.model.dto.UpdateProfileRequest;
 import com.example.foodflow.model.dto.UpdateRegionRequest;
 import com.example.foodflow.model.dto.UserProfileResponse;
+import com.example.foodflow.model.dto.PendingChangeDTO;
+import com.example.foodflow.model.entity.ChangeStatus;
 import com.example.foodflow.model.entity.Organization;
+import com.example.foodflow.model.entity.ProfileChangeRequest;
 import com.example.foodflow.model.entity.User;
 import com.example.foodflow.repository.OrganizationRepository;
+import com.example.foodflow.repository.ProfileChangeRequestRepository;
 import com.example.foodflow.repository.UserRepository;
 import com.example.foodflow.util.TimezoneResolver;
 import com.example.foodflow.service.BusinessMetricsService;
 import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 import java.util.regex.Pattern;
 /**
  * Service for managing user profile settings including region and timezone.
  */
 @Service
 public class UserProfileService {
+
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
     private final BusinessMetricsService businessMetricsService;
-    public UserProfileService(UserRepository userRepository, OrganizationRepository organizationRepository, BusinessMetricsService businessMetricsService) {
+    private final ProfileChangeService profileChangeService;
+    private final ProfileChangeRequestRepository profileChangeRequestRepository;
+
+    public UserProfileService(UserRepository userRepository,
+                              OrganizationRepository organizationRepository,
+                              BusinessMetricsService businessMetricsService,
+                              ProfileChangeService profileChangeService,
+                              ProfileChangeRequestRepository profileChangeRequestRepository) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.businessMetricsService = businessMetricsService;
+        this.profileChangeService = profileChangeService;
+        this.profileChangeRequestRepository = profileChangeRequestRepository;
     }
     /**
      * Updates user's region settings (country, city) and automatically resolves timezone.
@@ -48,13 +64,17 @@ public class UserProfileService {
         } else {
             timezone = TimezoneResolver.resolveTimezone(request.getCity(), request.getCountry());
         }
+
         user.setCountry(request.getCountry());
         user.setCity(request.getCity());
         user.setTimezone(timezone);
+
         userRepository.save(user);
         businessMetricsService.incrementRegionSettingsUpdates();
+
         return buildRegionResponse(user);
     }
+
     /**
      * Gets current region settings for a user.
      */
@@ -80,7 +100,6 @@ public class UserProfileService {
             response.setOrganizationName(org.getName());
             response.setOrganizationAddress(org.getAddress());
             response.setAddress(org.getAddress());
-            // Fallback: use org contact info if user fields are empty
             if (response.getFullName() == null && org.getContactPerson() != null) {
                 response.setFullName(org.getContactPerson());
             }
@@ -102,10 +121,16 @@ public class UserProfileService {
                 }
             });
         }
+
+        // Attach pending/rejected state for sensitive fields
+        attachPendingState(user, response);
+
         return response;
     }
+
     /**
      * Updates user profile data.
+     * Sensitive fields (name, address) are intercepted and submitted for admin approval.
      */
     @Transactional
     @Timed(value = "userprofile.service.updateProfile", description = "Time taken to update user profile")
@@ -145,12 +170,27 @@ public class UserProfileService {
                 o.setUser(user);
                 return o;
             });
-            if (request.getOrganizationName() != null) {
-                org.setName(request.getOrganizationName());
-            }
-            if (addressValue != null) {
-                org.setAddress(addressValue);
-            }
+            if (request.getOrganizationName() != null
+        && !request.getOrganizationName().trim().isEmpty()
+        && !request.getOrganizationName().equals(org.getName())) {
+    boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
+            user, org, "name", request.getOrganizationName());
+    if (!intercepted) {
+        org.setName(request.getOrganizationName());
+    }
+}
+System.out.println("DEBUG addressValue=[" + addressValue + "] org.getAddress()=[" + org.getAddress() + "] equals=" + (addressValue != null && addressValue.equals(org.getAddress())));
+if (addressValue != null
+        && !addressValue.trim().isEmpty()
+        && !addressValue.equals(org.getAddress())) {
+    boolean intercepted = profileChangeService.handleOrganizationFieldUpdate(
+            user, org, "address", addressValue);
+    if (!intercepted) {
+        org.setAddress(addressValue);
+    }
+}
+        
+            // Non-sensitive fields — save directly
             if (request.getFullName() != null) {
                 org.setContactPerson(request.getFullName());
             }
@@ -168,6 +208,62 @@ public class UserProfileService {
         userRepository.save(user);
         return getProfile(user);
     }
+
+    /**
+     * Attaches pending and last rejected state for sensitive org fields to the response.
+     */
+    private void attachPendingState(User user, UserProfileResponse response) {
+        boolean anyPending = false;
+
+        // name
+        Optional<ProfileChangeRequest> pendingName =
+                profileChangeRequestRepository.findByUser_IdAndEntityTypeAndFieldNameAndStatus(
+                        user.getId(), "ORGANIZATION", "name", ChangeStatus.PENDING);
+        if (pendingName.isPresent()) {
+            PendingChangeDTO dto = new PendingChangeDTO();
+            dto.setNewValue(pendingName.get().getNewValue());
+            dto.setStatus("PENDING");
+            response.setPendingOrganizationName(dto);
+            anyPending = true;
+        }
+
+        // address
+        Optional<ProfileChangeRequest> pendingAddress =
+                profileChangeRequestRepository.findByUser_IdAndEntityTypeAndFieldNameAndStatus(
+                        user.getId(), "ORGANIZATION", "address", ChangeStatus.PENDING);
+        if (pendingAddress.isPresent()) {
+            PendingChangeDTO dto = new PendingChangeDTO();
+            dto.setNewValue(pendingAddress.get().getNewValue());
+            dto.setStatus("PENDING");
+            response.setPendingOrganizationAddress(dto);
+            anyPending = true;
+        }
+
+        response.setOrganizationChangePending(anyPending);
+
+        // last rejected name
+profileChangeRequestRepository
+        .findTopByUser_IdAndEntityTypeAndFieldNameAndStatusOrderByReviewedAtDesc(
+                user.getId(), "ORGANIZATION", "name", ChangeStatus.REJECTED)
+        .ifPresent(req -> {
+            PendingChangeDTO dto = new PendingChangeDTO();
+            dto.setNewValue(req.getNewValue());
+            dto.setStatus("REJECTED");
+            response.setLastRejectedOrganizationName(dto);
+        });
+
+// last rejected address
+profileChangeRequestRepository
+        .findTopByUser_IdAndEntityTypeAndFieldNameAndStatusOrderByReviewedAtDesc(
+                user.getId(), "ORGANIZATION", "address", ChangeStatus.REJECTED)
+        .ifPresent(req -> {
+            PendingChangeDTO dto = new PendingChangeDTO();
+            dto.setNewValue(req.getNewValue());
+            dto.setStatus("REJECTED");
+            response.setLastRejectedOrganizationAddress(dto);
+        });
+    }
+
     /**
      * Builds a RegionResponse DTO from a User entity.
      */

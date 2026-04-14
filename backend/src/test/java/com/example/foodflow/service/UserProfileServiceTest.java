@@ -22,6 +22,16 @@ class UserProfileServiceTest {
     private UserRepository userRepository;
     @Mock
     private BusinessMetricsService businessMetricsService;
+
+    @Mock
+    private com.example.foodflow.repository.OrganizationRepository organizationRepository;
+
+    @Mock
+    private ProfileChangeService profileChangeService;
+
+    @Mock
+    private com.example.foodflow.repository.ProfileChangeRequestRepository profileChangeRequestRepository;
+    
     @InjectMocks
     private UserProfileService userProfileService;
     private User testUser;
@@ -159,8 +169,7 @@ class UserProfileServiceTest {
         assertEquals("America/Vancouver", testUser.getTimezone());
     }
     // --- tests for updateProfile ---
-    @Mock
-    private com.example.foodflow.repository.OrganizationRepository organizationRepository;
+
     @Test
     void updateProfile_SuccessfulUpdate_ShouldPersistFields() {
         UpdateProfileRequest req = new UpdateProfileRequest();
